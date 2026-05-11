@@ -28,6 +28,7 @@ namespace UkiyoDesigns.Utility
         public static string InstagramLink => GetEnvOrDefault("Social__Instagram", "");
         public static string FacebookLink => GetEnvOrDefault("Social__Facebook", "");
         public static string EvalmonLink => GetEnvOrDefault("Social__Evalmon", "");
+        public static string SiteUrl => GetEnvOrDefault("SiteUrl", "https://ukiyo.com.ar");
 
         private static string GetEnvOrDefault(string key, string defaultValue)
         {

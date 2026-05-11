@@ -9,7 +9,34 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>@ViewData["Title"] Ukiyo</title>
+	@{
+		var currentUrl = $"{SD.SiteUrl}{Context.Request.Path}";
+		var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
+	}
+	<title>@ViewData["Title"] - Ukiyo</title>
+	<meta name="description" content="@ViewData["Description"]" />
+	<meta name="keywords" content="@ViewData["Keywords"]" />
+	<meta name="robots" content="@ViewData["Robots"]" />
+	<link rel="canonical" href="@currentUrl" />
+	<link rel="alternate" hreflang="es-AR" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
+	<link rel="alternate" hreflang="en-US" href="@($"{SD.SiteUrl}/en-US{Context.Request.Path}")" />
+	<link rel="alternate" hreflang="x-default" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
+
+	<meta property="og:title" content="@ViewData["Title"] - Ukiyo" />
+	<meta property="og:description" content="@ViewData["Description"]" />
+	<meta property="og:image" content="@ViewData["OgImage"]" />
+	<meta property="og:url" content="@currentUrl" />
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Ukiyo" />
+	<meta property="og:locale" content="@(culture == "es-AR" ? "es_AR" : "en_US")" />
+
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@@ukiyo designs" />
+	<meta name="twitter:title" content="@ViewData["Title"] - Ukiyo" />
+	<meta name="twitter:description" content="@ViewData["Description"]" />
+	<meta name="twitter:image" content="@ViewData["OgImage"]" />
+
 	<link rel="icon" type="image/png" href="~/flor-de-cerezo.png" />
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
