@@ -49,62 +49,6 @@ namespace UkiyoDesigns.DataAccess.Data
 
 			base.OnModelCreating(modelBuilder);
 
-			modelBuilder.Entity<Category>().HasData(
-				new Category { Id = 1, Name = "Backpack", MaxExpectation = 40, AvgShippingCost = 10000 },
-				new Category { Id = 2, Name = "PhoneHolder", MaxExpectation = 150, AvgShippingCost = 3500 },
-				new Category { Id = 3, Name = "Jacket", MaxExpectation = 80, AvgShippingCost = 5000 }
-				);
-			modelBuilder.Entity<Company>().HasData(
-				new Company { Id = 1, Name = "Hola Mundo", StreetAddress = "España 2022", State = "Illinois", City = "Florida", PostalCode = "2022", PhoneNumber = "251645468" },
-				new Company { Id = 2, Name = "Moure dev", StreetAddress = "madrid 200", State = "nos vimos", City = "jupiter", PostalCode = "200", PhoneNumber = "3333" },
-				new Company { Id = 3, Name = "MiduDev", StreetAddress = "francias segundo", State = "madagastar", City = "marte", PostalCode = "101", PhoneNumber = "222222" }
-				);
-			modelBuilder.Entity<Product>().HasData(
-				new Product
-				{
-					Id = 1,
-					Name = "Reconnaissance legion",
-					Description = "BackPack inspired in the reconnaissance legion of Attack On Titan",
-					FinalRetailPrice = 34900,
-					FinalWholesalePrice = 18390,
-					CategoryId = 1
-
-				},
-				new Product
-				{
-					Id = 2,
-					Name = "Akkatsuki Litle Bag",
-					Description = "Little Bag inspired in the criminal organization of shinoby in Naruto series",
-					FinalRetailPrice = 44900,
-					FinalWholesalePrice = 26567,
-					CategoryId = 2
-				},
-				new Product
-				{
-					Id = 3,
-					Name = "Haikyu Hoodie ",
-					Description = "Hooded sweatshirt inspired in the indumentary used by the Karasuno Team on Haikyu animated series",
-					FinalRetailPrice = 43234,
-					FinalWholesalePrice = 30060.78m,
-					CategoryId = 3
-				}
-				);
-			modelBuilder.Entity<GarmentHardwareByProduct>().HasData(
-				new GarmentHardwareByProduct { Id = 1, ProductId = 1 },
-				new GarmentHardwareByProduct { Id = 2, ProductId = 2 },
-				new GarmentHardwareByProduct { Id = 3, ProductId = 3 }
-				);
-			modelBuilder.Entity<FabricByProduct>().HasData(
-				new FabricByProduct { Id = 1, ProductId = 1 },
-				new FabricByProduct { Id = 2, ProductId = 2 },
-				new FabricByProduct { Id = 3, ProductId = 3 }
-				);
-			modelBuilder.Entity<PackagingByCategory>().HasData(
-				new PackagingByCategory { Id = 1, CategoryId = 1 },
-				new PackagingByCategory { Id = 2, CategoryId = 2 },
-				new PackagingByCategory { Id = 3, CategoryId = 3 }
-				);
-
 			modelBuilder.Entity<PercentageProfit>().HasData(
 				new PercentageProfit
 				{
