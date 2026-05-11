@@ -1,16 +1,12 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using UkiyoDesigns.DataAccess.DbInitializer;
-
-
 
 #nullable disable
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace UkiyoDesigns.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class initialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -443,6 +439,32 @@ namespace UkiyoDesigns.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FavoriteProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FavoriteProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FavoriteProducts_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FavoriteProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderHeaders",
                 columns: table => new
                 {
@@ -604,26 +626,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Categories",
-                columns: new[] { "Id", "AvgShippingCost", "IsDeleted", "MaxExpectation", "Name" },
-                values: new object[,]
-                {
-                    { 1, 10000m, false, 40, "Backpack" },
-                    { 2, 3500m, false, 150, "PhoneHolder" },
-                    { 3, 5000m, false, 80, "Jacket" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Companies",
-                columns: new[] { "Id", "City", "Name", "PhoneNumber", "PostalCode", "State", "StreetAddress" },
-                values: new object[,]
-                {
-                    { 1, "Florida", "Hola Mundo", "251645468", "2022", "Illinois", "España 2022" },
-                    { 2, "jupiter", "Moure dev", "3333", "200", "nos vimos", "madrid 200" },
-                    { 3, "marte", "MiduDev", "222222", "101", "madagastar", "francias segundo" }
-                });
-
-            migrationBuilder.InsertData(
                 table: "FixedCosts",
                 columns: new[] { "Id", "Cost", "Description", "Name" },
                 values: new object[] { 1, 20000m, null, "Municipal Taxes" });
@@ -637,46 +639,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                 table: "PercentageProfits",
                 columns: new[] { "Id", "Retail", "Wholesale" },
                 values: new object[] { 1, 5m, 5m });
-
-            migrationBuilder.InsertData(
-                table: "PackagingsByCategory",
-                columns: new[] { "Id", "CategoryId", "TotalPackagingByCategory" },
-                values: new object[,]
-                {
-                    { 1, 1, 0.0m },
-                    { 2, 2, 0.0m },
-                    { 3, 3, 0.0m }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Products",
-                columns: new[] { "Id", "CategoryId", "Description", "FinalRetailPrice", "FinalWholesalePrice", "IsAvailableInStore", "IsDeleted", "ListPrice", "Name" },
-                values: new object[,]
-                {
-                    { 1, 1, "BackPack inspired in the reconnaissance legion of Attack On Titan", 34900m, 18390m, false, false, 0m, "Reconnaissance legion" },
-                    { 2, 2, "Little Bag inspired in the criminal organization of shinoby in Naruto series", 44900m, 26567m, false, false, 0m, "Akkatsuki Litle Bag" },
-                    { 3, 3, "Hooded sweatshirt inspired in the indumentary used by the Karasuno Team on Haikyu animated series", 43234m, 30060.78m, false, false, 0m, "Haikyu Hoodie " }
-                });
-
-            migrationBuilder.InsertData(
-                table: "FabricsByProduct",
-                columns: new[] { "Id", "ProductId", "TotalFabricByProduct" },
-                values: new object[,]
-                {
-                    { 1, 1, 0.0m },
-                    { 2, 2, 0.0m },
-                    { 3, 3, 0.0m }
-                });
-
-            migrationBuilder.InsertData(
-                table: "GarmentHardwaresByProduct",
-                columns: new[] { "Id", "ProductId", "TotalGarmentHardwareByProduct" },
-                values: new object[,]
-                {
-                    { 1, 1, 0.0m },
-                    { 2, 2, 0.0m },
-                    { 3, 3, 0.0m }
-                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -727,6 +689,16 @@ namespace UkiyoDesigns.DataAccess.Migrations
                 table: "FabricsByProduct",
                 column: "ProductId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FavoriteProducts_ApplicationUserId",
+                table: "FavoriteProducts",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FavoriteProducts_ProductId",
+                table: "FavoriteProducts",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GarmentHardwaresByProduct_ProductId",
@@ -819,24 +791,7 @@ namespace UkiyoDesigns.DataAccess.Migrations
                 name: "IX_UnitsPackagingByCategory_PackagingId",
                 table: "UnitsPackagingByCategory",
                 column: "PackagingId");
-			migrationBuilder.Sql(SqlScripts.View_UpdateFixedCost);
-			migrationBuilder.Sql(SqlScripts.View_UpdatePercentageCost);
-
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalFabric);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalGarmentHardware);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalPackaging);
-
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitPackaging_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalGarmentHardware_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalFabric_UnitsTable);
-
-			migrationBuilder.Sql(SqlScripts.TR_UpdateTotalPackagingByCategory);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateTotalFabricByProduct);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateTotalGarmentHardwareByProduct);
-
-			migrationBuilder.Sql(SqlScripts.View_CostByProduct);
-			migrationBuilder.Sql(SqlScripts.View_FinalPrice);
-		}
+        }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -855,6 +810,9 @@ namespace UkiyoDesigns.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "FavoriteProducts");
 
             migrationBuilder.DropTable(
                 name: "FixedCosts");
@@ -918,19 +876,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "Categories");
-
-			migrationBuilder.Sql(SqlScripts.Drop_View_UpdateFixedCost);
-			migrationBuilder.Sql(SqlScripts.Drop_View_CostByProduct);
-			migrationBuilder.Sql(SqlScripts.Drop_View_FinalPrice);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalFabric);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalGarmentHardware);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalPackaging);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitPackaging_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalFabric_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalGarmentHardware_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateTotalPackagingByCategory);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateTotalFabricByProduct);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateTotalGarmentHardwareByProduct);
-		}
+        }
     }
 }

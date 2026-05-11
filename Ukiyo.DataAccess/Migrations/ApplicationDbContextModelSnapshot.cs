@@ -282,26 +282,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("FabricsByProduct");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ProductId = 1,
-                            TotalFabricByProduct = 0.0m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ProductId = 2,
-                            TotalFabricByProduct = 0.0m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ProductId = 3,
-                            TotalFabricByProduct = 0.0m
-                        });
                 });
 
             modelBuilder.Entity("UkiyoDesigns.Models.CalculatorModels.FixedCost", b =>
@@ -388,26 +368,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("GarmentHardwaresByProduct");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ProductId = 1,
-                            TotalGarmentHardwareByProduct = 0.0m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ProductId = 2,
-                            TotalGarmentHardwareByProduct = 0.0m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ProductId = 3,
-                            TotalGarmentHardwareByProduct = 0.0m
-                        });
                 });
 
             modelBuilder.Entity("UkiyoDesigns.Models.CalculatorModels.Packaging", b =>
@@ -463,26 +423,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("PackagingsByCategory");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CategoryId = 1,
-                            TotalPackagingByCategory = 0.0m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CategoryId = 2,
-                            TotalPackagingByCategory = 0.0m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CategoryId = 3,
-                            TotalPackagingByCategory = 0.0m
-                        });
                 });
 
             modelBuilder.Entity("UkiyoDesigns.Models.CalculatorModels.PercentageCost", b =>
@@ -779,32 +719,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AvgShippingCost = 10000m,
-                            IsDeleted = false,
-                            MaxExpectation = 40,
-                            Name = "Backpack"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AvgShippingCost = 3500m,
-                            IsDeleted = false,
-                            MaxExpectation = 150,
-                            Name = "PhoneHolder"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            AvgShippingCost = 5000m,
-                            IsDeleted = false,
-                            MaxExpectation = 80,
-                            Name = "Jacket"
-                        });
                 });
 
             modelBuilder.Entity("UkiyoDesigns.Models.Company", b =>
@@ -837,38 +751,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Companies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            City = "Florida",
-                            Name = "Hola Mundo",
-                            PhoneNumber = "251645468",
-                            PostalCode = "2022",
-                            State = "Illinois",
-                            StreetAddress = "España 2022"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            City = "jupiter",
-                            Name = "Moure dev",
-                            PhoneNumber = "3333",
-                            PostalCode = "200",
-                            State = "nos vimos",
-                            StreetAddress = "madrid 200"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            City = "marte",
-                            Name = "MiduDev",
-                            PhoneNumber = "222222",
-                            PostalCode = "101",
-                            State = "madagastar",
-                            StreetAddress = "francias segundo"
-                        });
                 });
 
             modelBuilder.Entity("UkiyoDesigns.Models.FavoriteProduct", b =>
@@ -1039,44 +921,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CategoryId = 1,
-                            Description = "BackPack inspired in the reconnaissance legion of Attack On Titan",
-                            FinalRetailPrice = 34900m,
-                            FinalWholesalePrice = 18390m,
-                            IsAvailableInStore = false,
-                            IsDeleted = false,
-                            ListPrice = 0m,
-                            Name = "Reconnaissance legion"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CategoryId = 2,
-                            Description = "Little Bag inspired in the criminal organization of shinoby in Naruto series",
-                            FinalRetailPrice = 44900m,
-                            FinalWholesalePrice = 26567m,
-                            IsAvailableInStore = false,
-                            IsDeleted = false,
-                            ListPrice = 0m,
-                            Name = "Akkatsuki Litle Bag"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CategoryId = 3,
-                            Description = "Hooded sweatshirt inspired in the indumentary used by the Karasuno Team on Haikyu animated series",
-                            FinalRetailPrice = 43234m,
-                            FinalWholesalePrice = 30060.78m,
-                            IsAvailableInStore = false,
-                            IsDeleted = false,
-                            ListPrice = 0m,
-                            Name = "Haikyu Hoodie "
-                        });
                 });
 
             modelBuilder.Entity("UkiyoDesigns.Models.ProductImage", b =>
@@ -1340,7 +1184,7 @@ namespace UkiyoDesigns.DataAccess.Migrations
                         .IsRequired();
 
                     b.HasOne("UkiyoDesigns.Models.Product", "Product")
-                        .WithMany("FavoriteProducts")
+                        .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1455,8 +1299,6 @@ namespace UkiyoDesigns.DataAccess.Migrations
                 {
                     b.Navigation("FabricByProduct")
                         .IsRequired();
-
-                    b.Navigation("FavoriteProducts");
 
                     b.Navigation("GarmentHardwareByProduct")
                         .IsRequired();
