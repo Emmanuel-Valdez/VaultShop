@@ -122,9 +122,9 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			if (!_db.Categories.Any())
 			{
 				_db.Categories.AddRange(
-					new Category { Id = 1, Name = "Backpack", MaxExpectation = 40, AvgShippingCost = 10000 },
-					new Category { Id = 2, Name = "PhoneHolder", MaxExpectation = 150, AvgShippingCost = 3500 },
-					new Category { Id = 3, Name = "Jacket", MaxExpectation = 80, AvgShippingCost = 5000 }
+					new Category {  Name = "Backpack", MaxExpectation = 40, AvgShippingCost = 10000 },
+					new Category {  Name = "PhoneHolder", MaxExpectation = 150, AvgShippingCost = 3500 },
+					new Category {  Name = "Jacket", MaxExpectation = 80, AvgShippingCost = 5000 }
 				);
 				_db.SaveChanges();
 			}
@@ -132,9 +132,9 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			if (!_db.Companies.Any())
 			{
 				_db.Companies.AddRange(
-					new Company { Id = 1, Name = "Demo Company 1", StreetAddress = "Demo Street 1", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "1234567890" },
-					new Company { Id = 2, Name = "Demo Company 2", StreetAddress = "Demo Street 2", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "0987654321" },
-					new Company { Id = 3, Name = "Demo Company 3", StreetAddress = "Demo Street 3", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "1122334455" }
+					new Company {  Name = "Demo Company 1", StreetAddress = "Demo Street 1", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "1234567890" },
+					new Company { Name = "Demo Company 2", StreetAddress = "Demo Street 2", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "0987654321" },
+					new Company { Name = "Demo Company 3", StreetAddress = "Demo Street 3", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "1122334455" }
 				);
 				_db.SaveChanges();
 			}
@@ -142,26 +142,26 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			if (!_db.Products.Any())
 			{
 				_db.Products.AddRange(
-					new Product { Id = 1, Name = "Reconnaissance Legion", Description = "BackPack inspired in the reconnaissance legion of Attack On Titan", FinalRetailPrice = 34900, FinalWholesalePrice = 18390, CategoryId = 1 },
-					new Product { Id = 2, Name = "Akkatsuki Little Bag", Description = "Little Bag inspired in the criminal organization of shinoby in Naruto series", FinalRetailPrice = 44900, FinalWholesalePrice = 26567, CategoryId = 2 },
-					new Product { Id = 3, Name = "Haikyu Hoodie", Description = "Hooded sweatshirt inspired in the Karasuno Team on Haikyu", FinalRetailPrice = 43234, FinalWholesalePrice = 30060.78m, CategoryId = 3 }
+					new Product { Name = "Reconnaissance Legion", Description = "BackPack inspired in the reconnaissance legion of Attack On Titan", FinalRetailPrice = 34900, FinalWholesalePrice = 18390, CategoryId = 1 },
+					new Product { Name = "Akkatsuki Little Bag", Description = "Little Bag inspired in the criminal organization of shinoby in Naruto series", FinalRetailPrice = 44900, FinalWholesalePrice = 26567, CategoryId = 2 },
+					new Product { Name = "Haikyu Hoodie", Description = "Hooded sweatshirt inspired in the Karasuno Team on Haikyu", FinalRetailPrice = 43234, FinalWholesalePrice = 30060.78m, CategoryId = 3 }
 				);
 				_db.SaveChanges();
 
 				_db.GarmentHardwaresByProduct.AddRange(
-					new GarmentHardwareByProduct { Id = 1, ProductId = 1 },
-					new GarmentHardwareByProduct { Id = 2, ProductId = 2 },
-					new GarmentHardwareByProduct { Id = 3, ProductId = 3 }
+					new GarmentHardwareByProduct { ProductId = 1 },
+					new GarmentHardwareByProduct { ProductId = 2 },
+					new GarmentHardwareByProduct { ProductId = 3 }
 				);
 				_db.FabricsByProduct.AddRange(
-					new FabricByProduct { Id = 1, ProductId = 1 },
-					new FabricByProduct { Id = 2, ProductId = 2 },
-					new FabricByProduct { Id = 3, ProductId = 3 }
+					new FabricByProduct {  ProductId = 1 },
+					new FabricByProduct {  ProductId = 2 },
+					new FabricByProduct {  ProductId = 3 }
 				);
 				_db.PackagingsByCategory.AddRange(
-					new PackagingByCategory { Id = 1, CategoryId = 1 },
-					new PackagingByCategory { Id = 2, CategoryId = 2 },
-					new PackagingByCategory { Id = 3, CategoryId = 3 }
+					new PackagingByCategory {  CategoryId = 1 },
+					new PackagingByCategory {  CategoryId = 2 },
+					new PackagingByCategory {  CategoryId = 3 }
 				);
 				_db.SaveChanges();
 			}
