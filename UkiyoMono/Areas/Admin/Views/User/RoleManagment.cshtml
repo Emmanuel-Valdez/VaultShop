@@ -1,0 +1,63 @@
+﻿@model RoleManagmentVM
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary"> @Localizer["UserRoleManager"] </h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+
+		<form method="post">
+			<input asp-for="ApplicationUser.Id" hidden />
+			<div class="border p-3 ">
+				<div class="formform-floating py-2 col-12">
+					<input asp-for="ApplicationUser.Name"  readonly class="form-control border-0 shadow" />
+				</div>
+				<div class="formform-floating py-2 col-12">
+					<select asp-for="@Model.ApplicationUser.Role" asp-items="@Model.RoleList" class="form-select border-0 shadow"></select>
+				</div>
+				@{
+					var companyVisible = "display:none;";
+				}
+				@if (Model.ApplicationUser.Role == SD.Role_Company)
+				{
+					companyVisible = "display:block;";
+				}
+				<div class="formform-floating py-2 col-12">
+
+					<select asp-for="@Model.ApplicationUser.CompanyId" style="@companyVisible" asp-items="@Model.CompanyList" class="form-select border-0 shadow">
+					</select>
+				</div>
+
+				<div class="row pt-2">
+					<div class="col-6 col-md-3">
+						<button type="submit" class="btn btn-primary form-control">@Localizer["UpdateRole"]</button>
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-controller="User" asp-action="Index" class="btn btn-outline-primary border form-control">
+							@Localizer["BackToList"]
+						</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+
+	<script>
+		$(document).ready(function () {
+			$('#ApplicationUser_Role').change(function () {
+				var selection = $('#ApplicationUser_Role Option:Selected').text();
+				if (selection == 'Company') {
+					$('#ApplicationUser_CompanyId').show();
+				} else {
+					$('#ApplicationUser_CompanyId').hide();
+				}
+			})
+		})
+	</script>
+}

@@ -1,0 +1,27 @@
+﻿@page
+@model PersonalDataModel
+@{
+
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<h3>@Localizer["PersonalData"]</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <p>@Localizer["YourAccountContains"]. @Localizer["ThisPageAllowsYou"].</p>
+        <p>
+            <strong>@Localizer["DeletingThisData"].</strong>
+        </p>
+        <form id="download-data" asp-page="DownloadPersonalData" method="post">
+            <button class="btn btn-primary" type="submit">@Localizer["Download"]</button>
+        </form>
+        <p class="mt-2">
+            <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">@Localizer["Delete"]</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

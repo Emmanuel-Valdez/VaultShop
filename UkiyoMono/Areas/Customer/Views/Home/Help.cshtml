@@ -1,0 +1,41 @@
+﻿<div class="container my-5">
+	<h1 class="text-center mb-4">Instructivo:</h1>
+	<h2 class="text-center mb-4">Configuración de Productos y Cálculo de Precios </h2>
+	<h3 class="text-center mb-4">
+		Esta guía paso a paso te ayudará a configurar correctamente tus productos en nuestra plataforma y calcular sus precios de manera precisa.
+	</h3>
+	<ul class="nav nav-tabs" id="helpTabs" role="tablist">
+		<li class="nav-item" role="presentation">
+			<button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products"
+					type="button" role="tab" aria-controls="products" aria-selected="true">
+				Crear Productos
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="costs-tab" data-bs-toggle="tab" data-bs-target="#costs"
+					type="button" role="tab" aria-controls="costs" aria-selected="false">
+				Costos
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="finalPrices-tab" data-bs-toggle="tab" data-bs-target="#finalPrices"
+					type="button" role="tab" aria-controls="finalPrices" aria-selected="false">
+				Precios Finales
+			</button>
+		</li>
+	</ul>
+	<div class="tab-content mt-3" id="helpContent">
+		<div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
+			<partial name="_HelpProducts" />
+			
+		</div>
+		<div class="tab-pane fade" id="costs" role="tabpanel" aria-labelledby="costs-tab">
+			<partial name="_HelpCosts" />
+		</div>
+
+		<div class="tab-pane fade" id="finalPrices" role="tabpanel" aria-labelledby="finalPrices-tab">
+			<partial name="_HelpFinalPrices" />
+		</div>
+	</div>
+</div>	
+Usuarios / Ordenes / Mayoristas 

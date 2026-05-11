@@ -1,0 +1,40 @@
+﻿
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary text-center">@Localizer["Title"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row pb-3">
+			<div class="col-6">
+			</div>
+			<div class="col-6 text-end">
+				<a asp-controller="Product" asp-action="Upsert" class="btn btn-outline-primary">
+					<i class="bi bi-plus-circle"></i> @Localizer["Create"]
+				</a>
+			</div>
+		</div>
+
+		<table id="tblData" class="table table-bordered table-striped table-hover" style="width:100%">
+			<thead>
+				<tr>
+					<th>@Localizer["Id"]</th>
+					<th>@Localizer["ProductName"]</th>
+					<th>@Localizer["ListPrice"]</th>
+					<th>@Localizer["WholesalePrice"]</th>
+					<th>@Localizer["RetailPrice"]</th>
+					<th>@Localizer["CategoryName"]</th>
+					<th>@Localizer["Available"]</th>
+					<th></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+@section Scripts{
+	<script src="~/js/product.js"></script>
+}

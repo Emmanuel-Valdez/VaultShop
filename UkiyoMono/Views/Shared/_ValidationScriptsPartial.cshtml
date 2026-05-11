@@ -1,0 +1,27 @@
+﻿
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+@* <script src="~/lib/jquery-validation/localization/messages_es.js"></script> <!-- Español --> *@
+
+<script type="text/javascript">
+	if (culture == "es-AR") {
+		$.validator.methods.number = function (value, element) {
+			value = floatValue(value);
+			return this.optional(element) || !isNaN(value);
+		}
+		$.validator.methods.range = function (value, element, param) {
+			value = floatValue(value);
+			return this.optional(element) || (value >= param[0] && value <= param[1]);
+		}
+
+		function floatValue(value) {
+			if (value.indexOf(".") !== -1) {
+				return NaN; // Valor incorrecto si contiene un punto
+			}
+			return parseFloat(value.replace(",", "."));
+		}
+	} 
+	
+</script>
+

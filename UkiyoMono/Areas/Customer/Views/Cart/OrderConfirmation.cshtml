@@ -1,0 +1,18 @@
+﻿@model int
+
+<div class="containter row pt-4">
+	<div class="col-12 text-center">
+		<h1 class="text-primary text-center ">@Localizer["OrderPlaced"]</h1>
+		@Localizer["OrderNumber"] @Model <br /><br />
+		<img src="~/images/olasReduced.webp" width="65%"/>
+	</div> 
+	<div class="col-12 text-center pb-3">
+		<br />
+		@Localizer["Success"] 
+		<br />
+
+		<a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-primary  mt-3">
+		@Localizer["BackToHome"]
+	</a>
+	</div>
+</div>

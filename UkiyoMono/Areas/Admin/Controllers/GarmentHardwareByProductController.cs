@@ -1,0 +1,164 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Localization;
+using UkiyoDesigns.DataAccess.Repository.IRepository;
+using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.CalculatorModels;
+using UkiyoDesigns.Models.DTO;
+using UkiyoDesigns.Models.ViewModels;
+using UkiyoDesigns.Utility;
+
+namespace UkiyoDesignsWeb.Areas.Admin.Controllers
+{
+	[Area("Admin")]
+	[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+	public class GarmentHardwareByProductController : Controller
+	{
+
+		public readonly IUnitOfWork _unitOfWork;
+		private readonly IStringLocalizer<GarmentHardwareByProductController> _localizer;
+		[BindProperty]
+		public GarmentHardwareByProductVM GarmentHardwareByProductVM { get; set; }
+
+		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer)
+		{
+			_unitOfWork = unitOfWork;
+			_localizer= localizer;
+		}
+
+		public IActionResult Index()
+		{
+			return View();
+		}
+
+		public IActionResult Upsert(int id, int? unitId)
+		{
+			var unitFromDb = _unitOfWork.UnitGarmentHardwareByProduct
+					.Get(u => u.Id == unitId && u.ProductId == id);
+			// It is revised to avoid error when deleting while in the editing view
+			if (unitFromDb == null)
+			{
+				unitId = null;
+			}
+			GarmentHardwareByProductVM = new()
+			{
+				GarmentHardwareList = _unitOfWork.GarmentHardware.GetAll().Select(u => new SelectListItem
+				{
+					Text = u.Name,
+					Value = u.Id.ToString()
+				}),
+				GarmentHardwareByProduct = _unitOfWork.GarmentHardwareByProduct
+				.Get(u => u.ProductId == id, includeProperties: "Product,UnitGarmentHardwareByProductList"),
+			};
+			if (unitId == 0 || unitId == null)
+			{
+				//create
+				GarmentHardwareByProductVM.UnitGarmentHardwareByProduct = new();
+				GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.ProductId = GarmentHardwareByProductVM.GarmentHardwareByProduct.ProductId;
+			}
+			else
+			{
+				//update
+				GarmentHardwareByProductVM.UnitGarmentHardwareByProduct = unitFromDb;
+			}
+			return View(GarmentHardwareByProductVM);
+		}
+
+		[HttpPost]
+		public IActionResult Upsert()
+		{
+			if (!ModelState.IsValid)
+			{
+				return View(GarmentHardwareByProductVM);
+			}
+			try
+			{
+				var garmenthardwareFromDb = _unitOfWork.GarmentHardware
+				.Get(u => u.Id == GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.GarmentHardwareId);
+
+				var existingUnitGarmentHardware = _unitOfWork.UnitGarmentHardwareByProduct
+					.GetAll(u => u.ProductId == GarmentHardwareByProductVM.GarmentHardwareByProduct.ProductId)
+					.ToList();
+
+				GarmentHardwareByProductVM.GarmentHardwareByProduct.UnitGarmentHardwareByProductList = existingUnitGarmentHardware;
+
+				var unitGarmentHardwareToUpdate = GarmentHardwareByProductVM.GarmentHardwareByProduct.UnitGarmentHardwareByProductList
+						.FirstOrDefault(u => u.GarmentHardwareId == garmenthardwareFromDb.Id);
+
+				if (unitGarmentHardwareToUpdate == null)
+				{
+					GarmentHardwareByProductVM.GarmentHardwareByProduct.UnitGarmentHardwareByProductList.Add(GarmentHardwareByProductVM.UnitGarmentHardwareByProduct);
+					TempData["success"] = _localizer["UnitGarmentHardwareAddedSuccessfully"].Value;
+			    }
+				else
+				{
+					if (unitGarmentHardwareToUpdate.Id != GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.Id)
+					{
+						//change id 0 to existing Id
+						GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.Id = unitGarmentHardwareToUpdate.Id;
+					}
+					_unitOfWork.UpdateEntityValues(unitGarmentHardwareToUpdate, GarmentHardwareByProductVM.UnitGarmentHardwareByProduct);
+					TempData["success"] = _localizer["UnitGarmentHardwareUpdatedSuccessfully"].Value; 
+				}
+
+				
+				_unitOfWork.GarmentHardwareByProduct.Update(GarmentHardwareByProductVM.GarmentHardwareByProduct);
+				_unitOfWork.Save();
+
+
+				return RedirectToAction(nameof(Upsert), new { id = GarmentHardwareByProductVM.GarmentHardwareByProduct.ProductId });
+			}
+			catch (Exception ex)
+			{
+				TempData["error"] = _localizer["UnexpectedError"].Value;
+				Console.WriteLine(ex.ToString());
+				return View(GarmentHardwareByProductVM);
+			}
+		}
+
+		#region API CALLS
+
+		[HttpGet]
+		public IActionResult GetAllProducts()
+		{
+			List<Product> objProductList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false, includeProperties: "GarmentHardwareByProduct").ToList();
+			var productListDTOs = objProductList.Select(c => new ProductDTO
+			{
+				Id = c.Id,
+				Name = c.Name,
+				TotalByProduct = c.GarmentHardwareByProduct.TotalGarmentHardwareByProduct
+			}).ToList();
+			return Json(new { data = productListDTOs });
+		}
+		[HttpGet]
+		public IActionResult GetAllUnitGarmentHardwares(int productId)
+		{
+
+			List<UnitGarmentHardwareByProduct> objUnitGarmentHardwareByProducts = _unitOfWork.UnitGarmentHardwareByProduct
+				.GetAll(u => u.ProductId == productId, includeProperties: "GarmentHardware").ToList();
+
+			return Json(new { data = objUnitGarmentHardwareByProducts });
+
+		}
+		[HttpDelete]
+		public IActionResult Delete(int? id)
+		{
+			UnitGarmentHardwareByProduct unitToBeDeleted = _unitOfWork.UnitGarmentHardwareByProduct.Get(u => u.Id == id);
+			if (unitToBeDeleted == null)
+			{
+				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });
+			}
+			_unitOfWork.UnitGarmentHardwareByProduct.Remove(unitToBeDeleted);
+			_unitOfWork.Save();
+			return Json(new { success = true, message = _localizer["DeleteSuccesfully"].Value });
+		}
+
+		[HttpGet]
+		public IActionResult EditUnit(int unitId, int productId)
+		{
+			return RedirectToAction(nameof(Upsert), new { unitId = unitId, id = productId });
+		}
+		#endregion
+	}
+}

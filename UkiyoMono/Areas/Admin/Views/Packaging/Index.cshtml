@@ -1,0 +1,36 @@
+﻿
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary">@Localizer["PackagingList"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row pb-3">
+			<div class="col-6">
+			</div>
+			<div class="col-6 text-end">
+				<a asp-controller="Packaging" asp-action="Upsert" class="btn btn-outline-primary">
+					<i class="bi bi-plus-circle "></i> @Localizer["CreatePackaging"]
+				</a>
+			</div>
+		</div>
+
+		<table id="tblData" class="table table-bordered table-striped table-hover">
+			<thead>
+				<tr>
+					<th>@Localizer["Name"]</th>
+					<th>@Localizer["Price"]</th>
+					<th>@Localizer["Quantity"]</th>
+					<th>@Localizer["UnitPrice"]</th>
+					<th></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+@section Scripts {
+	<script src="~/js/packaging.js"></script>
+}

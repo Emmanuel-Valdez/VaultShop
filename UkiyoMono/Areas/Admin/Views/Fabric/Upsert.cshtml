@@ -1,0 +1,81 @@
+﻿@model Fabric
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary"> @(Model.Id != 0 ? Localizer["Update"] : @Localizer["Create"]) @Localizer["Fabric"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+
+		<form method="post">
+			<input asp-for="Id" hidden />
+			<div class="border p-3 ">
+				<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+				<div class="mb-3">
+					<div class="form-floating mb-3 col-md-12 shadow">
+						<input asp-for="Name" class="form-control" placeholder="Name" />
+						<label asp-for="Name" class="ms-2 text-muted">@Localizer["Name"]</label>
+					</div>
+					<span asp-validation-for="Name" class="text-danger py-2"></span>
+				</div>
+				<div class="mb-3 ">
+					<div class="mb-3 col-md-12 shadow">
+						<div class="input-group mb-3">
+							<span class="input-group-text text-dark">$</span>
+							<div class="form-floating">
+								<input asp-for="Price" class="form-control" placeholder="Price" />
+								<label asp-for="Price" class="ms-2 text-muted">@Localizer["Price"]</label>
+							</div>
+						</div>
+					</div>
+					<span asp-validation-for="Price" class="text-danger py-2"></span>
+				</div>
+				<div class="mb-3 ">
+					<div class="form-floating mb-3 col-md-12 shadow">
+						<input asp-for="Quantity" class="form-control" placeholder="Quantity" />
+						<label asp-for="Quantity" class="ms-2 text-muted">@Localizer["Quantity"]</label>
+					</div>
+					<span asp-validation-for="Quantity" class="text-danger py-2"></span>
+				</div>
+				<div class="formform-floating py-2 col-12">
+					<label asp-for="Description" class="ms-2 text-muted ">@Localizer["Description"]</label>
+					<textarea asp-for="Description" class="form-control border-0 shadow"></textarea>
+				</div>
+				<div class="row mt-3">
+					<div class="col-6 col-md-3">
+						@if (Model.Id != 0)
+						{
+							<button type="submit" class="btn btn-primary form-control">@Localizer["Update"]</button>
+						}
+						else
+						{
+							<button type="submit" class="btn btn-primary form-control">@Localizer["Create"]</button>
+						}
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-controller="Fabric" asp-action="Index" class="btn btn-outline-primary border form-control">
+							@Localizer["BackToList"]
+						</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		tinymce.init({
+			selector: 'textarea',
+			plugins: 'anchor autolink charmap codesample emoticons link lists searchreplace  ',
+			toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link | align | numlist bullist indent outdent | emoticons',
+		});
+	</script>
+	@{
+
+		<partial name="_ValidationScriptsPartial" />
+	}
+}

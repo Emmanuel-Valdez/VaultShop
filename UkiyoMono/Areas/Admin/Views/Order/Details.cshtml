@@ -1,0 +1,328 @@
+﻿@model OrderVM
+
+<form method="post">
+	<br />
+	<input asp-for="OrderHeader.Id" hidden type="text" />
+	<input asp-for="OrderHeader.ApplicationUserId" type="text" hidden />
+	<div class="container">
+		<div class="card">
+			<div class="card-header bg-dark text-light ml-0">
+				<div class="container row">
+					<div class="col-12 d-md-block col-md-6 pb-1">
+						<i class="bi bi-cart3"></i> &nbsp; @Localizer["OrderSummary"]
+					</div>
+					<div class="col-12 col-md-4 offset-md-2 text-right">
+						<a asp-action="Index" class="btn btn-outline-info form-control btn-sm">@Localizer["BackToOrders"]</a>
+					</div>
+				</div>
+			</div>
+			<div class="card-body">
+				<div class="container rounded p-2">
+					<div class="row">
+						<div class="col-12 col-lg-6 pb-4">
+							<div class="row">
+								<h4 class="d-flex justify-content-between align-items-center mb-3">
+									<span class="text-primary">@Localizer["PickupDetails"]:</span>
+								</h4>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["Name"]</div>
+								<div class="col-9 ">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.Name" type="text" class="form-control shadow" />
+										<span asp-validation-for="OrderHeader.Name" class="text-danger"></span>
+									}
+									else
+									{
+										<input asp-for="OrderHeader.Name" readonly type="text" class="form-control shadow" />
+									}
+
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["Phone"]</div>
+								<div class="col-9 ">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.PhoneNumber" type="text" class="form-control shadow " />
+										<span asp-validation-for="OrderHeader.PhoneNumber" class="text-danger"></span>
+									}
+									else
+									{
+										<input asp-for="OrderHeader.PhoneNumber" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["Address"]</div>
+								<div class="col-9">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.StreetAddress" type="text" class="form-control shadow" />
+										<span asp-validation-for="OrderHeader.StreetAddress" class="text-danger"></span>
+									}
+									else
+									{
+										<input asp-for="OrderHeader.StreetAddress" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["City"]</div>
+								<div class="col-9">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.City" type="text" class="form-control shadow" />
+										<span asp-validation-for="OrderHeader.City" class="text-danger"></span>
+									}
+									else
+									{
+										<input asp-for="OrderHeader.City" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["State"]</div>
+								<div class="col-9">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.State" type="text" class="form-control shadow" />
+										<span asp-validation-for="OrderHeader.State" class="text-danger"></span>
+									}
+									else
+									{
+										<input asp-for="OrderHeader.State" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["ZipCode"]</div>
+								<div class="col-9">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.PostalCode" type="text" class="form-control shadow" />
+										<span asp-validation-for="OrderHeader.PostalCode" class="text-danger"></span>
+									}
+									else
+									{
+										<input asp-for="OrderHeader.PostalCode" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["Email"]</div>
+								<div class="col-9">
+									<input asp-for="OrderHeader.ApplicationUser.Email" readonly type="text" class="form-control shadow" />
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["OrderDate"]</div>
+								<div class="col-9">
+
+									<input value="@Model.OrderHeader.OrderDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
+
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["Carrier"]</div>
+								<div class="col-9">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.Carrier" id="carrier" type="text" class="form-control shadow" />
+									}
+									else
+									{
+										<input asp-for="OrderHeader.Carrier" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["Tracking"]</div>
+								<div class="col-9">
+									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									{
+										<input asp-for="OrderHeader.TrackingNumber" id="trackingNumber" type="text" class="form-control shadow" />
+									}
+									else
+									{
+										<input asp-for="OrderHeader.TrackingNumber" readonly type="text" class="form-control shadow" />
+									}
+								</div>
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["ShippingDate"]</div>
+								<div class="col-9">
+									<input value="@Model.OrderHeader.ShippingDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
+								</div>
+							</div>
+							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+							{
+								<div class="row my-1">
+									<div class="col-3">@Localizer["SessionId"]</div>
+									<div class="col-9">
+										<input asp-for="OrderHeader.SessionId" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+								<div class="row my-1">
+									<div class="col-3">@Localizer["PaymentIntentId"]</div>
+									<div class="col-9">
+										<input asp-for="OrderHeader.PaymentIntentId" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+							}
+							<div class="row my-1">
+								@if (Model.OrderHeader.SessionId == null)
+								{
+									<div class="col-3">@Localizer["PaymentDueDate"]</div>
+									<div class="col-9">
+
+										<input value="@Model.OrderHeader.PaymentDueDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
+
+									</div>
+								}
+								else
+								{
+									<div class="col-3">@Localizer["PaymentDate"]</div>
+									<div class="col-9">
+										<input value="@Model.OrderHeader.PaymentDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
+									</div>
+								}
+							</div>
+							<div class="row my-1">
+								<div class="col-3">@Localizer["PaymentStatus"]</div>
+								<div class="col-9">
+									<input asp-for="OrderHeader.PaymentStatus" readonly type="text" class="form-control shadow" id="paymentStatusInput"
+										   data-localizer-key="PaymentStatus" />
+								</div>
+							</div>
+							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+							{
+								<Button type="submit" asp-action="UpdateOrderDetail" class="btn btn-warning form-control my-1">
+									@Localizer["UpdateOrderDetails"]
+								</Button>
+							}
+						</div>
+						<div class="col-12 col-lg-5 offset-lg-1">
+							<h4 class="d-flex justify-content-between align-items-center mb-3">
+								<span class="text-primary">@Localizer["OrderSummary"]</span>
+							</h4>
+
+							<label class="btn btn-outline-primary form-control my-2">@Localizer["OrderStatus"] - @Localizer[Model.OrderHeader.OrderStatus]</label>
+
+							<ul class="list-group mb-3">
+								@foreach (var detail in Model.OrderDetail)
+								{
+									<li class="list-group-item d-flex justify-content-between p-2">
+										<div class="row container">
+											<div class="col-8">
+
+												<h6 class="my-0 text-primary">@detail.Product.Name</h6>
+												<small class="text-muted">@Localizer["Price"] : @detail.Price.ToString("c")</small><br />
+												<small class="text-muted">@Localizer["Quantity"] : @detail.Count</small>
+											</div>
+											<div class="col-4 text-end">
+												<p class="text-success">@((detail.Count * detail.Price).ToString("c"))</p>
+											</div>
+										</div>
+									</li>
+								}
+								<li class="list-group-item bg-primary">
+									<div class="row container">
+										<div class="col-6">
+											<h5 class="text-white">@Localizer["Total"] </h5>
+										</div>
+										<div class="col-6 text-end">
+											<h5 class="text-white">@Model.OrderHeader.OrderTotal.ToString("c")</h5>
+										</div>
+									</div>
+								</li>
+							</ul>
+							@if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment 
+							&& Model.OrderHeader.OrderStatus == SD.StatusShipped 
+							&& User.IsInRole(SD.Role_Company))
+							{
+								<button type="submit" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
+							}
+							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+							{
+								if (Model.OrderHeader.OrderStatus == SD.StatusApproved)
+								{
+									<button type="submit" asp-action="StartProcessing" class="btn btn-primary form-control my-1">
+										@Localizer["StartProcessing"]
+									</button>
+								}
+								if (Model.OrderHeader.OrderStatus == SD.StatusInProcess)
+								{
+									<button type="submit" asp-action="ShipOrder" onClick="return validateImput()" class="btn btn-primary form-control my-1">
+										@Localizer["ShipOrder"]
+									</button>
+								}
+								if (Model.OrderHeader.OrderStatus != SD.StatusRefunded &&
+													Model.OrderHeader.OrderStatus != SD.StatusCancelled &&
+													Model.OrderHeader.OrderStatus != SD.StatusShipped)
+								{
+									<button type="submit" asp-action="CancelOrder" class="btn btn-danger form-control my-1">
+										@Localizer["CancelOrder"]
+									</button>
+								}
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+	<script>
+		function validateImput() {
+			if (document.getElementById("carrier").value == "") {
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops...',
+					text: ' Please enter a Carrier'
+				});
+				return false;
+			}
+			if (document.getElementById("trackingNumber").value == "") {
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops...',
+					text: 'Please enter tracking number!',
+				});
+				return false;
+			}
+			return true;
+		}
+
+		document.addEventListener("DOMContentLoaded", function () {
+			// Referencia al input
+			const paymentStatusInput = document.getElementById("paymentStatusInput");
+
+			// Valor actual
+			const statusValue = paymentStatusInput.value;
+
+			// Diccionario de traducción
+			const translations = {
+				"Pending": "@Localizer["Pending"]",
+				"Approved": "@Localizer["Approved"]",
+				"ApprovedForDelayedPayment": "@Localizer["ApprovedForDelayedPayment"]",
+				"Rejected": "@Localizer["Rejected"]",
+				"Refunded": "@Localizer["Refunded"]",
+				"Cancelled": "@Localizer["Cancelled"]",
+			};
+
+			// Traducción del valor
+			if (translations[statusValue]) {
+				paymentStatusInput.value = translations[statusValue];
+			}
+		});
+
+
+	</script>
+
+
+}

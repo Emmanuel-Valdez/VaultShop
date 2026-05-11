@@ -1,0 +1,43 @@
+﻿@model FixedCostMonthly
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary">@Localizer["FixedCostList"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row pb-3">
+			<div class="col-6">
+			</div>
+			<div class="col-6 text-end">
+				<a asp-controller="FixedCost" asp-action="Upsert" class="btn btn-outline-primary">
+					<i class="bi bi-plus-circle "></i> @Localizer["CreateNewFixedCost"]
+				</a>
+			</div>
+		</div>
+
+		<table id="tblData" class="table table-bordered table-striped table-hover">
+			<thead>
+				<tr>
+					<th>@Localizer["Name"]</th>
+					<th>@Localizer["Cost"]</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tfoot id="tblFoot">
+				<tr class="table-info" >
+					
+					<td class="h6">@Localizer["TotalMonthly"]</td>
+					<td class="h6" id="tblFoot">@Model.TotalFixedCostMonthly.ToString("c")</td>
+					<td></td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+</div>
+@section Scripts {
+	<script src="~/js/fixedCost.js"></script>
+}

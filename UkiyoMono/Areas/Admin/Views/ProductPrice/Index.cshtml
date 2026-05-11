@@ -1,0 +1,101 @@
+﻿@model FinalPriceVM
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary">@Localizer["FinalPrices"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<form method="post" class="d-flex justify-content-center p-3">
+			@if (Model.CountOutdated > 0)
+			{
+				<input asp-for="CountOutdated" hidden />
+				<button asp-action="UpdatePrices" class="btn btn-secondary my-1 fs-4 " style="width: auto;">
+					@Localizer["Update"] @Model.CountOutdated @(Model.CountOutdated == 1 ? Localizer["ProductPrice"] : Localizer["ProductPrices"])
+				</button>
+			}
+		</form>
+		<div class="accordion accordion-flush  m-2 " id="accordionFlush">
+			<div class="accordion-item  ">
+				<h2 class="accordion-header ">
+					<button class="accordion-button collapsed rounded-pill border shadow " type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+						@Localizer["UpdateProfitVariables"]
+					</button>
+				</h2>
+				<div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlush">
+					<div class="accordion-body">
+						<form method="post" class="col-12">
+							<input asp-for="CountOutdated" hidden />
+							<div class="border p-3 d-flex row">
+								<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+								<div class="row col-12 align-items-center ">
+									<div class="mb-3 col-lg-3 shadow">
+										<div class="mb-3 ">
+											<div class="input-group mb-3">
+												<span class="input-group-text text-dark">%</span>
+												<div class="form-floating">
+													<input asp-for="@Model.TotalPercentageCost.TotalPercentage" disabled class="form-control" placeholder="TotalPercentageCost" />
+													<label asp-for="@Model.TotalPercentageCost.TotalPercentage" class="ms-2 text-muted">@Localizer["TotalPercentageCost"]</label>
+													<input asp-for="@Model.TotalPercentageCost.TotalPercentage" hidden />
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class=" mb-3 col-lg-3 shadow">
+										<div class="mb-3">
+											<div class="input-group mb-3">
+												<span class="input-group-text text-dark">%</span>
+												<div class="form-floating">
+													<input asp-for="@Model.PercentageProfit.Retail" class="form-control" placeholder="Retail Profit" />
+													<label asp-for="@Model.PercentageProfit.Retail" class="ms-2 text-muted">@Localizer["Retail"]</label>
+												</div>
+											</div>
+										</div>
+										<span asp-validation-for="@Model.PercentageProfit.Retail" class="text-danger"></span>
+									</div>
+									<div class="mb-3 col-lg-3  shadow">
+										<div class="mb-3 ">
+											<div class="input-group mb-3">
+												<span class="input-group-text text-dark">%</span>
+												<div class="form-floating">
+													<input asp-for="@Model.PercentageProfit.Wholesale" class="form-control" placeholder="Wholesale Profit" />
+													<label asp-for="@Model.PercentageProfit.Wholesale" class="ms-2 text-muted">@Localizer["Wholesale"]</label>
+												</div>
+											</div>
+										</div>
+										<span asp-validation-for="@Model.PercentageProfit.Wholesale" class="text-danger"></span>
+									</div>
+									<div class="col-lg-3 col-sm-6 d-flex justify-content-center align-items-center">
+										<button type="submit" asp-action="Index" class="btn btn-primary ">@Localizer["UpdateProfits"]</button>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<table id="tblData" class="table table-bordered table-striped table-hover">
+			<thead>
+				<tr>
+					<th>@Localizer["Id"]</th>
+					<th>@Localizer["ProductName"]</th>
+					<th>@Localizer["Category"]</th>
+					<th>@Localizer["ShippingCostByCategory"]</th>
+					<th>@Localizer["TotalCost"]</th>
+					<th>@Localizer["RetailWithProfit"]</th>
+					<th>@Localizer["RetailWithShipping"]</th>
+					<th>@Localizer["FinalRetail"]</th>
+					<th>@Localizer["ListPriceRetail"]</th>
+					<th>@Localizer["FinalWholesale"]</th>
+					<th>@Localizer["IsAvailable"]</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+@section Scripts {
+	<script src="~/js/finalPrice.js"></script>
+}

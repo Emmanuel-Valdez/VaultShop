@@ -1,0 +1,64 @@
+﻿<div class="accordion" id="finalPricesAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingFinalPricesOne">
+			<button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesOnentrols=" collap" aria-expanded="true" aria-coseFinalPricesOne">
+				Referencias
+			</button>
+		</h2>
+		<div id="collapseFinalPricesOne" class="accordion-collapse collapse show" aria-labelledby="headingFinalPricesOne" data-bs-parent="#finalPricesAccordion">
+			<div class="accordion-body">
+				<img src="~/images/FP.webp" width="80%" />
+				<ul>
+					<li> Nombre de producto
+						<ul>
+						<li>
+							<span class="text-success"> Texto de Producto en verde:</span> Producto disponible en tienda
+						</li>
+						<li>
+							<span class="text-warning">  Texto de Producto en amarillo:</span> Producto NO disponible en tienda, En menu "Gestión de contenido/Producto" puedes cambiar la disponibilidad
+						</li>
+					</ul></li>
+					<li>
+						Precios Finales Y Mayoristas
+						<ul>
+							<li><span class="text-info"> Calculado Minorista o Final Mayorista en azul:</span> Los precios no han cambiado</li>
+							<li><span class="text-warning"> Calculado Minorista en amarillo:</span> 
+								El precio calculado minorista cambió, conviene revisar si el cambio es suficientemente significativo como para cambiar ese precio en la tienda,
+								el cambio 
+								</li>
+							<li><span class="text-danger"> Final Mayorista en rojo:</span> el precio por mayor ah cambiado pero todavia no lo actualizas en la tienda,
+								al oprimir el botón "Actualizar [x] precios de productos" </li>
+							<li></li>
+						</ul>
+					</li>
+					<li></li>
+					<li></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingPricesOne">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesOne" aria-expanded="false" aria-controls="collapseTen">
+				Actualizar Costos
+			</button>
+		</h2>
+		<div id="collapseTen" class="accordion-collapse collapse" aria-labelledby="headingPricesOne" data-bs-parent="#finalPricesAccordion">
+			<div class="accordion-body">
+				<h3>ATENCIÓN:</h3>
+				<strong>Ésta tabla es el resultado de todos los procesos previos</strong>
+				<p>El ir cambiando costos fijos, precios de las materias primas, cantidades en categorías y/o productos hace que los precios se actualicen automaticamente</p>
+				<p>No te preocupes que hay una barrera de seguridad entre esos cambios y el precio final</p>
+				<ul>
+					<li>Haz click en el botón "Actualizar Variables de Ganancias"</li>
+					<li>Completa los campos Minorista y Mayorista con el valor de ganancia que deseas obtener del precio de venta correspondiente</li>
+					<li>Haz click en Actualizar Ganancias</li>
+					<li>Si cambiaste valores de ganancias,aparecerá un botón "Actualizar [x] precios de productos"</li>
+					<li>Antes de hacer click confirma que los precios de los productos cuyos precios estan en otro color sean los correctos</li>
+					<li></li>
+					<li></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>

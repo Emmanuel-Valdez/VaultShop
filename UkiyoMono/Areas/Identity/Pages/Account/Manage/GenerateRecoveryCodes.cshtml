@@ -1,0 +1,27 @@
+﻿@page
+@model GenerateRecoveryCodesModel
+@{
+    ViewData["Title"] = "Generate two-factor authentication (2FA) recovery codes";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<h3>@Localizer["Generate2FACodes"]</h3>
+<div class="alert alert-warning" role="alert">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span>
+        <strong>@Localizer["PutSafePlace"].</strong>
+    </p>
+    <p>
+        @Localizer["IfYouLosesCodes"] .
+    </p>
+    <p>
+        @Localizer["NewRecoveryNotChangeOlds"]. @Localizer["ChangeKey"]
+        <a asp-page="./ResetAuthenticator">@Localizer["ResetKeys"].</a>
+    </p>
+</div>
+<div>
+    <form method="post">
+        <button class="btn btn-danger" type="submit">@Localizer["GenerateRecoveryCodes"]</button>
+    </form>
+</div>

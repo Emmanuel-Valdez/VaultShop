@@ -1,0 +1,131 @@
+﻿@model GarmentHardwareByProductVM
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary ">@Localizer["GarmentHardwareByProduct"]: @Model.GarmentHardwareByProduct.Product.Name</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-header bg-dark text-light ml-0">
+		<div class="container row col-12 ">
+			<div class="col-9 h5  ">
+				@Localizer["ProductTotal"]: @Model.GarmentHardwareByProduct.TotalGarmentHardwareByProduct.ToString("c")
+			</div>
+			<div class="col-3  ">
+				<a asp-controller="GarmentHardwareByProduct" asp-action="Index" class="btn btn-outline-info form-control">
+					@Localizer["BackToList"]
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<table id="tblData" class="table table-bordered table-striped table-hover" style="width:100%">
+			<thead>
+				<tr>
+					<th>@Localizer["GarmentHardwareName"]</th>
+					<th>@Localizer["UnitPrice"]</th>
+					<th>@Localizer["Quantity"]</th>
+					<th>@Localizer["UnitTotal"]</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr class="table-info">
+					<th></th>
+					<th></th>
+					<th class="h6">@Localizer["TotalByProduct"]</th>
+					<th class="h6">@Model.GarmentHardwareByProduct.TotalGarmentHardwareByProduct.ToString("c")</th>
+					<th></th>
+				</tr>
+			</tfoot>
+		</table>
+		<div class="accordion accordion-flush   " id="accordionFlush">
+			<div class="accordion-item  ">
+				<h2 class="accordion-header ">
+					<button class="accordion-button collapsed rounded-pill  border shadow" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+						@Localizer["UpdateUnits"]
+					</button>
+				</h2>
+				<div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlush">
+					<div class="accordion-body">
+						<form method="post">
+
+							<input asp-for="GarmentHardwareByProduct.UnitGarmentHardwareByProductList" hidden />
+							<input asp-for="GarmentHardwareByProduct.ProductId" hidden />
+							<input asp-for="GarmentHardwareByProduct.Id" hidden />
+							<input asp-for="GarmentHardwareByProduct.Product.Name" hidden />
+							<input asp-for="GarmentHardwareByProduct.TotalGarmentHardwareByProduct" hidden />
+							<input asp-for="UnitGarmentHardwareByProduct.ProductId" hidden />
+							<input asp-for="UnitGarmentHardwareByProduct.Id" hidden />
+
+							<div class="border p-3 ">
+								<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+								<div class="row col-12">
+									<div class="form-floating col-lg-5 col-12 mb-2">
+										@if (Model.UnitGarmentHardwareByProduct.Id == 0)
+										{
+											//This condition ensures that the unit selected for editing cannot be changed.
+											<select asp-for="@Model.UnitGarmentHardwareByProduct.GarmentHardwareId" asp-items="@Model.GarmentHardwareList" class="form-select shadow">
+												<option selected disabled>-@Localizer["SelectGarmentHardware"]-</option>
+											</select>
+										}
+										else
+										{
+											<select asp-for="@Model.UnitGarmentHardwareByProduct.GarmentHardwareId" disabled asp-items="@Model.GarmentHardwareList" class="form-select shadow">
+												<option selected disabled></option>
+											</select>
+											<input asp-for="@Model.UnitGarmentHardwareByProduct.GarmentHardwareId" hidden />
+										}
+									</div>
+									<div class="mb-2 col-md-12 col-lg-4">
+										<div class="form-floating mb-3  shadow">
+											<input asp-for="@Model.UnitGarmentHardwareByProduct.Quantity" class="form-control" placeholder="Quantity" />
+											<label asp-for="@Model.UnitGarmentHardwareByProduct.Quantity" class="ms-2 text-muted">@Localizer["QuantityPerUnit"]</label>
+										</div>
+										<span asp-validation-for="@Model.UnitGarmentHardwareByProduct.Quantity" class="text-danger"></span>
+									</div>
+									<div class="col-12 col-lg-3">
+										@if (Model.UnitGarmentHardwareByProduct.Id == 0)
+										{
+											<button type="submit" class="btn btn-primary form-control mt-3 ">@Localizer["Add"] </button>
+										}
+										else
+										{
+											<button type="submit" class="btn btn-warning form-control mt-3 ">@Localizer["Update"] </button>
+										}
+									</div>
+								</div>
+								<div class="formform-floating py-2 col-12">
+									<label asp-for="UnitGarmentHardwareByProduct.Description" class="ms-2 mb-2 text-muted ">@Localizer["Description"]</label>
+									<textarea asp-for="UnitGarmentHardwareByProduct.Description" class="form-control border-0 shadow"></textarea>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+@section Scripts {
+	@{
+		<script>
+			var productId = "@Model.GarmentHardwareByProduct.ProductId";
+		</script>
+		<partial name="_ValidationScriptsPartial" />
+		<script src="~/js/unitGarmentHardwareByProduct.js"></script>
+		<script>
+			tinymce.init({
+				selector: 'textarea',
+				plugins: 'anchor autolink charmap codesample emoticons link lists searchreplace  ',
+				toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link | align | numlist bullist indent outdent | emoticons',
+			});
+		</script>
+	}
+} 

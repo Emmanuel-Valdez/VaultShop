@@ -1,0 +1,59 @@
+﻿<div class="accordion" id="productsAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingOne">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+				Paso 1: Crear Categorías
+			</button>
+		</h2>
+		<div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#productsAccordion">
+			<div class="accordion-body">
+				<strong>Accede a la sección "Gestión de Contenido" y en el apartado "Categoría" en el menú principal.</strong>
+				<ol>
+					<li>Haz clic en el botón "Crear Nueva Categoría".</li>
+					<li>Ingresa el nombre de la categoría (por ejemplo: "BolsoXXL", "Accesorios", etc.).</li>
+					<li>Ingresa un estimado de productos que eres capaz de producir en un mes, <strong>si solo hicieses este producto</strong>(*)</li>
+					<li>Ingresa un costo estimado del envío promedio(*)</li>
+					<li>Haz click en crear cuando la información sea la correcta o haz click en "Volver a Lista" si quieres salir sin guardar. </li>
+					<li>Repite el paso anterior para todas las categorías necesarias.</li>
+					<li>Si necesitas editar una categoría puedes hacerlo desde la Lista de categorías, ingresando en el boton <i class="bi bi-pencil-square"></i> y actualizando de manera similar a la creación</li>
+					<li>Para eliminar haz click en el boton <i class="bi bi-trash-fill"></i>, luego de eliminar asegurate de mover los productos que tenian asignadas esa categoría a otro producto para evitar errores de precios </li>
+				</ol>
+			</div>
+			<p class="m-3">
+				<small>
+					Los pasos que contienen (*) se usarán para hacer los cálculos de precios estimados y mayoristas,
+					si no estas seguro en este momento puedes usar datos ficticios.
+					Ten en cuenta que para las ventas mayoristas se usarán estos datos y puedes verte perjudicado si usaste estimaciones muy alejadas de la realidad.
+				</small>
+			</p>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingTwo">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+				Paso 2: Crear Productos
+			</button>
+		</h2>
+		<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#productsAccordion">
+			<div class="accordion-body">
+				<strong>Accede a la sección "Gestión de Contenido" y en el apartado "Producto" en el menú principal.</strong>
+				<ol>
+					<li>Haz clic en el botón "Crear Nuevo Producto".</li>
+					<li>Ingresa el nombre del Producto</li>
+					<li>Ingresa una descripción del producto del Producto(referencias,tamaño,capacidad,materiales,etc)</li>
+					<li>Ingresa el precio minorista final al que quieres vender el producto (calculado y mayorista estaran en $0 al crear pero se actualizaran automaticamente cuando completes esos costos)</li>
+					<li>Puedes elegir una o más imágenes  de producto y subirlas</li>
+					<li>Selecciona una categoría de entre las disponibles</li>
+					<li>Haz click en crear cuando la información sea la correcta o haz click en "Volver a Lista" si quieres salir sin guardar. </li>
+					<li>Repite los pasos para todos los productos necesarios.</li>
+					<li>
+						Si necesitas editar un producto puedes hacerlo desde la Lista de poductos, haciendo click en el boton <i class="bi bi-pencil-square"></i> y actualizando de manera similar a la creación
+						(si ya  completaste los costos de fabricacion del producto ya tendrás el precio calculado y el precio final mayor que te ayudarán a guiarte para determinar el precio final menor
+					</li>
+					<li>Para eliminar haz click en el boton <i class="bi bi-trash-fill"></i></li>
+					<li><strong>Siempre después de crear o actualizar un producto</strong> confirma puntualmente el producto y sus precios, y confirma su disponibilidad haciendo click en la columna correspondiente de la lista de productos</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>
