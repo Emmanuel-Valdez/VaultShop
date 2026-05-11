@@ -172,6 +172,9 @@
   <data name="GarmentHardwareByProduct" xml:space="preserve">
     <value>Garment Hardware By Product</value>
   </data>
+  <data name="Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
   <data name="Hello" xml:space="preserve">
     <value>Hello</value>
   </data>
@@ -208,6 +211,9 @@
   <data name="Privacy" xml:space="preserve">
     <value>Privacy</value>
   </data>
+  <data name="AboutUsDescription" xml:space="preserve">
+    <value>Hello! We are Ukiyo, a family business for over 5 years. We make unique products, improving every day thanks to what we learn and the valuable feedback from our clients.</value>
+  </data>
   <data name="Product" xml:space="preserve">
     <value>Product</value>
   </data>
@@ -216,6 +222,9 @@
   </data>
   <data name="Search" xml:space="preserve">
     <value>Search</value>
+  </data>
+  <data name="SearchResults" xml:space="preserve">
+    <value>Search Results</value>
   </data>
   <data name="Shipping" xml:space="preserve">
     <value>Shipping</value>
