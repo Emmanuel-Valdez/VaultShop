@@ -1,4 +1,10 @@
-﻿<div class="container my-5">
+﻿@{
+    ViewData["Title"] = @Localizer["AboutUs"];
+    ViewData["Description"] = "Ukiyo - Empresa familiar con más de 5 años fabricando productos únicos de mercería y telas. Calidad, pasión y conexión con nuestra comunidad.";
+    ViewData["Keywords"] = "empresa familiar, merceria, telas, productos únicos, confección";
+}
+
+<div class="container my-5">
 	<h1 class="text-center mb-4">@Localizer["AboutUs"]</h1>
     <div class="mt-4">
         <p>¡Hola! Somos <strong>Ukiyo</strong>, una empresa familiar que lleva más de 5 años poniendo corazón y esfuerzo en lo que hacemos. Nos dedicamos a fabricar productos únicos, mejorando cada día gracias a todo lo que aprendemos y al valioso feedback de nuestros clientes.</p>

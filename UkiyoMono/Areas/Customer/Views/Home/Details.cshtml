@@ -3,6 +3,34 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
+@{
+    ViewData["Title"] = Model.Product.Name;
+    ViewData["Description"] = Model.Product.Description?.Length > 150 ? Model.Product.Description.Substring(0, 150) + "..." : Model.Product.Description ?? $"Comprar {Model.Product.Name} en Ukiyo - Descuentos mayoristas";
+    ViewData["Keywords"] = $"{Model.Product.Name}, {Model.Product.Category.Name}, merceria, descuento mayorista";
+    var imageUrl = Model.Product.ProductImages?.FirstOrDefault()?.ImageUrl ?? $"{SD.SiteUrl}/images/marca.png";
+    ViewData["OgImage"] = imageUrl;
+}
+
+<script type="application/ld+json">
+{
+    "@( "@" )context": "https://schema.org",
+    "@( "@" )type": "Product",
+    "name": "@Model.Product.Name",
+    "description": "@Html.Raw(Model.Product.Description?.Replace("\"", "'"))",
+    "image": "@imageUrl",
+    "offers": {
+        "@( "@" )type": "Offer",
+        "priceCurrency": "ARS",
+        "price": "@Model.Product.FinalRetailPrice.ToString("F2")",
+        "availability": "https://schema.org/InStock"
+    },
+    "brand": {
+        "@( "@" )type": "Brand",
+        "name": "Ukiyo"
+    }
+}
+</script>
+
 <form method="post">
 
 	<div class="card shadow border-0 mt-4 mb-4 ">

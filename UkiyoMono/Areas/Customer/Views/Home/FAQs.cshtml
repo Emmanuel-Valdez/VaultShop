@@ -1,4 +1,10 @@
-﻿<div class="container my-5">
+﻿@{
+    ViewData["Title"] = @Localizer["FAQs"];
+    ViewData["Description"] = "Preguntas frecuentes sobre Ukiyo: productos, envíos, métodos de pago, ventas al por mayor y más.";
+    ViewData["Keywords"] = "preguntas frecuentes, FAQs, envíos, métodos de pago, ventas mayoristas";
+}
+
+<div class="container my-5">
 	<h1 class="text-center mb-4">@Localizer["FAQs"]</h1>
 	<div class="accordion" id="accordionFAQs">
 		<div class="accordion-item">

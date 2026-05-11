@@ -1,4 +1,9 @@
 ﻿@model IEnumerable<Product>
+@{
+    ViewData["Title"] = @Localizer["Search"];
+    ViewData["Description"] = $"Buscar productos en Ukiyo - Mercería y telas con descuentos mayoristas. Encuentra lo que buscas.";
+    ViewData["Keywords"] = "buscar productos, merceria, telas, descuento mayorista";
+}
 
 <div class="row pb-3  ">
 	<h1>@Localizer["SearchResults"]</h1>

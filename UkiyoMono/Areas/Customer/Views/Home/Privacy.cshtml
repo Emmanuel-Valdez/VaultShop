@@ -1,4 +1,10 @@
-﻿<div class="container my-5">
+﻿@{
+    ViewData["Title"] = @Localizer["Privacy"];
+    ViewData["Description"] = "Política de privacidad de Ukiyo. Conoce cómo recopilamos, usamos y protegemos tus datos personales.";
+    ViewData["Keywords"] = "política de privacidad, protección de datos, datos personales, privacidad";
+}
+
+<div class="container my-5">
 	<h1 class="text-center mb-4">@Localizer["Privacy"]</h1>
 	<div class="accordion" id="privacyAccordion">
 		<div class="accordion-item">
