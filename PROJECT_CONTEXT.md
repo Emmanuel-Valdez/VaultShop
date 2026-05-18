@@ -17,6 +17,28 @@ E-commerce for anime-inspired backpacks. Admin panel calculates optimal product 
 3. [x] Complete missing translations (Help, FAQs, AboutUs, etc.) - titles now use @Localizer
 4. [ ] Add favicon
 
+## Next Steps From Tomorrow
+1. [ ] Add favicon (already listed as pending)
+2. [ ] Add screenshots or GIFs of the project to README so the mobile view does not look empty
+3. [ ] Add a step-by-step "How to run locally" section to README
+4. [ ] Add README badges: .NET version, license, and project status
+5. [ ] Highlight the deploy link at the top of README: https://ukiyo.bsite.net
+6. [ ] Complete and run the manual testing checklist below
+
+## Manual Testing Checklist
+1. [ ] Home page loads correctly on desktop
+2. [ ] Home page loads correctly on mobile
+3. [ ] Language routing works for `es-AR` and `en-US`
+4. [ ] Product listing and product details pages load
+5. [ ] Cart add/update/remove flow works
+6. [ ] Favorites flow works for authenticated users
+7. [ ] Login, register, logout, and account pages work
+8. [ ] Admin product/category CRUD works
+9. [ ] Price calculator pages load and update calculated values correctly
+10. [ ] Checkout starts correctly and Stripe configuration is valid
+11. [ ] Order status management works from the admin area
+12. [ ] Social links and email configuration use environment variables correctly
+
 ## .env Required Variables
 ```
 ConnectionStrings__DefaultConnection

@@ -1,5 +1,11 @@
 ﻿# Ukiyo - E-commerce Project
 
+**Live demo:** https://ukiyo.bsite.net
+
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
+![Status](https://img.shields.io/badge/status-in%20progress-yellow)
+![License](https://img.shields.io/badge/license-pending-lightgrey)
+
 ## Project Description
 
 Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks and accessories. The platform features:
@@ -31,6 +37,13 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 - **Admin**: Platform administrators with full system access
 
 ## Current Status (May 2026)
+
+### Documentation / Presentation TODO
+
+- [ ] Add favicon
+- [ ] Add screenshots or GIFs of the project, especially mobile views
+- [ ] Add a step-by-step "How to run locally" section
+- [ ] Confirm license and update the license badge
 
 ### Environment Variables Setup (.env)
 
