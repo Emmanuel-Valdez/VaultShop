@@ -91,6 +91,52 @@ Social__Facebook=your_facebook_link
 Social__Evalmon=your_evalmon_link
 ```
 
+## How to Run Locally
+
+### Prerequisites
+
+- .NET 8 SDK
+- SQL Server or SQL Server Express LocalDB
+- Stripe test keys
+- Facebook OAuth app credentials, if testing Facebook login
+
+### Steps
+
+1. Clone the repository and enter the project folder.
+
+```powershell
+git clone <repository-url>
+cd UkiyoMono
+```
+
+2. Create `UkiyoMono/.env` with the required variables listed above.
+
+3. Restore dependencies.
+
+```powershell
+dotnet restore UkiyoDesigns.sln
+```
+
+4. Build the solution.
+
+```powershell
+dotnet build UkiyoDesigns.sln
+```
+
+5. Run the web app.
+
+```powershell
+dotnet run --project UkiyoMono/UkiyoDesignsWeb.csproj --launch-profile https
+```
+
+6. Open the local site.
+
+```text
+https://localhost:7189/es-AR
+```
+
+On first run, the application applies pending EF Core migrations, creates the SQL views and triggers, seeds demo data, repairs missing calculator rows, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword`.
+
 ### Database Architecture
 
 The database uses **SQL Views** and **Triggers** for the price calculation system:
