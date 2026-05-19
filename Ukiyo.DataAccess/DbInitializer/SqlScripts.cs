@@ -327,51 +327,7 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 
 
 
-		/*
-		 scripts that need to add to the initial migration 
-
-		UP
-				migrationBuilder.Sql(SqlScripts.View_UpdateFixedCost);
-			migrationBuilder.Sql(SqlScripts.View_UpdatePercentageCost);
-
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalFabric);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalGarmentHardware);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalPackaging);
-
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitPackaging_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalGarmentHardware_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateUnitsTotalFabric_UnitsTable);
-
-			migrationBuilder.Sql(SqlScripts.TR_UpdateTotalPackagingByCategory);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateTotalFabricByProduct);
-			migrationBuilder.Sql(SqlScripts.TR_UpdateTotalGarmentHardwareByProduct);
-
-			migrationBuilder.Sql(SqlScripts.View_CostByProduct);
-			migrationBuilder.Sql(SqlScripts.View_FinalPrice);
-
-
-		DOWN
-
-		migrationBuilder.Sql(SqlScripts.Drop_View_UpdateFixedCost);
-			migrationBuilder.Sql(SqlScripts.Drop_View_CostByProduct);
-			migrationBuilder.Sql(SqlScripts.Drop_View_FinalPrice);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalFabric);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalGarmentHardware);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalPackaging);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitPackaging_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalFabric_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateUnitsTotalGarmentHardware_UnitsTable);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateTotalPackagingByCategory);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateTotalFabricByProduct);
-			migrationBuilder.Sql(SqlScripts.Drop_TR_UpdateTotalGarmentHardwareByProduct);
-		 
-		 
-		 
-		 */
-
-
-
-
+		
 
 	}
 }
