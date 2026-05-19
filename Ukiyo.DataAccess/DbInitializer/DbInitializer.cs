@@ -42,7 +42,9 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 					_db.Database.Migrate();
 				}
 				CreateViewsAndTriggers();
+				SeedCalculatorDefaults();
 				SeedDemoData();
+				EnsureCalculatorRows();
 			}
 			catch (Exception ex)
 			{
@@ -147,24 +149,75 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 					new Product { Name = "Haikyu Hoodie", Description = "Hooded sweatshirt inspired in the Karasuno Team on Haikyu", FinalRetailPrice = 43234, FinalWholesalePrice = 30060.78m, CategoryId = 3 }
 				);
 				_db.SaveChanges();
-
-				_db.GarmentHardwaresByProduct.AddRange(
-					new GarmentHardwareByProduct { ProductId = 1 },
-					new GarmentHardwareByProduct { ProductId = 2 },
-					new GarmentHardwareByProduct { ProductId = 3 }
-				);
-				_db.FabricsByProduct.AddRange(
-					new FabricByProduct {  ProductId = 1 },
-					new FabricByProduct {  ProductId = 2 },
-					new FabricByProduct {  ProductId = 3 }
-				);
-				_db.PackagingsByCategory.AddRange(
-					new PackagingByCategory {  CategoryId = 1 },
-					new PackagingByCategory {  CategoryId = 2 },
-					new PackagingByCategory {  CategoryId = 3 }
-				);
-				_db.SaveChanges();
 			}
+		}
+
+		private void SeedCalculatorDefaults()
+		{
+			if (!_db.PercentageProfits.Any())
+			{
+				_db.PercentageProfits.Add(new PercentageProfit
+				{
+					Retail = 5,
+					Wholesale = 5
+				});
+			}
+
+			if (!_db.FixedCosts.Any())
+			{
+				_db.FixedCosts.Add(new FixedCost
+				{
+					Name = "Municipal Taxes",
+					Cost = 20000
+				});
+			}
+
+			if (!_db.PercentageCosts.Any())
+			{
+				_db.PercentageCosts.Add(new PercentageCost
+				{
+					Name = "Store",
+					Percentage = 2
+				});
+			}
+
+			_db.SaveChanges();
+		}
+
+		private void EnsureCalculatorRows()
+		{
+			var activeProductIds = _db.Products
+				.Where(product => !product.IsDeleted)
+				.Select(product => product.Id)
+				.ToList();
+
+			var activeCategoryIds = _db.Categories
+				.Where(category => !category.IsDeleted)
+				.Select(category => category.Id)
+				.ToList();
+
+			foreach (var productId in activeProductIds)
+			{
+				if (!_db.FabricsByProduct.Any(fabricByProduct => fabricByProduct.ProductId == productId))
+				{
+					_db.FabricsByProduct.Add(new FabricByProduct { ProductId = productId });
+				}
+
+				if (!_db.GarmentHardwaresByProduct.Any(garmentHardwareByProduct => garmentHardwareByProduct.ProductId == productId))
+				{
+					_db.GarmentHardwaresByProduct.Add(new GarmentHardwareByProduct { ProductId = productId });
+				}
+			}
+
+			foreach (var categoryId in activeCategoryIds)
+			{
+				if (!_db.PackagingsByCategory.Any(packagingByCategory => packagingByCategory.CategoryId == categoryId))
+				{
+					_db.PackagingsByCategory.Add(new PackagingByCategory { CategoryId = categoryId });
+				}
+			}
+
+			_db.SaveChanges();
 		}
 
 		private void ExecuteIfNotExists(string sql)

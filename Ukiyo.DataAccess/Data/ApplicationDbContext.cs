@@ -49,28 +49,6 @@ namespace UkiyoDesigns.DataAccess.Data
 
 			base.OnModelCreating(modelBuilder);
 
-			modelBuilder.Entity<PercentageProfit>().HasData(
-				new PercentageProfit
-				{
-					Id = 1,
-					Retail = 5,
-					Wholesale = 5
-				});
-
-			modelBuilder.Entity<FixedCost>().HasData(
-				new FixedCost
-				{
-					Id = 1,
-					Name = "Municipal Taxes",
-					Cost = 20000
-				});
-			modelBuilder.Entity<PercentageCost>().HasData(
-				new PercentageCost
-				{
-					Id = 1,
-					Name = "Store",
-					Percentage = 2
-				});
 			//Views that calculate automatically 
 			modelBuilder.Entity<FixedCostMonthly>()
 				.HasNoKey()
