@@ -1,0 +1,19 @@
+{
+  "name": "Ukiyo",
+  "short_name": "Ukiyo",
+  "icons": [
+    {
+      "src": "/flor-de-cerezo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

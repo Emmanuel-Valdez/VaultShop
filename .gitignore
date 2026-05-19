@@ -370,3 +370,9 @@ FodyWeavers.xsd
 # OpenCode AI tools
 .agents/
 skills-lock.json
+
+# Local project context for AI-assisted development
+PROJECT_CONTEXT.local.md
+
+# Uploaded product images are environment-specific content
+UkiyoMono/wwwroot/images/products/
