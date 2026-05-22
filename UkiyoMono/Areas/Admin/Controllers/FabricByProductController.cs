@@ -18,7 +18,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		public readonly IUnitOfWork _unitOfWork;
 		[BindProperty]
-		public FabricByProductVM FabricByProductVM { get; set; }
+		public FabricByProductVM FabricByProductVM { get; set; } = null!;
 		private readonly IStringLocalizer<FabricByProductController> _localizer;
 
 

@@ -12,7 +12,7 @@ namespace UkiyoDesigns.Models
         public int Id { get; set; }
         [Required]
         [DisplayName("Category Name")]
-        public string Name { get; set; }
+		public string Name { get; set; } = string.Empty;
 
         [Required]
         [DisplayName("Max Expectation Monthly")]
@@ -27,7 +27,7 @@ namespace UkiyoDesigns.Models
 
 
         [ValidateNever]
-		public PackagingByCategory PackagingByCategory { get; set; }
+		public PackagingByCategory PackagingByCategory { get; set; } = null!;
 
 	}
 }

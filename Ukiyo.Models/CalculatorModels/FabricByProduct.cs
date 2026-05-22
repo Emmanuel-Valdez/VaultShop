@@ -15,10 +15,10 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		public int ProductId { get; set; }
 		[ForeignKey("ProductId")]
 		[ValidateNever]
-		public Product Product { get; set; }
+		public Product Product { get; set; } = null!;
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal TotalFabricByProduct {  get; private set; } = 0.0m;
 		[ValidateNever]
-		public List<UnitFabricByProduct> UnitFabricByProductList { get; set; }
+		public List<UnitFabricByProduct> UnitFabricByProductList { get; set; } = new();
 	}
 }

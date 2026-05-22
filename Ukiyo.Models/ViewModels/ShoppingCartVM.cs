@@ -12,8 +12,8 @@ namespace UkiyoDesigns.Models.ViewModels
     public class ShoppingCartVM
     {
         [ValidateNever]
-        public IEnumerable<ShoppingCart> ShoppingCartList {get;set;}
-        
-        public OrderHeader OrderHeader { get;set;}
+		public IEnumerable<ShoppingCart> ShoppingCartList {get;set;} = [];
+		
+		public OrderHeader OrderHeader { get;set;} = new();
     }
 }

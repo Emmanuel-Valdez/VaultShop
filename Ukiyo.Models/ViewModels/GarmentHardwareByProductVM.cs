@@ -11,11 +11,11 @@ namespace UkiyoDesigns.Models.ViewModels
 {
 	public class GarmentHardwareByProductVM
 	{
-		public GarmentHardwareByProduct GarmentHardwareByProduct { get; set; }
+		public GarmentHardwareByProduct GarmentHardwareByProduct { get; set; } = new();
 		[ValidateNever]
-		public IEnumerable<SelectListItem> GarmentHardwareList { get; set; }
+		public IEnumerable<SelectListItem> GarmentHardwareList { get; set; } = [];
 
 
-		public UnitGarmentHardwareByProduct UnitGarmentHardwareByProduct { get; set; }
+		public UnitGarmentHardwareByProduct UnitGarmentHardwareByProduct { get; set; } = new();
 	}
 }

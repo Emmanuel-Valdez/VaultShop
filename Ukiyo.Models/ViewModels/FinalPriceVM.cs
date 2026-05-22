@@ -12,8 +12,8 @@ namespace UkiyoDesigns.Models.ViewModels
 	public class FinalPriceVM
 	{
 		[ValidateNever]
-		public TotalPercentageCost TotalPercentageCost { get; set; }
-		public PercentageProfit PercentageProfit { get; set; }
+		public TotalPercentageCost TotalPercentageCost { get; set; } = new();
+		public PercentageProfit PercentageProfit { get; set; } = new();
 		public int CountOutdated { get; set; }
 
 	}

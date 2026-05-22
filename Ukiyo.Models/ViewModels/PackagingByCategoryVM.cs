@@ -11,11 +11,11 @@ namespace UkiyoDesigns.Models.ViewModels
 {
 	public class PackagingByCategoryVM
 	{
-		public PackagingByCategory PackagingByCategory { get; set; }
+		public PackagingByCategory PackagingByCategory { get; set; } = new();
 		[ValidateNever]
-		public IEnumerable<SelectListItem> PackagingList { get; set; }
+		public IEnumerable<SelectListItem> PackagingList { get; set; } = [];
 		
 
-		public UnitPackagingByCategory UnitPackagingByCategory { get; set; }
+		public UnitPackagingByCategory UnitPackagingByCategory { get; set; } = new();
 	}
 }

@@ -19,7 +19,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly IStringLocalizer<ProductPriceController> _localizer;
 
 		[BindProperty]
-		public FinalPriceVM FinalPriceVM { get; set; }
+		public FinalPriceVM FinalPriceVM { get; set; } = null!;
 		public ProductPriceController(IUnitOfWork unitOfWork, IStringLocalizer<ProductPriceController> localizer)
 		{
 			_unitOfWork = unitOfWork;

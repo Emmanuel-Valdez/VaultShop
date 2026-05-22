@@ -19,7 +19,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<GarmentHardwareByProductController> _localizer;
 		[BindProperty]
-		public GarmentHardwareByProductVM GarmentHardwareByProductVM { get; set; }
+		public GarmentHardwareByProductVM GarmentHardwareByProductVM { get; set; } = null!;
 
 		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer)
 		{

@@ -18,7 +18,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<PackagingByCategoryController> _localizer;
 		[BindProperty]
-		public PackagingByCategoryVM PackagingByCategoryVM { get; set; }
+		public PackagingByCategoryVM PackagingByCategoryVM { get; set; } = null!;
 
 		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer)
 		{

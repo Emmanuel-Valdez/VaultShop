@@ -17,11 +17,11 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		public int CategoryId { get; set; }
 		[ForeignKey("CategoryId")]
 		[ValidateNever]
-		public Category Category { get; set; }
+		public Category Category { get; set; } = null!;
 		public int PackagingId { get; set; }
 		[ForeignKey("PackagingId")]
 		[ValidateNever]
-		public Packaging Packaging { get; set; }
+		public Packaging Packaging { get; set; } = null!;
 		[Required]
 		[Range(0.001,10000)]
 		[Column(TypeName = "decimal(18, 2)")]

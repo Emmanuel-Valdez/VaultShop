@@ -373,6 +373,7 @@ skills-lock.json
 
 # Local project context for AI-assisted development
 PROJECT_CONTEXT.local.md
+.local/
 
 # Uploaded product images are environment-specific content
 UkiyoMono/wwwroot/images/products/

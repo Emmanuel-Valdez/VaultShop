@@ -11,10 +11,10 @@ namespace UkiyoDesigns.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Product Name is required")]
-        public string Name { get; set; }
+		public string Name { get; set; } = string.Empty;
 
         [Required]
-        public string Description { get; set; }
+		public string Description { get; set; } = string.Empty;
 
 
         [Display(Name = "Calculate List Price")]
@@ -39,13 +39,13 @@ namespace UkiyoDesigns.Models
 		public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         [ValidateNever]
-        public Category Category { get; set; }
+		public Category Category { get; set; } = null!;
 		[ValidateNever]
-		public List<ProductImage> ProductImages { get; set; }
+		public List<ProductImage> ProductImages { get; set; } = new();
 		[ValidateNever]
-		public FabricByProduct FabricByProduct { get; set; }
+		public FabricByProduct FabricByProduct { get; set; } = null!;
 		[ValidateNever]
-		public GarmentHardwareByProduct GarmentHardwareByProduct { get; set; }
+		public GarmentHardwareByProduct GarmentHardwareByProduct { get; set; } = null!;
 		
 	}
 }

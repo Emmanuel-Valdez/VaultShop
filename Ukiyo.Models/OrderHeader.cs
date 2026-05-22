@@ -7,10 +7,10 @@ namespace UkiyoDesigns.Models
 	public class OrderHeader
 	{
 		public int Id { get; set; }
-		public string ApplicationUserId { get; set; }
+		public string ApplicationUserId { get; set; } = string.Empty;
 		[ForeignKey("ApplicationUserId")]
 		[ValidateNever]
-		public ApplicationUser ApplicationUser { get; set; }
+		public ApplicationUser ApplicationUser { get; set; } = null!;
 
 		public DateTime OrderDate { get; set; }
 		public DateTime ShippingDate { get; set; }
@@ -31,20 +31,20 @@ namespace UkiyoDesigns.Models
 		public string? PaymentIntentId { get; set; }
 
 		[Required]
-		public string Name { get; set; }
+		public string Name { get; set; } = string.Empty;
 		[Display(Name = "Street Address")]
 		[Required]
-		public string StreetAddress { get; set; }
+		public string StreetAddress { get; set; } = string.Empty;
 		[Required]
-		public string City { get; set; }
+		public string City { get; set; } = string.Empty;
 		[Required]
-		public string State { get; set; }
+		public string State { get; set; } = string.Empty;
 		[Required]
 		[Display(Name = "Postal Code")]
-		public string PostalCode { get; set; }
+		public string PostalCode { get; set; } = string.Empty;
 		[Required]
 		[Display(Name = "Phone Number")]
-		public string PhoneNumber { get; set; }
+		public string PhoneNumber { get; set; } = string.Empty;
 
 	}
 }

@@ -16,11 +16,11 @@ namespace UkiyoDesigns.Models
 		public int ProductId { get; set; }
 		[ForeignKey("ProductId")]
 		[ValidateNever]
-		public Product Product { get; set; }
-		public string ApplicationUserId { get; set; }
+		public Product Product { get; set; } = null!;
+		public string ApplicationUserId { get; set; } = string.Empty;
 		[ForeignKey("ApplicationUserId")]
 		[ValidateNever]
-		public ApplicationUser ApplicationUser { get; set; }
+		public ApplicationUser ApplicationUser { get; set; } = null!;
 
 	}
 }

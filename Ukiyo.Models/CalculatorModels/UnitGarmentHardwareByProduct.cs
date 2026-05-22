@@ -17,11 +17,11 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		public int ProductId { get; set; }
 		[ForeignKey("ProductId")]
 		[ValidateNever]
-		public Product Product { get; set; }
+		public Product Product { get; set; } = null!;
 		public int GarmentHardwareId { get; set; }
 		[ForeignKey("GarmentHardwareId")]
 		[ValidateNever]
-		public GarmentHardware GarmentHardware { get; set; }
+		public GarmentHardware GarmentHardware { get; set; } = null!;
 		[Required]
 		[Range(0.001,10000)]
 		[Display(Name = "Quantity used in the product")]

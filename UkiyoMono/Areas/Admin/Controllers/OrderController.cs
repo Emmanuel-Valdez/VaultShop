@@ -20,7 +20,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		[BindProperty]
-		public OrderVM OrderVM { get; set; }
+		public OrderVM OrderVM { get; set; } = null!;
 		private readonly IStringLocalizer<OrderController> _localizer;
 
 		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer)

@@ -15,15 +15,15 @@ namespace UkiyoDesigns.Models
 		public int ProductId { get; set; }
 		[ForeignKey("ProductId")]
 		[ValidateNever]
-		public Product Product { get; set; }
+		public Product Product { get; set; } = null!;
 
 		[Range(1, 1000, ErrorMessage = "Please enter a value between 1 and 1000")]
 		public int Count { get; set; }
 
-		public string ApplicationUserId { get; set; }
+		public string ApplicationUserId { get; set; } = string.Empty;
 		[ForeignKey("ApplicationUserId")]
 		[ValidateNever]
-		public ApplicationUser ApplicationUser { get; set; }
+		public ApplicationUser ApplicationUser { get; set; } = null!;
 
 		[NotMapped]
 		public decimal Price { get; set; }

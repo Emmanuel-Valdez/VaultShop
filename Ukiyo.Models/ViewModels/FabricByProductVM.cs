@@ -11,11 +11,11 @@ namespace UkiyoDesigns.Models.ViewModels
 {
 	public class FabricByProductVM
 	{
-		public FabricByProduct FabricByProduct { get; set; }
+		public FabricByProduct FabricByProduct { get; set; } = new();
 		[ValidateNever]
-		public IEnumerable<SelectListItem> FabricList { get; set; }
+		public IEnumerable<SelectListItem> FabricList { get; set; } = [];
 
 
-		public UnitFabricByProduct UnitFabricByProduct { get; set; }
+		public UnitFabricByProduct UnitFabricByProduct { get; set; } = new();
 	}
 }

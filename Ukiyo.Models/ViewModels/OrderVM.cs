@@ -9,8 +9,8 @@ namespace UkiyoDesigns.Models.ViewModels
 {
 	public class OrderVM
 	{
-		public OrderHeader OrderHeader { get; set; }
+		public OrderHeader OrderHeader { get; set; } = new();
 		[ValidateNever]
-        public IEnumerable<OrderDetail> OrderDetail { get; set; }
+		public IEnumerable<OrderDetail> OrderDetail { get; set; } = [];
     }
 }

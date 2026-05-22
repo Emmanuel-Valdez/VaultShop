@@ -16,13 +16,13 @@ namespace UkiyoDesigns.Models
 		
 		[ForeignKey("OrderHeaderId")]
 		[ValidateNever]
-		public OrderHeader OrderHeader { get; set; }
+		public OrderHeader OrderHeader { get; set; } = null!;
 
         [Required]
         public int ProductId { get; set; }
         [ForeignKey("ProductId")]
         [ValidateNever]
-        public Product Product { get; set; }
+		public Product Product { get; set; } = null!;
         public int Count { get; set; }
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal Price { get; set; }

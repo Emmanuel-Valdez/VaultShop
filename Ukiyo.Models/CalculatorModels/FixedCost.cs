@@ -14,7 +14,7 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		[Key]
 		public int Id { get; set; }
 		[Required]
-		public string Name { get; set; }
+		public string Name { get; set; } = string.Empty;
 		[Required]
 		[DisplayName("Approximate monthly fixed cost")]
 		[Range(0, 10000000)]

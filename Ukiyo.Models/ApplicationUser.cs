@@ -13,7 +13,7 @@ namespace UkiyoDesigns.Models
     public class ApplicationUser : IdentityUser
     {
         [Required]
-        public string Name { get; set; }
+		public string Name { get; set; } = string.Empty;
         [Display(Name = "Street Address")]
         public string? StreetAddress { get; set; }
         public string? City { get; set; }
@@ -25,7 +25,7 @@ namespace UkiyoDesigns.Models
         [ValidateNever]
         public Company? Company { get; set; }
         [NotMapped]
-        public string Role { get; set; }
+		public string Role { get; set; } = string.Empty;
 		
 
 	}

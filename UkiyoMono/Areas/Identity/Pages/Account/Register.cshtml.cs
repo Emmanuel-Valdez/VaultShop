@@ -108,19 +108,19 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-            public string? Role { get; set; }
+			public string Role { get; set; }
             [ValidateNever]
             public IEnumerable<SelectListItem> RoleList { get; set; }
             [Display(Name = "Street Address")]
-            public string? StreetAddress { get; set; }
-			public string? City { get; set; }
+			public string StreetAddress { get; set; }
+			public string City { get; set; }
            
-            public string? State { get; set; }
-            [Display(Name = "Postal Code")]
-            public string? PostalCode { get; set; }
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string? PhoneNumber { get; set; }
+			public string State { get; set; }
+			[Display(Name = "Postal Code")]
+			public string PostalCode { get; set; }
+			[Phone]
+			[Display(Name = "Phone number")]
+			public string PhoneNumber { get; set; }
             [Required]
             public string Name { get; set; }
             public int? CompanyId { get; set; }

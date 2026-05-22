@@ -21,7 +21,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		[BindProperty]
-		public ShoppingCartVM ShoppingCartVM { get; set; }
+		public ShoppingCartVM ShoppingCartVM { get; set; } = null!;
 		private readonly IStringLocalizer<CartController> _localizer;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer)
 		{

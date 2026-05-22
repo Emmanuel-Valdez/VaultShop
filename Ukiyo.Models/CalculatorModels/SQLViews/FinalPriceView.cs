@@ -11,7 +11,7 @@ namespace UkiyoDesigns.Models.CalculatorModels.SQLViews
 	{
 		public int Id { get; set; }
 		[ForeignKey("Id")]
-		public Product Product { get; set; }
+		public Product Product { get; set; } = null!;
 		public string? CategoryName {  get; set; }
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal AvgShippingCostByCategory { get; set; } = 0.0m;
