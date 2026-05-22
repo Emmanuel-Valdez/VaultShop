@@ -72,7 +72,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			return Json(new { data = objFabricList });
 
 		}
-		[HttpDelete]
+		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
 			Fabric fabricToBeDeleted = _unitOfWork.Fabric.Get(u => u.Id == id);

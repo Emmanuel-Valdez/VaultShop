@@ -235,7 +235,7 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 						-- Actualizar los totales para las categorías afectadas
 						UPDATE pc
 						SET pc.TotalPackagingByCategory = (
-							SELECT SUM(upc.UnitTotal)
+							SELECT COALESCE(SUM(upc.UnitTotal), 0)
 							FROM UnitsPackagingByCategory upc
 							WHERE upc.CategoryId = pc.CategoryId
 						)
@@ -263,7 +263,7 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 						-- Actualizar los totales para los Products afectados
 						UPDATE pc
 						SET pc.TotalFabricByProduct = (
-							SELECT SUM(upc.UnitTotal)
+							SELECT COALESCE(SUM(upc.UnitTotal), 0)
 							FROM UnitsFabricByProduct upc
 							WHERE upc.ProductId = pc.ProductId
 						)
@@ -290,7 +290,7 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 					BEGIN
 						UPDATE ghp
 						SET ghp.TotalGarmentHardwareByProduct = (
-							SELECT SUM(ughp.UnitTotal)
+							SELECT COALESCE(SUM(ughp.UnitTotal), 0)
 							FROM UnitsGarmentHardwareByProduct ughp
 							WHERE ughp.ProductId = ghp.ProductId
 						)
@@ -328,6 +328,5 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 
 
 		
-
 	}
 }

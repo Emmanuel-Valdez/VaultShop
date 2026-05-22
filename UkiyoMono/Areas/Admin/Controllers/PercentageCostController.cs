@@ -71,7 +71,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			return Json(new { data = objPercentageCostList });
 
 		}
-		[HttpDelete]
+		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
 			PercentageCost percentageToBeDeleted = _unitOfWork.PercentageCost.Get(u => u.Id == id);

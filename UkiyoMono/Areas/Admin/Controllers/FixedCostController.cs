@@ -72,7 +72,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			return Json(new { data = objFixedCostList });
 
 		}
-		[HttpDelete]
+		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
 			FixedCost fabricToBeDeleted = _unitOfWork.FixedCost.Get(u => u.Id == id);
