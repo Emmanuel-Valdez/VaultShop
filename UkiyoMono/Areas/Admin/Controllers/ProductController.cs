@@ -55,7 +55,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			else
 			{
 				//update
-				productVM.Product = _unitOfWork.Product.Get(u => u.Id == id && u.IsDeleted == false, includeProperties: "ProductImages");
+				var product = _unitOfWork.Product.Get(u => u.Id == id && u.IsDeleted == false, includeProperties: "ProductImages");
+				if (product == null)
+				{
+					return NotFound();
+				}
+
+				productVM.Product = product;
 				return View(productVM);
 			}
 		}
@@ -116,9 +122,14 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 							int outputWidth = 1000;
 							int outputHeight = 1200;
 
-							using (var original = SKBitmap.Decode(memoryStream))
+						using (var original = SKBitmap.Decode(memoryStream))
+						{
+							if (original == null)
 							{
-								// Calcula el nuevo tamaño manteniendo la relación de aspecto
+								continue;
+							}
+
+							// Calcula el nuevo tamaño manteniendo la relación de aspecto
 								int newWidth, newHeight;
 								float aspectRatio = (float)original.Width / original.Height;
 								if (original.Width > original.Height)
@@ -198,6 +209,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public IActionResult DeleteImage(int imageId)
 		{
 			var imageToBeDeleted = _unitOfWork.ProductImage.Get(u => u.Id == imageId);
+			if (imageToBeDeleted == null)
+			{
+				return NotFound();
+			}
+
 			int productId = imageToBeDeleted.ProductId;
 			if (imageToBeDeleted != null)
 			{
@@ -230,7 +246,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return BadRequest(_localizer["IdCantBeNull"].Value);
 			}
-			Product productToBeDeleted = _unitOfWork.Product.Get(u => u.Id == id && u.IsDeleted == false);
+			Product? productToBeDeleted = _unitOfWork.Product.Get(u => u.Id == id && u.IsDeleted == false);
 			if (productToBeDeleted == null)
 			{
 				return StatusCode(500, new { success = false, message = _localizer["DeletingError"].Value });

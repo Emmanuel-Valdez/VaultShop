@@ -13,9 +13,14 @@ namespace UkiyoDesignsWeb.ViewComponents
         {
             _unitOfWork = unitOfWork;
         }
-    public async Task<IViewComponentResult> InvokeAsync()
+    public IViewComponentResult Invoke()
         {
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			if (User.Identity is not ClaimsIdentity claimsIdentity)
+			{
+				HttpContext.Session.Clear();
+				return View(0);
+			}
+
 			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
 			if (claim != null)

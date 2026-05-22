@@ -36,10 +36,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		public IActionResult Details(int orderId)
 		{
+			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
 
 			OrderVM = new()
 			{
-				OrderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId, includeProperties: "ApplicationUser"),
+				OrderHeader = orderHeader,
 				OrderDetail = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderId, includeProperties: "Product")
 			};
 			return View(OrderVM);
@@ -53,6 +58,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 
 			var orderHeaderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+			if (orderHeaderFromDb == null)
+			{
+				return NotFound();
+			}
+
 			orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
 			orderHeaderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
 			orderHeaderFromDb.StreetAddress = OrderVM.OrderHeader.StreetAddress;
@@ -88,6 +98,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public IActionResult ShipOrder()
 		{
 			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+
 			orderHeader.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
 			orderHeader.Carrier = OrderVM.OrderHeader.Carrier;
 			orderHeader.OrderStatus = SD.StatusShipped;
@@ -108,6 +123,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public IActionResult CancelOrder()
 		{
 			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+
 			if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
 			{
 				var options = new RefundCreateOptions
@@ -131,8 +151,14 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Details_PAY_NOW(int orderId)
 		{
-			OrderVM.OrderHeader = _unitOfWork.OrderHeader
+			var orderHeader = _unitOfWork.OrderHeader
 				.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+
+			OrderVM.OrderHeader = orderHeader;
 			OrderVM.OrderDetail = _unitOfWork.OrderDetail
 				.GetAll(u => u.OrderHeaderId == OrderVM.OrderHeader.Id, includeProperties: "Product");
 
@@ -167,14 +193,19 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			Session session = service.Create(options);
 			_unitOfWork.OrderHeader.UpdateStripePaymentId(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
 			_unitOfWork.Save();
-			Response.Headers.Add("Location", session.Url);
+			Response.Headers["Location"] = session.Url;
 			return new StatusCodeResult(303);
 
 		}
 
 		public IActionResult PaymentConfirmation(int orderHeaderId)
 		{
-			OrderHeader orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
+			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+
 			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
 			{
 				// order made by company
@@ -183,7 +214,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				if (session.PaymentStatus.ToLower() == "paid")
 				{
 					_unitOfWork.OrderHeader.UpdateStripePaymentId(orderHeaderId, session.Id, session.PaymentIntentId);
-					_unitOfWork.OrderHeader.UpdateStatus(orderHeaderId, orderHeader.OrderStatus, SD.PaymentStatusApproved);
+					_unitOfWork.OrderHeader.UpdateStatus(orderHeaderId, orderHeader.OrderStatus ?? SD.StatusApproved, SD.PaymentStatusApproved);
 					_unitOfWork.Save();
 				}
 			}
@@ -202,8 +233,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 			else
 			{
-				var claimsIdentity = (ClaimsIdentity)User.Identity;
-				var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+				var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+				if (string.IsNullOrEmpty(userId))
+				{
+					return Unauthorized();
+				}
 				objOrderHeaders = _unitOfWork.OrderHeader
 					.GetAll(u => u.ApplicationUserId == userId, includeProperties: "ApplicationUser");
 			}

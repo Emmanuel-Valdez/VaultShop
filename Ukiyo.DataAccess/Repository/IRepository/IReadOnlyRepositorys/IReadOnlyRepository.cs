@@ -11,7 +11,7 @@ namespace UkiyoDesigns.DataAccess.Repository.IRepository.IReadOnlyRepositorys
     {
         //T category
         IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, bool tracked = false);
-        T Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false);
+        T? Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false);
 
     }
 }

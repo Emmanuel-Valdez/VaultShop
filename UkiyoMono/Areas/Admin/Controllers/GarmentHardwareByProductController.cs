@@ -41,6 +41,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				unitId = null;
 			}
+			var garmentHardwareByProduct = _unitOfWork.GarmentHardwareByProduct
+				.Get(u => u.ProductId == id, includeProperties: "Product,UnitGarmentHardwareByProductList");
+			if (garmentHardwareByProduct == null)
+			{
+				return NotFound();
+			}
+
 			GarmentHardwareByProductVM = new()
 			{
 				GarmentHardwareList = _unitOfWork.GarmentHardware.GetAll().Select(u => new SelectListItem
@@ -48,8 +55,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Text = u.Name,
 					Value = u.Id.ToString()
 				}),
-				GarmentHardwareByProduct = _unitOfWork.GarmentHardwareByProduct
-				.Get(u => u.ProductId == id, includeProperties: "Product,UnitGarmentHardwareByProductList"),
+				GarmentHardwareByProduct = garmentHardwareByProduct,
 			};
 			if (unitId == 0 || unitId == null)
 			{
@@ -60,6 +66,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			else
 			{
 				//update
+				if (unitFromDb == null)
+				{
+					return NotFound();
+				}
+
 				GarmentHardwareByProductVM.UnitGarmentHardwareByProduct = unitFromDb;
 			}
 			return View(GarmentHardwareByProductVM);
@@ -76,6 +87,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				var garmenthardwareFromDb = _unitOfWork.GarmentHardware
 				.Get(u => u.Id == GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.GarmentHardwareId);
+				if (garmenthardwareFromDb == null)
+				{
+					return NotFound();
+				}
 
 				var existingUnitGarmentHardware = _unitOfWork.UnitGarmentHardwareByProduct
 					.GetAll(u => u.ProductId == GarmentHardwareByProductVM.GarmentHardwareByProduct.ProductId)
@@ -144,7 +159,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpDelete]
 		public IActionResult Delete(int? id)
 		{
-			UnitGarmentHardwareByProduct unitToBeDeleted = _unitOfWork.UnitGarmentHardwareByProduct.Get(u => u.Id == id);
+			UnitGarmentHardwareByProduct? unitToBeDeleted = _unitOfWork.UnitGarmentHardwareByProduct.Get(u => u.Id == id);
 			if (unitToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });

@@ -30,8 +30,11 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		}
 		public IActionResult Index()
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
 			ShoppingCartVM = new()
 			{
 				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product"),
@@ -67,20 +70,29 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		public IActionResult Summary()
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
 			ShoppingCartVM = new()
 			{
 				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
 				OrderHeader = new()
 			};
-			ShoppingCartVM.OrderHeader.ApplicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			if (applicationUser == null)
+			{
+				return Unauthorized();
+			}
+
+			ShoppingCartVM.OrderHeader.ApplicationUser = applicationUser;
 			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
-			ShoppingCartVM.OrderHeader.PhoneNumber = ShoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
-			ShoppingCartVM.OrderHeader.StreetAddress = ShoppingCartVM.OrderHeader.ApplicationUser.StreetAddress;
-			ShoppingCartVM.OrderHeader.City = ShoppingCartVM.OrderHeader.ApplicationUser.City;
-			ShoppingCartVM.OrderHeader.State = ShoppingCartVM.OrderHeader.ApplicationUser.State;
-			ShoppingCartVM.OrderHeader.PostalCode = ShoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
+			ShoppingCartVM.OrderHeader.PhoneNumber = applicationUser.PhoneNumber ?? string.Empty;
+			ShoppingCartVM.OrderHeader.StreetAddress = applicationUser.StreetAddress ?? string.Empty;
+			ShoppingCartVM.OrderHeader.City = applicationUser.City ?? string.Empty;
+			ShoppingCartVM.OrderHeader.State = applicationUser.State ?? string.Empty;
+			ShoppingCartVM.OrderHeader.PostalCode = applicationUser.PostalCode ?? string.Empty;
 			ShoppingCartVM.OrderHeader.Name = ShoppingCartVM.OrderHeader.ApplicationUser.Name;
 
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
@@ -103,14 +115,21 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			if (!ModelState.IsValid)
 				return View(ShoppingCartVM);
 
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
 			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart
 				.GetAll(u => u.ApplicationUserId == userId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true, includeProperties: "Product");
 			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
 			ShoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
 
-			ApplicationUser applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			ApplicationUser? applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			if (applicationUser == null)
+			{
+				return Unauthorized();
+			}
 
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
@@ -178,7 +197,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				Session session = service.Create(options);
 				_unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
 				_unitOfWork.Save();
-				Response.Headers.Add("Location", session.Url);
+				Response.Headers["Location"] = session.Url;
 				return new StatusCodeResult(303);
 			}
 			return RedirectToAction(nameof(OrderConfirmation), new { id = ShoppingCartVM.OrderHeader.Id });
@@ -186,7 +205,12 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		public IActionResult OrderConfirmation(int id)
 		{
-			OrderHeader orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
+			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+
 			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
 			{
 				// order made by customer
@@ -209,6 +233,11 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		public IActionResult Plus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
+			if (cartFromDb == null)
+			{
+				return NotFound();
+			}
+
 			cartFromDb.Count += 1;
 			_unitOfWork.ShoppingCart.Update(cartFromDb);
 			_unitOfWork.Save();
@@ -218,6 +247,11 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		public IActionResult Minus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);
+			if (cartFromDb == null)
+			{
+				return NotFound();
+			}
+
 			if (cartFromDb.Count <= 1)
 			{
 				HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart
@@ -236,6 +270,11 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		public IActionResult Remove(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);
+			if (cartFromDb == null)
+			{
+				return NotFound();
+			}
+
 			HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart
 				.GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId).Count() - 1);
 			_unitOfWork.ShoppingCart.Remove(cartFromDb);

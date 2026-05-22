@@ -70,8 +70,10 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {
-	option.AppId = builder.Configuration["Facebook:AppId"];
-	option.AppSecret = builder.Configuration["Facebook:AppSecret"];
+	option.AppId = builder.Configuration["Facebook:AppId"]
+		?? throw new InvalidOperationException("Missing required Facebook:AppId configuration.");
+	option.AppSecret = builder.Configuration["Facebook:AppSecret"]
+		?? throw new InvalidOperationException("Missing required Facebook:AppSecret configuration.");
 });
 var app = builder.Build();
 

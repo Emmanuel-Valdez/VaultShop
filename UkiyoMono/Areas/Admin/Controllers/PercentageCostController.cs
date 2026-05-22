@@ -74,7 +74,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
-			PercentageCost percentageToBeDeleted = _unitOfWork.PercentageCost.Get(u => u.Id == id);
+			PercentageCost? percentageToBeDeleted = _unitOfWork.PercentageCost.Get(u => u.Id == id);
 			if (percentageToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"] });

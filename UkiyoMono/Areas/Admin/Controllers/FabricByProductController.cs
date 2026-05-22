@@ -42,6 +42,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				unitId = null;
 			}
+			var fabricByProduct = _unitOfWork.FabricByProduct
+				.Get(u => u.ProductId == id, includeProperties: "Product,UnitFabricByProductList");
+			if (fabricByProduct == null)
+			{
+				return NotFound();
+			}
+
 			FabricByProductVM = new()
 			{
 				FabricList = _unitOfWork.Fabric.GetAll().Select(u => new SelectListItem
@@ -49,8 +56,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Text = u.Name,
 					Value = u.Id.ToString()
 				}),
-				FabricByProduct = _unitOfWork.FabricByProduct
-				.Get(u => u.ProductId == id, includeProperties: "Product,UnitFabricByProductList"),
+				FabricByProduct = fabricByProduct,
 			};
 		
 			if (unitId == 0 || unitId == null)
@@ -62,6 +68,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			else
 			{
 				//update
+				if (unitFromDb == null)
+				{
+					return NotFound();
+				}
+
 				FabricByProductVM.UnitFabricByProduct = unitFromDb;
 			}
 			return View(FabricByProductVM);
@@ -77,6 +88,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			try
 			{
 				var fabricFromDb = _unitOfWork.Fabric.Get(u => u.Id == FabricByProductVM.UnitFabricByProduct.FabricId);
+				if (fabricFromDb == null)
+				{
+					return NotFound();
+				}
 
 				// Calcular TotalPartial from fabric
 				
@@ -147,7 +162,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpDelete]
 		public IActionResult Delete(int? id)
 		{
-			UnitFabricByProduct unitToBeDeleted = _unitOfWork.UnitFabricByProduct.Get(u => u.Id == id);
+			UnitFabricByProduct? unitToBeDeleted = _unitOfWork.UnitFabricByProduct.Get(u => u.Id == id);
 			if (unitToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value});

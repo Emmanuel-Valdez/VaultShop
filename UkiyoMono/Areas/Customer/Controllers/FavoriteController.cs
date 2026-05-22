@@ -24,8 +24,11 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		
 		public IActionResult Index()
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
 
 			IEnumerable<FavoriteProduct> FavoriteProductList = _unitOfWork.FavoriteProduct
 					.GetAll(u => u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true && userId == u.ApplicationUserId
@@ -41,8 +44,12 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		
 		public IActionResult Add(int productId)
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
+
 			FavoriteProduct favoriteProduct = new()
 			{
 				ProductId = productId,
@@ -76,8 +83,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		public IActionResult Remove(int favoriteId)
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 			if (string.IsNullOrEmpty(userId))
 			{

@@ -74,7 +74,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
-			GarmentHardware garmentHardwareToBeDeleted = _unitOfWork.GarmentHardware.Get(u => u.Id == id);
+			GarmentHardware? garmentHardwareToBeDeleted = _unitOfWork.GarmentHardware.Get(u => u.Id == id);
 			if (garmentHardwareToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });

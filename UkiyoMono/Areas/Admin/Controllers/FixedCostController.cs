@@ -75,7 +75,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
-			FixedCost fabricToBeDeleted = _unitOfWork.FixedCost.Get(u => u.Id == id);
+			FixedCost? fabricToBeDeleted = _unitOfWork.FixedCost.Get(u => u.Id == id);
 			if (fabricToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });

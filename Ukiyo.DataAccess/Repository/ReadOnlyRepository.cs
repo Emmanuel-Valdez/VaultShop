@@ -20,7 +20,7 @@ namespace UkiyoDesigns.DataAccess.Repository
 			//_db.Products.Include(u => u.Category);
         }
 
-		public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked =false)
+		public T? Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked =false)
 		{
 			if (tracked)
 			{

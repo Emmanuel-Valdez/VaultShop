@@ -36,10 +36,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		public IActionResult RoleManagment(string userId)
 		{
-		
+			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, includeProperties:"Company");
+			if (applicationUser == null)
+			{
+				return NotFound();
+			}
+
 			RoleManagmentVM RoleVM = new RoleManagmentVM()
 			{
-				ApplicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, includeProperties:"Company"),
+				ApplicationUser = applicationUser,
 				RoleList = _roleManager.Roles.Select(u => new SelectListItem
 				{
 					Text = u.Name,
@@ -52,16 +57,21 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Value = u.Id.ToString()
 				})
 			};
-			RoleVM.ApplicationUser.Role = _userManager.GetRolesAsync(_unitOfWork.ApplicationUser.Get(u=>u.Id==userId))
-				.GetAwaiter().GetResult().FirstOrDefault();
+			RoleVM.ApplicationUser.Role = _userManager.GetRolesAsync(applicationUser)
+				.GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
 			return View(RoleVM);
 		}
 		[HttpPost]
 		public IActionResult RoleManagment(RoleManagmentVM roleManagmentVM)
 		{
-			ApplicationUser applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == roleManagmentVM.ApplicationUser.Id);
-			string oldRole = _userManager.GetRolesAsync(_unitOfWork.ApplicationUser.Get(u => u.Id == roleManagmentVM.ApplicationUser.Id))
-				.GetAwaiter().GetResult().FirstOrDefault();
+			ApplicationUser? applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == roleManagmentVM.ApplicationUser.Id);
+			if (applicationUser == null)
+			{
+				return NotFound();
+			}
+
+			string oldRole = _userManager.GetRolesAsync(applicationUser)
+				.GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
 
 			if (!(roleManagmentVM.ApplicationUser.Role == oldRole))
 			{
@@ -75,7 +85,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				}
 				_unitOfWork.ApplicationUser.Update(applicationUser);
 				_unitOfWork.Save();
-				_userManager.RemoveFromRoleAsync(applicationUser, oldRole).GetAwaiter().GetResult();
+				if (!string.IsNullOrEmpty(oldRole))
+				{
+					_userManager.RemoveFromRoleAsync(applicationUser, oldRole).GetAwaiter().GetResult();
+				}
+
 				_userManager.AddToRoleAsync(applicationUser, roleManagmentVM.ApplicationUser.Role).GetAwaiter().GetResult();
 			}
 			else if (roleManagmentVM.ApplicationUser.Role == SD.Role_Company 
@@ -97,7 +111,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			List<ApplicationUser> objUserList = _unitOfWork.ApplicationUser.GetAll(includeProperties:"Company").ToList();		
 			foreach (var user in objUserList)
 			{
-				user.Role = _userManager.GetRolesAsync(user).GetAwaiter().GetResult().FirstOrDefault();
+				user.Role = _userManager.GetRolesAsync(user).GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
 
 				if (user.Company == null)
 				{

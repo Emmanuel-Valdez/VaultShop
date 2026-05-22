@@ -75,7 +75,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
-			Fabric fabricToBeDeleted = _unitOfWork.Fabric.Get(u => u.Id == id);
+			Fabric? fabricToBeDeleted = _unitOfWork.Fabric.Get(u => u.Id == id);
 			if (fabricToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });

@@ -95,7 +95,12 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 					throw new InvalidOperationException("Failed to create admin user: " + errors);
 				}
 
-				ApplicationUser user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == adminEmail);
+				ApplicationUser? user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == adminEmail);
+				if (user == null)
+				{
+					throw new InvalidOperationException("Failed to load the seeded admin user.");
+				}
+
 				_userManager.AddToRoleAsync(user, SD.Role_Admin).GetAwaiter().GetResult();
 			}
 		}

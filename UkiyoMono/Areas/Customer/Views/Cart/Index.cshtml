@@ -30,7 +30,7 @@
 								@if (item.Product.ProductImages != null && item.Product.ProductImages.Count() > 0)
 								{
 									<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id">
-										<img src="@item.Product.ProductImages.FirstOrDefault().ImageUrl" class="card-img-top rounded w-100" />
+										<img src="@item.Product.ProductImages.First().ImageUrl" class="card-img-top rounded w-100" />
 									</a>
 								}
 								else

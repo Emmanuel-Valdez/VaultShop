@@ -87,7 +87,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
-			Category categoryToBeDeleted = _unitOfWork.Category.Get(u => u.Id == id && u.IsDeleted == false);
+			Category? categoryToBeDeleted = _unitOfWork.Category.Get(u => u.Id == id && u.IsDeleted == false);
 			if (categoryToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });

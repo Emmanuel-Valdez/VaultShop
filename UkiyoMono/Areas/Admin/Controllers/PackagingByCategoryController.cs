@@ -39,6 +39,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				unitId = null;
 			}
+			var packagingByCategory = _unitOfWork.PackagingByCategory
+				.Get(u => u.CategoryId == id, includeProperties: "Category,UnitPackagingByCategoryList");
+			if (packagingByCategory == null)
+			{
+				return NotFound();
+			}
+
 			PackagingByCategoryVM = new()
 			{
 				PackagingList = _unitOfWork.Packaging.GetAll().Select(u => new SelectListItem
@@ -46,8 +53,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Text = u.Name,
 					Value = u.Id.ToString()
 				}),
-				PackagingByCategory = _unitOfWork.PackagingByCategory
-				.Get(u => u.CategoryId == id, includeProperties: "Category,UnitPackagingByCategoryList"),
+				PackagingByCategory = packagingByCategory,
 			};
 			if (unitId == 0 || unitId == null)
 			{
@@ -58,6 +64,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			else
 			{
 				//update
+				if (unitFromDb == null)
+				{
+					return NotFound();
+				}
+
 				PackagingByCategoryVM.UnitPackagingByCategory = unitFromDb;
 			}
 			return View(PackagingByCategoryVM);
@@ -75,6 +86,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			try
 			{
 				var packagingFromDb = _unitOfWork.Packaging.Get(u => u.Id == PackagingByCategoryVM.UnitPackagingByCategory.PackagingId);
+				if (packagingFromDb == null)
+				{
+					return NotFound();
+				}
 
 				
 				var existingUnitPackaging = _unitOfWork.UnitPackagingByCategory
@@ -147,7 +162,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpDelete]
 		public IActionResult Delete(int? id)
 		{
-			UnitPackagingByCategory unitToBeDeleted = _unitOfWork.UnitPackagingByCategory.Get(u => u.Id == id);
+			UnitPackagingByCategory? unitToBeDeleted = _unitOfWork.UnitPackagingByCategory.Get(u => u.Id == id);
 			if (unitToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });

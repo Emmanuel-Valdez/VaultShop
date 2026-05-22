@@ -208,7 +208,7 @@
 								<span class="text-primary">@Localizer["OrderSummary"]</span>
 							</h4>
 
-							<label class="btn btn-outline-primary form-control my-2">@Localizer["OrderStatus"] - @Localizer[Model.OrderHeader.OrderStatus]</label>
+							<label class="btn btn-outline-primary form-control my-2">@Localizer["OrderStatus"] - @Localizer[Model.OrderHeader.OrderStatus ?? string.Empty]</label>
 
 							<ul class="list-group mb-3">
 								@foreach (var detail in Model.OrderDetail)

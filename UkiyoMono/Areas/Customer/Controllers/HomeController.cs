@@ -43,19 +43,29 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		public IActionResult Details(int productId)
 		{
+			var product = _unitOfWork.Product.Get(u => u.IsDeleted == false && u.IsAvailableInStore == true && u.Id == productId, includeProperties: "Category,ProductImages");
+			if (product == null)
+			{
+				return NotFound();
+			}
+
 			ShoppingCart cart = new()
 			{
-				Product = _unitOfWork.Product.Get(u => u.IsDeleted == false && u.IsAvailableInStore == true && u.Id == productId, includeProperties: "Category,ProductImages"),
+				Product = product,
 				Count = 1,
 				ProductId = productId
 			};
 
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			if (claimsIdentity.IsAuthenticated)
+			if (User.Identity?.IsAuthenticated == true)
 			{
-				var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+				var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+				if (string.IsNullOrEmpty(userId))
+				{
+					return Unauthorized();
+				}
+
 				cart.ApplicationUserId = userId;
-				FavoriteProduct isFavorite = _unitOfWork.FavoriteProduct.Get(u => u.ProductId == cart.ProductId && userId == u.ApplicationUserId);
+				FavoriteProduct? isFavorite = _unitOfWork.FavoriteProduct.Get(u => u.ProductId == cart.ProductId && userId == u.ApplicationUserId);
 				if (isFavorite != null)
 				{
 					cart.IsFavorite = true;
@@ -70,13 +80,17 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		[Authorize]
 		public IActionResult Details(ShoppingCart shoppingCart)
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
+
 			shoppingCart.ApplicationUserId = userId;
 
 			if (!ModelState.IsValid)
 				return RedirectToAction(nameof(Index));
-			ShoppingCart cartFromDb = _unitOfWork.ShoppingCart
+			ShoppingCart? cartFromDb = _unitOfWork.ShoppingCart
 				.Get(u => u.ApplicationUserId == userId && u.ProductId == shoppingCart.ProductId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true);
 			if (cartFromDb != null)
 			{
@@ -93,8 +107,6 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 					_unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId).Count());
 				TempData["success"] = _localizer["ProductAddCart"].Value;
 			}
-			shoppingCart.Product = _unitOfWork.Product.Get(u => u.Id == shoppingCart.ProductId && u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category");
-
 			return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId });
 		}
 

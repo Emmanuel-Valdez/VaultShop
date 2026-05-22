@@ -75,7 +75,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpDelete]
 		public IActionResult Delete(int? id)
 		{
-			Company companyToBeDeleted = _unitOfWork.Company.Get(u => u.Id == id);
+			Company? companyToBeDeleted = _unitOfWork.Company.Get(u => u.Id == id);
 			if (companyToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value});

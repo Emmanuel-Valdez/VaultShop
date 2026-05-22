@@ -24,7 +24,7 @@ namespace UkiyoDesigns.DataAccess.Repository
 			dbSet.Add(entity);
 		}
 
-		public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked =false)
+		public T? Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked =false)
 		{
 			if (tracked)
 			{

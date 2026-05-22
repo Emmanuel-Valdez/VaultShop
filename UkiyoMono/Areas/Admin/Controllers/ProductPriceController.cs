@@ -27,10 +27,17 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		}
 		public IActionResult Index()
 		{
+			var totalPercentageCost = _unitOfWork.TotalPercentageCost.GetAll().FirstOrDefault();
+			var percentageProfit = _unitOfWork.PercentageProfit.Get(u => u.Id == 1);
+			if (totalPercentageCost == null || percentageProfit == null)
+			{
+				return Problem("Price calculator data is not initialized.");
+			}
+
 			FinalPriceVM = new FinalPriceVM()
 			{
-				TotalPercentageCost = _unitOfWork.TotalPercentageCost.GetAll().FirstOrDefault(),
-				PercentageProfit = _unitOfWork.PercentageProfit.Get(u => u.Id == 1),
+				TotalPercentageCost = totalPercentageCost,
+				PercentageProfit = percentageProfit,
 			};
 			ProductsOutdatedCount();
 			return View(FinalPriceVM);
@@ -89,7 +96,12 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				ProductsOutdatedCount();
 				return View(FinalPriceVM);
 			}
-			PercentageProfit percentageProfitFromDb = _unitOfWork.PercentageProfit.Get(u => u.Id == 1);
+			PercentageProfit? percentageProfitFromDb = _unitOfWork.PercentageProfit.Get(u => u.Id == 1);
+			if (percentageProfitFromDb == null)
+			{
+				return NotFound();
+			}
+
 			percentageProfitFromDb.Retail = FinalPriceVM.PercentageProfit.Retail;
 			percentageProfitFromDb.Wholesale = FinalPriceVM.PercentageProfit.Wholesale;
 			_unitOfWork.PercentageProfit.Update(percentageProfitFromDb);

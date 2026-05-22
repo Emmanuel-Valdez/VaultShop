@@ -74,7 +74,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Delete(int? id)
 		{
-			Packaging packagingToBeDeleted = _unitOfWork.Packaging.Get(u => u.Id == id);
+			Packaging? packagingToBeDeleted = _unitOfWork.Packaging.Get(u => u.Id == id);
 			if (packagingToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });
