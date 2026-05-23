@@ -1,7 +1,13 @@
-﻿@{
+﻿@using System.Globalization
+@{
     Layout = "_Layout";
-    ViewData["Description"] = ViewData["Description"] ?? "Ukiyo - Descuentos mayoristas en productos de mercería, telas y herrajes para confección. Envíos a todo el país.";
-    ViewData["Keywords"] = ViewData["Keywords"] ?? "merceria, telas, herrajes, descuento mayorista, costureras, confección, Argentina";
+    var isSpanish = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es";
+    ViewData["Description"] = ViewData["Description"] ?? (isSpanish
+        ? "Ukiyo - Productos únicos inspirados en anime, cómics y fantasía. Mochilas, bolsos y accesorios hechos con cuidado en Argentina."
+        : "Ukiyo - Unique anime, comic, and fantasy-inspired products. Backpacks, bags, and accessories carefully made in Argentina.");
+    ViewData["Keywords"] = ViewData["Keywords"] ?? (isSpanish
+        ? "Ukiyo, mochilas, bolsos, accesorios, anime, cómics, fantasía, Argentina"
+        : "Ukiyo, backpacks, bags, accessories, anime, comics, fantasy, Argentina");
     ViewData["Robots"] = ViewData["Robots"] ?? "index, follow";
     ViewData["OgImage"] = ViewData["OgImage"] ?? $"{SD.SiteUrl}/images/marca.png";
 }

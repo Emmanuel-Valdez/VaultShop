@@ -117,7 +117,52 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="WholeSale" xml:space="preserve">
+  <data name="Wholesale" xml:space="preserve">
     <value>Wholesale</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Wholesale purchasing information for Ukiyo: minimum orders, payments, preparation times, and special conditions.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>wholesale, bulk purchases, Ukiyo products, wholesale backpacks, wholesale accessories</value>
+  </data>
+  <data name="IntroPrefix" xml:space="preserve">
+    <value>At</value>
+  </data>
+  <data name="IntroSuffix" xml:space="preserve">
+    <value>we offer special conditions for shops, entrepreneurs, and customers who want to buy in larger quantities. We want the process to be clear from the first message, so here are the main points to keep in mind.</value>
+  </data>
+  <data name="PaymentMethodLabel" xml:space="preserve">
+    <value>Payment method</value>
+  </data>
+  <data name="PaymentMethodText" xml:space="preserve">
+    <value>Wholesale orders are paid exclusively by bank transfer.</value>
+  </data>
+  <data name="ClearPricesLabel" xml:space="preserve">
+    <value>Clear prices</value>
+  </data>
+  <data name="ClearPricesText" xml:space="preserve">
+    <value>The prices shown in the wholesale area already include the corresponding discount, with no extra calculations needed.</value>
+  </data>
+  <data name="FirstOrderLabel" xml:space="preserve">
+    <value>First order</value>
+  </data>
+  <data name="FirstOrderText" xml:space="preserve">
+    <value>To get started, we ask for a minimum of 5 different products or 3 units of the same product.</value>
+  </data>
+  <data name="PaymentDeadlineLabel" xml:space="preserve">
+    <value>Payment deadline</value>
+  </data>
+  <data name="PaymentDeadlineText" xml:space="preserve">
+    <value>After placing your order, you have up to 7 days to pay the full amount.</value>
+  </data>
+  <data name="DispatchTimesLabel" xml:space="preserve">
+    <value>Dispatch times</value>
+  </data>
+  <data name="DispatchTimesText" xml:space="preserve">
+    <value>We prepare and dispatch orders within 7 to 14 business days after payment is confirmed.</value>
+  </data>
+  <data name="ContactText" xml:space="preserve">
+    <value>If you would like to work with us, send us a message and we will explain how to access the wholesale area. We love building serious, simple, and sustainable business relationships.</value>
   </data>
 </root>

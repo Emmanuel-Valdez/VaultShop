@@ -120,4 +120,49 @@
   <data name="Wholesale" xml:space="preserve">
     <value>Mayorista</value>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Información para compras mayoristas en Ukiyo: mínimos, pagos, tiempos de preparación y condiciones especiales.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>venta mayorista, compras al por mayor, productos Ukiyo, mochilas mayoristas, accesorios mayoristas</value>
+  </data>
+  <data name="IntroPrefix" xml:space="preserve">
+    <value>En</value>
+  </data>
+  <data name="IntroSuffix" xml:space="preserve">
+    <value>trabajamos con condiciones especiales para tiendas, emprendedores y clientes que quieren comprar al por mayor. Buscamos que el proceso sea claro desde el primer mensaje, por eso resumimos acá los puntos más importantes.</value>
+  </data>
+  <data name="PaymentMethodLabel" xml:space="preserve">
+    <value>Método de pago</value>
+  </data>
+  <data name="PaymentMethodText" xml:space="preserve">
+    <value>Las compras mayoristas se abonan únicamente por transferencia bancaria.</value>
+  </data>
+  <data name="ClearPricesLabel" xml:space="preserve">
+    <value>Precios claros</value>
+  </data>
+  <data name="ClearPricesText" xml:space="preserve">
+    <value>Los precios que ves en el área mayorista ya incluyen el descuento correspondiente, sin cálculos extra.</value>
+  </data>
+  <data name="FirstOrderLabel" xml:space="preserve">
+    <value>Primer pedido</value>
+  </data>
+  <data name="FirstOrderText" xml:space="preserve">
+    <value>Para empezar, pedimos un mínimo de 5 productos distintos o 3 unidades del mismo producto.</value>
+  </data>
+  <data name="PaymentDeadlineLabel" xml:space="preserve">
+    <value>Plazo de pago</value>
+  </data>
+  <data name="PaymentDeadlineText" xml:space="preserve">
+    <value>Una vez realizado el pedido, tenés hasta 7 días para abonar el total.</value>
+  </data>
+  <data name="DispatchTimesLabel" xml:space="preserve">
+    <value>Tiempos de despacho</value>
+  </data>
+  <data name="DispatchTimesText" xml:space="preserve">
+    <value>Preparamos y despachamos los pedidos dentro de 7 a 14 días hábiles desde la acreditación del pago.</value>
+  </data>
+  <data name="ContactText" xml:space="preserve">
+    <value>Si querés trabajar con nosotros, escribinos y te contamos cómo acceder al área mayorista. Nos encanta construir vínculos comerciales serios, simples y sostenibles.</value>
+  </data>
 </root>

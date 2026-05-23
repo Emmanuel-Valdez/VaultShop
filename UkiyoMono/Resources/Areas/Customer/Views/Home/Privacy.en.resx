@@ -120,4 +120,67 @@
   <data name="Privacy" xml:space="preserve">
     <value>Privacy</value>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Ukiyo privacy policy: how we care for, use, and protect your personal information.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>privacy policy, data protection, personal information, privacy</value>
+  </data>
+  <data name="Section1Title" xml:space="preserve">
+    <value>1. Information we collect</value>
+  </data>
+  <data name="Section1Body" xml:space="preserve">
+    <value>We collect the information you share with us when you shop or contact us, such as your name, email address, phone number, shipping address, and the details needed to manage payment. We use this information to prepare your order and provide better support.</value>
+  </data>
+  <data name="Section2Title" xml:space="preserve">
+    <value>2. How we use your information</value>
+  </data>
+  <data name="Section2Body" xml:space="preserve">
+    <value>We use your information to process orders, keep you updated about your purchase, answer questions, improve our service, and comply with applicable legal obligations.</value>
+  </data>
+  <data name="Section3Title" xml:space="preserve">
+    <value>3. How we protect your information</value>
+  </data>
+  <data name="Section3Body" xml:space="preserve">
+    <value>We protect your data with technical and organizational measures designed to prevent unauthorized access, loss, or misuse.</value>
+  </data>
+  <data name="Section4Title" xml:space="preserve">
+    <value>4. When we share information</value>
+  </data>
+  <data name="Section4Body" xml:space="preserve">
+    <value>We do not sell or share your information with third parties for purposes unrelated to Ukiyo. We only share it when needed to complete your order, for example with shipping services, payment processors, or when required by law.</value>
+  </data>
+  <data name="Section5Title" xml:space="preserve">
+    <value>5. Your rights</value>
+  </data>
+  <data name="Section5Intro" xml:space="preserve">
+    <value>Depending on applicable law, you can request:</value>
+  </data>
+  <data name="Section5Item1" xml:space="preserve">
+    <value>Access to the personal information we hold about you.</value>
+  </data>
+  <data name="Section5Item2" xml:space="preserve">
+    <value>Correction of inaccurate or incomplete information.</value>
+  </data>
+  <data name="Section5Item3" xml:space="preserve">
+    <value>Deletion of your data when legally possible.</value>
+  </data>
+  <data name="Section5Item4" xml:space="preserve">
+    <value>Restriction of, or objection to, specific uses of your data.</value>
+  </data>
+  <data name="Section5Item5" xml:space="preserve">
+    <value>To exercise these rights, contact us through our official channels.</value>
+  </data>
+  <data name="Section6Title" xml:space="preserve">
+    <value>6. Data retention</value>
+  </data>
+  <data name="Section6Body" xml:space="preserve">
+    <value>We keep your information only for as long as needed for the purpose it was collected, unless a legal obligation requires us to retain it longer.</value>
+  </data>
+  <data name="Section7Title" xml:space="preserve">
+    <value>7. Changes to this policy</value>
+  </data>
+  <data name="Section7Body" xml:space="preserve">
+    <value>We may update this policy if our practices or applicable rules change. If the change is significant, we will announce it on our website.</value>
+  </data>
 </root>

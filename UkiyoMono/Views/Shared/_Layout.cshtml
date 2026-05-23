@@ -276,14 +276,19 @@
 			<div class="language-selector"> 
 				<form method="post" asp-area="Customer" asp-controller="Home" asp-action="SetLanguage">
 					<input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString.ToUriComponent())" />
-					@if (System.Threading.Thread.CurrentThread.CurrentUICulture.Name == "es-AR")
-					{
-						<button type="submit" name="culture" value="en-US" class="btn btn-outline-info">English</button>
+					@{
+						var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
 					}
-					else
-					{
-						<button type="submit" name="culture" value="es-AR" class="btn btn-outline-info">Español</button>
-					} 
+					<div class="btn-group" role="group" aria-label="Language selector">
+						<button type="submit" name="culture" value="es-AR" class="btn @(currentCulture == "es-AR" ? "btn-info" : "btn-outline-info")" title="Español" aria-label="Cambiar a español" aria-pressed="@(currentCulture == "es-AR")">
+							<img src="~/images/flags/argentina.svg" asp-append-version="true" alt="" width="30" height="20" />
+							<span class="visually-hidden">Español</span>
+						</button>
+						<button type="submit" name="culture" value="en-US" class="btn @(currentCulture == "en-US" ? "btn-info" : "btn-outline-info")" title="English" aria-label="Switch to English" aria-pressed="@(currentCulture == "en-US")">
+							<img src="~/images/flags/uk.svg" asp-append-version="true" alt="" width="30" height="20" />
+							<span class="visually-hidden">English</span>
+						</button>
+					</div>
 				</form> 
 			</div>
 			<div class="align-self-end py-3 ">

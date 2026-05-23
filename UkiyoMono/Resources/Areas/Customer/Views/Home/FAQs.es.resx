@@ -120,4 +120,91 @@
   <data name="FAQs" xml:space="preserve">
     <value>Preguntas Frecuentes</value>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Preguntas frecuentes sobre Ukiyo: productos, envíos, pagos, compras mayoristas y canales de contacto.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>preguntas frecuentes, FAQs, envíos, métodos de pago, ventas mayoristas, ayuda Ukiyo</value>
+  </data>
+  <data name="Question1" xml:space="preserve">
+    <value>1. ¿Qué productos ofrecen?</value>
+  </data>
+  <data name="Answer1" xml:space="preserve">
+    <value>Diseñamos y fabricamos bolsos, mochilas, portacelulares y accesorios inspirados en el anime, los cómics y la fantasía. Nuestro catálogo crece de a poco, así que siempre puede aparecer algo nuevo.</value>
+  </data>
+  <data name="Question2" xml:space="preserve">
+    <value>2. ¿Realizan pedidos personalizados?</value>
+  </data>
+  <data name="Answer2" xml:space="preserve">
+    <value>Por el momento no tomamos pedidos personalizados. Cada producto de Ukiyo está diseñado y fabricado por nosotros, y te invitamos a recorrer el catálogo para encontrar una pieza que conecte con tu estilo.</value>
+  </data>
+  <data name="Question3" xml:space="preserve">
+    <value>3. ¿Hacen envíos?</value>
+  </data>
+  <data name="Answer3Item1" xml:space="preserve">
+    <value>Sí, enviamos a todo el país mediante Correo Argentino, generalmente a la sucursal más cercana.</value>
+  </data>
+  <data name="Answer3Item2" xml:space="preserve">
+    <value>Si estás en Gran Mendoza, coordinamos entrega directa a domicilio.</value>
+  </data>
+  <data name="Answer3Item3" xml:space="preserve">
+    <value>Por ahora no realizamos envíos fuera de Argentina, aunque nos encantaría sumarlo más adelante.</value>
+  </data>
+  <data name="Question4" xml:space="preserve">
+    <value>4. ¿Cuánto tarda en llegar mi pedido?</value>
+  </data>
+  <data name="Answer4Intro" xml:space="preserve">
+    <value>Una vez confirmado el pago, estos son los tiempos estimados:</value>
+  </data>
+  <data name="Answer4Item1" xml:space="preserve">
+    <value>Gran Mendoza: entre 36 y 96 horas.</value>
+  </data>
+  <data name="Answer4Item2" xml:space="preserve">
+    <value>Resto de Argentina: entre 3 y 7 días hábiles, según la ubicación y el servicio postal.</value>
+  </data>
+  <data name="Question5" xml:space="preserve">
+    <value>5. ¿Cómo puedo seguir mi pedido?</value>
+  </data>
+  <data name="Answer5Prefix" xml:space="preserve">
+    <value>Cuando tu pedido sea despachado,</value>
+  </data>
+  <data name="Answer5Suffix" xml:space="preserve">
+    <value>te enviaremos un número de seguimiento para que puedas consultar el estado del paquete en Correo Argentino.</value>
+  </data>
+  <data name="Question6" xml:space="preserve">
+    <value>6. ¿Qué métodos de pago aceptan?</value>
+  </data>
+  <data name="Answer6Intro" xml:space="preserve">
+    <value>Aceptamos estos métodos de pago:</value>
+  </data>
+  <data name="Answer6Item1" xml:space="preserve">
+    <value>Tarjetas de crédito y débito, con hasta 3 cuotas sin interés cuando esté disponible.</value>
+  </data>
+  <data name="Answer6Item2" xml:space="preserve">
+    <value>Transferencia bancaria, con 10% de descuento.</value>
+  </data>
+  <data name="Question7" xml:space="preserve">
+    <value>7. ¿Realizan ventas al por mayor?</value>
+  </data>
+  <data name="Answer7Prefix" xml:space="preserve">
+    <value>Sí, trabajamos con compras mayoristas.</value>
+  </data>
+  <data name="Answer7Strong" xml:space="preserve">
+    <value>Escribinos para pedir acceso.</value>
+  </data>
+  <data name="Answer7Suffix" xml:space="preserve">
+    <value>Una vez aprobada la solicitud, habilitamos los permisos necesarios para ingresar al área mayorista.</value>
+  </data>
+  <data name="Question8" xml:space="preserve">
+    <value>8. ¿Dónde puedo consultar si necesito ayuda?</value>
+  </data>
+  <data name="Answer8Intro" xml:space="preserve">
+    <value>Podés comunicarte con nosotros por:</value>
+  </data>
+  <data name="Answer8Item1" xml:space="preserve">
+    <value>WhatsApp: +54 9 2612522011</value>
+  </data>
+  <data name="Answer8Item2" xml:space="preserve">
+    <value>Nuestras redes sociales, disponibles al pie de página.</value>
+  </data>
 </root>

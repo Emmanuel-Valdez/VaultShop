@@ -1,31 +1,20 @@
-﻿<div class="container my-5">
-	<h1 class="text-center mb-4">@Localizer["Wholesale"]</h1>
+@{
+    ViewData["Title"] = Localizer["Wholesale"];
+    ViewData["Description"] = Localizer["MetaDescription"];
+    ViewData["Keywords"] = Localizer["MetaKeywords"];
+}
+
+<div class="container my-5">
+    <h1 class="text-center mb-4">@Localizer["Wholesale"]</h1>
     <div class="mt-4">
-        <p>En <strong>Ukiyo</strong>, ofrecemos condiciones especiales para quienes quieran adquirir nuestros productos al por mayor. Sabemos lo importante que es contar con un servicio claro y eficiente, por eso hemos diseñado un esquema fácil de entender:</p>
-       <ul>
-			<li><strong>Método de pago:</strong> Las compras al por mayor se realizan exclusivamente mediante transferencia bancaria.</li>
-			<li>
-				<strong>Precios claros:</strong> Los precios mostrados ya incluyen el descuento mayorista, por lo que no es necesario aplicar ningún ajuste adicional.
-			</li>
-			<li><strong>Primer pedido:</strong> Para iniciar, requerimos una compra mínima de 5 productos distintos, o por lo menos 3 productos iguales</li>
-			<li><strong>Plazo de pago:</strong> Una vez realizado tu pedido, cuentas con 7 días para cancelar el total del monto.</li>
-			<li>
-				<strong>Tiempos de despacho:</strong> Los pedidos son despachados en un plazo de 7 a 14 días hábiles, dependiendo de la fecha en que se acredite el pago.
-			</li>
-			<li>Si estás interesado en trabajar con nosotros, no dudes en contactarnos para más información. Estamos aquí para ayudarte a construir una alianza comercial exitosa.</li>
-		</ul>
+        <p>@Localizer["IntroPrefix"] <strong>Ukiyo</strong>, @Localizer["IntroSuffix"]</p>
+        <ul>
+            <li><strong>@Localizer["PaymentMethodLabel"]:</strong> @Localizer["PaymentMethodText"]</li>
+            <li><strong>@Localizer["ClearPricesLabel"]:</strong> @Localizer["ClearPricesText"]</li>
+            <li><strong>@Localizer["FirstOrderLabel"]:</strong> @Localizer["FirstOrderText"]</li>
+            <li><strong>@Localizer["PaymentDeadlineLabel"]:</strong> @Localizer["PaymentDeadlineText"]</li>
+            <li><strong>@Localizer["DispatchTimesLabel"]:</strong> @Localizer["DispatchTimesText"]</li>
+            <li>@Localizer["ContactText"]</li>
+        </ul>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-

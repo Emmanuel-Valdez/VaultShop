@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" role="img" aria-labelledby="title">
+  <title id="title">Argentina flag</title>
+  <rect width="30" height="20" fill="#74acdf" />
+  <rect y="6.667" width="30" height="6.666" fill="#fff" />
+  <circle cx="15" cy="10" r="2" fill="#f6b40e" />
+  <g stroke="#85340a" stroke-width=".25" stroke-linecap="round">
+    <path d="M15 7.2v5.6" />
+    <path d="M12.2 10h5.6" />
+    <path d="M13 8l4 4" />
+    <path d="M17 8l-4 4" />
+  </g>
+</svg>

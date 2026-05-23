@@ -120,4 +120,19 @@
   <data name="AboutUs" xml:space="preserve">
     <value>Nosotros</value>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Conocé Ukiyo, un proyecto familiar que diseña y fabrica productos únicos con dedicación, detalle y una fuerte conexión con su comunidad.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>Ukiyo, emprendimiento familiar, productos únicos, accesorios hechos a mano, mochilas, bolsos</value>
+  </data>
+  <data name="IntroPrefix" xml:space="preserve">
+    <value>¡Hola! Somos</value>
+  </data>
+  <data name="IntroSuffix" xml:space="preserve">
+    <value>un proyecto familiar que nació del amor por crear cosas distintas. Desde hace más de 6 años diseñamos y fabricamos productos con paciencia, cuidado y muchas ganas de mejorar en cada etapa.</value>
+  </data>
+  <data name="CommunityParagraph" xml:space="preserve">
+    <value>Nos inspira la calidad, el detalle y la conexión con las personas que eligen nuestro trabajo. Cada mensaje, cada compra y cada devolución nos ayuda a crecer. Ukiyo no sería lo que es sin su comunidad, por eso seguimos aprendiendo y creando con el mismo entusiasmo del primer día.</value>
+  </data>
 </root>

@@ -123,4 +123,13 @@
   <data name="SearchResults" xml:space="preserve">
     <value>Search Results</value>
   </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Search Ukiyo products and find backpacks, bags, and accessories inspired by anime, comics, and fantasy.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>search Ukiyo products, anime backpacks, bags, accessories, comics, fantasy</value>
+  </data>
 </root>

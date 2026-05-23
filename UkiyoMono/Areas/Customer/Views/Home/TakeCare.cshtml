@@ -1,46 +1,46 @@
-﻿@{
-    ViewData["Title"] = @Localizer["TakeCare"];
-    ViewData["Description"] = "Guía de cuidados para tus productos Ukiyo: limpieza, mantenimiento y preservación de bolsos, mochilas y accesorios.";
-    ViewData["Keywords"] = "cuidados productos, mantenimiento, limpieza, guía cuidado, bolsos, mochilas";
+@{
+    ViewData["Title"] = Localizer["TakeCare"];
+    ViewData["Description"] = Localizer["MetaDescription"];
+    ViewData["Keywords"] = Localizer["MetaKeywords"];
 }
 
 <div class="container my-5">
-        <h1 class="text-center mb-4">@Localizer["TakeCare"]</h1>
-        <ul class="nav nav-tabs" id="cuidadosTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="generales-tab" data-bs-toggle="tab" data-bs-target="#generales" type="button" role="tab" aria-controls="generales" aria-selected="true">Cuidados Generales</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="bordados-tab" data-bs-toggle="tab" data-bs-target="#bordados" type="button" role="tab" aria-controls="bordados" aria-selected="false">Bordados</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="estampas-tab" data-bs-toggle="tab" data-bs-target="#estampas" type="button" role="tab" aria-controls="estampas" aria-selected="false">Estampas</button>
-            </li>
-        </ul>
-        <div class="tab-content mt-3" id="cuidadosContent">
-            <div class="tab-pane fade show active" id="generales" role="tabpanel" aria-labelledby="generales-tab">
-                <h4>Cuidados Generales</h4>
-                <ul>
-                    <li>Usa un paño húmedo para limpiar manchas superficiales.</li>
-                    <li>Evita productos químicos agresivos y protege el material con sprays adecuados.</li>
-                    <li>Evita sobrecargar mochilas y bolsos según su capacidad específica.</li>
-                    <li>Guarda los productos en un lugar fresco y seco.</li>
-                    <li>Sécalos al aire si se mojan, lejos de fuentes de calor.</li>
-                </ul>
-            </div>
-            <div class="tab-pane fade" id="bordados" role="tabpanel" aria-labelledby="bordados-tab">
-                <h4>Cuidado de Bordados</h4>
-                <ul>
-                    <li>Evita frotar directamente sobre las áreas bordadas.</li>
-                    <li>Límpialos con un cepillo de cerdas suaves para evitar desprender hilos.</li>
-                </ul>
-            </div>
-            <div class="tab-pane fade" id="estampas" role="tabpanel" aria-labelledby="estampas-tab">
-                <h4>Cuidado de Estampas</h4>
-                <ul>
-                    <li>Lava los productos con estampas del revés y en ciclos delicados.</li>
-                    <li>No planches directamente sobre las estampas; utiliza un paño protector.</li>
-                </ul>
-            </div>
+    <h1 class="text-center mb-4">@Localizer["TakeCare"]</h1>
+    <ul class="nav nav-tabs" id="cuidadosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="generales-tab" data-bs-toggle="tab" data-bs-target="#generales" type="button" role="tab" aria-controls="generales" aria-selected="true">@Localizer["GeneralCare"]</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="bordados-tab" data-bs-toggle="tab" data-bs-target="#bordados" type="button" role="tab" aria-controls="bordados" aria-selected="false">@Localizer["Embroidery"]</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="estampas-tab" data-bs-toggle="tab" data-bs-target="#estampas" type="button" role="tab" aria-controls="estampas" aria-selected="false">@Localizer["Prints"]</button>
+        </li>
+    </ul>
+    <div class="tab-content mt-3" id="cuidadosContent">
+        <div class="tab-pane fade show active" id="generales" role="tabpanel" aria-labelledby="generales-tab">
+            <h4>@Localizer["GeneralCare"]</h4>
+            <ul>
+                <li>@Localizer["GeneralCareItem1"]</li>
+                <li>@Localizer["GeneralCareItem2"]</li>
+                <li>@Localizer["GeneralCareItem3"]</li>
+                <li>@Localizer["GeneralCareItem4"]</li>
+                <li>@Localizer["GeneralCareItem5"]</li>
+            </ul>
+        </div>
+        <div class="tab-pane fade" id="bordados" role="tabpanel" aria-labelledby="bordados-tab">
+            <h4>@Localizer["EmbroideryCare"]</h4>
+            <ul>
+                <li>@Localizer["EmbroideryCareItem1"]</li>
+                <li>@Localizer["EmbroideryCareItem2"]</li>
+            </ul>
+        </div>
+        <div class="tab-pane fade" id="estampas" role="tabpanel" aria-labelledby="estampas-tab">
+            <h4>@Localizer["PrintCare"]</h4>
+            <ul>
+                <li>@Localizer["PrintCareItem1"]</li>
+                <li>@Localizer["PrintCareItem2"]</li>
+            </ul>
         </div>
     </div>
+</div>

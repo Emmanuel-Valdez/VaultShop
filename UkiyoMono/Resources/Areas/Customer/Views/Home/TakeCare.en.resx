@@ -118,6 +118,54 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="TakeCare" xml:space="preserve">
-    <value>TakeCare</value>
+    <value>Care Guide</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>A simple guide to care for your Ukiyo products: cleaning, storage, and tips for backpacks, bags, embroidery, and prints.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>product care, maintenance, cleaning, bags, backpacks, embroidery, prints</value>
+  </data>
+  <data name="GeneralCare" xml:space="preserve">
+    <value>General care</value>
+  </data>
+  <data name="Embroidery" xml:space="preserve">
+    <value>Embroidery</value>
+  </data>
+  <data name="Prints" xml:space="preserve">
+    <value>Prints</value>
+  </data>
+  <data name="GeneralCareItem1" xml:space="preserve">
+    <value>For surface stains, use a slightly damp cloth and clean gently.</value>
+  </data>
+  <data name="GeneralCareItem2" xml:space="preserve">
+    <value>Avoid bleach, alcohol, and harsh chemicals; they can damage fabrics, colors, and hardware.</value>
+  </data>
+  <data name="GeneralCareItem3" xml:space="preserve">
+    <value>Do not overload backpacks or bags. Respecting their capacity helps protect seams and zippers.</value>
+  </data>
+  <data name="GeneralCareItem4" xml:space="preserve">
+    <value>Store them in a cool, dry place, away from direct sunlight for long periods.</value>
+  </data>
+  <data name="GeneralCareItem5" xml:space="preserve">
+    <value>If they get wet, let them air dry away from heaters, dryers, or other heat sources.</value>
+  </data>
+  <data name="EmbroideryCare" xml:space="preserve">
+    <value>Embroidery care</value>
+  </data>
+  <data name="EmbroideryCareItem1" xml:space="preserve">
+    <value>Do not rub directly over embroidered areas; treat them with extra care.</value>
+  </data>
+  <data name="EmbroideryCareItem2" xml:space="preserve">
+    <value>If you need to remove dust or lint, use a soft-bristle brush with light movements.</value>
+  </data>
+  <data name="PrintCare" xml:space="preserve">
+    <value>Print care</value>
+  </data>
+  <data name="PrintCareItem1" xml:space="preserve">
+    <value>When the product allows it, wash it inside out using a delicate cycle.</value>
+  </data>
+  <data name="PrintCareItem2" xml:space="preserve">
+    <value>Do not iron directly over the print; use a protective cloth if needed.</value>
   </data>
 </root>

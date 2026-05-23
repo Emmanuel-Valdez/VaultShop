@@ -120,4 +120,13 @@
   <data name="Details" xml:space="preserve">
     <value>Details</value>
   </data>
+  <data name="Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Discover Ukiyo products inspired by anime, comics, and fantasy. Unique backpacks, bags, and accessories carefully made in Argentina.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>Ukiyo, anime backpacks, bags, accessories, unique products, comics, fantasy, Argentina</value>
+  </data>
 </root>

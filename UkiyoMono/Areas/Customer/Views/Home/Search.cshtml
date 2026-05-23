@@ -1,8 +1,8 @@
 ﻿@model IEnumerable<Product>
 @{
-    ViewData["Title"] = @Localizer["Search"];
-    ViewData["Description"] = $"Buscar productos en Ukiyo - Mercería y telas con descuentos mayoristas. Encuentra lo que buscas.";
-    ViewData["Keywords"] = "buscar productos, merceria, telas, descuento mayorista";
+    ViewData["Title"] = Localizer["Search"];
+    ViewData["Description"] = Localizer["MetaDescription"];
+    ViewData["Keywords"] = Localizer["MetaKeywords"];
 }
 
 <div class="row pb-3  ">
@@ -35,7 +35,7 @@
 						</div>
 						<div>
 							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 form-control">
-								Details
+								@Localizer["Details"]
 							</a>
 						</div>
 					</div>

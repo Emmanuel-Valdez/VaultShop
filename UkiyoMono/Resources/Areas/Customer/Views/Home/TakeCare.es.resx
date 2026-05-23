@@ -120,4 +120,52 @@
   <data name="TakeCare" xml:space="preserve">
     <value>Cuidados</value>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Guía simple para cuidar tus productos Ukiyo: limpieza, guardado y recomendaciones para mochilas, bolsos, bordados y estampas.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>cuidados productos, mantenimiento, limpieza, bolsos, mochilas, bordados, estampas</value>
+  </data>
+  <data name="GeneralCare" xml:space="preserve">
+    <value>Cuidados generales</value>
+  </data>
+  <data name="Embroidery" xml:space="preserve">
+    <value>Bordados</value>
+  </data>
+  <data name="Prints" xml:space="preserve">
+    <value>Estampas</value>
+  </data>
+  <data name="GeneralCareItem1" xml:space="preserve">
+    <value>Para manchas superficiales, usá un paño apenas húmedo y limpiá con suavidad.</value>
+  </data>
+  <data name="GeneralCareItem2" xml:space="preserve">
+    <value>Evitá lavandina, alcohol y productos químicos fuertes; pueden dañar telas, colores y herrajes.</value>
+  </data>
+  <data name="GeneralCareItem3" xml:space="preserve">
+    <value>No sobrecargues mochilas o bolsos: respetar su capacidad ayuda a conservar costuras y cierres.</value>
+  </data>
+  <data name="GeneralCareItem4" xml:space="preserve">
+    <value>Guardalos en un lugar fresco y seco, lejos del sol directo por períodos prolongados.</value>
+  </data>
+  <data name="GeneralCareItem5" xml:space="preserve">
+    <value>Si se mojan, dejalos secar al aire y lejos de estufas, secadores o fuentes de calor.</value>
+  </data>
+  <data name="EmbroideryCare" xml:space="preserve">
+    <value>Cuidado de bordados</value>
+  </data>
+  <data name="EmbroideryCareItem1" xml:space="preserve">
+    <value>No frotes directamente sobre el bordado; tratá esa zona con especial cuidado.</value>
+  </data>
+  <data name="EmbroideryCareItem2" xml:space="preserve">
+    <value>Si necesitás retirar polvo o pelusas, usá un cepillo de cerdas suaves y movimientos livianos.</value>
+  </data>
+  <data name="PrintCare" xml:space="preserve">
+    <value>Cuidado de estampas</value>
+  </data>
+  <data name="PrintCareItem1" xml:space="preserve">
+    <value>Cuando el producto lo permita, lavalo del revés y con un ciclo delicado.</value>
+  </data>
+  <data name="PrintCareItem2" xml:space="preserve">
+    <value>No planches directamente sobre la estampa; si hace falta, usá un paño protector.</value>
+  </data>
 </root>

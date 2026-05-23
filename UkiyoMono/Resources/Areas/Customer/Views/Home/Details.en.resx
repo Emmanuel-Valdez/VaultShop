@@ -135,4 +135,10 @@
   <data name="TemporarilyUnavailable" xml:space="preserve">
     <value>Temporarily Unavailable</value>
   </data>
+  <data name="ProductFallbackDescription" xml:space="preserve">
+    <value>Buy {0} at Ukiyo - A unique product inspired by anime, comics, and fantasy.</value>
+  </data>
+  <data name="MetaKeywordsSuffix" xml:space="preserve">
+    <value>Ukiyo, anime, comics, fantasy, accessories</value>
+  </data>
 </root>

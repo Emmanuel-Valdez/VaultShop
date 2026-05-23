@@ -120,4 +120,91 @@
   <data name="FAQs" xml:space="preserve">
     <value>FAQs</value>
   </data>
+  <data name="MetaDescription" xml:space="preserve">
+    <value>Frequently asked questions about Ukiyo: products, shipping, payments, wholesale orders, and contact channels.</value>
+  </data>
+  <data name="MetaKeywords" xml:space="preserve">
+    <value>frequently asked questions, FAQs, shipping, payment methods, wholesale, Ukiyo help</value>
+  </data>
+  <data name="Question1" xml:space="preserve">
+    <value>1. What products do you offer?</value>
+  </data>
+  <data name="Answer1" xml:space="preserve">
+    <value>We design and make bags, backpacks, phone holders, and accessories inspired by anime, comics, and fantasy. Our catalog grows little by little, so there is always something new to discover.</value>
+  </data>
+  <data name="Question2" xml:space="preserve">
+    <value>2. Do you make custom orders?</value>
+  </data>
+  <data name="Answer2" xml:space="preserve">
+    <value>At the moment, we do not take custom orders. Every Ukiyo product is designed and made by us, and we invite you to explore the catalog to find a piece that fits your style.</value>
+  </data>
+  <data name="Question3" xml:space="preserve">
+    <value>3. Do you ship orders?</value>
+  </data>
+  <data name="Answer3Item1" xml:space="preserve">
+    <value>Yes, we ship throughout Argentina through Correo Argentino, usually to the nearest branch.</value>
+  </data>
+  <data name="Answer3Item2" xml:space="preserve">
+    <value>If you are in Greater Mendoza, we coordinate direct home delivery.</value>
+  </data>
+  <data name="Answer3Item3" xml:space="preserve">
+    <value>For now, we do not ship outside Argentina, although we would love to offer it in the future.</value>
+  </data>
+  <data name="Question4" xml:space="preserve">
+    <value>4. How long does delivery take?</value>
+  </data>
+  <data name="Answer4Intro" xml:space="preserve">
+    <value>After payment is confirmed, these are the estimated delivery times:</value>
+  </data>
+  <data name="Answer4Item1" xml:space="preserve">
+    <value>Greater Mendoza: between 36 and 96 hours.</value>
+  </data>
+  <data name="Answer4Item2" xml:space="preserve">
+    <value>Rest of Argentina: between 3 and 7 business days, depending on the location and postal service.</value>
+  </data>
+  <data name="Question5" xml:space="preserve">
+    <value>5. How can I track my order?</value>
+  </data>
+  <data name="Answer5Prefix" xml:space="preserve">
+    <value>When your order is dispatched,</value>
+  </data>
+  <data name="Answer5Suffix" xml:space="preserve">
+    <value>we will send you a tracking number so you can check the package status through Correo Argentino.</value>
+  </data>
+  <data name="Question6" xml:space="preserve">
+    <value>6. What payment methods do you accept?</value>
+  </data>
+  <data name="Answer6Intro" xml:space="preserve">
+    <value>We accept these payment methods:</value>
+  </data>
+  <data name="Answer6Item1" xml:space="preserve">
+    <value>Credit and debit cards, with up to 3 interest-free installments when available.</value>
+  </data>
+  <data name="Answer6Item2" xml:space="preserve">
+    <value>Bank transfer, with a 10% discount.</value>
+  </data>
+  <data name="Question7" xml:space="preserve">
+    <value>7. Do you sell wholesale?</value>
+  </data>
+  <data name="Answer7Prefix" xml:space="preserve">
+    <value>Yes, we work with wholesale purchases.</value>
+  </data>
+  <data name="Answer7Strong" xml:space="preserve">
+    <value>Send us a message to request access.</value>
+  </data>
+  <data name="Answer7Suffix" xml:space="preserve">
+    <value>Once the request is approved, we enable the permissions needed to enter the wholesale area.</value>
+  </data>
+  <data name="Question8" xml:space="preserve">
+    <value>8. Where can I ask for help?</value>
+  </data>
+  <data name="Answer8Intro" xml:space="preserve">
+    <value>You can contact us through:</value>
+  </data>
+  <data name="Answer8Item1" xml:space="preserve">
+    <value>WhatsApp: +54 9 2612522011</value>
+  </data>
+  <data name="Answer8Item2" xml:space="preserve">
+    <value>Our social media profiles, available in the page footer.</value>
+  </data>
 </root>

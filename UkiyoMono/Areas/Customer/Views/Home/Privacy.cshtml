@@ -1,112 +1,102 @@
-﻿@{
-    ViewData["Title"] = @Localizer["Privacy"];
-    ViewData["Description"] = "Política de privacidad de Ukiyo. Conoce cómo recopilamos, usamos y protegemos tus datos personales.";
-    ViewData["Keywords"] = "política de privacidad, protección de datos, datos personales, privacidad";
+@{
+    ViewData["Title"] = Localizer["Privacy"];
+    ViewData["Description"] = Localizer["MetaDescription"];
+    ViewData["Keywords"] = Localizer["MetaKeywords"];
 }
 
 <div class="container my-5">
-	<h1 class="text-center mb-4">@Localizer["Privacy"]</h1>
-	<div class="accordion" id="privacyAccordion">
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingOne">
-				<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-					1. Recopilación de datos personales
-				</button>
-			</h2>
-			<div id="collapseOne" class="accordion-collapse"  aria-labelledby="headingOne" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					Recopilamos los datos personales que usted nos proporciona al interactuar con nuestra tienda, como nombre, correo electrónico, número de teléfono, dirección de envío y detalles de pago. Estos datos son necesarios para procesar sus pedidos y ofrecerle una mejor experiencia de compra.
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingTwo">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-					2. Uso de datos personales
-				</button>
-			</h2>
-			<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					Utilizamos sus datos personales para procesar pedidos, enviarte actualizaciones sobre tu compra, mejorar la atención al cliente y cumplir con obligaciones legales.
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingThree">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-					3. Protección de datos personales
-				</button>
-			</h2>
-			<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					Adoptamos medidas técnicas y organizativas para garantizar la seguridad de tus datos personales y prevenir accesos no autorizados.
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingFour">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-					4. Compartición de datos
-				</button>
-			</h2>
-			<div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					No compartimos sus datos personales con terceros, excepto cuando sea necesario para procesar pedidos (por ejemplo, con servicios de envío como Correo Argentino) o cuando lo requiera la ley.
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingFive">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-					5. Derechos del usuario
-				</button>
-			</h2>
-			<div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					<strong>De acuerdo con las leyes aplicables, usted tiene derecho a:</strong>
-					<ul>
-						<li>	Acceder a sus datos personales.</li>
-						<li>	Rectificar información incorrecta o incompleta.</li>
-						<li>Solicitar la eliminación de sus datos, cuando sea legalmente posible.</li>
-						<li>Oponerse al tratamiento de sus datos para fines específicos.</li>
-						<li>Puede ejercer sus derechos enviándonos un correo a </li>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingSix">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
-					6. Conservación de datos
-				</button>
-			</h2>
-			<div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					Conservamos sus datos personales únicamente durante el tiempo necesario para cumplir con los fines para los que fueron recopilados, salvo cuando la ley exija un período de retención más prolongado.
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header" id="headingSeven">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
-					7. Cambios a esta política
-				</button>
-			</h2>
-			<div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#privacyAccordion">
-				<div class="accordion-body">
-					Nos reservamos el derecho de actualizar esta política de privacidad para reflejar cambios en nuestras prácticas o en las leyes aplicables. Le notificaremos sobre cualquier modificación significativa a través de nuestra página web.
-				</div>
-			</div>
-		</div>
-	</div>
+    <h1 class="text-center mb-4">@Localizer["Privacy"]</h1>
+    <div class="accordion" id="privacyAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    @Localizer["Section1Title"]
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse" aria-labelledby="headingOne" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    @Localizer["Section1Body"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    @Localizer["Section2Title"]
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    @Localizer["Section2Body"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    @Localizer["Section3Title"]
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    @Localizer["Section3Body"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFour">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    @Localizer["Section4Title"]
+                </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    @Localizer["Section4Body"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFive">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                    @Localizer["Section5Title"]
+                </button>
+            </h2>
+            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    <strong>@Localizer["Section5Intro"]</strong>
+                    <ul>
+                        <li>@Localizer["Section5Item1"]</li>
+                        <li>@Localizer["Section5Item2"]</li>
+                        <li>@Localizer["Section5Item3"]</li>
+                        <li>@Localizer["Section5Item4"]</li>
+                        <li>@Localizer["Section5Item5"]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSix">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                    @Localizer["Section6Title"]
+                </button>
+            </h2>
+            <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    @Localizer["Section6Body"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSeven">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                    @Localizer["Section7Title"]
+                </button>
+            </h2>
+            <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#privacyAccordion">
+                <div class="accordion-body">
+                    @Localizer["Section7Body"]
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-			
-
-
-
-
-
-
-
-

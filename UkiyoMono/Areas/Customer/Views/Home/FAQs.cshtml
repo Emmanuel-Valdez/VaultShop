@@ -1,153 +1,123 @@
-﻿@{
-    ViewData["Title"] = @Localizer["FAQs"];
-    ViewData["Description"] = "Preguntas frecuentes sobre Ukiyo: productos, envíos, métodos de pago, ventas al por mayor y más.";
-    ViewData["Keywords"] = "preguntas frecuentes, FAQs, envíos, métodos de pago, ventas mayoristas";
+@{
+    ViewData["Title"] = Localizer["FAQs"];
+    ViewData["Description"] = Localizer["MetaDescription"];
+    ViewData["Keywords"] = Localizer["MetaKeywords"];
 }
 
 <div class="container my-5">
-	<h1 class="text-center mb-4">@Localizer["FAQs"]</h1>
-	<div class="accordion" id="accordionFAQs">
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-					1. ¿Qué productos ofrecen?
-				</button>
-			</h2>
-			<div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<strong>
-						Nos especializamos en bolsos, mochilas, portacelulares y otros accesorios relacionados con el mundo del anime, los cómics y la fantasía.
-						Nuestro catálogo está en constante crecimiento, así que siempre encontrarás algo nuevo.
-					</strong>
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-					2. ¿Realizan pedidos personalizados?
-				</button>
-			</h2>
-			<div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<strong>
-						No, no realizamos pedidos personalizados, ya que todos nuestros productos son fabricados exclusivamente por nosotros.
-						Te invitamos a explorar nuestro catálogo para encontrar artículos únicos y de gran calidad.
-					</strong>
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-					3. ¿Hacen envíos?
-				</button>
-			</h2>
-			<div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<ul>
-						<li>
-							Sí, realizamos envíos a todo el país a través de Correo Argentino a tu sucursal más cercana.
-						</li>
-						<li>
-							Si vives en el Gran Mendoza lo recibiras directaemten en tu domicilio.
-						</li>
-						<li>
-							Actualmente no hacemos envios fuera de la Argentina pero no descartamos hacerlo en un futuro mas favorable.
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-					4. ¿Cuánto tardan en llegar los envíos?
-				</button>
-			</h2>
-			<div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<strong>Una vez confirmado el pago, el tiempo estimado de entrega es:</strong>
-					<ul>
-						<li>
-							Gran Mendoza: Entre 36 y 96 horas.
-						</li>
-						<li>
-							Resto de Argentina: De 3 a 7 días hábiles, dependiendo de la ubicación.
-						</li>
-					</ul>
-
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-					5. ¿Cómo puedo realizar un seguimiento de mi pedido?
-				</button>
-			</h2>
-			<div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<strong>Una vez que tu pedido haya sido enviado</strong>, recibirás un número de seguimiento para consultar el estado de tu paquete en el sitio web de Correo Argentino.
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
-					6. ¿Qué métodos de pago aceptan?
-				</button>
-			</h2>
-			<div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<strong> Aceptamos los siguientes métodos de pago:</strong>
-					<ul>
-						<li>
-							Tarjetas de crédito y débito.(Hasta 3 cuotas sin interés)
-						</li>
-						<li>
-							Transferencias bancarias.(10% de descuento)
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
-					7. ¿Realizan ventas al por mayor?
-				</button>
-			</h2>
-			<div id="collapseSeven" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					¡Sí! Ofrecemos la posibilidad de compras al por mayor. <strong>Para acceder a este beneficio, por favor contáctanos.</strong>
-					Nuestro administrador deberá brindarte los permisos necesarios para que puedas ingresar al área específica de ventas mayoristas.
-
-				</div>
-			</div>
-		</div>
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
-					8. ¿Qué hago si tengo alguna consulta o necesito ayuda?
-
-				</button>
-			</h2>
-			<div id="collapseEight" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
-				<div class="accordion-body">
-					<strong>
-						Puedes comunicarte con nosotros a través de: 
-					</strong>
-					<ul>
-						<li>
-							WhatsApp: +54 9 2612522011
-						</li>
-						<li>
-							En nuestras redes sociales que encontrarás al pie de página.
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
+    <h1 class="text-center mb-4">@Localizer["FAQs"]</h1>
+    <div class="accordion" id="accordionFAQs">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    @Localizer["Question1"]
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <strong>@Localizer["Answer1"]</strong>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    @Localizer["Question2"]
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <strong>@Localizer["Answer2"]</strong>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    @Localizer["Question3"]
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <ul>
+                        <li>@Localizer["Answer3Item1"]</li>
+                        <li>@Localizer["Answer3Item2"]</li>
+                        <li>@Localizer["Answer3Item3"]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    @Localizer["Question4"]
+                </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <strong>@Localizer["Answer4Intro"]</strong>
+                    <ul>
+                        <li>@Localizer["Answer4Item1"]</li>
+                        <li>@Localizer["Answer4Item2"]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                    @Localizer["Question5"]
+                </button>
+            </h2>
+            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <strong>@Localizer["Answer5Prefix"]</strong> @Localizer["Answer5Suffix"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                    @Localizer["Question6"]
+                </button>
+            </h2>
+            <div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <strong>@Localizer["Answer6Intro"]</strong>
+                    <ul>
+                        <li>@Localizer["Answer6Item1"]</li>
+                        <li>@Localizer["Answer6Item2"]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                    @Localizer["Question7"]
+                </button>
+            </h2>
+            <div id="collapseSeven" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    @Localizer["Answer7Prefix"] <strong>@Localizer["Answer7Strong"]</strong> @Localizer["Answer7Suffix"]
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                    @Localizer["Question8"]
+                </button>
+            </h2>
+            <div id="collapseEight" class="accordion-collapse collapse" data-bs-parent="#accordionFAQs">
+                <div class="accordion-body">
+                    <strong>@Localizer["Answer8Intro"]</strong>
+                    <ul>
+                        <li>@Localizer["Answer8Item1"]</li>
+                        <li>@Localizer["Answer8Item2"]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
