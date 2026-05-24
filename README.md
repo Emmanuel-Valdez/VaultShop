@@ -4,7 +4,7 @@
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 ![Status](https://img.shields.io/badge/status-in%20progress-yellow)
-![License](https://img.shields.io/badge/license-pending-lightgrey)
+![License](https://img.shields.io/badge/license-source--available-blue)
 
 ## Screenshots
 
@@ -53,7 +53,7 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 - [x] Add favicon
 - [x] Add screenshots or GIFs of the project, especially mobile views
 - [x] Add a step-by-step "How to run locally" section
-- [ ] Confirm license and update the license badge
+- [x] Confirm license and update the license badge
 
 ### Environment Variables Setup (.env)
 

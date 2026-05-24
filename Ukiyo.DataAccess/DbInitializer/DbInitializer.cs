@@ -128,11 +128,15 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 		{
 			var categories = new[]
 			{
-				new Category { Name = "Backpack", MaxExpectation = 40, AvgShippingCost = 10000 },
-				new Category { Name = "Phone Holder", MaxExpectation = 150, AvgShippingCost = 3500 },
-				new Category { Name = "Jacket", MaxExpectation = 80, AvgShippingCost = 5000 },
-				new Category { Name = "Hoodie", MaxExpectation = 90, AvgShippingCost = 4500 },
-				new Category { Name = "Tote Bag", MaxExpectation = 120, AvgShippingCost = 3800 }
+				new Category { Name = "Medium Sailor Bag", MaxExpectation = 80, AvgShippingCost = 5000 },
+				new Category { Name = "Medium Ita Backpack", MaxExpectation = 45, AvgShippingCost = 8500 },
+				new Category { Name = "Large Backpack", MaxExpectation = 40, AvgShippingCost = 10000 },
+				new Category { Name = "Medium Faux Leather Backpack", MaxExpectation = 45, AvgShippingCost = 9000 },
+				new Category { Name = "Mochi-Bando", MaxExpectation = 70, AvgShippingCost = 6500 },
+				new Category { Name = "Small Crossbody Bag", MaxExpectation = 100, AvgShippingCost = 4000 },
+				new Category { Name = "Printed T-Shirt", MaxExpectation = 120, AvgShippingCost = 3500 },
+				new Category { Name = "Large Mate Bag", MaxExpectation = 55, AvgShippingCost = 8500 },
+				new Category { Name = "Medium Messenger Bag", MaxExpectation = 75, AvgShippingCost = 6000 }
 			};
 
 			foreach (var category in categories)
@@ -161,18 +165,18 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 
 			var products = new[]
 			{
-				new Product { Name = "Reconnaissance Legion Backpack", Description = "Backpack inspired by the reconnaissance legion from Attack on Titan.", FinalRetailPrice = 34900, FinalWholesalePrice = 18390, CategoryId = categoryIds["Backpack"], IsAvailableInStore = true },
-				new Product { Name = "Akatsuki Mini Backpack", Description = "Compact backpack inspired by the Akatsuki organization from Naruto.", FinalRetailPrice = 44900, FinalWholesalePrice = 26567, CategoryId = categoryIds["Backpack"], IsAvailableInStore = true },
-				new Product { Name = "Totoro Forest Backpack", Description = "Soft everyday backpack inspired by forest spirits.", FinalRetailPrice = 38900, FinalWholesalePrice = 21400, CategoryId = categoryIds["Backpack"], IsAvailableInStore = true },
-				new Product { Name = "Kitsune Phone Holder", Description = "Crossbody phone holder with kitsune-inspired details.", FinalRetailPrice = 21900, FinalWholesalePrice = 12800, CategoryId = categoryIds["Phone Holder"], IsAvailableInStore = true },
-				new Product { Name = "Sakura Phone Holder", Description = "Light phone holder with cherry blossom accents.", FinalRetailPrice = 19900, FinalWholesalePrice = 11600, CategoryId = categoryIds["Phone Holder"], IsAvailableInStore = true },
-				new Product { Name = "Karasuno Flight Hoodie", Description = "Hoodie inspired by Karasuno team colors from Haikyu.", FinalRetailPrice = 43234, FinalWholesalePrice = 30060.78m, CategoryId = categoryIds["Hoodie"], IsAvailableInStore = true },
-				new Product { Name = "Uchiha Crest Hoodie", Description = "Warm hoodie with a bold clan crest design.", FinalRetailPrice = 47900, FinalWholesalePrice = 28900, CategoryId = categoryIds["Hoodie"], IsAvailableInStore = true },
-				new Product { Name = "Survey Corps Jacket", Description = "Jacket inspired by expedition uniforms.", FinalRetailPrice = 68900, FinalWholesalePrice = 41200, CategoryId = categoryIds["Jacket"], IsAvailableInStore = true },
-				new Product { Name = "Akira Capsule Jacket", Description = "Statement jacket inspired by cyberpunk motorcycle culture.", FinalRetailPrice = 74500, FinalWholesalePrice = 45800, CategoryId = categoryIds["Jacket"], IsAvailableInStore = true },
-				new Product { Name = "Spirited Bathhouse Tote", Description = "Roomy tote bag inspired by bathhouse iconography.", FinalRetailPrice = 24900, FinalWholesalePrice = 14800, CategoryId = categoryIds["Tote Bag"], IsAvailableInStore = true },
-				new Product { Name = "Moon Prism Tote", Description = "Daily tote with magical girl-inspired details.", FinalRetailPrice = 23900, FinalWholesalePrice = 13900, CategoryId = categoryIds["Tote Bag"], IsAvailableInStore = true },
-				new Product { Name = "Demon Slayer Utility Tote", Description = "Utility tote with contrasting patterned panels.", FinalRetailPrice = 26900, FinalWholesalePrice = 15900, CategoryId = categoryIds["Tote Bag"], IsAvailableInStore = true }
+				new Product { Name = "Akatsuki Sailor Bag", Description = "Medium sailor bag with a dark Naruto Shippuden look, deep black panels, red Akatsuki cloud accents, and a bold anime style made for everyday use.", FinalRetailPrice = 34900, FinalWholesalePrice = 18390, CategoryId = categoryIds["Medium Sailor Bag"], IsAvailableInStore = true },
+				new Product { Name = "Kero Ita Backpack", Description = "Medium ita backpack inspired by Cardcaptor Sakura and Kero, with a cute display window, warm yellow details, soft pastel tones, and playful anime charm.", FinalRetailPrice = 44900, FinalWholesalePrice = 26567, CategoryId = categoryIds["Medium Ita Backpack"], IsAvailableInStore = true },
+				new Product { Name = "EVA-01 Large Backpack", Description = "Large Evangelion EVA 01 backpack with sharp mecha energy, purple and neon green contrast, black details, and a strong Unit 01 anime silhouette.", FinalRetailPrice = 38900, FinalWholesalePrice = 21400, CategoryId = categoryIds["Large Backpack"], IsAvailableInStore = true },
+				new Product { Name = "Slytherin Faux Leather Backpack", Description = "Medium faux leather backpack inspired by Harry Potter and Slytherin, styled with deep green, silver accents, a polished wizard look, and house crest energy.", FinalRetailPrice = 21900, FinalWholesalePrice = 12800, CategoryId = categoryIds["Medium Faux Leather Backpack"], IsAvailableInStore = true },
+				new Product { Name = "Sakura Mochi-Bando", Description = "Convertible mochi-bando backpack and crossbody bag inspired by Cardcaptor Sakura, with soft pink tones, magical girl details, and a sweet everyday anime style.", FinalRetailPrice = 19900, FinalWholesalePrice = 11600, CategoryId = categoryIds["Mochi-Bando"], IsAvailableInStore = true },
+				new Product { Name = "Gaara Small Crossbody Bag", Description = "Small crossbody bag inspired by Gaara from Naruto, with sandy earth colors, dark red details, compact shape, and a strong shinobi anime mood.", FinalRetailPrice = 43234, FinalWholesalePrice = 30060.78m, CategoryId = categoryIds["Small Crossbody Bag"], IsAvailableInStore = true },
+				new Product { Name = "EVA-01 Classic T-Shirt", Description = "Classic printed T-shirt inspired by Evangelion Unit 01, featuring a clean anime graphic style with purple, green, and black EVA 01 mecha colors.", FinalRetailPrice = 47900, FinalWholesalePrice = 28900, CategoryId = categoryIds["Printed T-Shirt"], IsAvailableInStore = true },
+				new Product { Name = "Tomioka Mochi-Bando", Description = "Convertible mochi-bando backpack and crossbody bag inspired by Giyu Tomioka from Demon Slayer Kimetsu no Yaiba, with water-blue tones, dark contrast, and haori-style pattern details.", FinalRetailPrice = 68900, FinalWholesalePrice = 41200, CategoryId = categoryIds["Mochi-Bando"], IsAvailableInStore = true },
+				new Product { Name = "Gondor Large Mate Bag", Description = "Large mate bag inspired by Gondor from The Lord of the Rings, with a noble black and white fantasy palette, silver details, and travel-ready LOTR style.", FinalRetailPrice = 74500, FinalWholesalePrice = 45800, CategoryId = categoryIds["Large Mate Bag"], IsAvailableInStore = true },
+				new Product { Name = "One Ring Messenger Bag", Description = "Medium messenger bag inspired by the One Ring from The Lord of the Rings, with warm golden accents, dark fantasy contrast, and a practical LOTR shoulder-bag shape.", FinalRetailPrice = 24900, FinalWholesalePrice = 14800, CategoryId = categoryIds["Medium Messenger Bag"], IsAvailableInStore = true },
+				new Product { Name = "Slytherin Large Mate Bag", Description = "Large mate bag inspired by Harry Potter and Slytherin, combining deep green, black, and silver details with a polished wizard-house style.", FinalRetailPrice = 23900, FinalWholesalePrice = 13900, CategoryId = categoryIds["Large Mate Bag"], IsAvailableInStore = true },
+				new Product { Name = "Sailor Moon Mochi-Bando", Description = "Convertible mochi-bando backpack and crossbody bag inspired by Sailor Moon, with moon-prism magic, soft pink and blue tones, golden accents, and magical girl sparkle.", FinalRetailPrice = 26900, FinalWholesalePrice = 15900, CategoryId = categoryIds["Mochi-Bando"], IsAvailableInStore = true }
 			};
 
 			foreach (var product in products)
@@ -319,49 +323,57 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			var packagingIds = _db.Packagings.ToDictionary(packaging => packaging.Name, packaging => packaging.Id);
 			var garmentHardwareIds = _db.GarmentHardwares.ToDictionary(garmentHardware => garmentHardware.Name, garmentHardware => garmentHardware.Id);
 
-			AddFabricAssignment(productIds, fabricIds, "Reconnaissance Legion Backpack", "Waterproof Cordura", 0.85m);
-			AddFabricAssignment(productIds, fabricIds, "Reconnaissance Legion Backpack", "Printed Poplin", 0.25m);
-			AddFabricAssignment(productIds, fabricIds, "Akatsuki Mini Backpack", "Cotton Canvas", 0.70m);
-			AddFabricAssignment(productIds, fabricIds, "Akatsuki Mini Backpack", "Printed Poplin", 0.20m);
-			AddFabricAssignment(productIds, fabricIds, "Totoro Forest Backpack", "Linen Blend", 0.80m);
-			AddFabricAssignment(productIds, fabricIds, "Totoro Forest Backpack", "Fleece", 0.25m);
-			AddFabricAssignment(productIds, fabricIds, "Kitsune Phone Holder", "Ripstop Nylon", 0.35m);
-			AddFabricAssignment(productIds, fabricIds, "Sakura Phone Holder", "Printed Poplin", 0.30m);
-			AddFabricAssignment(productIds, fabricIds, "Karasuno Flight Hoodie", "French Terry", 1.60m);
-			AddFabricAssignment(productIds, fabricIds, "Uchiha Crest Hoodie", "Fleece", 1.50m);
-			AddFabricAssignment(productIds, fabricIds, "Survey Corps Jacket", "Twill", 1.80m);
-			AddFabricAssignment(productIds, fabricIds, "Akira Capsule Jacket", "Denim", 1.90m);
-			AddFabricAssignment(productIds, fabricIds, "Spirited Bathhouse Tote", "Cotton Canvas", 0.65m);
-			AddFabricAssignment(productIds, fabricIds, "Moon Prism Tote", "Linen Blend", 0.60m);
-			AddFabricAssignment(productIds, fabricIds, "Demon Slayer Utility Tote", "Twill", 0.70m);
+			AddFabricAssignment(productIds, fabricIds, "Akatsuki Sailor Bag", "Waterproof Cordura", 0.85m);
+			AddFabricAssignment(productIds, fabricIds, "Akatsuki Sailor Bag", "Printed Poplin", 0.25m);
+			AddFabricAssignment(productIds, fabricIds, "Kero Ita Backpack", "Cotton Canvas", 0.70m);
+			AddFabricAssignment(productIds, fabricIds, "Kero Ita Backpack", "Printed Poplin", 0.20m);
+			AddFabricAssignment(productIds, fabricIds, "EVA-01 Large Backpack", "Linen Blend", 0.80m);
+			AddFabricAssignment(productIds, fabricIds, "EVA-01 Large Backpack", "Fleece", 0.25m);
+			AddFabricAssignment(productIds, fabricIds, "Slytherin Faux Leather Backpack", "Ripstop Nylon", 0.35m);
+			AddFabricAssignment(productIds, fabricIds, "Sakura Mochi-Bando", "Printed Poplin", 0.30m);
+			AddFabricAssignment(productIds, fabricIds, "Gaara Small Crossbody Bag", "French Terry", 1.60m);
+			AddFabricAssignment(productIds, fabricIds, "EVA-01 Classic T-Shirt", "Fleece", 1.50m);
+			AddFabricAssignment(productIds, fabricIds, "Tomioka Mochi-Bando", "Twill", 1.80m);
+			AddFabricAssignment(productIds, fabricIds, "Gondor Large Mate Bag", "Denim", 1.90m);
+			AddFabricAssignment(productIds, fabricIds, "One Ring Messenger Bag", "Cotton Canvas", 0.65m);
+			AddFabricAssignment(productIds, fabricIds, "Slytherin Large Mate Bag", "Linen Blend", 0.60m);
+			AddFabricAssignment(productIds, fabricIds, "Sailor Moon Mochi-Bando", "Twill", 0.70m);
 
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Reconnaissance Legion Backpack", "Metal Zipper", 2);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Reconnaissance Legion Backpack", "Webbing Strap", 2.5m);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Akatsuki Mini Backpack", "Plastic Zipper", 2);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Akatsuki Mini Backpack", "D-Ring", 2);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Totoro Forest Backpack", "Magnetic Snap", 1);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Kitsune Phone Holder", "Slider Buckle", 1);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Sakura Phone Holder", "Magnetic Snap", 1);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Karasuno Flight Hoodie", "Drawcord", 1.5m);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Karasuno Flight Hoodie", "Eyelet", 2);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Uchiha Crest Hoodie", "Drawcord", 1.5m);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Uchiha Crest Hoodie", "Eyelet", 2);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Survey Corps Jacket", "Snap Button", 6);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Akira Capsule Jacket", "Metal Zipper", 3);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Spirited Bathhouse Tote", "Magnetic Snap", 1);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Moon Prism Tote", "D-Ring", 2);
-			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Demon Slayer Utility Tote", "Webbing Strap", 1.5m);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Akatsuki Sailor Bag", "Metal Zipper", 2);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Akatsuki Sailor Bag", "Webbing Strap", 2.5m);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Kero Ita Backpack", "Plastic Zipper", 2);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Kero Ita Backpack", "D-Ring", 2);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "EVA-01 Large Backpack", "Magnetic Snap", 1);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Slytherin Faux Leather Backpack", "Slider Buckle", 1);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Sakura Mochi-Bando", "Magnetic Snap", 1);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Gaara Small Crossbody Bag", "Drawcord", 1.5m);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Gaara Small Crossbody Bag", "Eyelet", 2);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "EVA-01 Classic T-Shirt", "Drawcord", 1.5m);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "EVA-01 Classic T-Shirt", "Eyelet", 2);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Tomioka Mochi-Bando", "Snap Button", 6);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Gondor Large Mate Bag", "Metal Zipper", 3);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "One Ring Messenger Bag", "Magnetic Snap", 1);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Slytherin Large Mate Bag", "D-Ring", 2);
+			AddGarmentHardwareAssignment(productIds, garmentHardwareIds, "Sailor Moon Mochi-Bando", "Webbing Strap", 1.5m);
 
-			AddPackagingAssignment(categoryIds, packagingIds, "Backpack", "Large Kraft Box", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Backpack", "Dust Bag", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Phone Holder", "Small Kraft Box", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Phone Holder", "Sticker Seal", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Jacket", "Large Kraft Box", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Jacket", "Hang Tag", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Hoodie", "Medium Kraft Box", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Hoodie", "Tissue Paper", 2);
-			AddPackagingAssignment(categoryIds, packagingIds, "Tote Bag", "Compostable Mailer", 1);
-			AddPackagingAssignment(categoryIds, packagingIds, "Tote Bag", "Poly Mailer", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Sailor Bag", "Medium Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Sailor Bag", "Tissue Paper", 2);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Ita Backpack", "Large Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Ita Backpack", "Dust Bag", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Large Backpack", "Large Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Large Backpack", "Dust Bag", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Faux Leather Backpack", "Large Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Faux Leather Backpack", "Dust Bag", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Mochi-Bando", "Medium Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Mochi-Bando", "Sticker Seal", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Small Crossbody Bag", "Small Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Small Crossbody Bag", "Sticker Seal", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Printed T-Shirt", "Compostable Mailer", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Printed T-Shirt", "Hang Tag", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Large Mate Bag", "Large Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Large Mate Bag", "Dust Bag", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Messenger Bag", "Medium Kraft Box", 1);
+			AddPackagingAssignment(categoryIds, packagingIds, "Medium Messenger Bag", "Hang Tag", 1);
 
 			_db.SaveChanges();
 		}
