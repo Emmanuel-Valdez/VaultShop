@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UkiyoDesigns.Models.Validation;
 
 namespace UkiyoDesigns.Models
 {
@@ -17,7 +18,7 @@ namespace UkiyoDesigns.Models
 		[ValidateNever]
 		public Product Product { get; set; } = null!;
 
-		[Range(1, 1000, ErrorMessage = "Please enter a value between 1 and 1000")]
+		[LocalizedRange(1, 1000, "Please enter a value between 1 and 1000.", "Ingresá un valor entre 1 y 1000.")]
 		public int Count { get; set; }
 
 		public string ApplicationUserId { get; set; } = string.Empty;

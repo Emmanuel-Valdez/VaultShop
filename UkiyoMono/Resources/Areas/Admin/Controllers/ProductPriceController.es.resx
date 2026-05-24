@@ -120,6 +120,12 @@
   <data name="Product" xml:space="preserve">
     <value>Producto</value>
   </data>
+  <data name="ProductPriceUpdatedPlural" xml:space="preserve">
+    <value>Se actualizaron correctamente {0} productos con precios desactualizados.</value>
+  </data>
+  <data name="ProductPriceUpdatedSingular" xml:space="preserve">
+    <value>Se actualizó correctamente 1 producto con precio desactualizado.</value>
+  </data>
   <data name="UpdatedSuccessfully" xml:space="preserve">
     <value>Actualizado Correctamente</value>
   </data>

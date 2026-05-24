@@ -282,16 +282,16 @@
 			if (document.getElementById("carrier").value == "") {
 				Swal.fire({
 					icon: 'error',
-					title: 'Oops...',
-					text: ' Please enter a Carrier'
+					title: '@Localizer["ShippingValidationTitle"]',
+					text: '@Localizer["CarrierRequired"]'
 				});
 				return false;
 			}
 			if (document.getElementById("trackingNumber").value == "") {
 				Swal.fire({
 					icon: 'error',
-					title: 'Oops...',
-					text: 'Please enter tracking number!',
+					title: '@Localizer["ShippingValidationTitle"]',
+					text: '@Localizer["TrackingRequired"]',
 				});
 				return false;
 			}

@@ -76,7 +76,8 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 			_unitOfWork.Product.UpdateRange(productsOutdated);
 			_unitOfWork.Save();
-			TempData["success"] = $"{FinalPriceVM.CountOutdated} {_localizer["Product"].Value}{(FinalPriceVM.CountOutdated > 1 ? 's' : ' ')} {_localizer["UpdatedSuccessfully"].Value} ";
+			var messageKey = productsOutdated.Count == 1 ? "ProductPriceUpdatedSingular" : "ProductPriceUpdatedPlural";
+			TempData["success"] = string.Format(_localizer[messageKey].Value, productsOutdated.Count);
 			return RedirectToAction(nameof(Index));
 
 		}

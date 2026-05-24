@@ -28,7 +28,14 @@ function loadDataTable(status) {
             { data: 'name', "width": "20%" },
             { data: 'phoneNumber', "width": "10%" },
             { data: 'applicationUser.email', "width": "20%" },
-            { data: 'orderStatus', "width": "10%" },
+            {
+                data: 'orderStatus',
+                "width": "10%",
+                render: function (data, type) {
+                    const translatedStatus = window.orderStatusTranslations?.[data] ?? data;
+                    return type === 'display' || type === 'filter' ? translatedStatus : data;
+                }
+            },
             { data: 'paymentStatus', "width": "10%" }, 
             { data: 'orderTotal', "width": "10%", render: window.SpanishNumberTables(culture) },
             {

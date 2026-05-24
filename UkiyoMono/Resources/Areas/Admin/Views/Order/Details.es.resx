@@ -138,6 +138,9 @@
   <data name="Carrier" xml:space="preserve">
     <value>Transportista</value>
   </data>
+  <data name="CarrierRequired" xml:space="preserve">
+    <value>Ingresá el transportista.</value>
+  </data>
   <data name="City" xml:space="preserve">
     <value>Ciudad</value>
   </data>
@@ -207,6 +210,9 @@
   <data name="ShippingDate" xml:space="preserve">
     <value>Fecha de Envío</value>
   </data>
+  <data name="ShippingValidationTitle" xml:space="preserve">
+    <value>Faltan datos de envío</value>
+  </data>
   <data name="StartProcessing" xml:space="preserve">
     <value>Comenzar Procesamiento</value>
   </data>
@@ -218,6 +224,9 @@
   </data>
   <data name="Tracking" xml:space="preserve">
     <value>Seguimiento</value>
+  </data>
+  <data name="TrackingRequired" xml:space="preserve">
+    <value>Ingresá el número de seguimiento.</value>
   </data>
   <data name="UpdateOrderDetails" xml:space="preserve">
     <value>Actualizar Detalles de Órden</value>

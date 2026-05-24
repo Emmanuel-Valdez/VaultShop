@@ -74,15 +74,24 @@
 </div>
 
 
-@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
-{
-	@section Scripts {
-	<script src="~/js/orderAdmin.js"></script>
+@section Scripts {
+	<script>
+		window.orderStatusTranslations = {
+			Pending: @Json.Serialize(Localizer["Pending"].Value),
+			Approved: @Json.Serialize(Localizer["Approved"].Value),
+			Processing: @Json.Serialize(Localizer["Processing"].Value),
+			Shipped: @Json.Serialize(Localizer["Shipped"].Value),
+			Cancelled: @Json.Serialize(Localizer["Cancelled"].Value),
+			Refunded: @Json.Serialize(Localizer["Refunded"].Value)
+		};
+	</script>
+
+	@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+	{
+		<script src="~/js/orderAdmin.js"></script>
 	}
-}
-else
-{
-	@section Scripts {
-	<script src="~/js/order.js"></script>
+	else
+	{
+		<script src="~/js/order.js"></script>
 	}
 }

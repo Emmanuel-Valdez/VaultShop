@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using UkiyoDesigns.Models.CalculatorModels;
+using UkiyoDesigns.Models.Validation;
 
 namespace UkiyoDesigns.Models
 {
@@ -10,7 +11,7 @@ namespace UkiyoDesigns.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Product Name is required")]
+		[LocalizedRequired("Product name is required.", "El nombre del producto es obligatorio.")]
 		public string Name { get; set; } = string.Empty;
 
         [Required]

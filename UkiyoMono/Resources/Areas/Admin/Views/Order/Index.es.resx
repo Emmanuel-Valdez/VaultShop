@@ -123,6 +123,9 @@
   <data name="Approved" xml:space="preserve">
     <value>Aprobado</value>
   </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelado</value>
+  </data>
   <data name="Completed" xml:space="preserve">
     <value>Completo</value>
   </data>
@@ -144,6 +147,9 @@
   <data name="OrderStatus" xml:space="preserve">
     <value>Estado de Órden</value>
   </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
   <data name="PaymentPending" xml:space="preserve">
     <value>Pago Pendiente</value>
   </data>
@@ -152,6 +158,15 @@
   </data>
   <data name="PhoneNumber" xml:space="preserve">
     <value>Teléfono</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>En proceso</value>
+  </data>
+  <data name="Refunded" xml:space="preserve">
+    <value>Reembolsado</value>
+  </data>
+  <data name="Shipped" xml:space="preserve">
+    <value>Enviado</value>
   </data>
   <data name="Total" xml:space="preserve">
     <value>Total</value>
