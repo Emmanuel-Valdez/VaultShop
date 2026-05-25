@@ -7,12 +7,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UkiyoDesigns.Models.Validation;
 
 namespace UkiyoDesigns.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        [Required]
+        [LocalizedRequired("Name is required.", "El nombre es obligatorio.")]
 		public string Name { get; set; } = string.Empty;
         [Display(Name = "Street Address")]
         public string? StreetAddress { get; set; }

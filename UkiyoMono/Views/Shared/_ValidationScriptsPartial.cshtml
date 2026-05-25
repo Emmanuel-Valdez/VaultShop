@@ -1,8 +1,10 @@
 ﻿
 <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+@if (System.Globalization.CultureInfo.CurrentUICulture.Name == "es-AR")
+{
+	<script src="~/lib/jquery-validation/localization/messages_es_AR.min.js"></script>
+}
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
-@* <script src="~/lib/jquery-validation/localization/messages_es.js"></script> <!-- Español --> *@
 
 <script type="text/javascript">
 	if (culture == "es-AR") {

@@ -8,7 +8,7 @@ namespace UkiyoDesigns.Models.Validation
 		private readonly string _englishMessage;
 		private readonly string _spanishMessage;
 
-		public LocalizedRangeAttribute(int minimum, int maximum, string englishMessage, string spanishMessage)
+		public LocalizedRangeAttribute(double minimum, double maximum, string englishMessage, string spanishMessage)
 			: base(minimum, maximum)
 		{
 			_englishMessage = englishMessage;
