@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 {
@@ -50,7 +51,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
+            [LocalizedRequired("Password is required.", "La contraseña es obligatoria.")]
             [DataType(DataType.Password)]
             public string Password { get; set; }
         }

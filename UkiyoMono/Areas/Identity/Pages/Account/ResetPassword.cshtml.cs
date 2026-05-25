@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 {
     public class ResetPasswordModel : PageModel
@@ -40,16 +41,16 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [EmailAddress]
+            [LocalizedRequired("Email is required.", "El correo electrónico es obligatorio.")]
+            [LocalizedEmailAddress("Please enter a valid email address.", "Ingresá un correo electrónico válido.")]
             public string Email { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [LocalizedRequired("Password is required.", "La contraseña es obligatoria.")]
+            [LocalizedStringLength(100, 6, "Password must be between 6 and 100 characters long.", "La contraseña debe tener entre 6 y 100 caracteres.")]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
@@ -59,14 +60,14 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [LocalizedCompare("Password", "The password and confirmation password do not match.", "La contraseña y la confirmación no coinciden.")]
             public string ConfirmPassword { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
+            [LocalizedRequired("Reset code is required.", "El código de restablecimiento es obligatorio.")]
             public string Code { get; set; }
 
         }

@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Localization;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 using UkiyoDesigns.Utility;
 
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
@@ -85,8 +86,8 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [System.ComponentModel.DataAnnotations.Required]
-            [EmailAddress]
+            [LocalizedRequired("Email is required.", "El correo electrónico es obligatorio.")]
+            [LocalizedEmailAddress("Please enter a valid email address.", "Ingresá un correo electrónico válido.")]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
@@ -94,8 +95,8 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [System.ComponentModel.DataAnnotations.Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [LocalizedRequired("Password is required.", "La contraseña es obligatoria.")]
+            [LocalizedStringLength(100, 6, "Password must be between 6 and 100 characters long.", "La contraseña debe tener entre 6 y 100 caracteres.")]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }
@@ -106,7 +107,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [LocalizedCompare("Password", "The password and confirmation password do not match.", "La contraseña y la confirmación no coinciden.")]
             public string ConfirmPassword { get; set; }
 			public string Role { get; set; }
             [ValidateNever]
@@ -118,10 +119,10 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 			public string State { get; set; }
 			[Display(Name = "Postal Code")]
 			public string PostalCode { get; set; }
-			[Phone]
+			[LocalizedPhone("Please enter a valid phone number.", "Ingresá un teléfono válido.")]
 			[Display(Name = "Phone number")]
 			public string PhoneNumber { get; set; }
-            [Required]
+            [LocalizedRequired("Name is required.", "El nombre es obligatorio.")]
             public string Name { get; set; }
             public int? CompanyId { get; set; }
             [ValidateNever]

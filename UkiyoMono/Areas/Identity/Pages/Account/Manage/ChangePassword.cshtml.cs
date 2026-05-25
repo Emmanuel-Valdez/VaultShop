@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 {
@@ -45,20 +46,20 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
         {
 			
 
-			[Required]
+			[LocalizedRequired("Current password is required.", "La contraseña actual es obligatoria.")]
             [DataType(DataType.Password)]
             [Display(Name = "Current Password")]
             public string OldPassword { get; set; }
 
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [LocalizedRequired("New password is required.", "La nueva contraseña es obligatoria.")]
+            [LocalizedStringLength(100, 6, "New password must be between 6 and 100 characters long.", "La nueva contraseña debe tener entre 6 y 100 caracteres.")]
             [DataType(DataType.Password)]
             [Display(Name = "New Password")]
             public string NewPassword { get; set; }
 
             [DataType(DataType.Password)]
             [Display(Name = "Confirm New Password")]
-            [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+            [LocalizedCompare("NewPassword", "The new password and confirmation password do not match.", "La nueva contraseña y la confirmación no coinciden.")]
             public string ConfirmPassword { get; set; }
         }
 

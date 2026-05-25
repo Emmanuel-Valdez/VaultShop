@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 {
@@ -60,7 +61,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Phone]
+            [LocalizedPhone("Please enter a valid phone number.", "Ingresá un teléfono válido.")]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
             [Display(Name = "Street Address")]
@@ -70,7 +71,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 			[Display(Name = "Postal Code")]
 			public string PostalCode { get; set; }
 
-            [Required]
+            [LocalizedRequired("Name is required.", "El nombre es obligatorio.")]
             public string Name { get; set; }
         }
 

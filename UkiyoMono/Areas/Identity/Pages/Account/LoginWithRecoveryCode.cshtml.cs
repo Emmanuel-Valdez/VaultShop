@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 {
     public class LoginWithRecoveryCodeModel : PageModel
@@ -57,7 +58,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [BindProperty]
-            [Required]
+            [LocalizedRequired("Recovery code is required.", "El código de recuperación es obligatorio.")]
             [DataType(DataType.Text)]
             [Display(Name = "Recovery Code")]
             public string RecoveryCode { get; set; }

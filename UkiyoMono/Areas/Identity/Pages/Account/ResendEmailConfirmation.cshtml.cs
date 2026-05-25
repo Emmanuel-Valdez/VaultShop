@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
@@ -45,8 +46,8 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [EmailAddress]
+            [LocalizedRequired("Email is required.", "El correo electrónico es obligatorio.")]
+            [LocalizedEmailAddress("Please enter a valid email address.", "Ingresá un correo electrónico válido.")]
             public string Email { get; set; }
         }
 

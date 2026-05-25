@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using UkiyoDesigns.Models;
+using UkiyoDesigns.Models.Validation;
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 {
     public class EnableAuthenticatorModel : PageModel
@@ -81,8 +82,8 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [LocalizedRequired("Verification code is required.", "El código de verificación es obligatorio.")]
+            [LocalizedStringLength(7, 6, "Verification code must be between 6 and 7 characters long.", "El código de verificación debe tener entre 6 y 7 caracteres.")]
             [DataType(DataType.Text)]
             [Display(Name = "Verification Code")]
             public string Code { get; set; }

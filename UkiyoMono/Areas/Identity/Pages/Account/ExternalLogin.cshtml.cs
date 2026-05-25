@@ -21,6 +21,7 @@ using UkiyoDesigns.Models;
 using Microsoft.CodeAnalysis.Elfie.Extensions;
 using UkiyoDesigns.Utility;
 using Microsoft.Extensions.Localization;
+using UkiyoDesigns.Models.Validation;
 
 
 namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
@@ -89,8 +90,8 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required]
-            [EmailAddress]
+            [LocalizedRequired("Email is required.", "El correo electrónico es obligatorio.")]
+            [LocalizedEmailAddress("Please enter a valid email address.", "Ingresá un correo electrónico válido.")]
             public string Email { get; set; }
 			[Display(Name = "Street Address")]
 			public string StreetAddress { get; set; }
@@ -99,10 +100,10 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 			public string State { get; set; }
 			[Display(Name = "Postal Code")]
 			public string PostalCode { get; set; }
-			[Phone]
+			[LocalizedPhone("Please enter a valid phone number.", "Ingresá un teléfono válido.")]
 			[Display(Name = "Phone number")]
 			public string PhoneNumber { get; set; }
-			[Required]
+			[LocalizedRequired("Name is required.", "El nombre es obligatorio.")]
 			public string Name { get; set; }
 		}
         
