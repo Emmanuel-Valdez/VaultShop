@@ -210,6 +210,10 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			{
 				return NotFound();
 			}
+			if (!UserCanAccessOrder(orderHeader))
+			{
+				return NotFound();
+			}
 
 			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
 			{
@@ -230,10 +234,26 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			_unitOfWork.Save();
 			return View(id);
 		}
+
+		private bool UserCanAccessOrder(OrderHeader orderHeader)
+		{
+			if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+			{
+				return true;
+			}
+
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			return !string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId;
+		}
+
 		public IActionResult Plus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
 			if (cartFromDb == null)
+			{
+				return NotFound();
+			}
+			if (!UserCanAccessCart(cartFromDb))
 			{
 				return NotFound();
 			}
@@ -248,6 +268,10 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);
 			if (cartFromDb == null)
+			{
+				return NotFound();
+			}
+			if (!UserCanAccessCart(cartFromDb))
 			{
 				return NotFound();
 			}
@@ -274,6 +298,10 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			{
 				return NotFound();
 			}
+			if (!UserCanAccessCart(cartFromDb))
+			{
+				return NotFound();
+			}
 
 			HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart
 				.GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId).Count() - 1);
@@ -281,6 +309,12 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			_unitOfWork.Save();
 
 			return RedirectToAction(nameof(Index));
+		}
+
+		private bool UserCanAccessCart(ShoppingCart shoppingCart)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			return !string.IsNullOrEmpty(userId) && shoppingCart.ApplicationUserId == userId;
 		}
 
 		private decimal GetPriceBasedOnRole(ShoppingCart shoppingCart)

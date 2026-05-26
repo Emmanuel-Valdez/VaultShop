@@ -41,6 +41,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
+			if (!UserCanAccessOrder(orderHeader))
+			{
+				return NotFound();
+			}
 
 			OrderVM = new()
 			{
@@ -157,6 +161,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
+			if (!UserCanAccessOrder(orderHeader))
+			{
+				return NotFound();
+			}
 
 			OrderVM.OrderHeader = orderHeader;
 			OrderVM.OrderDetail = _unitOfWork.OrderDetail
@@ -202,6 +210,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
 			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+			if (!UserCanAccessOrder(orderHeader))
 			{
 				return NotFound();
 			}
@@ -263,5 +275,16 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		}
 		#endregion
+
+		private bool UserCanAccessOrder(OrderHeader orderHeader)
+		{
+			if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+			{
+				return true;
+			}
+
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			return !string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId;
+		}
 	}
 }
