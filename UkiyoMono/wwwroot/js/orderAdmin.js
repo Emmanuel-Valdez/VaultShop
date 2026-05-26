@@ -1,8 +1,7 @@
 ﻿var dataTable;
-let translations = {};
+const translations = window.orderTableTranslations ?? {};
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await loadTranslations();
+document.addEventListener("DOMContentLoaded", () => {
     var url = window.location.search;
     if (url.includes("inprocess")) {
         loadDataTable("inprocess")
@@ -22,11 +21,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 });
-
-async function loadTranslations() {
-    const response = await fetch(`/${culture}/customer/home/GetTranslations`);
-    translations = await response.json();
-}
 
 function loadDataTable(status) {
     dataTable = $('#tblData').DataTable({

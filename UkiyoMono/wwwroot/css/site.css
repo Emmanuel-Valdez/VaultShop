@@ -44,10 +44,19 @@ html {
     transform: scale(1.1);
 }
 
-@media (prefers-color-scheme: dark) {
-    div.dt-button-collection {
-        background-color: black;
-    }
+div.dt-button-collection {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+div.dt-button-collection .dt-button {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+}
+
+div.dt-button-collection .dt-button:hover {
+    background-color: var(--bs-tertiary-bg);
 }
 /* Estilos para la tarjeta en tema claro */
 [data-bs-theme=light] .theme-card {

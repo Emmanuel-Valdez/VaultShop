@@ -132,6 +132,12 @@
   <data name="Email" xml:space="preserve">
     <value>Email</value>
   </data>
+  <data name="ColumnsVisibility" xml:space="preserve">
+    <value>Columns Visibility</value>
+  </data>
+  <data name="ExportToPDF" xml:space="preserve">
+    <value>Export to PDF</value>
+  </data>
   <data name="Id" xml:space="preserve">
     <value>Id</value>
   </data>

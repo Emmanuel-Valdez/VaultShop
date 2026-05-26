@@ -84,6 +84,10 @@
 			Cancelled: @Json.Serialize(Localizer["Cancelled"].Value),
 			Refunded: @Json.Serialize(Localizer["Refunded"].Value)
 		};
+		window.orderTableTranslations = {
+			exportToPDF: @Json.Serialize(Localizer["ExportToPDF"].Value),
+			columnsVisibility: @Json.Serialize(Localizer["ColumnsVisibility"].Value)
+		};
 	</script>
 
 	@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
