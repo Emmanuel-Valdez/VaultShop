@@ -123,8 +123,8 @@
   <data name="BackToHome" xml:space="preserve">
     <value>Volver al Inicio</value>
   </data>
-  <data name="By" xml:space="preserve">
-    <value>Hecho por</value>
+  <data name="InspiredBy" xml:space="preserve">
+    <value>Inspirado en el universo del anime y la fantasía</value>
   </data>
   <data name="Count" xml:space="preserve">
     <value>Cantidad</value>
