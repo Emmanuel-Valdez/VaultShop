@@ -1,6 +1,7 @@
 ﻿@model OrderVM
 
 <form method="post">
+	@Html.AntiForgeryToken()
 	<br />
 	<input asp-for="OrderHeader.Id" hidden type="text" />
 	<input asp-for="OrderHeader.ApplicationUserId" type="text" hidden />

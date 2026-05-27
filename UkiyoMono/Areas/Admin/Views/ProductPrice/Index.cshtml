@@ -9,6 +9,7 @@
 	</div>
 	<div class="card-body p-4">
 		<form method="post" class="d-flex justify-content-center p-3">
+			@Html.AntiForgeryToken()
 			@if (Model.CountOutdated > 0)
 			{
 				<input asp-for="CountOutdated" hidden />
@@ -27,6 +28,7 @@
 				<div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlush">
 					<div class="accordion-body">
 						<form method="post" class="col-12">
+							@Html.AntiForgeryToken()
 							<input asp-for="CountOutdated" hidden />
 							<div class="border p-3 d-flex row">
 								<div asp-validation-summary="ModelOnly" class="text-danger"></div>

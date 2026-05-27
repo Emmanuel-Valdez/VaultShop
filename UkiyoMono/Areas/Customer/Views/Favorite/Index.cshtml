@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<FavoriteProduct>
 
 <form method="post">
+	@Html.AntiForgeryToken()
 	<br />
 	<div class="card shadow border-0">
 		<div class="card-header bg-secondary bg-gradient  ml-0 py-4">
@@ -60,9 +61,9 @@
 								</div>
 
 								<div a class="col-3 col-sm-4 col-lg-2 offset-lg-1 text-right pt-2">
-									<a asp-action="RemoveFromIndex" asp-route-favoriteId="@item.Id" class="btn btn-danger bg-gradient py-2 ">
+									<button type="submit" asp-action="RemoveFromIndex" asp-route-favoriteId="@item.Id" class="btn btn-danger bg-gradient py-2 ">
 										<i class="bi bi-trash-fill"></i>
-									</a>
+									</button>
 								</div>
 							</div>
 

@@ -51,6 +51,7 @@
 				<div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlush">
 					<div class="accordion-body">
 						<form method="post">
+							@Html.AntiForgeryToken()
 
 							<input asp-for="FabricByProduct.UnitFabricByProductList" hidden />
 							<input asp-for="FabricByProduct.ProductId" hidden />
@@ -127,4 +128,4 @@
 			});
 		</script>
 	}
-} 
+}

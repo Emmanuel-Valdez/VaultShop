@@ -42,6 +42,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return View(FavoriteProductList);
 		}
 		
+		[HttpPost]
 		public IActionResult Add(int productId)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -61,6 +62,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 			return RedirectToAction("Details","Home", new { productId });
 		}
+		[HttpPost]
 		public IActionResult RemoveFromIndex(int favoriteId)
 		{
 			var result = Remove(favoriteId);
@@ -71,6 +73,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return result;
 		}
 
+		[HttpPost]
 		public IActionResult RemoveFromProductDetails(int favoriteId, int productId)
 		{
 			var result = Remove(favoriteId);
@@ -81,7 +84,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return result;
 		}
 
-		public IActionResult Remove(int favoriteId)
+		private IActionResult Remove(int favoriteId)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

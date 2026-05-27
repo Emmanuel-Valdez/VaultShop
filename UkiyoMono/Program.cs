@@ -13,6 +13,7 @@ using UkiyoDesigns.DataAccess.DbInitializer;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 
@@ -40,7 +41,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 	var requestProvider = new RouteDataRequestCultureProvider(); 
 	options.RequestCultureProviders.Insert(0, requestProvider);
 });
-builder.Services.AddControllersWithViews().AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+builder.Services.AddControllersWithViews(options =>
+{
+	options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+}).AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
 	.AddDataAnnotationsLocalization(); 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

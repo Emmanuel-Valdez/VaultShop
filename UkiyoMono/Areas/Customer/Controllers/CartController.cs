@@ -251,6 +251,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return !string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId;
 		}
 
+		[HttpPost]
 		public IActionResult Plus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
@@ -269,6 +270,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return RedirectToAction(nameof(Index));
 
 		}
+		[HttpPost]
 		public IActionResult Minus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);
@@ -296,6 +298,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return RedirectToAction(nameof(Index));
 		}
 
+		[HttpPost]
 		public IActionResult Remove(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);

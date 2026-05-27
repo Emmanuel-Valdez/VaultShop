@@ -1,8 +1,10 @@
 ﻿@using UkiyoDesignsWeb
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Antiforgery
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IAntiforgery Antiforgery
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,11 +15,13 @@
 		var currentUrl = $"{SD.SiteUrl}{Context.Request.Path}";
 		var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
 		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
+		var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 	}
 	<title>@ViewData["Title"] - Ukiyo</title>
 	<meta name="description" content="@ViewData["Description"]" />
 	<meta name="keywords" content="@ViewData["Keywords"]" />
 	<meta name="robots" content="@ViewData["Robots"]" />
+	<meta name="request-verification-token" content="@antiforgeryToken" />
 	<link rel="canonical" href="@currentUrl" />
 	<link rel="alternate" hreflang="es-AR" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
 	<link rel="alternate" hreflang="en-US" href="@($"{SD.SiteUrl}/en-US{Context.Request.Path}")" />
@@ -313,6 +317,15 @@
 		var currentCulture = `@System.Threading.Thread.CurrentThread.CurrentUICulture.Name`
 	</script>
 	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script>
+		$.ajaxSetup({
+			beforeSend: function (xhr, settings) {
+				if (settings.type && settings.type.toUpperCase() !== 'GET') {
+					xhr.setRequestHeader('RequestVerificationToken', $('meta[name="request-verification-token"]').attr('content'));
+				}
+			}
+		});
+	</script>
 	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 	
 	<script src="~/js/site.js" asp-append-version="true"></script>
