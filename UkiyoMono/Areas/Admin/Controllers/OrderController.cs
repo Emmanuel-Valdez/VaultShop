@@ -58,7 +58,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult UpdateOrderDetail()
 		{
-			if (!ModelState.IsValid)
+			if (User.IsInRole(SD.Role_Admin) && !ModelState.IsValid)
 				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 
 			var orderHeaderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
@@ -67,12 +67,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return NotFound();
 			}
 
-			orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
-			orderHeaderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
-			orderHeaderFromDb.StreetAddress = OrderVM.OrderHeader.StreetAddress;
-			orderHeaderFromDb.City = OrderVM.OrderHeader.City;
-			orderHeaderFromDb.State = OrderVM.OrderHeader.State;
-			orderHeaderFromDb.PostalCode = OrderVM.OrderHeader.PostalCode;
+			if (User.IsInRole(SD.Role_Admin))
+			{
+				orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
+				orderHeaderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
+				orderHeaderFromDb.StreetAddress = OrderVM.OrderHeader.StreetAddress;
+				orderHeaderFromDb.City = OrderVM.OrderHeader.City;
+				orderHeaderFromDb.State = OrderVM.OrderHeader.State;
+				orderHeaderFromDb.PostalCode = OrderVM.OrderHeader.PostalCode;
+			}
 			if (!string.IsNullOrEmpty(OrderVM.OrderHeader.Carrier))
 			{
 				orderHeaderFromDb.Carrier = OrderVM.OrderHeader.Carrier;
@@ -122,7 +125,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 		}
 
-		[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+		[Authorize(Roles = SD.Role_Admin)]
 		[HttpPost]
 		public IActionResult CancelOrder()
 		{

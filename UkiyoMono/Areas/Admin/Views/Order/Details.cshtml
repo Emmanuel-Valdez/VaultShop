@@ -1,4 +1,8 @@
 ﻿@model OrderVM
+@{
+	var canManageOrder = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
+	var canEditShippingDetails = User.IsInRole(SD.Role_Admin);
+}
 
 <form method="post">
 	@Html.AntiForgeryToken()
@@ -29,7 +33,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Name"]</div>
 								<div class="col-9 ">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canEditShippingDetails)
 									{
 										<input asp-for="OrderHeader.Name" type="text" class="form-control shadow" />
 										<span asp-validation-for="OrderHeader.Name" class="text-danger"></span>
@@ -44,7 +48,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Phone"]</div>
 								<div class="col-9 ">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canEditShippingDetails)
 									{
 										<input asp-for="OrderHeader.PhoneNumber" type="text" class="form-control shadow " />
 										<span asp-validation-for="OrderHeader.PhoneNumber" class="text-danger"></span>
@@ -58,7 +62,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Address"]</div>
 								<div class="col-9">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canEditShippingDetails)
 									{
 										<input asp-for="OrderHeader.StreetAddress" type="text" class="form-control shadow" />
 										<span asp-validation-for="OrderHeader.StreetAddress" class="text-danger"></span>
@@ -72,7 +76,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["City"]</div>
 								<div class="col-9">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canEditShippingDetails)
 									{
 										<input asp-for="OrderHeader.City" type="text" class="form-control shadow" />
 										<span asp-validation-for="OrderHeader.City" class="text-danger"></span>
@@ -86,7 +90,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["State"]</div>
 								<div class="col-9">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canEditShippingDetails)
 									{
 										<input asp-for="OrderHeader.State" type="text" class="form-control shadow" />
 										<span asp-validation-for="OrderHeader.State" class="text-danger"></span>
@@ -100,7 +104,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["ZipCode"]</div>
 								<div class="col-9">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canEditShippingDetails)
 									{
 										<input asp-for="OrderHeader.PostalCode" type="text" class="form-control shadow" />
 										<span asp-validation-for="OrderHeader.PostalCode" class="text-danger"></span>
@@ -128,7 +132,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Carrier"]</div>
 								<div class="col-9">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canManageOrder)
 									{
 										<input asp-for="OrderHeader.Carrier" id="carrier" type="text" class="form-control shadow" />
 									}
@@ -141,7 +145,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Tracking"]</div>
 								<div class="col-9">
-									@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+									@if (canManageOrder)
 									{
 										<input asp-for="OrderHeader.TrackingNumber" id="trackingNumber" type="text" class="form-control shadow" />
 									}
@@ -157,7 +161,7 @@
 									<input value="@Model.OrderHeader.ShippingDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
 								</div>
 							</div>
-							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+							@if (canManageOrder)
 							{
 								<div class="row my-1">
 									<div class="col-3">@Localizer["SessionId"]</div>
@@ -197,7 +201,7 @@
 										   data-localizer-key="PaymentStatus" />
 								</div>
 							</div>
-							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+							@if (canManageOrder)
 							{
 								<Button type="submit" asp-action="UpdateOrderDetail" class="btn btn-warning form-control my-1">
 									@Localizer["UpdateOrderDetails"]
@@ -245,7 +249,7 @@
 							{
 								<button type="submit" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
 							}
-							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+							@if (canManageOrder)
 							{
 								if (Model.OrderHeader.OrderStatus == SD.StatusApproved)
 								{
@@ -259,7 +263,8 @@
 										@Localizer["ShipOrder"]
 									</button>
 								}
-								if (Model.OrderHeader.OrderStatus != SD.StatusRefunded &&
+								if (User.IsInRole(SD.Role_Admin) &&
+													Model.OrderHeader.OrderStatus != SD.StatusRefunded &&
 													Model.OrderHeader.OrderStatus != SD.StatusCancelled &&
 													Model.OrderHeader.OrderStatus != SD.StatusShipped)
 								{
