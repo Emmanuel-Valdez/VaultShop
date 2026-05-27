@@ -107,14 +107,6 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		[ActionName("Summary")]
 		public IActionResult SummaryPOST()
 		{
-			if (ShoppingCartVM.OrderHeader.OrderTotal <= 0)
-			{
-				ModelState.AddModelError("OrderHeader", _localizer["OrderTotalZeroError"].Value );
-				return RedirectToAction("Index", "Home");
-			}
-			if (!ModelState.IsValid)
-				return View(ShoppingCartVM);
-
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId))
 			{
@@ -131,11 +123,20 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				return Unauthorized();
 			}
 
+			ShoppingCartVM.OrderHeader.OrderTotal = 0;
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
 				cart.Price = GetPriceBasedOnRole(cart);
-				//ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
+				ShoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
 			}
+
+			if (ShoppingCartVM.OrderHeader.OrderTotal <= 0)
+			{
+				ModelState.AddModelError("OrderHeader", _localizer["OrderTotalZeroError"].Value);
+				return RedirectToAction("Index", "Home");
+			}
+			if (!ModelState.IsValid)
+				return View(ShoppingCartVM);
 
 			if (applicationUser.CompanyId.GetValueOrDefault() == 0)
 			{

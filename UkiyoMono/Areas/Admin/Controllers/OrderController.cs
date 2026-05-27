@@ -250,8 +250,18 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				{
 					return Unauthorized();
 				}
-				objOrderHeaders = _unitOfWork.OrderHeader
-					.GetAll(u => u.ApplicationUserId == userId, includeProperties: "ApplicationUser");
+
+				var currentUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+				if (currentUser?.CompanyId.GetValueOrDefault() > 0)
+				{
+					objOrderHeaders = _unitOfWork.OrderHeader
+						.GetAll(u => u.ApplicationUser.CompanyId == currentUser.CompanyId, includeProperties: "ApplicationUser");
+				}
+				else
+				{
+					objOrderHeaders = _unitOfWork.OrderHeader
+						.GetAll(u => u.ApplicationUserId == userId, includeProperties: "ApplicationUser");
+				}
 			}
 
 			switch (status)
@@ -284,7 +294,26 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			return !string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId;
+			if (string.IsNullOrEmpty(userId))
+			{
+				return false;
+			}
+
+			if (orderHeader.ApplicationUserId == userId)
+			{
+				return true;
+			}
+
+			var currentUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			if (currentUser == null || currentUser.CompanyId.GetValueOrDefault() <= 0)
+			{
+				return false;
+			}
+
+			var orderUserCompanyId = orderHeader.ApplicationUser?.CompanyId
+				?? _unitOfWork.ApplicationUser.Get(u => u.Id == orderHeader.ApplicationUserId)?.CompanyId;
+
+			return orderUserCompanyId == currentUser.CompanyId;
 		}
 	}
 }
