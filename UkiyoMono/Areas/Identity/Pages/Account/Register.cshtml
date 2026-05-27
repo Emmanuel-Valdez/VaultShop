@@ -70,6 +70,7 @@
 
 					@if (User.IsInRole(SD.Role_Admin))
 					{
+						var companyVisible = Model.Input.Role == SD.Role_Company ? "display:block;" : "display:none;";
 					<div class="form-floating mb-3 col-md-6 shadow">
 							<select asp-for="Input.Role" asp-items="@Model.Input.RoleList" class="form-select">
 								<option disabled selected>-@Localizer["SelectRole"]-</option>
@@ -77,7 +78,7 @@
 					</div>
 
 					<div class="form-floating mb-3 col-md-6 shadow">
-						<select asp-for="Input.CompanyId" style="display:none;" asp-items="@Model.Input.CompanyList" class="form-select" >
+						<select asp-for="Input.CompanyId" style="@companyVisible" asp-items="@Model.Input.CompanyList" class="form-select" >
 								<option disabled selected>-@Localizer["SelectCompany"]-</option>
 						</select>
 					</div>
@@ -134,14 +135,19 @@
 	<partial name="_ValidationScriptsPartial" />
 	<script>
 		$(document).ready(function () {
+			setCompanyVisibility();
 			$('#Input_Role').change(function () {
-				var selection = $('#Input_Role Option:Selected').text();
-				if (selection == 'Company') {
-					$('#Input_CompanyId').show();
-				} else {
-					$('#Input_CompanyId').hide();
-				}
+				setCompanyVisibility();
 			})
 		})
+
+		function setCompanyVisibility() {
+			var selection = $('#Input_Role').val();
+			if (selection == '@SD.Role_Company') {
+				$('#Input_CompanyId').show();
+			} else {
+				$('#Input_CompanyId').hide();
+			}
+		}
 	</script>
 }

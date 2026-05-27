@@ -134,21 +134,8 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
-           
-            Input = new()
-            {
-                RoleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
-                {
-                    Text = i,
-                    Value = i
-                }),
-                CompanyList = _unitOfWork.Company.GetAll().Select(i=> new SelectListItem
-                {
-                    Text=i.Name,
-                    Value= i.Id.ToString()
-                })
-
-            };
+			Input = new();
+			PopulateRoleInputs();
 
 
             ReturnUrl = returnUrl;
@@ -171,7 +158,13 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
                 user.PhoneNumber = Input.PhoneNumber;
                 user.Name = Input.Name;
                 user.State = Input.State;
-                if (Input.Role == SD.Role_Company)
+                var roleToAssign = SD.Role_Customer;
+                if (User.IsInRole(SD.Role_Admin) && !string.IsNullOrEmpty(Input.Role))
+                {
+                    roleToAssign = await _roleManager.RoleExistsAsync(Input.Role) ? Input.Role : SD.Role_Customer;
+                }
+
+                if (roleToAssign == SD.Role_Company)
                 {
                     user.CompanyId = Input.CompanyId;
                 }
@@ -181,14 +174,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    if (!String.IsNullOrEmpty(Input.Role))
-                    {
-                        await _userManager.AddToRoleAsync(user, Input.Role);
-                    }
-                    else
-                    {
-                        await _userManager.AddToRoleAsync(user, SD.Role_Customer);
-                    }
+					await _userManager.AddToRoleAsync(user, roleToAssign);
 
 
 
@@ -228,9 +214,24 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
+			PopulateRoleInputs();
+			// If we got this far, something failed, redisplay form
             return Page();
         }
+
+		private void PopulateRoleInputs()
+		{
+			Input.RoleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+			{
+				Text = i,
+				Value = i
+			});
+			Input.CompanyList = _unitOfWork.Company.GetAll().Select(i => new SelectListItem
+			{
+				Text = i.Name,
+				Value = i.Id.ToString()
+			});
+		}
 
         private ApplicationUser CreateUser()
         {

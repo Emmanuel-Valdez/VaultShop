@@ -228,10 +228,14 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				}
 				HttpContext.Session.Clear();
 			}
-			List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart
-				.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
-			_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
-			_unitOfWork.Save();
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (!string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId)
+			{
+				List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart
+					.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+				_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
+				_unitOfWork.Save();
+			}
 			return View(id);
 		}
 
