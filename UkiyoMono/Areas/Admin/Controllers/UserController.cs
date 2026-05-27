@@ -14,7 +14,7 @@ using UkiyoDesigns.Utility;
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
 	[Area("Admin")]
-	[Authorize(Roles = SD.Role_Admin)]
+	[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
 
 	public class UserController : Controller
 	{
@@ -42,14 +42,17 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return NotFound();
 			}
 
+			var currentRole = _userManager.GetRolesAsync(applicationUser)
+				.GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
+			if (!CanEmployeeManageRole(currentRole))
+			{
+				return NotFound();
+			}
+
 			RoleManagmentVM RoleVM = new RoleManagmentVM()
 			{
 				ApplicationUser = applicationUser,
-				RoleList = _roleManager.Roles.Select(u => new SelectListItem
-				{
-					Text = u.Name,
-					Value = u.Name
-				}),
+				RoleList = GetAssignableRoleList(),
 
 				CompanyList = _unitOfWork.Company.GetAll().Select(u => new SelectListItem
 				{
@@ -57,8 +60,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Value = u.Id.ToString()
 				})
 			};
-			RoleVM.ApplicationUser.Role = _userManager.GetRolesAsync(applicationUser)
-				.GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
+			RoleVM.ApplicationUser.Role = currentRole;
 			return View(RoleVM);
 		}
 		[HttpPost]
@@ -72,6 +74,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 			string oldRole = _userManager.GetRolesAsync(applicationUser)
 				.GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
+			if (!CanEmployeeManageRole(oldRole) || !CanAssignRole(roleManagmentVM.ApplicationUser.Role))
+			{
+				return NotFound();
+			}
+
+			if (roleManagmentVM.ApplicationUser.Role != SD.Role_Company)
+			{
+				roleManagmentVM.ApplicationUser.CompanyId = null;
+			}
 
 			if (!(roleManagmentVM.ApplicationUser.Role == oldRole))
 			{
@@ -118,9 +129,16 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					user.Company = new Company() { Name = "" };
 				}
 			}
+			if (User.IsInRole(SD.Role_Employee))
+			{
+				objUserList = objUserList
+					.Where(u => u.Role != SD.Role_Admin && u.Role != SD.Role_Employee)
+					.ToList();
+			}
 			return Json(new { data = objUserList });
 		}
 
+		[HttpPost]
 		public IActionResult LockUnlock([FromBody] string id)
 		{
 
@@ -129,6 +147,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			if (objFromDb == null)
 			{
 				return Json(new { success = true, message = _localizer["ErrorLockUnlock"].Value });
+			}
+			var targetRole = _userManager.GetRolesAsync(objFromDb).GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
+			if (!CanEmployeeManageRole(targetRole))
+			{
+				return NotFound();
 			}
 
 			if (objFromDb.LockoutEnd != null && objFromDb.LockoutEnd > DateTime.Now)
@@ -144,6 +167,34 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			_unitOfWork.Save();
 			return Json(new { success = true, message = _localizer["OperationSuccessful"].Value}); 
 
+		}
+
+		private IEnumerable<SelectListItem> GetAssignableRoleList()
+		{
+			var roles = _roleManager.Roles.Select(u => u.Name ?? string.Empty);
+			if (User.IsInRole(SD.Role_Employee))
+			{
+				roles = roles.Where(u => u == SD.Role_Customer || u == SD.Role_Company);
+			}
+
+			return roles.Select(u => new SelectListItem
+			{
+				Text = u,
+				Value = u
+			});
+		}
+
+		private bool CanEmployeeManageRole(string role)
+		{
+			return User.IsInRole(SD.Role_Admin)
+				|| (role != SD.Role_Admin && role != SD.Role_Employee);
+		}
+
+		private bool CanAssignRole(string role)
+		{
+			return User.IsInRole(SD.Role_Admin)
+				|| role == SD.Role_Customer
+				|| role == SD.Role_Company;
 		}
 
 
