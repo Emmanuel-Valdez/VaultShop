@@ -120,11 +120,17 @@
   <data name="FavoriteAdd" xml:space="preserve">
     <value>Favorito Agregado Correctamente</value>
   </data>
+  <data name="FavoriteAlreadyAdded" xml:space="preserve">
+    <value>Este producto ya está en tus favoritos.</value>
+  </data>
   <data name="FavoriteDeleted" xml:space="preserve">
     <value>Producto Eliminado de Favoritos</value>
   </data>
   <data name="FavoriteNotFound" xml:space="preserve">
     <value>Producto Favorito no Encontrado</value>
+  </data>
+  <data name="ProductUnavailable" xml:space="preserve">
+    <value>Este producto ya no está disponible.</value>
   </data>
   <data name="UserNotAutenticated" xml:space="preserve">
     <value>Usuario no Autenticado</value>

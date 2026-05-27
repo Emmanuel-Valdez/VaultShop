@@ -90,6 +90,14 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 			if (!ModelState.IsValid)
 				return RedirectToAction(nameof(Index));
+
+			var product = _unitOfWork.Product.Get(u => u.Id == shoppingCart.ProductId && u.IsDeleted == false && u.IsAvailableInStore == true);
+			if (product == null)
+			{
+				TempData["error"] = _localizer["ProductUnavailable"].Value;
+				return RedirectToAction(nameof(Index));
+			}
+
 			ShoppingCart? cartFromDb = _unitOfWork.ShoppingCart
 				.Get(u => u.ApplicationUserId == userId && u.ProductId == shoppingCart.ProductId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true);
 			if (cartFromDb != null)

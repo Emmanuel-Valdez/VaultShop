@@ -51,6 +51,20 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				return Unauthorized();
 			}
 
+			var product = _unitOfWork.Product.Get(u => u.Id == productId && u.IsDeleted == false && u.IsAvailableInStore == true);
+			if (product == null)
+			{
+				TempData["error"] = _localizer["ProductUnavailable"].Value;
+				return RedirectToAction("Index", "Home");
+			}
+
+			var existingFavorite = _unitOfWork.FavoriteProduct.Get(u => u.ProductId == productId && u.ApplicationUserId == userId);
+			if (existingFavorite != null)
+			{
+				TempData["success"] = _localizer["FavoriteAlreadyAdded"].Value;
+				return RedirectToAction("Details", "Home", new { productId });
+			}
+
 			FavoriteProduct favoriteProduct = new()
 			{
 				ProductId = productId,

@@ -147,6 +147,9 @@
   <data name="ProductAddCart" xml:space="preserve">
     <value>Product added to cart successfully!</value>
   </data>
+  <data name="ProductUnavailable" xml:space="preserve">
+    <value>This product is no longer available.</value>
+  </data>
   <data name="SearchEmpty" xml:space="preserve">
     <value>Type any search first.</value>
   </data>
