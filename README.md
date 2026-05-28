@@ -55,6 +55,12 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 - [x] Add a step-by-step "How to run locally" section
 - [x] Confirm license and update the license badge
 
+### Post-Portfolio Publish TODO
+
+- [ ] Add a fake email sender for demo/local flows.
+- [ ] Add Serilog for structured application logging.
+- [ ] Add centralized exception-handling middleware.
+
 ### Environment Variables Setup (.env)
 
 The project uses **DotNetEnv** to manage secrets. The `.env` file is in `.gitignore` and is NOT pushed to GitHub.
