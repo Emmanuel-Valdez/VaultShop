@@ -83,7 +83,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
 				OrderHeader = new()
 			};
-			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, tracked: true);
 			if (applicationUser == null)
 			{
 				return Unauthorized();
@@ -124,7 +124,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
 			ShoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
 
-			ApplicationUser? applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			ApplicationUser? applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, tracked: true);
 			if (applicationUser == null)
 			{
 				return Unauthorized();
@@ -349,10 +349,9 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 			applicationUser.LockoutEnabled = true;
 			applicationUser.LockoutEnd = DateTime.Now.AddYears(1000);
-			_unitOfWork.ApplicationUser.Update(applicationUser);
+			applicationUser.SecurityStamp = Guid.NewGuid().ToString();
 
 			_unitOfWork.Save();
-			await _signInManager.UserManager.UpdateSecurityStampAsync(applicationUser);
 			await _signInManager.SignOutAsync();
 			HttpContext.Session.SetInt32(SD.SessionCart, 0);
 			return RedirectToAction("Index", "Home");
