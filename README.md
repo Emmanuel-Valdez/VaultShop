@@ -48,6 +48,15 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 
 ## Current Status (May 2026)
 
+The pending manual regression tests were completed successfully on May 30, 2026. The project is ready for the next portfolio/demo publish.
+
+### Publish Readiness
+
+- [x] Full pending manual testing pass completed.
+- [x] Targeted regression testing for the May 30 fixes completed.
+- [x] Company soft-delete, checkout guards, order access, product availability, calculator deletes, localization metadata, and normal login/cart flows verified manually.
+- [x] Latest build passed before publish readiness update.
+
 ### Documentation / Presentation TODO
 
 - [x] Add favicon

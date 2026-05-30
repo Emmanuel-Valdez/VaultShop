@@ -379,3 +379,6 @@ PROJECT_CONTEXT.local.md
 
 # Uploaded product images are environment-specific content
 UkiyoMono/wwwroot/images/products/
+
+# Local publish output
+publish/
