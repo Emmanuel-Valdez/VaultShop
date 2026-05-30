@@ -173,6 +173,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			else
 			{
 				//it is a company
+				ShoppingCartVM.OrderHeader.CompanyId = applicationUser.CompanyId;
 				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
 				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
 			}
@@ -274,7 +275,18 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			return !string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId;
+			if (string.IsNullOrEmpty(userId))
+			{
+				return false;
+			}
+
+			if (orderHeader.ApplicationUserId == userId && orderHeader.CompanyId.GetValueOrDefault() == 0)
+			{
+				return true;
+			}
+
+			var currentUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
+			return currentUser?.CompanyId.GetValueOrDefault() > 0 && orderHeader.CompanyId == currentUser.CompanyId;
 		}
 
 		[HttpPost]

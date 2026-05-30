@@ -1,6 +1,7 @@
 ﻿@using UkiyoDesignsWeb
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Mvc.Localization
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -12,17 +13,27 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	@{
+		string? GetViewDataText(string key)
+		{
+			var value = ViewData[key];
+			return value is LocalizedHtmlString localizedValue ? localizedValue.Value : value?.ToString();
+		}
+
 		var currentUrl = $"{SD.SiteUrl}{Context.Request.Path}";
 		var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
 		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
 		var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
-		var pageTitle = ViewData["Title"]?.ToString();
+		var pageTitle = GetViewDataText("Title");
 		var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? "Ukiyo" : $"{pageTitle} - Ukiyo";
+		var description = GetViewDataText("Description");
+		var keywords = GetViewDataText("Keywords");
+		var robots = GetViewDataText("Robots");
+		var ogImage = GetViewDataText("OgImage");
 	}
 	<title>@fullTitle</title>
-	<meta name="description" content="@ViewData["Description"]" />
-	<meta name="keywords" content="@ViewData["Keywords"]" />
-	<meta name="robots" content="@ViewData["Robots"]" />
+	<meta name="description" content="@description" />
+	<meta name="keywords" content="@keywords" />
+	<meta name="robots" content="@robots" />
 	<meta name="request-verification-token" content="@antiforgeryToken" />
 	<link rel="canonical" href="@currentUrl" />
 	<link rel="alternate" hreflang="es-AR" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
@@ -30,8 +41,8 @@
 	<link rel="alternate" hreflang="x-default" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
 
 	<meta property="og:title" content="@fullTitle" />
-	<meta property="og:description" content="@ViewData["Description"]" />
-	<meta property="og:image" content="@ViewData["OgImage"]" />
+	<meta property="og:description" content="@description" />
+	<meta property="og:image" content="@ogImage" />
 	<meta property="og:url" content="@currentUrl" />
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Ukiyo" />
@@ -40,8 +51,8 @@
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@@ukiyo designs" />
 	<meta name="twitter:title" content="@fullTitle" />
-	<meta name="twitter:description" content="@ViewData["Description"]" />
-	<meta name="twitter:image" content="@ViewData["OgImage"]" />
+	<meta name="twitter:description" content="@description" />
+	<meta name="twitter:image" content="@ogImage" />
 
 	<link rel="icon" href="~/favicon.ico" sizes="any" />
 	<link rel="icon" type="image/png" href="~/flor-de-cerezo.png" />

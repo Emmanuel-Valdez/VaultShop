@@ -258,7 +258,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				if (currentUser?.CompanyId.GetValueOrDefault() > 0)
 				{
 					objOrderHeaders = _unitOfWork.OrderHeader
-						.GetAll(u => u.ApplicationUser.CompanyId == currentUser.CompanyId, includeProperties: "ApplicationUser");
+						.GetAll(u => u.CompanyId == currentUser.CompanyId, includeProperties: "ApplicationUser");
 				}
 				else
 				{
@@ -302,7 +302,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return false;
 			}
 
-			if (orderHeader.ApplicationUserId == userId)
+			if (orderHeader.ApplicationUserId == userId && orderHeader.CompanyId.GetValueOrDefault() == 0)
 			{
 				return true;
 			}
@@ -313,10 +313,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return false;
 			}
 
-			var orderUserCompanyId = orderHeader.ApplicationUser?.CompanyId
-				?? _unitOfWork.ApplicationUser.Get(u => u.Id == orderHeader.ApplicationUserId)?.CompanyId;
-
-			return orderUserCompanyId == currentUser.CompanyId;
+			return orderHeader.CompanyId == currentUser.CompanyId;
 		}
 	}
 }

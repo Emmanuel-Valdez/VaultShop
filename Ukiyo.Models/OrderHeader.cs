@@ -13,6 +13,11 @@ namespace UkiyoDesigns.Models
 		[ValidateNever]
 		public ApplicationUser ApplicationUser { get; set; } = null!;
 
+		public int? CompanyId { get; set; }
+		[ForeignKey("CompanyId")]
+		[ValidateNever]
+		public Company? Company { get; set; }
+
 		public DateTime OrderDate { get; set; }
 		public DateTime ShippingDate { get; set; }
 
