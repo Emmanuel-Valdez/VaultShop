@@ -53,6 +53,10 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 
 builder.Services.AddRazorPages();
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+	options.ValidationInterval = TimeSpan.Zero;
+});
 //Aotorization allways go after identity user!!
 builder.Services.ConfigureApplicationCookie(options =>
 {

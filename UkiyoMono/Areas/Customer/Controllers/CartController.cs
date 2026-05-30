@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.Localization;
@@ -23,10 +24,12 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		[BindProperty]
 		public ShoppingCartVM ShoppingCartVM { get; set; } = null!;
 		private readonly IStringLocalizer<CartController> _localizer;
-		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer)
+		private readonly SignInManager<ApplicationUser> _signInManager;
+		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
+			_signInManager = signInManager;
 		}
 		public IActionResult Index()
 		{
@@ -68,7 +71,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		
 		}
 
-		public IActionResult Summary()
+		public async Task<IActionResult> Summary()
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId))
@@ -87,7 +90,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 			if (HasDeletedCompany(applicationUser))
 			{
-				return ClearCartAndBlockUser(applicationUser);
+				return await ClearCartAndBlockUser(applicationUser);
 			}
 
 			ShoppingCartVM.OrderHeader.ApplicationUser = applicationUser;
@@ -109,7 +112,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		[HttpPost]
 		[ActionName("Summary")]
-		public IActionResult SummaryPOST()
+		public async Task<IActionResult> SummaryPOST()
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId))
@@ -128,7 +131,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 			if (HasDeletedCompany(applicationUser))
 			{
-				return ClearCartAndBlockUser(applicationUser);
+				return await ClearCartAndBlockUser(applicationUser);
 			}
 
 			ShoppingCartVM.OrderHeader.OrderTotal = 0;
@@ -339,7 +342,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return companyId > 0 && _unitOfWork.Company.Get(u => u.Id == companyId && u.IsDeleted == false) == null;
 		}
 
-		private IActionResult ClearCartAndBlockUser(ApplicationUser applicationUser)
+		private async Task<IActionResult> ClearCartAndBlockUser(ApplicationUser applicationUser)
 		{
 			var shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == applicationUser.Id).ToList();
 			_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
@@ -349,6 +352,8 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			_unitOfWork.ApplicationUser.Update(applicationUser);
 
 			_unitOfWork.Save();
+			await _signInManager.UserManager.UpdateSecurityStampAsync(applicationUser);
+			await _signInManager.SignOutAsync();
 			HttpContext.Session.SetInt32(SD.SessionCart, 0);
 			return RedirectToAction("Index", "Home");
 		}

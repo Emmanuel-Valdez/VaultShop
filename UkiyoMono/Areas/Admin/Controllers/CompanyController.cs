@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
@@ -13,12 +14,14 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	{
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<CompanyController> _localizer;
+		private readonly UserManager<ApplicationUser> _userManager;
 
 	
-		public CompanyController(IUnitOfWork unitOfWork, IStringLocalizer<CompanyController> localizer)
+		public CompanyController(IUnitOfWork unitOfWork, IStringLocalizer<CompanyController> localizer, UserManager<ApplicationUser> userManager)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
+			_userManager = userManager;
 		}
 		public IActionResult Index()
 		{
@@ -86,7 +89,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		}
 		[HttpDelete]
-		public IActionResult Delete(int? id)
+		public async Task<IActionResult> Delete(int? id)
 		{
 			Company? companyToBeDeleted = _unitOfWork.Company.Get(u => u.Id == id && u.IsDeleted == false);
 			if (companyToBeDeleted == null)
@@ -107,6 +110,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 
 			_unitOfWork.Save();
+			foreach (ApplicationUser user in companyUsers)
+			{
+				await _userManager.UpdateSecurityStampAsync(user);
+			}
+
 			return Ok(new { success = true, message = _localizer["DeleteSuccesfully"].Value });
 
 		}
