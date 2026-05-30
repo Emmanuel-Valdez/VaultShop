@@ -85,6 +85,10 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			{
 				return Unauthorized();
 			}
+			if (HasDeletedCompany(applicationUser))
+			{
+				return ClearCartAndBlockUser(applicationUser);
+			}
 
 			ShoppingCartVM.OrderHeader.ApplicationUser = applicationUser;
 			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
@@ -121,6 +125,10 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			if (applicationUser == null)
 			{
 				return Unauthorized();
+			}
+			if (HasDeletedCompany(applicationUser))
+			{
+				return ClearCartAndBlockUser(applicationUser);
 			}
 
 			ShoppingCartVM.OrderHeader.OrderTotal = 0;
@@ -323,6 +331,26 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			return !string.IsNullOrEmpty(userId) && shoppingCart.ApplicationUserId == userId;
+		}
+
+		private bool HasDeletedCompany(ApplicationUser applicationUser)
+		{
+			int companyId = applicationUser.CompanyId.GetValueOrDefault();
+			return companyId > 0 && _unitOfWork.Company.Get(u => u.Id == companyId && u.IsDeleted == false) == null;
+		}
+
+		private IActionResult ClearCartAndBlockUser(ApplicationUser applicationUser)
+		{
+			var shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == applicationUser.Id).ToList();
+			_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
+
+			applicationUser.LockoutEnabled = true;
+			applicationUser.LockoutEnd = DateTime.Now.AddYears(1000);
+			_unitOfWork.ApplicationUser.Update(applicationUser);
+
+			_unitOfWork.Save();
+			HttpContext.Session.SetInt32(SD.SessionCart, 0);
+			return RedirectToAction("Index", "Home");
 		}
 
 		private decimal GetPriceBasedOnRole(ShoppingCart shoppingCart)

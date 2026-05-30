@@ -17,6 +17,7 @@ namespace UkiyoDesigns.Models
 		public string? PostalCode { get; set; }
 		[Display(Name = "Phone Number")]
 		public string? PhoneNumber { get; set; }
+		public bool IsDeleted { get; set; } = false;
 
 	}
 }

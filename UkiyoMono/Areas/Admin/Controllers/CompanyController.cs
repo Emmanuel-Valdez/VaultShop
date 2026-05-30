@@ -22,7 +22,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		}
 		public IActionResult Index()
 		{
-			var objCompanyList = _unitOfWork.Company.GetAll().ToList();
+			var objCompanyList = _unitOfWork.Company.GetAll(u => u.IsDeleted == false).ToList();
 			return View(objCompanyList);
 		}
 		public IActionResult Upsert(int? id)
@@ -36,7 +36,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				//Company? companyFromDb = _db.Categories.Find(id);
 				//Company? companyFromDb2 = _db.Categories.Where(u => u.Id == id).FirstOrDefault();
-				Company? companyFromDb = _unitOfWork.Company.Get(u => u.Id == id);
+				Company? companyFromDb = _unitOfWork.Company.Get(u => u.Id == id && u.IsDeleted == false);
 				if (companyFromDb == null)
 					return NotFound();
 				return View(companyFromDb);
@@ -51,12 +51,25 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 			if (obj.Id == 0)
 			{
+				obj.IsDeleted = false;
 				_unitOfWork.Company.Add(obj);
 				TempData["success"] = _localizer["CompanyCreatedSuccesfully"].Value;
 			}
 			else
 			{
-				_unitOfWork.Company.Update(obj);
+				Company? companyFromDb = _unitOfWork.Company.Get(u => u.Id == obj.Id && u.IsDeleted == false);
+				if (companyFromDb == null)
+				{
+					return NotFound();
+				}
+
+				companyFromDb.Name = obj.Name;
+				companyFromDb.StreetAddress = obj.StreetAddress;
+				companyFromDb.City = obj.City;
+				companyFromDb.State = obj.State;
+				companyFromDb.PostalCode = obj.PostalCode;
+				companyFromDb.PhoneNumber = obj.PhoneNumber;
+				_unitOfWork.Company.Update(companyFromDb);
 				TempData["success"] = _localizer["CompanyEditedSuccesfully"].Value;
 			}
 			_unitOfWork.Save();
@@ -68,19 +81,31 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAll()
 		{
-			List<Company> objCompanyList = _unitOfWork.Company.GetAll().ToList();
+			List<Company> objCompanyList = _unitOfWork.Company.GetAll(u => u.IsDeleted == false).ToList();
 			return Json(new { data = objCompanyList });
 
 		}
 		[HttpDelete]
 		public IActionResult Delete(int? id)
 		{
-			Company? companyToBeDeleted = _unitOfWork.Company.Get(u => u.Id == id);
+			Company? companyToBeDeleted = _unitOfWork.Company.Get(u => u.Id == id && u.IsDeleted == false);
 			if (companyToBeDeleted == null)
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value});
 			}
-			_unitOfWork.Company.Remove(companyToBeDeleted);
+			companyToBeDeleted.IsDeleted = true;
+			_unitOfWork.Company.Update(companyToBeDeleted);
+
+			List<ApplicationUser> companyUsers = _unitOfWork.ApplicationUser
+				.GetAll(u => u.CompanyId == companyToBeDeleted.Id)
+				.ToList();
+			foreach (ApplicationUser user in companyUsers)
+			{
+				user.LockoutEnabled = true;
+				user.LockoutEnd = DateTime.Now.AddYears(1000);
+				_unitOfWork.ApplicationUser.Update(user);
+			}
+
 			_unitOfWork.Save();
 			return Ok(new { success = true, message = _localizer["DeleteSuccesfully"].Value });
 

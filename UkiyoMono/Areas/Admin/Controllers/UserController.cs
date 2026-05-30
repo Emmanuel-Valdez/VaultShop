@@ -54,7 +54,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				ApplicationUser = applicationUser,
 				RoleList = GetAssignableRoleList(),
 
-				CompanyList = _unitOfWork.Company.GetAll().Select(u => new SelectListItem
+				CompanyList = _unitOfWork.Company.GetAll(u => u.IsDeleted == false).Select(u => new SelectListItem
 				{
 					Text = u.Name,
 					Value = u.Id.ToString()
@@ -82,6 +82,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			if (roleManagmentVM.ApplicationUser.Role != SD.Role_Company)
 			{
 				roleManagmentVM.ApplicationUser.CompanyId = null;
+			}
+			else if (!_unitOfWork.Company.GetAll(u => u.IsDeleted == false && u.Id == roleManagmentVM.ApplicationUser.CompanyId).Any())
+			{
+				return NotFound();
 			}
 
 			if (!(roleManagmentVM.ApplicationUser.Role == oldRole))

@@ -166,6 +166,11 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 
                 if (roleToAssign == SD.Role_Company)
                 {
+                    if (!_unitOfWork.Company.GetAll(u => u.IsDeleted == false && u.Id == Input.CompanyId).Any())
+                    {
+                        return NotFound();
+                    }
+
                     user.CompanyId = Input.CompanyId;
                 }
                 var result = await _userManager.CreateAsync(user, Input.Password);
@@ -226,7 +231,7 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
 				Text = i,
 				Value = i
 			});
-			Input.CompanyList = _unitOfWork.Company.GetAll().Select(i => new SelectListItem
+			Input.CompanyList = _unitOfWork.Company.GetAll(i => i.IsDeleted == false).Select(i => new SelectListItem
 			{
 				Text = i.Name,
 				Value = i.Id.ToString()
