@@ -120,4 +120,7 @@
   <data name="OrderTotalZeroError" xml:space="preserve">
     <value>Order Total Can't Be $0.00</value>
   </data>
+  <data name="CartEmptyOrInvalidError" xml:space="preserve">
+    <value>Your cart is empty or the selected products are no longer available.</value>
+  </data>
 </root>

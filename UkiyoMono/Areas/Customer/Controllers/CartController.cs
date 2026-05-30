@@ -68,6 +68,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 			_unitOfWork.Save();
 			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+			HttpContext.Session.SetInt32(SD.SessionCart, ShoppingCartVM.ShoppingCartList.Count());
 		
 		}
 
@@ -83,6 +84,13 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
 				OrderHeader = new()
 			};
+			RemoveShoppingCartsOutdated(userId);
+			if (!ShoppingCartVM.ShoppingCartList.Any())
+			{
+				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
+				return RedirectToAction(nameof(Index));
+			}
+
 			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, tracked: true);
 			if (applicationUser == null)
 			{
@@ -121,6 +129,13 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart
 				.GetAll(u => u.ApplicationUserId == userId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true, includeProperties: "Product");
+			if (!ShoppingCartVM.ShoppingCartList.Any())
+			{
+				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
+				HttpContext.Session.SetInt32(SD.SessionCart, 0);
+				return RedirectToAction(nameof(Index));
+			}
+
 			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
 			ShoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
 
@@ -143,8 +158,8 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 			if (ShoppingCartVM.OrderHeader.OrderTotal <= 0)
 			{
-				ModelState.AddModelError("OrderHeader", _localizer["OrderTotalZeroError"].Value);
-				return RedirectToAction("Index", "Home");
+				TempData["error"] = _localizer["OrderTotalZeroError"].Value;
+				return RedirectToAction(nameof(Index));
 			}
 			if (!ModelState.IsValid)
 				return View(ShoppingCartVM);
