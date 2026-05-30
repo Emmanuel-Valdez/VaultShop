@@ -369,6 +369,8 @@ FodyWeavers.xsd
 
 # OpenCode AI tools
 .agents/
+.claude/
+.opencode/
 skills-lock.json
 
 # Local project context for AI-assisted development

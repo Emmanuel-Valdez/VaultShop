@@ -1,16 +1,20 @@
 ﻿var dataTable;
 let translations = {};
-document.addEventListener("DOMContentLoaded", () => {
-    fetch(`/${culture}/customer/home/GetTranslations`)
+$(document).ready(function () {
+    loadTranslations().finally(loadDataTable);
+});
+
+function loadTranslations() {
+    return fetch(`/${culture}/customer/home/GetTranslations`)
         .then(response => response.json())
         .then(data => {
             translations = data;
-
+        })
+        .catch(() => {
+            translations = {};
         });
-});
-$(document).ready(function () {
-    loadDataTable();
-});
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/${culture}/admin/product/getall` },
@@ -26,16 +30,18 @@ function loadDataTable() {
                 data: { id: 'id', isAvailableInStore: 'isAvailableInStore' },
                 "render": function (data) {
                     var isAvailableInStore = data.isAvailableInStore;
+                    var yesText = translations.yes || translations.Yes || "Yes";
+                    var noText = translations.no || translations.No || "No";
                     if (!isAvailableInStore) {
                         return `
-                           <a onclick=UpdateProductAvailability('${data.id}')  class="btn btn-danger text-white" style="cursor:pointer; width:100px;">
-                                <i class="bi bi-lock-fill"></i> ${translations.no}
+                            <a onclick=UpdateProductAvailability('${data.id}')  class="btn btn-danger text-white" style="cursor:pointer; width:100px;">
+                                <i class="bi bi-lock-fill"></i> ${noText}
                             </a> `
                     } else {
                         return `
-                         <a onclick=UpdateProductAvailability('${data.id}') class="btn btn-success text-white" style="cursor:pointer; width:100px;">
-                            <i class="bi bi-unlock-fill"></i> ${translations.yes}
-                         </a> `
+                          <a onclick=UpdateProductAvailability('${data.id}') class="btn btn-success text-white" style="cursor:pointer; width:100px;">
+                            <i class="bi bi-unlock-fill"></i> ${yesText}
+                          </a> `
                     }
                 }, "width": "5%"
 

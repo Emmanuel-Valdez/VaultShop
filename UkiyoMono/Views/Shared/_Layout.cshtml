@@ -16,8 +16,10 @@
 		var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
 		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
 		var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+		var pageTitle = ViewData["Title"]?.ToString();
+		var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? "Ukiyo" : $"{pageTitle} - Ukiyo";
 	}
-	<title>@ViewData["Title"] - Ukiyo</title>
+	<title>@fullTitle</title>
 	<meta name="description" content="@ViewData["Description"]" />
 	<meta name="keywords" content="@ViewData["Keywords"]" />
 	<meta name="robots" content="@ViewData["Robots"]" />
@@ -27,7 +29,7 @@
 	<link rel="alternate" hreflang="en-US" href="@($"{SD.SiteUrl}/en-US{Context.Request.Path}")" />
 	<link rel="alternate" hreflang="x-default" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
 
-	<meta property="og:title" content="@ViewData["Title"] - Ukiyo" />
+	<meta property="og:title" content="@fullTitle" />
 	<meta property="og:description" content="@ViewData["Description"]" />
 	<meta property="og:image" content="@ViewData["OgImage"]" />
 	<meta property="og:url" content="@currentUrl" />
@@ -37,7 +39,7 @@
 
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@@ukiyo designs" />
-	<meta name="twitter:title" content="@ViewData["Title"] - Ukiyo" />
+	<meta name="twitter:title" content="@fullTitle" />
 	<meta name="twitter:description" content="@ViewData["Description"]" />
 	<meta name="twitter:image" content="@ViewData["OgImage"]" />
 
