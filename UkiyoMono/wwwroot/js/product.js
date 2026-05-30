@@ -70,12 +70,7 @@ function loadDataTable() {
             { responsivePriority: 2, targets: 6},
             { responsivePriority: 3, targets: 1 },
             { responsivePriority: 4, targets: 4 }
-        ],
-        layout: {
-            topStart: null,
-            bottomStart: null,
-            bottomEnd: null
-        }
+        ]
 
     })
 }

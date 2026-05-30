@@ -45,7 +45,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Text = u.Name,
 					Value = u.Id.ToString()
 				}),
-				Product = new Product()
+				Product = new Product
+				{
+					IsAvailableInStore = true
+				}
 			};
 			if (id == 0 || id == null)
 			{
