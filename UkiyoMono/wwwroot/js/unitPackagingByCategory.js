@@ -1,8 +1,20 @@
 ﻿var dataTable;
 let translations = {};
 $(document).ready(function () {
-    loadDataTable();
+    loadTranslations().finally(loadDataTable);
 });
+
+function loadTranslations() {
+    return fetch(`/${culture}/customer/home/GetTranslations`)
+        .then(response => response.json())
+        .then(data => {
+            translations = data;
+        })
+        .catch(() => {
+            translations = {};
+        });
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/${culture}/admin/packagingByCategory/getallunitpackagings?categoryId=${categoryId}` },
@@ -33,32 +45,34 @@ function loadDataTable() {
 }
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    fetch(`/${culture}/customer/home/GetTranslations`)
-        .then(response => response.json())
-        .then(data => {
-            translations = data;
-         
-        });
-});
 function Delete(url) {
 
     Swal.fire({
-        title: translations.areYouSure,
-        text: translations.youWontRevert,
+        title: translations.areYouSure || translations.AreYouSure || "Are you sure?",
+        text: translations.youWontRevert || translations.YouWontRevert || "You won't be able to revert this.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "var(--bs-danger)",
         cancelButtonColor: "var(--bs-warning)",
-        confirmButtonText: translations.deleteConfirmation
+        confirmButtonText: translations.deleteConfirmation || translations.DeleteConfirmation || "Yes, delete it!"
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
                 url: url,
-                type: 'POST',
+                type: 'DELETE',
+                headers: {
+                    RequestVerificationToken: $('meta[name="request-verification-token"]').attr('content')
+                },
                 success: function (data) {
-                    dataTable.ajax.reload();
-                    toastr.success(data.message);
+                    if (data.success) {
+                        toastr.success(data.message);
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function () {
+                    toastr.error(translations.errorWhileDeleting || translations.ErrorWhileDeleting || "Error while deleting.");
                 }
             })
         }

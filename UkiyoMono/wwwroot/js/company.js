@@ -56,7 +56,7 @@ function Delete(url) {
         if (result.isConfirmed) {
             $.ajax({
                 url: url,
-                type: 'POST',
+                type: 'DELETE',
                 success: function (data) {
                     dataTable.ajax.reload();
                     toastr.success(data.message);
