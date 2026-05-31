@@ -72,6 +72,8 @@ The pending manual regression tests were completed successfully on May 30, 2026.
 
 ### Post-Portfolio Publish TODO
 
+- [ ] Integrate automated testing in upcoming releases.
+- [ ] Add Docker support in upcoming releases.
 - [ ] Add a fake email sender for demo/local flows.
 - [ ] Add Serilog for structured application logging.
 - [ ] Add centralized exception-handling middleware.
