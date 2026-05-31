@@ -22,6 +22,10 @@
 
 ![Ukiyo product detail mobile page](docs/screenshots/product-detail-mobile.png)
 
+### Admin Final Prices
+
+![Ukiyo admin final prices dashboard](docs/screenshots/final-prices-dashboard.png)
+
 ## Project Description
 
 Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks and accessories. The platform features:
