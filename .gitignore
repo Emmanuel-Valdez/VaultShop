@@ -377,6 +377,9 @@ skills-lock.json
 PROJECT_CONTEXT.local.md
 .local/
 
+# Local deployment notes
+docs/deployment/*.local.md
+
 # Uploaded product images are environment-specific content
 UkiyoMono/wwwroot/images/products/
 
