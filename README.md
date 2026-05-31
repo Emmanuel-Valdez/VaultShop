@@ -43,6 +43,8 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
   
   **Note**: For marketing and competitive reasons, the final retail price is left to the admin's discretion.
 
+- **Admin Final Price Dashboard**: Compares current retail and wholesale prices against calculated cost-based prices, highlights outdated values, supports PDF export, column visibility, availability filters, and controlled price updates.
+
 - **Multi-Company Support**: Different companies can manage their own users, and users belonging to the same company can collaboratively manage orders and inventory.
 
 ### User Roles

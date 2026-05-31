@@ -6,6 +6,7 @@ using Microsoft.Extensions.Localization;
 using NuGet.DependencyResolver;
 using SkiaSharp;
 using System.Drawing;
+using UkiyoDesigns.DataAccess.DbInitializer;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Models.DTO;
@@ -21,16 +22,77 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IWebHostEnvironment _webHostEnvironment;
 		private readonly IStringLocalizer<ProductController> _localizer;
+		private readonly IDemoDataSeeder _demoDataSeeder;
 
-		public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment, IStringLocalizer<ProductController> localizer)
+		public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment, IStringLocalizer<ProductController> localizer, IDemoDataSeeder demoDataSeeder)
 		{
 			_unitOfWork = unitOfWork;
 			_webHostEnvironment = webHostEnvironment;
 			_localizer = localizer;
+			_demoDataSeeder = demoDataSeeder;
 		}
 		public IActionResult Index()
 		{
+			ViewBag.ShowSeedDemoCatalogButton = User.IsInRole(SD.Role_Admin) && !_demoDataSeeder.HasProducts();
+			ViewBag.ShowSeedDemoActivityButton = User.IsInRole(SD.Role_Admin) && _demoDataSeeder.HasProducts() && !_demoDataSeeder.HasOrders();
 			return View();
+		}
+
+		[HttpPost]
+		[Authorize(Roles = SD.Role_Admin)]
+		[ValidateAntiForgeryToken]
+		public IActionResult SeedDemoCatalog()
+		{
+			if (_demoDataSeeder.HasProducts())
+			{
+				TempData["error"] = "Demo products were not created because products already exist.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			try
+			{
+				_demoDataSeeder.SeedDemoCatalog();
+				TempData["success"] = "Demo products were created successfully.";
+			}
+			catch (Exception ex)
+			{
+				TempData["error"] = "Demo products could not be created.";
+				Console.WriteLine(ex.ToString());
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+
+		[HttpPost]
+		[Authorize(Roles = SD.Role_Admin)]
+		[ValidateAntiForgeryToken]
+		public IActionResult SeedDemoActivity()
+		{
+			if (!_demoDataSeeder.HasProducts())
+			{
+				TempData["error"] = "Create demo products before creating demo activity.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			if (_demoDataSeeder.HasOrders())
+			{
+				TempData["error"] = "Demo activity was not created because orders already exist.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			try
+			{
+				_demoDataSeeder.SeedDemoShoppingActivity();
+				_demoDataSeeder.SeedDemoOrders();
+				TempData["success"] = "Demo users, carts, favorites, and orders were created successfully.";
+			}
+			catch (Exception ex)
+			{
+				TempData["error"] = "Demo activity could not be created.";
+				Console.WriteLine(ex.ToString());
+			}
+
+			return RedirectToAction(nameof(Index));
 		}
 		public IActionResult Upsert(int? id)
 		{

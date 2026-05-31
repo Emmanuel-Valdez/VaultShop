@@ -10,4 +10,14 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 	{
 		void Initialize();
 	}
+
+	public interface IDemoDataSeeder
+	{
+		bool HasProducts();
+		bool HasOrders();
+		void SeedDemoCatalog();
+		void SeedDemoUsers();
+		void SeedDemoShoppingActivity();
+		void SeedDemoOrders();
+	}
 }

@@ -1,62 +1,91 @@
-﻿<div class="accordion" id="finalPricesAccordion">
+<div class="accordion" id="finalPricesAccordion">
 	<div class="accordion-item">
-		<h2 class="accordion-header" id="headingFinalPricesOne">
-			<button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesOnentrols=" collap" aria-expanded="true" aria-coseFinalPricesOne">
-				Referencias
+		<h2 class="accordion-header" id="headingFinalPricesOverview">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesOverview" aria-expanded="true" aria-controls="collapseFinalPricesOverview">
+				Vista general
 			</button>
 		</h2>
-		<div id="collapseFinalPricesOne" class="accordion-collapse collapse show" aria-labelledby="headingFinalPricesOne" data-bs-parent="#finalPricesAccordion">
+		<div id="collapseFinalPricesOverview" class="accordion-collapse collapse show" aria-labelledby="headingFinalPricesOverview" data-bs-parent="#finalPricesAccordion">
 			<div class="accordion-body">
-				<img src="~/images/FP.webp" width="80%" />
+				<p>
+					La vista <strong>Precios finales</strong> centraliza el resultado del calculador de costos. Muestra cada producto con su categoria,
+					precio final minorista actual, precio calculado minorista sugerido y precio final mayorista calculado.
+				</p>
+
+				<img src="~/images/Final Prices VIEW.png" class="img-fluid border rounded shadow-sm my-3" alt="Referencia visual de la vista de precios finales" />
+
+				<p>
+					Esta pantalla permite comparar los precios guardados en los productos contra los precios sugeridos por el sistema en base a costos,
+					costos porcentuales y margenes de ganancia configurados.
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingFinalPricesTools">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesTools" aria-expanded="false" aria-controls="collapseFinalPricesTools">
+				Herramientas de la tabla
+			</button>
+		</h2>
+		<div id="collapseFinalPricesTools" class="accordion-collapse collapse" aria-labelledby="headingFinalPricesTools" data-bs-parent="#finalPricesAccordion">
+			<div class="accordion-body">
+				<p>La tabla incluye herramientas para revisar y exportar la informacion visible:</p>
 				<ul>
-					<li> Nombre de producto
-						<ul>
-						<li>
-							<span class="text-success"> Texto de Producto en verde:</span> Producto disponible en tienda
-						</li>
-						<li>
-							<span class="text-warning">  Texto de Producto en amarillo:</span> Producto NO disponible en tienda, En menu "Gestión de contenido/Producto" puedes cambiar la disponibilidad
-						</li>
-					</ul></li>
-					<li>
-						Precios Finales Y Mayoristas
-						<ul>
-							<li><span class="text-info"> Calculado Minorista o Final Mayorista en azul:</span> Los precios no han cambiado</li>
-							<li><span class="text-warning"> Calculado Minorista en amarillo:</span> 
-								El precio calculado minorista cambió, conviene revisar si el cambio es suficientemente significativo como para cambiar ese precio en la tienda,
-								el cambio 
-								</li>
-							<li><span class="text-danger"> Final Mayorista en rojo:</span> el precio por mayor ah cambiado pero todavia no lo actualizas en la tienda,
-								al oprimir el botón "Actualizar [x] precios de productos" </li>
-							<li></li>
-						</ul>
-					</li>
-					<li></li>
-					<li></li>
+					<li><strong>Copiar:</strong> copia las filas visibles para pegarlas en una planilla o tabla externa.</li>
+					<li><strong>Exportar PDF:</strong> genera un PDF con los productos visibles en ese momento. Respeta busquedas, filtros, orden actual y columnas visibles.</li>
+					<li><strong>Disponibles / todos:</strong> alterna entre ver solo productos disponibles en tienda o incluir tambien los productos ocultos.</li>
+					<li><strong>Columnas:</strong> permite mostrar u ocultar columnas tecnicas usadas para llegar a los precios finales, como costo total, envio, precio con ganancia y otros calculos intermedios.</li>
 				</ul>
 			</div>
 		</div>
 	</div>
+
 	<div class="accordion-item">
-		<h2 class="accordion-header" id="headingPricesOne">
-			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesOne" aria-expanded="false" aria-controls="collapseTen">
-				Actualizar Costos
+		<h2 class="accordion-header" id="headingFinalPricesColors">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesColors" aria-expanded="false" aria-controls="collapseFinalPricesColors">
+				Colores y alertas
 			</button>
 		</h2>
-		<div id="collapseTen" class="accordion-collapse collapse" aria-labelledby="headingPricesOne" data-bs-parent="#finalPricesAccordion">
+		<div id="collapseFinalPricesColors" class="accordion-collapse collapse" aria-labelledby="headingFinalPricesColors" data-bs-parent="#finalPricesAccordion">
 			<div class="accordion-body">
-				<h3>ATENCIÓN:</h3>
-				<strong>Ésta tabla es el resultado de todos los procesos previos</strong>
-				<p>El ir cambiando costos fijos, precios de las materias primas, cantidades en categorías y/o productos hace que los precios se actualicen automaticamente</p>
-				<p>No te preocupes que hay una barrera de seguridad entre esos cambios y el precio final</p>
+				<h5>Nombre del producto</h5>
 				<ul>
-					<li>Haz click en el botón "Actualizar Variables de Ganancias"</li>
-					<li>Completa los campos Minorista y Mayorista con el valor de ganancia que deseas obtener del precio de venta correspondiente</li>
-					<li>Haz click en Actualizar Ganancias</li>
-					<li>Si cambiaste valores de ganancias,aparecerá un botón "Actualizar [x] precios de productos"</li>
-					<li>Antes de hacer click confirma que los precios de los productos cuyos precios estan en otro color sean los correctos</li>
-					<li></li>
-					<li></li>
+					<li><span class="text-success fw-semibold">Verde:</span> el producto esta disponible en la tienda.</li>
+					<li><span class="text-warning fw-semibold">Amarillo:</span> el producto esta oculto o no disponible en la tienda. Su disponibilidad se cambia desde Gestion de contenido / Producto.</li>
+				</ul>
+
+				<h5>Precios calculados</h5>
+				<ul>
+					<li><span class="text-info fw-semibold">Precio calculado minorista en azul:</span> no cambio desde la ultima revision.</li>
+					<li><span class="text-warning fw-semibold">Precio calculado minorista en amarillo:</span> cambio y funciona como sugerencia para revisar si conviene actualizar el precio final minorista del producto.</li>
+					<li><span class="text-info fw-semibold">Precio final mayorista en azul:</span> coincide con el precio mayorista actual del producto.</li>
+					<li><span class="text-danger fw-semibold">Precio final mayorista en rojo:</span> cambio y todavia no fue aplicado al producto.</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingFinalPricesProfits">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinalPricesProfits" aria-expanded="false" aria-controls="collapseFinalPricesProfits">
+				Ganancias y actualizacion de precios
+			</button>
+		</h2>
+		<div id="collapseFinalPricesProfits" class="accordion-collapse collapse" aria-labelledby="headingFinalPricesProfits" data-bs-parent="#finalPricesAccordion">
+			<div class="accordion-body">
+				<p>
+					El desplegable <strong>Actualizar variables de ganancias</strong> permite configurar por separado el margen deseado para precios minoristas y mayoristas.
+					Tambien muestra el costo porcentual total que se agrega al calculo antes de aplicar las ganancias.
+				</p>
+				<p>
+					Cuando un cambio en costos o ganancias modifica precios calculados, aparece el boton <strong>Actualizar precios de productos</strong> en la parte superior.
+					El boton indica cuantos productos tienen diferencias pendientes.
+				</p>
+				<ul>
+					<li>Al actualizar, los precios mayoristas que no coinciden se aplican al producto.</li>
+					<li>Los precios minoristas no se sobrescriben automaticamente; quedan marcados para que el usuario decida si quiere ajustar el precio final desde la edicion del producto.</li>
+					<li>Esta separacion funciona como una barrera de seguridad entre cambios de costos internos y precios visibles en la tienda.</li>
 				</ul>
 			</div>
 		</div>

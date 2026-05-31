@@ -73,6 +73,7 @@ builder.Services.AddSession(options =>
 	options.Cookie.IsEssential = true;
 });
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddScoped<IDemoDataSeeder, DbInitializer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 

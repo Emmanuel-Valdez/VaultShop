@@ -16,7 +16,7 @@ using UkiyoDesigns.Utility;
 
 namespace UkiyoDesigns.DataAccess.DbInitializer
 {
-	public class DbInitializer : IDbInitializer
+	public class DbInitializer : IDbInitializer, IDemoDataSeeder
 	{
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly RoleManager<IdentityRole> _roleManager;
@@ -42,9 +42,6 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 					_db.Database.Migrate();
 				}
 				CreateViewsAndTriggers();
-				SeedCalculatorDefaults();
-				SeedDemoData();
-				EnsureCalculatorRows();
 			}
 			catch (Exception ex)
 			{
@@ -53,31 +50,236 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 
 
 
-			
-			// Create roles if they are not created 
-			if (!_roleManager.RoleExistsAsync(SD.Role_Customer).GetAwaiter().GetResult())
+			EnsureRequiredRoles();
+			EnsureAdminUser();
+		}
+
+		public bool HasProducts()
+		{
+			return _db.Products.Any(product => !product.IsDeleted);
+		}
+
+		public bool HasOrders()
+		{
+			return _db.OrderHeaders.Any();
+		}
+
+		public void SeedDemoCatalog()
+		{
+			SeedCalculatorDefaults();
+			SeedDemoData();
+		}
+
+		public void SeedDemoUsers()
+		{
+			EnsureRequiredRoles();
+			EnsureDemoCompanies();
+
+			var companyIds = _db.Companies
+				.Where(company => !company.IsDeleted && company.Name.StartsWith("Demo Company"))
+				.OrderBy(company => company.Name)
+				.Select(company => company.Id)
+				.ToList();
+
+			if (companyIds.Count == 0)
 			{
-				_roleManager.CreateAsync(new IdentityRole(SD.Role_Customer)).GetAwaiter().GetResult();
-				_roleManager.CreateAsync(new IdentityRole(SD.Role_Employee)).GetAwaiter().GetResult();
-				_roleManager.CreateAsync(new IdentityRole(SD.Role_Admin)).GetAwaiter().GetResult();
-				_roleManager.CreateAsync(new IdentityRole(SD.Role_Company)).GetAwaiter().GetResult();
+				throw new InvalidOperationException("Demo companies are required before seeding demo company users.");
+			}
 
-				// Obtain admin credentials from configuration (appsettings or environment variables)
-				// In .env they appear as: Seed__AdminEmail and Seed__AdminPassword -> IConfiguration maps to "Seed:AdminEmail"
-				var adminEmail = _configuration["Seed:AdminEmail"]
-					?? Environment.GetEnvironmentVariable("Seed__AdminEmail");
-				var adminPassword = _configuration["Seed:AdminPassword"]
-					?? Environment.GetEnvironmentVariable("Seed__AdminPassword");
+			var users = new[]
+			{
+				new DemoUserSeed("demo.company1@ukiyo.local", "Demo Company User 1", SD.Role_Company, companyIds[0]),
+				new DemoUserSeed("demo.company2@ukiyo.local", "Demo Company User 2", SD.Role_Company, companyIds[0]),
+				new DemoUserSeed("demo.company3@ukiyo.local", "Demo Company User 3", SD.Role_Company, companyIds[Math.Min(1, companyIds.Count - 1)]),
+				new DemoUserSeed("demo.company4@ukiyo.local", "Demo Company User 4", SD.Role_Company, companyIds[Math.Min(1, companyIds.Count - 1)]),
+				new DemoUserSeed("demo.company5@ukiyo.local", "Demo Company User 5", SD.Role_Company, companyIds[Math.Min(2, companyIds.Count - 1)]),
+				new DemoUserSeed("demo.customer1@ukiyo.local", "Demo Customer 1", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer2@ukiyo.local", "Demo Customer 2", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer3@ukiyo.local", "Demo Customer 3", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer4@ukiyo.local", "Demo Customer 4", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer5@ukiyo.local", "Demo Customer 5", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer6@ukiyo.local", "Demo Customer 6", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer7@ukiyo.local", "Demo Customer 7", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer8@ukiyo.local", "Demo Customer 8", SD.Role_Customer, null)
+			};
 
-				// Fail fast: do not use silent default values in production
-				if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+			foreach (var demoUser in users)
+			{
+				EnsureDemoUser(demoUser);
+			}
+		}
+
+		public void SeedDemoShoppingActivity()
+		{
+			SeedDemoCatalog();
+			SeedDemoUsers();
+
+			var products = _db.Products
+				.Where(product => !product.IsDeleted && product.IsAvailableInStore)
+				.OrderBy(product => product.Id)
+				.ToList();
+
+			var shoppers = _db.ApplicationUsers
+				.Where(user => user.Email != null && (user.Email.StartsWith("demo.customer") || user.Email.StartsWith("demo.company")))
+				.OrderBy(user => user.Email)
+				.ToList();
+
+			if (products.Count == 0 || shoppers.Count == 0)
+			{
+				return;
+			}
+
+			for (var userIndex = 0; userIndex < shoppers.Count; userIndex++)
+			{
+				var user = shoppers[userIndex];
+				var favoriteProducts = products.Skip(userIndex % products.Count).Take(4).ToList();
+
+				foreach (var product in favoriteProducts)
 				{
-					throw new InvalidOperationException("Missing required credentials for admin seed. " +
-						"Please provide Seed:AdminEmail and Seed:AdminPassword (or the environment variables Seed__AdminEmail / Seed__AdminPassword).");
+					if (!_db.FavoriteProducts.Any(favorite => favorite.ApplicationUserId == user.Id && favorite.ProductId == product.Id))
+					{
+						_db.FavoriteProducts.Add(new FavoriteProduct { ApplicationUserId = user.Id, ProductId = product.Id });
+					}
 				}
 
-				// Create admin user with the provided credentials
-				var adminUser = new ApplicationUser
+				if (userIndex < 6)
+				{
+					var cartProducts = products.Skip((userIndex * 2) % products.Count).Take(2).ToList();
+					foreach (var product in cartProducts)
+					{
+						if (!_db.ShoppingCarts.Any(cart => cart.ApplicationUserId == user.Id && cart.ProductId == product.Id))
+						{
+							_db.ShoppingCarts.Add(new ShoppingCart
+							{
+								ApplicationUserId = user.Id,
+								ProductId = product.Id,
+								Count = user.CompanyId.HasValue ? 4 : 1 + (userIndex % 3)
+							});
+						}
+					}
+				}
+			}
+
+			_db.SaveChanges();
+		}
+
+		public void SeedDemoOrders()
+		{
+			SeedDemoCatalog();
+			SeedDemoUsers();
+
+			var products = _db.Products
+				.Where(product => !product.IsDeleted && product.IsAvailableInStore)
+				.OrderBy(product => product.Id)
+				.ToList();
+
+			var customers = _db.ApplicationUsers
+				.Where(user => user.Email != null && (user.Email.StartsWith("demo.customer") || user.Email.StartsWith("demo.company")))
+				.OrderBy(user => user.Email)
+				.ToList();
+
+			if (products.Count == 0 || customers.Count == 0)
+			{
+				return;
+			}
+
+			var orderSeeds = new[]
+			{
+				new DemoOrderSeed(0, SD.StatusApproved, SD.PaymentStatusApproved, -18, true),
+				new DemoOrderSeed(1, SD.StatusShipped, SD.PaymentStatusApproved, -14, true),
+				new DemoOrderSeed(2, SD.StatusInProcess, SD.PaymentStatusApproved, -7, true),
+				new DemoOrderSeed(3, SD.StatusPending, SD.PaymentStatusPending, -3, false),
+				new DemoOrderSeed(4, SD.StatusCancelled, SD.PaymentStatusRejected, -2, false),
+				new DemoOrderSeed(5, SD.StatusRefunded, SD.PaymentStatusApproved, -25, true),
+				new DemoOrderSeed(6, SD.StatusShipped, SD.PaymentStatusApproved, -31, true),
+				new DemoOrderSeed(7, SD.StatusApproved, SD.PaymentStatusApproved, -1, true)
+			};
+
+			foreach (var seed in orderSeeds)
+			{
+				var user = customers[seed.UserIndex % customers.Count];
+				var sessionId = seed.HasStripeData ? $"cs_test_demo_ukiyo_{seed.UserIndex + 1:000000}" : null;
+
+				if (sessionId != null && _db.OrderHeaders.Any(order => order.SessionId == sessionId))
+				{
+					continue;
+				}
+
+				var selectedProducts = products.Skip((seed.UserIndex * 2) % products.Count).Take(2).ToList();
+				var orderTotal = selectedProducts.Sum(product => GetPriceForUser(product, user) * (user.CompanyId.HasValue ? 3 : 1));
+				var orderDate = DateTime.Now.Date.AddDays(seed.OrderAgeDays).AddHours(10 + seed.UserIndex);
+
+				var orderHeader = new OrderHeader
+				{
+					ApplicationUserId = user.Id,
+					CompanyId = user.CompanyId,
+					OrderDate = orderDate,
+					ShippingDate = seed.OrderStatus == SD.StatusShipped ? orderDate.AddDays(5) : DateTime.MinValue,
+					OrderTotal = orderTotal,
+					OrderStatus = seed.OrderStatus,
+					PaymentStatus = seed.PaymentStatus,
+					TrackingNumber = seed.OrderStatus == SD.StatusShipped ? $"UKIYO-DEMO-{seed.UserIndex + 1:000000}" : null,
+					Carrier = seed.OrderStatus == SD.StatusShipped ? "Demo Carrier" : null,
+					PaymentDate = seed.HasStripeData ? orderDate.AddMinutes(15) : DateTime.MinValue,
+					PaymentDueDate = DateOnly.FromDateTime(orderDate.AddDays(14)),
+					SessionId = sessionId,
+					PaymentIntentId = seed.HasStripeData ? $"pi_demo_ukiyo_{seed.UserIndex + 1:000000}" : null,
+					Name = user.Name,
+					StreetAddress = user.StreetAddress ?? "Demo Street 100",
+					City = user.City ?? "Mendoza",
+					State = user.State ?? "Mendoza",
+					PostalCode = user.PostalCode ?? "5500",
+					PhoneNumber = user.PhoneNumber ?? "2615550000"
+				};
+
+				_db.OrderHeaders.Add(orderHeader);
+				_db.SaveChanges();
+
+				foreach (var product in selectedProducts)
+				{
+					_db.OrderDetails.Add(new OrderDetail
+					{
+						OrderHeaderId = orderHeader.Id,
+						ProductId = product.Id,
+						Count = user.CompanyId.HasValue ? 3 : 1,
+						Price = GetPriceForUser(product, user)
+					});
+				}
+			}
+
+			_db.SaveChanges();
+		}
+
+		private void EnsureRequiredRoles()
+		{
+			var roles = new[] { SD.Role_Customer, SD.Role_Employee, SD.Role_Admin, SD.Role_Company };
+
+			foreach (var role in roles)
+			{
+				if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+				{
+					_roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+				}
+			}
+		}
+
+		private void EnsureAdminUser()
+		{
+			var adminEmail = _configuration["Seed:AdminEmail"]
+				?? Environment.GetEnvironmentVariable("Seed__AdminEmail");
+			var adminPassword = _configuration["Seed:AdminPassword"]
+				?? Environment.GetEnvironmentVariable("Seed__AdminPassword");
+
+			if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+			{
+				throw new InvalidOperationException("Missing required credentials for admin seed. " +
+					"Please provide Seed:AdminEmail and Seed:AdminPassword (or the environment variables Seed__AdminEmail / Seed__AdminPassword).");
+			}
+
+			var adminUser = _db.ApplicationUsers.FirstOrDefault(user => user.Email == adminEmail);
+			if (adminUser == null)
+			{
+				adminUser = new ApplicationUser
 				{
 					UserName = adminEmail,
 					Email = adminEmail,
@@ -91,19 +293,86 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 				var createResult = _userManager.CreateAsync(adminUser, adminPassword).GetAwaiter().GetResult();
 				if (!createResult.Succeeded)
 				{
-					var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+					var errors = string.Join(", ", createResult.Errors.Select(error => error.Description));
 					throw new InvalidOperationException("Failed to create admin user: " + errors);
 				}
+			}
 
-				ApplicationUser? user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == adminEmail);
-				if (user == null)
-				{
-					throw new InvalidOperationException("Failed to load the seeded admin user.");
-				}
-
-				_userManager.AddToRoleAsync(user, SD.Role_Admin).GetAwaiter().GetResult();
+			if (!_userManager.IsInRoleAsync(adminUser, SD.Role_Admin).GetAwaiter().GetResult())
+			{
+				_userManager.AddToRoleAsync(adminUser, SD.Role_Admin).GetAwaiter().GetResult();
 			}
 		}
+
+		private void EnsureDemoCompanies()
+		{
+			var companies = new[]
+			{
+				new Company { Name = "Demo Company 1", StreetAddress = "Demo Street 1", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "1234567890" },
+				new Company { Name = "Demo Company 2", StreetAddress = "Demo Street 2", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "0987654321" },
+				new Company { Name = "Demo Company 3", StreetAddress = "Demo Street 3", State = "Demo State", City = "Demo City", PostalCode = "12345", PhoneNumber = "1122334455" }
+			};
+
+			foreach (var company in companies)
+			{
+				if (!_db.Companies.Any(existingCompany => existingCompany.Name == company.Name))
+				{
+					_db.Companies.Add(company);
+				}
+			}
+
+			_db.SaveChanges();
+		}
+
+		private void EnsureDemoUser(DemoUserSeed demoUser)
+		{
+			var existingUser = _db.ApplicationUsers.FirstOrDefault(user => user.Email == demoUser.Email);
+			if (existingUser == null)
+			{
+				existingUser = new ApplicationUser
+				{
+					UserName = demoUser.Email,
+					Email = demoUser.Email,
+					EmailConfirmed = true,
+					Name = demoUser.Name,
+					PhoneNumber = "2615550000",
+					StreetAddress = "Demo Street 100",
+					City = "Mendoza",
+					State = "Mendoza",
+					PostalCode = "5500",
+					CompanyId = demoUser.CompanyId
+				};
+
+				var createResult = _userManager.CreateAsync(existingUser, "Demo123!").GetAwaiter().GetResult();
+				if (!createResult.Succeeded)
+				{
+					var errors = string.Join(", ", createResult.Errors.Select(error => error.Description));
+					throw new InvalidOperationException($"Failed to create demo user {demoUser.Email}: {errors}");
+				}
+			}
+			else if (existingUser.CompanyId != demoUser.CompanyId)
+			{
+				existingUser.CompanyId = demoUser.CompanyId;
+				_db.ApplicationUsers.Update(existingUser);
+				_db.SaveChanges();
+			}
+
+			if (!_userManager.IsInRoleAsync(existingUser, demoUser.Role).GetAwaiter().GetResult())
+			{
+				_userManager.AddToRoleAsync(existingUser, demoUser.Role).GetAwaiter().GetResult();
+			}
+		}
+
+		private static decimal GetPriceForUser(Product product, ApplicationUser user)
+		{
+			return user.CompanyId.HasValue && product.FinalWholesalePrice > 0
+				? product.FinalWholesalePrice
+				: product.FinalRetailPrice;
+		}
+
+		private sealed record DemoUserSeed(string Email, string Name, string Role, int? CompanyId);
+
+		private sealed record DemoOrderSeed(int UserIndex, string OrderStatus, string PaymentStatus, int OrderAgeDays, bool HasStripeData);
 		private void CreateViewsAndTriggers()
 		{
 			ExecuteIfNotExists(SqlScripts.View_UpdateFixedCost);

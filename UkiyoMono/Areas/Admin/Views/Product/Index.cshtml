@@ -10,7 +10,25 @@
 	</div>
 	<div class="card-body p-4">
 		<div class="row pb-3">
-			<div class="col-6">
+			<div class="col-6 d-flex gap-2">
+				@if (ViewBag.ShowSeedDemoCatalogButton == true)
+				{
+					<form asp-controller="Product" asp-action="SeedDemoCatalog" method="post">
+						@Html.AntiForgeryToken()
+						<button type="submit" class="btn btn-outline-success">
+							<i class="bi bi-database-add"></i> Crear productos de prueba
+						</button>
+					</form>
+				}
+				@if (ViewBag.ShowSeedDemoActivityButton == true)
+				{
+					<form asp-controller="Product" asp-action="SeedDemoActivity" method="post">
+						@Html.AntiForgeryToken()
+						<button type="submit" class="btn btn-outline-success">
+							<i class="bi bi-database-fill-add"></i> Crear actividad de prueba
+						</button>
+					</form>
+				}
 			</div>
 			<div class="col-6 text-end">
 				<a asp-controller="Product" asp-action="Upsert" class="btn btn-outline-primary">
