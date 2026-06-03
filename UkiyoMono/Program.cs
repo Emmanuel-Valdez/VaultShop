@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using UkiyoDesignsWeb.Services.ProductImages;
 
 
 DotNetEnv.Env.Load();
@@ -76,6 +77,7 @@ builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IDemoDataSeeder, DbInitializer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {
