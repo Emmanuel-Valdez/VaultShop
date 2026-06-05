@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,14 +23,16 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 		private readonly RoleManager<IdentityRole> _roleManager;
 		private readonly ApplicationDbContext _db;
 		private readonly IConfiguration _configuration;
+		private readonly ILogger<DbInitializer> _logger;
 
 		public DbInitializer(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,
-			ApplicationDbContext db, IConfiguration configuration)
+			ApplicationDbContext db, IConfiguration configuration, ILogger<DbInitializer> logger)
 		{
 			_roleManager = roleManager;
 			_userManager = userManager;
 			_db = db;
 			_configuration = configuration;
+			_logger = logger;
 		}
 
 		public void Initialize()
@@ -45,7 +48,7 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
+				_logger.LogError(ex, "Failed to apply pending migrations or create database views/triggers during startup initialization.");
 			}
 
 
@@ -730,7 +733,7 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error executing SQL: {ex.Message}");
+				_logger.LogError(ex, "Failed to execute database initialization SQL script.");
 			}
 		}
 	}

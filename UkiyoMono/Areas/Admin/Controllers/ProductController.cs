@@ -52,12 +52,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			try
 			{
 				_demoDataSeeder.SeedDemoCatalog();
+				_logger.LogInformation("Admin triggered demo catalog seeding successfully.");
 				TempData["success"] = "Demo products were created successfully.";
 			}
 			catch (Exception ex)
 			{
 				TempData["error"] = "Demo products could not be created.";
-				Console.WriteLine(ex.ToString());
+				_logger.LogError(ex, "Failed to seed demo catalog from admin product page.");
 			}
 
 			return RedirectToAction(nameof(Index));
@@ -84,12 +85,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				_demoDataSeeder.SeedDemoShoppingActivity();
 				_demoDataSeeder.SeedDemoOrders();
+				_logger.LogInformation("Admin triggered demo shopping activity and order seeding successfully.");
 				TempData["success"] = "Demo users, carts, favorites, and orders were created successfully.";
 			}
 			catch (Exception ex)
 			{
 				TempData["error"] = "Demo activity could not be created.";
-				Console.WriteLine(ex.ToString());
+				_logger.LogError(ex, "Failed to seed demo shopping activity and orders from admin product page.");
 			}
 
 			return RedirectToAction(nameof(Index));
@@ -237,6 +239,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					if (System.IO.File.Exists(oldImagePath))
 						System.IO.File.Delete(oldImagePath);
 				}
+				_logger.LogInformation("Deleted product image {ProductImageId} for product {ProductId}.", imageId, productId);
 				_unitOfWork.ProductImage.Remove(imageToBeDeleted);
 				_unitOfWork.Save();
 				TempData["success"] = _localizer["DeletedSuccessfully"].Value;
@@ -283,6 +286,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			productToBeDeleted.IsDeleted = true;
 			_unitOfWork.Product.Update(productToBeDeleted);
 			_unitOfWork.Save();
+			_logger.LogInformation("Soft-deleted product {ProductId} and removed product image directory if present.", id);
 			return Ok(new { success = true, message = _localizer["DeletedSuccessfully"].Value });
 
 		}
@@ -297,6 +301,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			productFromDB.IsAvailableInStore = !productFromDB.IsAvailableInStore;
 			_unitOfWork.Product.Update(productFromDB);
 			_unitOfWork.Save();
+			_logger.LogInformation("Updated product availability for product {ProductId}. IsAvailableInStore: {IsAvailableInStore}", id, productFromDB.IsAvailableInStore);
 			return Ok(new { success = true, message = _localizer["AvailabilityUpdated"].Value });
 		}
 		#endregion

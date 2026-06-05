@@ -20,12 +20,14 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[BindProperty]
 		public FabricByProductVM FabricByProductVM { get; set; } = null!;
 		private readonly IStringLocalizer<FabricByProductController> _localizer;
+		private readonly ILogger<FabricByProductController> _logger;
 
 
-		public FabricByProductController(IUnitOfWork unitOfWork, IStringLocalizer<FabricByProductController> localizer)
+		public FabricByProductController(IUnitOfWork unitOfWork, IStringLocalizer<FabricByProductController> localizer, ILogger<FabricByProductController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
+			_logger = logger;
 		}
 
 		public IActionResult Index()
@@ -130,7 +132,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			catch (Exception ex)
 			{
 				TempData["error"] = _localizer["UnexpectedError"].Value;
-				Console.WriteLine(ex.ToString());
+				_logger.LogError(ex, "Unexpected error while saving fabric assignment for product {ProductId} and fabric {FabricId}.", FabricByProductVM.FabricByProduct.ProductId, FabricByProductVM.UnitFabricByProduct.FabricId);
 				return View(FabricByProductVM);
 			}
 		}

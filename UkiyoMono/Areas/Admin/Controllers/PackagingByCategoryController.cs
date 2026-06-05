@@ -17,13 +17,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	{
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<PackagingByCategoryController> _localizer;
+		private readonly ILogger<PackagingByCategoryController> _logger;
 		[BindProperty]
 		public PackagingByCategoryVM PackagingByCategoryVM { get; set; } = null!;
 
-		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer)
+		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer, ILogger<PackagingByCategoryController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
+			_logger = logger;
 		}
 		public IActionResult Index()
 		{
@@ -127,7 +129,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			catch (Exception ex)
 			{
 				TempData["error"] = _localizer["UnexpectedError"].Value;
-				Console.WriteLine(ex.ToString());
+				_logger.LogError(ex, "Unexpected error while saving packaging assignment for category {CategoryId} and packaging {PackagingId}.", PackagingByCategoryVM.PackagingByCategory.CategoryId, PackagingByCategoryVM.UnitPackagingByCategory.PackagingId);
 				return View(PackagingByCategoryVM);
 			}
 

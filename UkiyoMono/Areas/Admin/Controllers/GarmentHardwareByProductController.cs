@@ -18,13 +18,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<GarmentHardwareByProductController> _localizer;
+		private readonly ILogger<GarmentHardwareByProductController> _logger;
 		[BindProperty]
 		public GarmentHardwareByProductVM GarmentHardwareByProductVM { get; set; } = null!;
 
-		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer)
+		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer, ILogger<GarmentHardwareByProductController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer= localizer;
+			_logger = logger;
 		}
 
 		public IActionResult Index()
@@ -127,7 +129,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			catch (Exception ex)
 			{
 				TempData["error"] = _localizer["UnexpectedError"].Value;
-				Console.WriteLine(ex.ToString());
+				_logger.LogError(ex, "Unexpected error while saving garment hardware assignment for product {ProductId} and garment hardware {GarmentHardwareId}.", GarmentHardwareByProductVM.GarmentHardwareByProduct.ProductId, GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.GarmentHardwareId);
 				return View(GarmentHardwareByProductVM);
 			}
 		}

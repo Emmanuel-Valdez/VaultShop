@@ -22,11 +22,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[BindProperty]
 		public OrderVM OrderVM { get; set; } = null!;
 		private readonly IStringLocalizer<OrderController> _localizer;
+		private readonly ILogger<OrderController> _logger;
 
-		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer)
+		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
+			_logger = logger;
 		}
 
 		public IActionResult Index()
@@ -86,6 +88,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 			_unitOfWork.OrderHeader.Update(orderHeaderFromDb);
 			_unitOfWork.Save();
+			_logger.LogInformation("Updated order details for order {OrderId}.", orderHeaderFromDb.Id);
 			TempData["Success"] = _localizer["OrderDetailsUpdatedSuccessfully"].Value;
 			return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
 
@@ -96,6 +99,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		{
 			_unitOfWork.OrderHeader.UpdateStatus(OrderVM.OrderHeader.Id, SD.StatusInProcess);
 			_unitOfWork.Save();
+			_logger.LogInformation("Marked order {OrderId} as in process.", OrderVM.OrderHeader.Id);
 			TempData["Success"] = _localizer["OrderDetailsUpdatedSuccessfully"].Value;
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 		}
@@ -121,6 +125,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 			_unitOfWork.OrderHeader.Update(orderHeader);
 			_unitOfWork.Save();
+			_logger.LogInformation("Marked order {OrderId} as shipped. DelayedPayment: {IsDelayedPayment}", orderHeader.Id, orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
 			TempData["Success"] = _localizer["OrderShippedSuccessfully"].Value;
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 		}
@@ -143,7 +148,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					PaymentIntent = orderHeader.PaymentIntentId
 				};
 				var service = new RefundService();
-				Refund refund = service.Create(options);
+				try
+				{
+					Refund refund = service.Create(options);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to create Stripe refund while cancelling order {OrderId}.", orderHeader.Id);
+					throw;
+				}
 				_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusRefunded);
 			}
 			else
@@ -151,6 +164,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusCancelled);
 			}
 			_unitOfWork.Save();
+			_logger.LogInformation("Cancelled order {OrderId}. PreviousPaymentStatus: {PaymentStatus}", orderHeader.Id, orderHeader.PaymentStatus);
 			TempData["Success"] = _localizer["OrderCancelledSuccessfully"].Value;
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 		}
@@ -201,9 +215,19 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				options.LineItems.Add(sessionLineItem);
 			}
 			var service = new SessionService();
-			Session session = service.Create(options);
+			Session session;
+			try
+			{
+				session = service.Create(options);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to create Stripe Checkout session for delayed-payment order {OrderId}.", OrderVM.OrderHeader.Id);
+				throw;
+			}
 			_unitOfWork.OrderHeader.UpdateStripePaymentId(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
 			_unitOfWork.Save();
+			_logger.LogInformation("Created Stripe Checkout session for delayed-payment order {OrderId}.", OrderVM.OrderHeader.Id);
 			Response.Headers["Location"] = session.Url;
 			return new StatusCodeResult(303);
 
@@ -225,12 +249,22 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				// order made by company
 				var service = new SessionService();
-				Session session = service.Get(orderHeader.SessionId);
+				Session session;
+				try
+				{
+					session = service.Get(orderHeader.SessionId);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to retrieve Stripe Checkout session for delayed-payment order {OrderId}.", orderHeaderId);
+					throw;
+				}
 				if (session.PaymentStatus.ToLower() == "paid")
 				{
 					_unitOfWork.OrderHeader.UpdateStripePaymentId(orderHeaderId, session.Id, session.PaymentIntentId);
 					_unitOfWork.OrderHeader.UpdateStatus(orderHeaderId, orderHeader.OrderStatus ?? SD.StatusApproved, SD.PaymentStatusApproved);
 					_unitOfWork.Save();
+					_logger.LogInformation("Confirmed paid Stripe Checkout session for delayed-payment order {OrderId}.", orderHeaderId);
 				}
 			}
 			return View(orderHeaderId);

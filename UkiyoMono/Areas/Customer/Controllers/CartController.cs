@@ -25,11 +25,13 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		public ShoppingCartVM ShoppingCartVM { get; set; } = null!;
 		private readonly IStringLocalizer<CartController> _localizer;
 		private readonly SignInManager<ApplicationUser> _signInManager;
-		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager)
+		private readonly ILogger<CartController> _logger;
+		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager, ILogger<CartController> logger)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
 			_signInManager = signInManager;
+			_logger = logger;
 		}
 		public IActionResult Index()
 		{
@@ -179,6 +181,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 			_unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
 			_unitOfWork.Save();
+			_logger.LogInformation("Created order {OrderId} during checkout. UserId: {UserId}, CartItemCount: {CartItemCount}, OrderTotal: {OrderTotal}, PaymentStatus: {PaymentStatus}", ShoppingCartVM.OrderHeader.Id, userId, ShoppingCartVM.ShoppingCartList.Count(), ShoppingCartVM.OrderHeader.OrderTotal, ShoppingCartVM.OrderHeader.PaymentStatus);
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
 				OrderDetail orderDetail = new()
@@ -222,9 +225,19 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 					options.LineItems.Add(sessionLineItem);
 				}
 				var service = new SessionService();
-				Session session = service.Create(options);
+				Session session;
+				try
+				{
+					session = service.Create(options);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to create Stripe Checkout session for customer order {OrderId}.", ShoppingCartVM.OrderHeader.Id);
+					throw;
+				}
 				_unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
 				_unitOfWork.Save();
+				_logger.LogInformation("Created Stripe Checkout session for customer order {OrderId}.", ShoppingCartVM.OrderHeader.Id);
 				Response.Headers["Location"] = session.Url;
 				return new StatusCodeResult(303);
 			}
@@ -247,12 +260,22 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			{
 				// order made by customer
 				var service = new SessionService();
-				Session session = service.Get(orderHeader.SessionId);
+				Session session;
+				try
+				{
+					session = service.Get(orderHeader.SessionId);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to retrieve Stripe Checkout session for customer order {OrderId}.", id);
+					throw;
+				}
 				if (session.PaymentStatus.ToLower() == "paid")
 				{
 					_unitOfWork.OrderHeader.UpdateStripePaymentId(id, session.Id, session.PaymentIntentId);
 					_unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
 					_unitOfWork.Save();
+					_logger.LogInformation("Confirmed paid Stripe Checkout session for customer order {OrderId}.", id);
 				}
 				HttpContext.Session.Clear();
 			}
@@ -372,6 +395,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		private async Task<IActionResult> ClearCartAndBlockUser(ApplicationUser applicationUser)
 		{
 			var shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == applicationUser.Id).ToList();
+			_logger.LogWarning("Blocking user {UserId} during checkout because their assigned company is deleted. RemovedCartItemCount: {CartItemCount}", applicationUser.Id, shoppingCarts.Count);
 			_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
 
 			applicationUser.LockoutEnabled = true;

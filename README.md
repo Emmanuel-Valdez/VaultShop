@@ -76,12 +76,19 @@ The pending manual regression tests were completed successfully on May 30, 2026.
 - [x] Add a step-by-step "How to run locally" section
 - [x] Confirm license and update the license badge
 
+### Production Hardening Progress
+
+- [x] Harden product image uploads with extension, size, content-type, decodable-image, generated-name, and controlled-path validation.
+- [x] Replace important `Console.WriteLine` usage with `ILogger` and structured logging.
+- [x] Add focused logs around checkout, Stripe payment/refund flows, admin order changes, product image deletion, product availability changes, demo data seeding, and startup database initialization failures.
+- [x] Avoid logging secrets or sensitive user/payment values such as Stripe keys, Stripe session IDs, payment intent IDs, session URLs, passwords, emails, phone numbers, and addresses.
+
 ### Post-Portfolio Publish TODO
 
 - [ ] Integrate automated testing in upcoming releases.
 - [ ] Add Docker support in upcoming releases.
 - [ ] Add a fake email sender for demo/local flows.
-- [ ] Add Serilog for structured application logging.
+- [ ] Optionally add Serilog or another external sink for persisted structured logs.
 - [ ] Add centralized exception-handling middleware.
 
 ### Environment Variables Setup (.env)
