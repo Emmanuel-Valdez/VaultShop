@@ -76,7 +76,25 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IDemoDataSeeder, DbInitializer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+var useFakeEmailSender = builder.Configuration.GetValue("Email:UseFakeEmailSender", true);
+var emailProvider = builder.Configuration["Email:Provider"];
+builder.Services.AddScoped<IEmailSender>(serviceProvider =>
+{
+	var selectedProvider = string.IsNullOrWhiteSpace(emailProvider)
+		? useFakeEmailSender ? "Fake" : "Unconfigured"
+		: emailProvider;
+
+	return selectedProvider.Trim().ToUpperInvariant() switch
+	{
+		"FAKE" => serviceProvider.GetRequiredService<FakeEmailSender>(),
+		"RESEND" => serviceProvider.GetRequiredService<ResendEmailSender>(),
+		"UNCONFIGURED" => serviceProvider.GetRequiredService<UnconfiguredEmailSender>(),
+		_ => throw new InvalidOperationException($"Unsupported Email:Provider value '{selectedProvider}'. Use Fake, Resend, or Unconfigured.")
+	};
+});
+builder.Services.AddScoped<FakeEmailSender>();
+builder.Services.AddScoped<ResendEmailSender>();
+builder.Services.AddScoped<UnconfiguredEmailSender>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>

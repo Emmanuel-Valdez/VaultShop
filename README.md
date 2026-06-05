@@ -82,12 +82,12 @@ The pending manual regression tests were completed successfully on May 30, 2026.
 - [x] Replace important `Console.WriteLine` usage with `ILogger` and structured logging.
 - [x] Add focused logs around checkout, Stripe payment/refund flows, admin order changes, product image deletion, product availability changes, demo data seeding, and startup database initialization failures.
 - [x] Avoid logging secrets or sensitive user/payment values such as Stripe keys, Stripe session IDs, payment intent IDs, session URLs, passwords, emails, phone numbers, and addresses.
+- [x] Add configurable email sender support with explicit fake/local mode and Resend transactional email integration.
 
 ### Post-Portfolio Publish TODO
 
 - [ ] Integrate automated testing in upcoming releases.
 - [ ] Add Docker support in upcoming releases.
-- [ ] Add a fake email sender for demo/local flows.
 - [ ] Optionally add Serilog or another external sink for persisted structured logs.
 - [ ] Add centralized exception-handling middleware.
 
@@ -110,10 +110,10 @@ Facebook__AppId=your_facebook_app_id
 Facebook__AppSecret=your_facebook_app_secret
 
 # Email Configuration
-Email__SmtpHost=your_smtp_host
-Email__SmtpPort=your_smtp_port
-Email__SmtpUser=your_smtp_user
-Email__SmtpPassword=your_smtp_password
+Email__Provider=Fake
+Email__UseFakeEmailSender=true
+Resend__ApiKey=re_xxxxxxxxx
+Resend__FromEmail=onboarding@resend.dev
 
 # Seed Admin User (created on first run)
 Seed__AdminEmail=your_admin_email
@@ -175,6 +175,18 @@ https://localhost:7189/es-AR
 ```
 
 On first run, the application applies pending EF Core migrations, creates the SQL views and triggers, seeds demo data, repairs missing calculator rows, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword`.
+
+### Email Sender
+
+The application uses ASP.NET Core Identity's `IEmailSender` abstraction for account confirmation, password reset, and email-change messages.
+
+For local/demo environments, keep `Email__Provider=Fake`. This registers `FakeEmailSender`, which logs that an email was intercepted but does not send the message or log the email address/body.
+
+For real transactional email, set `Email__Provider=Resend`, replace `Resend__ApiKey=re_xxxxxxxxx` with your real Resend API key in your private `.env` or hosting environment variables, and set `Resend__FromEmail` to a verified sender/domain. The default `onboarding@resend.dev` is useful only for initial Resend testing.
+
+When no provider is configured and `Email__UseFakeEmailSender=false`, the app uses `UnconfiguredEmailSender`, which fails explicitly if email sending is requested. This avoids silently dropping production emails.
+
+Do not commit SMTP credentials or email provider API keys.
 
 ### Database Architecture
 
