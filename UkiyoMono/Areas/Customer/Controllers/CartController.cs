@@ -13,6 +13,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Checkout;
 
 namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 {
@@ -26,12 +27,15 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		private readonly IStringLocalizer<CartController> _localizer;
 		private readonly SignInManager<ApplicationUser> _signInManager;
 		private readonly ILogger<CartController> _logger;
-		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager, ILogger<CartController> logger)
+		private readonly ICheckoutService _checkoutService;
+		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
+			ILogger<CartController> logger, ICheckoutService checkoutService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
 			_signInManager = signInManager;
 			_logger = logger;
+			_checkoutService = checkoutService;
 		}
 		public IActionResult Index()
 		{
@@ -71,53 +75,34 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			_unitOfWork.Save();
 			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
 			HttpContext.Session.SetInt32(SD.SessionCart, ShoppingCartVM.ShoppingCartList.Count());
-		
+
 		}
 
 		public async Task<IActionResult> Summary()
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
 			if (string.IsNullOrEmpty(userId))
 			{
 				return Unauthorized();
 			}
-			ShoppingCartVM = new()
+
+			var result = _checkoutService.BuildSummary(userId, User.IsInRole(SD.Role_Company));
+
+			if (!result.IsAuthorized)
 			{
-				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
-				OrderHeader = new()
-			};
-			RemoveShoppingCartsOutdated(userId);
-			if (!ShoppingCartVM.ShoppingCartList.Any())
+				return Unauthorized();
+			}
+			if (result.ShouldBlockUser && result.ApplicationUser is not null)
+			{
+				return await ClearCartAndBlockUser(result.ApplicationUser);
+			}
+			if (result.IsCartEmpty)
 			{
 				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
 				return RedirectToAction(nameof(Index));
 			}
-
-			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, tracked: true);
-			if (applicationUser == null)
-			{
-				return Unauthorized();
-			}
-			if (HasDeletedCompany(applicationUser))
-			{
-				return await ClearCartAndBlockUser(applicationUser);
-			}
-
-			ShoppingCartVM.OrderHeader.ApplicationUser = applicationUser;
-			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
-			ShoppingCartVM.OrderHeader.PhoneNumber = applicationUser.PhoneNumber ?? string.Empty;
-			ShoppingCartVM.OrderHeader.StreetAddress = applicationUser.StreetAddress ?? string.Empty;
-			ShoppingCartVM.OrderHeader.City = applicationUser.City ?? string.Empty;
-			ShoppingCartVM.OrderHeader.State = applicationUser.State ?? string.Empty;
-			ShoppingCartVM.OrderHeader.PostalCode = applicationUser.PostalCode ?? string.Empty;
-			ShoppingCartVM.OrderHeader.Name = ShoppingCartVM.OrderHeader.ApplicationUser.Name;
-
-			foreach (var cart in ShoppingCartVM.ShoppingCartList)
-			{
-				cart.Price = GetPriceBasedOnRole(cart);
-				ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
-			}
-			return View(ShoppingCartVM);
+			return View(result.ShoppingCartVM);
 		}
 
 		[HttpPost]

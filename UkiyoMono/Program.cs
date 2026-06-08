@@ -1,20 +1,21 @@
 using DotNetEnv;
-using Microsoft.EntityFrameworkCore;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Identity;
-using UkiyoDesigns.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using UkiyoDesigns.Models;
-using System.Globalization;
-using Stripe;
-using UkiyoDesigns.DataAccess.DbInitializer;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Stripe;
+using System.Globalization;
+using UkiyoDesigns.DataAccess.Data;
+using UkiyoDesigns.DataAccess.DbInitializer;
+using UkiyoDesigns.DataAccess.Repository;
+using UkiyoDesigns.DataAccess.Repository.IRepository;
+using UkiyoDesigns.Models;
+using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Checkout;
 using UkiyoDesignsWeb.Services.ProductImages;
 
 
@@ -96,6 +97,7 @@ builder.Services.AddScoped<FakeEmailSender>();
 builder.Services.AddScoped<ResendEmailSender>();
 builder.Services.AddScoped<UnconfiguredEmailSender>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {
