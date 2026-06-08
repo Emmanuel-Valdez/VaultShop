@@ -114,85 +114,53 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			{
 				return Unauthorized();
 			}
-			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart
-				.GetAll(u => u.ApplicationUserId == userId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true, includeProperties: "Product");
-			if (!ShoppingCartVM.ShoppingCartList.Any())
+
+			if (!ModelState.IsValid)
+			{
+				var summaryResult = _checkoutService.BuildSummary(userId, User.IsInRole(SD.Role_Company));
+				return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
+			}
+
+			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, User.IsInRole(SD.Role_Company));
+
+			if (!result.IsAuthorized)
+			{
+				return Unauthorized();
+			}
+			if (result.ShouldBlockUser && result.ApplicationUser is not null)
+			{
+				return await ClearCartAndBlockUser(result.ApplicationUser);
+			}
+			if (result.IsCartEmpty)
 			{
 				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
 				HttpContext.Session.SetInt32(SD.SessionCart, 0);
 				return RedirectToAction(nameof(Index));
 			}
-
-			ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
-			ShoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
-
-			ApplicationUser? applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, tracked: true);
-			if (applicationUser == null)
-			{
-				return Unauthorized();
-			}
-			if (HasDeletedCompany(applicationUser))
-			{
-				return await ClearCartAndBlockUser(applicationUser);
-			}
-
-			ShoppingCartVM.OrderHeader.OrderTotal = 0;
-			foreach (var cart in ShoppingCartVM.ShoppingCartList)
-			{
-				cart.Price = GetPriceBasedOnRole(cart);
-				ShoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
-			}
-
-			if (ShoppingCartVM.OrderHeader.OrderTotal <= 0)
+			if (result.OrderTotalInvalid)
 			{
 				TempData["error"] = _localizer["OrderTotalZeroError"].Value;
 				return RedirectToAction(nameof(Index));
 			}
-			if (!ModelState.IsValid)
-				return View(ShoppingCartVM);
 
-			if (applicationUser.CompanyId.GetValueOrDefault() == 0)
+			if (result.OrderId is null || result.ShoppingCartVM is null)
 			{
-				//it is a regular costumer acount
-				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
-				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+				throw new InvalidOperationException("Checkout order creation succeeded without returning order details.");
 			}
-			else
+
+			if (result.RequiresOnlinePayment)
 			{
-				//it is a company
-				ShoppingCartVM.OrderHeader.CompanyId = applicationUser.CompanyId;
-				ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
-				ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
-			}
-			_unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
-			_unitOfWork.Save();
-			_logger.LogInformation("Created order {OrderId} during checkout. UserId: {UserId}, CartItemCount: {CartItemCount}, OrderTotal: {OrderTotal}, PaymentStatus: {PaymentStatus}", ShoppingCartVM.OrderHeader.Id, userId, ShoppingCartVM.ShoppingCartList.Count(), ShoppingCartVM.OrderHeader.OrderTotal, ShoppingCartVM.OrderHeader.PaymentStatus);
-			foreach (var cart in ShoppingCartVM.ShoppingCartList)
-			{
-				OrderDetail orderDetail = new()
-				{
-					ProductId = cart.ProductId,
-					OrderHeaderId = ShoppingCartVM.OrderHeader.Id,
-					Price = cart.Price,
-					Count = cart.Count
-				};
-				_unitOfWork.OrderDetail.Add(orderDetail);
-				_unitOfWork.Save();
-			}
-			if (applicationUser.CompanyId.GetValueOrDefault() == 0)
-			{
-				//it is a regular costumer acount and we need to capture payment
-				//stripe logic
+				var orderId = result.OrderId.Value;
 				var culture = CultureInfo.CurrentCulture.Name;
 				var domain = Request.Scheme + "://" + Request.Host.Value + "/" + culture + "/";
 				var options = new SessionCreateOptions
 				{
-					SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
+					SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={orderId}",
 					CancelUrl = domain + $"customer/cart/index",
 					LineItems = new List<SessionLineItemOptions>(),
 					Mode = "payment",
 				};
-				foreach (var item in ShoppingCartVM.ShoppingCartList)
+				foreach (var item in result.ShoppingCartVM.ShoppingCartList)
 				{
 					var sessionLineItem = new SessionLineItemOptions
 					{
@@ -217,16 +185,16 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, "Failed to create Stripe Checkout session for customer order {OrderId}.", ShoppingCartVM.OrderHeader.Id);
+					_logger.LogError(ex, "Failed to create Stripe Checkout session for customer order {OrderId}.", orderId);
 					throw;
 				}
-				_unitOfWork.OrderHeader.UpdateStripePaymentId(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+				_unitOfWork.OrderHeader.UpdateStripePaymentId(orderId, session.Id, session.PaymentIntentId);
 				_unitOfWork.Save();
-				_logger.LogInformation("Created Stripe Checkout session for customer order {OrderId}.", ShoppingCartVM.OrderHeader.Id);
+				_logger.LogInformation("Created Stripe Checkout session for customer order {OrderId}.", orderId);
 				Response.Headers["Location"] = session.Url;
 				return new StatusCodeResult(303);
 			}
-			return RedirectToAction(nameof(OrderConfirmation), new { id = ShoppingCartVM.OrderHeader.Id });
+			return RedirectToAction(nameof(OrderConfirmation), new { id = result.OrderId.Value });
 		}
 
 		public IActionResult OrderConfirmation(int id)

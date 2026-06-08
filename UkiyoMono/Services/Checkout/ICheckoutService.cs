@@ -25,7 +25,8 @@ namespace UkiyoDesignsWeb.Services.Checkout
 			public bool OrderTotalInvalid { get; init; }
 			public int? OrderId { get; init; }
 			public bool RequiresOnlinePayment { get; init; }
-			public string? StripeRedirectUrl { get; init; }
+			public ShoppingCartVM? ShoppingCartVM { get; init; }
+			public ApplicationUser? ApplicationUser { get; init; }
 		}
 	}
 }
