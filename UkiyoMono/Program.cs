@@ -17,6 +17,7 @@ using UkiyoDesigns.Models;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Checkout;
 using UkiyoDesignsWeb.Services.ProductImages;
+using UkiyoDesignsWeb.Services.Payments;
 
 
 DotNetEnv.Env.Load();
@@ -98,6 +99,9 @@ builder.Services.AddScoped<ResendEmailSender>();
 builder.Services.AddScoped<UnconfiguredEmailSender>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionClient>();
+builder.Services.AddScoped<IPaymentSessionService, StripePaymentSessionService>();
+builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {

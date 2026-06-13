@@ -1,16 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Stripe;
-using Stripe.Checkout;
-using System.CodeDom;
-using System.Diagnostics;
-using System.Runtime.ConstrainedExecution;
 using System.Security.Claims;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Payments;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -23,12 +20,14 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public OrderVM OrderVM { get; set; } = null!;
 		private readonly IStringLocalizer<OrderController> _localizer;
 		private readonly ILogger<OrderController> _logger;
+		private readonly IPaymentSessionService _paymentSessionService;
 
-		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger)
+		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, IPaymentSessionService paymentSessionService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
+			_paymentSessionService = paymentSessionService;
 		}
 
 		public IActionResult Index()
@@ -187,47 +186,25 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			OrderVM.OrderDetail = _unitOfWork.OrderDetail
 				.GetAll(u => u.OrderHeaderId == OrderVM.OrderHeader.Id, includeProperties: "Product");
 
-			//stripe logic
 			string currentCulture = Thread.CurrentThread.CurrentUICulture.Name;
 			var domain = Request.Scheme + "://" + Request.Host.Value + "/";
-			var options = new SessionCreateOptions
-			{
-				SuccessUrl = domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}",
-				CancelUrl = domain + $"{currentCulture}/admin/order/details?orderId={OrderVM.OrderHeader.Id}",
-				LineItems = new List<SessionLineItemOptions>(),
-				Mode = "payment",
-			};
-			foreach (var item in OrderVM.OrderDetail)
-			{
-				var sessionLineItem = new SessionLineItemOptions
-				{
-					PriceData = new SessionLineItemPriceDataOptions
-					{
-						UnitAmount = (long)(item.Price * 100),
-						Currency = "usd",
-						ProductData = new SessionLineItemPriceDataProductDataOptions
-						{
-							Name = item.Product.Name
-						}
-					},
-					Quantity = item.Count
-				};
-				options.LineItems.Add(sessionLineItem);
-			}
-			var service = new SessionService();
-			Session session;
+			PaymentSessionResult session;
 			try
 			{
-				session = service.Create(options);
+				session = _paymentSessionService.CreateCheckoutSession(new PaymentSessionRequest(
+					OrderVM.OrderHeader.Id,
+					OrderVM.OrderDetail.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
+					domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}",
+					domain + $"{currentCulture}/admin/order/details?orderId={OrderVM.OrderHeader.Id}"));
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Failed to create Stripe Checkout session for delayed-payment order {OrderId}.", OrderVM.OrderHeader.Id);
+				_logger.LogError(ex, "Failed to create payment session for delayed-payment order {OrderId}.", OrderVM.OrderHeader.Id);
 				throw;
 			}
-			_unitOfWork.OrderHeader.UpdateStripePaymentId(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+			_unitOfWork.OrderHeader.UpdateStripePaymentId(OrderVM.OrderHeader.Id, session.SessionId, session.PaymentIntentId ?? string.Empty);
 			_unitOfWork.Save();
-			_logger.LogInformation("Created Stripe Checkout session for delayed-payment order {OrderId}.", OrderVM.OrderHeader.Id);
+			_logger.LogInformation("Created payment session for delayed-payment order {OrderId}.", OrderVM.OrderHeader.Id);
 			Response.Headers["Location"] = session.Url;
 			return new StatusCodeResult(303);
 
@@ -245,28 +222,6 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return NotFound();
 			}
 
-			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
-			{
-				// order made by company
-				var service = new SessionService();
-				Session session;
-				try
-				{
-					session = service.Get(orderHeader.SessionId);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, "Failed to retrieve Stripe Checkout session for delayed-payment order {OrderId}.", orderHeaderId);
-					throw;
-				}
-				if (session.PaymentStatus.ToLower() == "paid")
-				{
-					_unitOfWork.OrderHeader.UpdateStripePaymentId(orderHeaderId, session.Id, session.PaymentIntentId);
-					_unitOfWork.OrderHeader.UpdateStatus(orderHeaderId, orderHeader.OrderStatus ?? SD.StatusApproved, SD.PaymentStatusApproved);
-					_unitOfWork.Save();
-					_logger.LogInformation("Confirmed paid Stripe Checkout session for delayed-payment order {OrderId}.", orderHeaderId);
-				}
-			}
 			return View(orderHeaderId);
 		}
 		#region API CALLS

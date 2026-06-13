@@ -1,4 +1,4 @@
-﻿# Ukiyo - E-commerce Project
+# Ukiyo - E-commerce Project
 
 **Live demo:** https://ukiyo.bsite.net
 
@@ -104,6 +104,7 @@ ConnectionStrings__DefaultConnection=your_connection_string
 # Stripe Payment Gateway
 Stripe__SecretKey=your_stripe_secret_key
 Stripe__PublishableKey=your_stripe_publishable_key
+Stripe__WebhookSecret=your_stripe_webhook_secret
 
 # Facebook OAuth
 Facebook__AppId=your_facebook_app_id

@@ -1,12 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.Localization;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using Stripe;
-using Stripe.Checkout;
-using Stripe.Issuing;
 using System.Globalization;
 using System.Security.Claims;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
@@ -14,6 +9,7 @@ using UkiyoDesigns.Models;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Checkout;
+using UkiyoDesignsWeb.Services.Payments;
 
 namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 {
@@ -28,14 +24,16 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		private readonly SignInManager<ApplicationUser> _signInManager;
 		private readonly ILogger<CartController> _logger;
 		private readonly ICheckoutService _checkoutService;
+		private readonly IPaymentSessionService _paymentSessionService;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
-			ILogger<CartController> logger, ICheckoutService checkoutService)
+			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
 			_signInManager = signInManager;
 			_logger = logger;
 			_checkoutService = checkoutService;
+			_paymentSessionService = paymentSessionService;
 		}
 		public IActionResult Index()
 		{
@@ -153,44 +151,23 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				var orderId = result.OrderId.Value;
 				var culture = CultureInfo.CurrentCulture.Name;
 				var domain = Request.Scheme + "://" + Request.Host.Value + "/" + culture + "/";
-				var options = new SessionCreateOptions
-				{
-					SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={orderId}",
-					CancelUrl = domain + $"customer/cart/index",
-					LineItems = new List<SessionLineItemOptions>(),
-					Mode = "payment",
-				};
-				foreach (var item in result.ShoppingCartVM.ShoppingCartList)
-				{
-					var sessionLineItem = new SessionLineItemOptions
-					{
-						PriceData = new SessionLineItemPriceDataOptions
-						{
-							UnitAmount = (long)(item.Price * 100),
-							Currency = "usd",
-							ProductData = new SessionLineItemPriceDataProductDataOptions
-							{
-								Name = item.Product.Name
-							}
-						},
-						Quantity = item.Count
-					};
-					options.LineItems.Add(sessionLineItem);
-				}
-				var service = new SessionService();
-				Session session;
+				PaymentSessionResult session;
 				try
 				{
-					session = service.Create(options);
+					session = _paymentSessionService.CreateCheckoutSession(new PaymentSessionRequest(
+						orderId,
+						result.ShoppingCartVM.ShoppingCartList.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
+						domain + $"customer/cart/OrderConfirmation?id={orderId}",
+						domain + "customer/cart/index"));
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, "Failed to create Stripe Checkout session for customer order {OrderId}.", orderId);
+					_logger.LogError(ex, "Failed to create payment session for customer order {OrderId}.", orderId);
 					throw;
 				}
-				_unitOfWork.OrderHeader.UpdateStripePaymentId(orderId, session.Id, session.PaymentIntentId);
+				_unitOfWork.OrderHeader.UpdateStripePaymentId(orderId, session.SessionId, session.PaymentIntentId ?? string.Empty);
 				_unitOfWork.Save();
-				_logger.LogInformation("Created Stripe Checkout session for customer order {OrderId}.", orderId);
+				_logger.LogInformation("Created payment session for customer order {OrderId}.", orderId);
 				Response.Headers["Location"] = session.Url;
 				return new StatusCodeResult(303);
 			}
@@ -211,25 +188,6 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
 			{
-				// order made by customer
-				var service = new SessionService();
-				Session session;
-				try
-				{
-					session = service.Get(orderHeader.SessionId);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, "Failed to retrieve Stripe Checkout session for customer order {OrderId}.", id);
-					throw;
-				}
-				if (session.PaymentStatus.ToLower() == "paid")
-				{
-					_unitOfWork.OrderHeader.UpdateStripePaymentId(id, session.Id, session.PaymentIntentId);
-					_unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
-					_unitOfWork.Save();
-					_logger.LogInformation("Confirmed paid Stripe Checkout session for customer order {OrderId}.", id);
-				}
 				HttpContext.Session.Clear();
 			}
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
