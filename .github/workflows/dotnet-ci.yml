@@ -1,0 +1,42 @@
+name: .NET CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Restore, build, and test
+    runs-on: ubuntu-latest
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      SOLUTION_PATH: UkiyoDesigns.sln
+      TEST_PROJECT_PATH: UkiyoDesignsWeb.Tests/UkiyoDesignsWeb.Tests.csproj
+      BUILD_CONFIGURATION: Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore "$SOLUTION_PATH"
+
+      - name: Build solution
+        run: dotnet build "$SOLUTION_PATH" --configuration "$BUILD_CONFIGURATION" --no-restore
+
+      - name: Run automated tests
+        run: dotnet test "$TEST_PROJECT_PATH" --configuration "$BUILD_CONFIGURATION" --no-build --verbosity normal

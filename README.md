@@ -58,9 +58,9 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 - **Employee**: Company staff members with order management capabilities
 - **Admin**: Platform administrators with full system access
 
-## Current Status (May 2026)
+## Current Status (June 2026)
 
-The pending manual regression tests were completed successfully on May 30, 2026. The project is ready for the next portfolio/demo publish.
+Ukiyo is an active portfolio/case-study project. The public demo is published, manual regression testing has been completed, and recent hardening work focused on safer uploads, structured logging, email configuration, checkout/order separation, automated tests, transactional order creation, and Stripe webhook payment confirmation.
 
 ### Publish Readiness
 
@@ -83,10 +83,14 @@ The pending manual regression tests were completed successfully on May 30, 2026.
 - [x] Add focused logs around checkout, Stripe payment/refund flows, admin order changes, product image deletion, product availability changes, demo data seeding, and startup database initialization failures.
 - [x] Avoid logging secrets or sensitive user/payment values such as Stripe keys, Stripe session IDs, payment intent IDs, session URLs, passwords, emails, phone numbers, and addresses.
 - [x] Add configurable email sender support with explicit fake/local mode and Resend transactional email integration.
+- [x] Extract checkout summary and order creation logic from controllers into `CheckoutService`.
+- [x] Wrap checkout order creation in an EF Core transaction to avoid partial orders.
+- [x] Add Stripe payment session abstraction and webhook-based payment status updates.
+- [x] Add automated tests for upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
 
 ### Post-Portfolio Publish TODO
 
-- [ ] Integrate automated testing in upcoming releases.
+- [ ] Add GitHub Actions CI for restore, build, and test.
 - [ ] Add Docker support in upcoming releases.
 - [ ] Optionally add Serilog or another external sink for persisted structured logs.
 - [ ] Add centralized exception-handling middleware.
@@ -169,13 +173,21 @@ dotnet build UkiyoDesigns.sln
 dotnet run --project UkiyoMono/UkiyoDesignsWeb.csproj --launch-profile https
 ```
 
-6. Open the local site.
+6. Run the automated tests.
+
+```powershell
+dotnet test UkiyoDesigns.sln
+```
+
+7. Open the local site.
 
 ```text
 https://localhost:7189/es-AR
 ```
 
-On first run, the application applies pending EF Core migrations, creates the SQL views and triggers, seeds demo data, repairs missing calculator rows, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword`.
+On startup, the application applies pending EF Core migrations, creates the SQL views and triggers, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword`.
+
+Demo catalog, users, shopping activity, and orders are seeded manually from the Admin product page through guarded admin-only actions.
 
 ### Email Sender
 
@@ -188,6 +200,10 @@ For real transactional email, set `Email__Provider=Resend`, replace `Resend__Api
 When no provider is configured and `Email__UseFakeEmailSender=false`, the app uses `UnconfiguredEmailSender`, which fails explicitly if email sending is requested. This avoids silently dropping production emails.
 
 Do not commit SMTP credentials or email provider API keys.
+
+### Payments
+
+Stripe Checkout is isolated behind `IPaymentSessionService`, so controllers do not build Stripe session options directly. Payment status updates are handled through a Stripe webhook with signature validation using `Stripe__WebhookSecret`, rather than trusting only the browser redirect after checkout.
 
 ### Database Architecture
 
