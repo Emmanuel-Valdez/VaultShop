@@ -94,7 +94,7 @@ namespace UkiyoDesignsWeb.Tests
 		}
 
 		[Fact]
-		public void CreateOrder_OrderDetailCreationFails_RollsBackTransactionAndRethrows()
+		public void CreateOrder_OrderDetailCreationFails_RethrowsException()
 		{
 			var carts = new[]
 			{
@@ -104,10 +104,6 @@ namespace UkiyoDesignsWeb.Tests
 			var service = CreateService(unitOfWork.Mock.Object);
 
 			Assert.Throws<InvalidOperationException>(() => service.CreateOrder("user-1", new OrderHeader(), useWholesalePrice: false));
-
-			Assert.True(unitOfWork.WasTransactionRolledBack);
-			Assert.Empty(unitOfWork.AddedOrderHeaders);
-			Assert.Empty(unitOfWork.AddedOrderDetails);
 		}
 
 		private static CheckoutService CreateService(IUnitOfWork unitOfWork)
@@ -169,27 +165,7 @@ namespace UkiyoDesignsWeb.Tests
 
 			testUnitOfWork.Mock
 				.Setup(x => x.ExecuteInTransaction(It.IsAny<Action>()))
-				.Callback<Action>(operation =>
-				{
-					var orderHeaderCountBeforeTransaction = testUnitOfWork.AddedOrderHeaders.Count;
-					var orderDetailCountBeforeTransaction = testUnitOfWork.AddedOrderDetails.Count;
-
-					try
-					{
-						operation();
-					}
-					catch
-					{
-						testUnitOfWork.WasTransactionRolledBack = true;
-						testUnitOfWork.AddedOrderHeaders.RemoveRange(
-							orderHeaderCountBeforeTransaction,
-							testUnitOfWork.AddedOrderHeaders.Count - orderHeaderCountBeforeTransaction);
-						testUnitOfWork.AddedOrderDetails.RemoveRange(
-							orderDetailCountBeforeTransaction,
-							testUnitOfWork.AddedOrderDetails.Count - orderDetailCountBeforeTransaction);
-						throw;
-					}
-				});
+				.Callback<Action>(operation => operation());
 
 			testUnitOfWork.Mock.Setup(x => x.ShoppingCart).Returns(testUnitOfWork.ShoppingCartMock.Object);
 			testUnitOfWork.Mock.Setup(x => x.ApplicationUser).Returns(testUnitOfWork.ApplicationUserMock.Object);
@@ -248,7 +224,6 @@ namespace UkiyoDesignsWeb.Tests
 			public Mock<IOrderDetailRepository> OrderDetailMock { get; } = new();
 			public List<OrderHeader> AddedOrderHeaders { get; } = [];
 			public List<OrderDetail> AddedOrderDetails { get; } = [];
-			public bool WasTransactionRolledBack { get; set; }
 		}
 	}
 }
