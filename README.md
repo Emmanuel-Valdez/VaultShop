@@ -127,7 +127,7 @@ Social__TikTok=your_tiktok_link
 Social__WhatsApp=your_whatsapp_link
 Social__Instagram=your_instagram_link
 Social__Facebook=your_facebook_link
-Social__Evalmon=your_evalmon_link
+Social__DevLink=your_devlink_link
 ```
 
 ## How to Run Locally
