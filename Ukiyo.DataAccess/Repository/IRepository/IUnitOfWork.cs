@@ -49,6 +49,7 @@ namespace UkiyoDesigns.DataAccess.Repository.IRepository
 
 
 		void Save();
+		void ExecuteInTransaction(Action operation);
 		public void UpdateEntityValues<TEntity>(TEntity existingEntity, TEntity newValues) where TEntity : class;
 	} 
 }

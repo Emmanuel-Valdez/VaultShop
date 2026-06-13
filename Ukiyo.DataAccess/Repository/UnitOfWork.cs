@@ -76,6 +76,22 @@ namespace UkiyoDesigns.DataAccess.Repository
         {
             _db.SaveChanges();
         }
+
+		public void ExecuteInTransaction(Action operation)
+		{
+			using var transaction = _db.Database.BeginTransaction();
+			try
+			{
+				operation();
+				transaction.Commit();
+			}
+			catch
+			{
+				transaction.Rollback();
+				throw;
+			}
+		}
+
 		public void UpdateEntityValues<TEntity>(TEntity existingEntity, TEntity newValues) where TEntity : class
 		{
 

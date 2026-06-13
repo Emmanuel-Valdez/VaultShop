@@ -93,6 +93,23 @@ namespace UkiyoDesignsWeb.Tests
 			Assert.Equal(SD.StatusApproved, orderHeader.OrderStatus);
 		}
 
+		[Fact]
+		public void CreateOrder_OrderDetailCreationFails_RollsBackTransactionAndRethrows()
+		{
+			var carts = new[]
+			{
+				CreateCart("user-1", productId: 10, count: 1, retailPrice: 100m, wholesalePrice: 70m)
+			};
+			var unitOfWork = CreateUnitOfWork(carts, [CreateUser("user-1")], throwWhenAddingOrderDetail: true);
+			var service = CreateService(unitOfWork.Mock.Object);
+
+			Assert.Throws<InvalidOperationException>(() => service.CreateOrder("user-1", new OrderHeader(), useWholesalePrice: false));
+
+			Assert.True(unitOfWork.WasTransactionRolledBack);
+			Assert.Empty(unitOfWork.AddedOrderHeaders);
+			Assert.Empty(unitOfWork.AddedOrderDetails);
+		}
+
 		private static CheckoutService CreateService(IUnitOfWork unitOfWork)
 		{
 			return new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance);
@@ -101,7 +118,8 @@ namespace UkiyoDesignsWeb.Tests
 		private static TestUnitOfWork CreateUnitOfWork(
 			IEnumerable<ShoppingCart> shoppingCarts,
 			IEnumerable<ApplicationUser> users,
-			IEnumerable<Company>? companies = null)
+			IEnumerable<Company>? companies = null,
+			bool throwWhenAddingOrderDetail = false)
 		{
 			var testUnitOfWork = new TestUnitOfWork();
 			var shoppingCartList = shoppingCarts.ToList();
@@ -139,7 +157,39 @@ namespace UkiyoDesignsWeb.Tests
 
 			testUnitOfWork.OrderDetailMock
 				.Setup(x => x.Add(It.IsAny<OrderDetail>()))
-				.Callback<OrderDetail>(testUnitOfWork.AddedOrderDetails.Add);
+				.Callback<OrderDetail>(orderDetail =>
+				{
+					if (throwWhenAddingOrderDetail)
+					{
+						throw new InvalidOperationException("Simulated order detail persistence failure.");
+					}
+
+					testUnitOfWork.AddedOrderDetails.Add(orderDetail);
+				});
+
+			testUnitOfWork.Mock
+				.Setup(x => x.ExecuteInTransaction(It.IsAny<Action>()))
+				.Callback<Action>(operation =>
+				{
+					var orderHeaderCountBeforeTransaction = testUnitOfWork.AddedOrderHeaders.Count;
+					var orderDetailCountBeforeTransaction = testUnitOfWork.AddedOrderDetails.Count;
+
+					try
+					{
+						operation();
+					}
+					catch
+					{
+						testUnitOfWork.WasTransactionRolledBack = true;
+						testUnitOfWork.AddedOrderHeaders.RemoveRange(
+							orderHeaderCountBeforeTransaction,
+							testUnitOfWork.AddedOrderHeaders.Count - orderHeaderCountBeforeTransaction);
+						testUnitOfWork.AddedOrderDetails.RemoveRange(
+							orderDetailCountBeforeTransaction,
+							testUnitOfWork.AddedOrderDetails.Count - orderDetailCountBeforeTransaction);
+						throw;
+					}
+				});
 
 			testUnitOfWork.Mock.Setup(x => x.ShoppingCart).Returns(testUnitOfWork.ShoppingCartMock.Object);
 			testUnitOfWork.Mock.Setup(x => x.ApplicationUser).Returns(testUnitOfWork.ApplicationUserMock.Object);
@@ -198,6 +248,7 @@ namespace UkiyoDesignsWeb.Tests
 			public Mock<IOrderDetailRepository> OrderDetailMock { get; } = new();
 			public List<OrderHeader> AddedOrderHeaders { get; } = [];
 			public List<OrderDetail> AddedOrderDetails { get; } = [];
+			public bool WasTransactionRolledBack { get; set; }
 		}
 	}
 }

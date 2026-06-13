@@ -166,22 +166,25 @@ namespace UkiyoDesignsWeb.Services.Checkout
 				shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
 			}
 
-			_unitOfWork.OrderHeader.Add(shoppingCartVM.OrderHeader);
-			_unitOfWork.Save();
-			_logger.LogInformation("Created order {OrderId} during checkout. UserId: {UserId}, CartItemCount: {CartItemCount}, OrderTotal: {OrderTotal}, PaymentStatus: {PaymentStatus}", shoppingCartVM.OrderHeader.Id, userId, shoppingCartVM.ShoppingCartList.Count(), shoppingCartVM.OrderHeader.OrderTotal, shoppingCartVM.OrderHeader.PaymentStatus);
-
-			foreach (var cart in shoppingCartVM.ShoppingCartList)
+			_unitOfWork.ExecuteInTransaction(() =>
 			{
-				OrderDetail orderDetail = new()
+				_unitOfWork.OrderHeader.Add(shoppingCartVM.OrderHeader);
+				_unitOfWork.Save();
+				_logger.LogInformation("Created order {OrderId} during checkout. UserId: {UserId}, CartItemCount: {CartItemCount}, OrderTotal: {OrderTotal}, PaymentStatus: {PaymentStatus}", shoppingCartVM.OrderHeader.Id, userId, shoppingCartVM.ShoppingCartList.Count(), shoppingCartVM.OrderHeader.OrderTotal, shoppingCartVM.OrderHeader.PaymentStatus);
+
+				foreach (var cart in shoppingCartVM.ShoppingCartList)
 				{
-					ProductId = cart.ProductId,
-					OrderHeaderId = shoppingCartVM.OrderHeader.Id,
-					Price = cart.Price,
-					Count = cart.Count
-				};
-				_unitOfWork.OrderDetail.Add(orderDetail);
-			}
-			_unitOfWork.Save();
+					OrderDetail orderDetail = new()
+					{
+						ProductId = cart.ProductId,
+						OrderHeaderId = shoppingCartVM.OrderHeader.Id,
+						Price = cart.Price,
+						Count = cart.Count
+					};
+					_unitOfWork.OrderDetail.Add(orderDetail);
+				}
+				_unitOfWork.Save();
+			});
 
 			return new CheckoutCreateOrderResult
 			{
