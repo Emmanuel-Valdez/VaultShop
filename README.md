@@ -87,6 +87,7 @@ Ukiyo is an active portfolio/case-study project. The public demo is published, m
 - [x] Wrap checkout order creation in an EF Core transaction to avoid partial orders.
 - [x] Add Stripe payment session abstraction and webhook-based payment status updates.
 - [x] Add automated tests for upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
+- [x] Add configurable startup database initialization so production can disable automatic migrations/schema setup.
 
 ### Post-Portfolio Publish TODO
 
@@ -104,6 +105,8 @@ The project uses **DotNetEnv** to manage secrets. The `.env` file is in `.gitign
 ```env
 # Database Connection
 ConnectionStrings__DefaultConnection=your_connection_string
+# Optional: local/demo defaults to true. Production defaults to false in appsettings.Production.json.
+# Database__RunMigrationsOnStartup=true
 
 # Stripe Payment Gateway
 Stripe__SecretKey=your_stripe_secret_key
@@ -185,7 +188,7 @@ dotnet test UkiyoDesigns.sln
 https://localhost:7189/es-AR
 ```
 
-On startup, the application applies pending EF Core migrations, creates the SQL views and triggers, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword`.
+When `Database__RunMigrationsOnStartup=true`, the application applies pending EF Core migrations, creates the SQL views and triggers, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword` on startup. This remains enabled for local development. Production defaults to `false` in `appsettings.Production.json`; enable it only when you intentionally want the app process to apply startup database changes.
 
 Demo catalog, users, shopping activity, and orders are seeded manually from the Admin product page through guarded admin-only actions.
 

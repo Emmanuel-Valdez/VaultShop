@@ -129,7 +129,17 @@ app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocal
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
-SeedDatabase();
+
+var runMigrationsOnStartup = builder.Configuration.GetValue("Database:RunMigrationsOnStartup", true);
+if (runMigrationsOnStartup)
+{
+	SeedDatabase();
+}
+else
+{
+	app.Logger.LogInformation("Skipping startup database initialization because Database:RunMigrationsOnStartup is false.");
+}
+
 app.MapRazorPages();
 
 app.MapControllerRoute(
