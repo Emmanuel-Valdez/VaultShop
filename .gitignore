@@ -366,6 +366,7 @@ FodyWeavers.xsd
 .env
 .env.local
 .env.*.local
+.env.compose
 
 # OpenCode AI tools
 .agents/

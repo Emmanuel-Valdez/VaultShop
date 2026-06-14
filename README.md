@@ -217,6 +217,47 @@ docker run --rm -p 8080:8080 `
 
 The image listens on `http://+:8080`, runs as the non-root user provided by the official .NET runtime image, and defaults `Database__RunMigrationsOnStartup=false` for production-like runs. Do not bake secrets or real environment values into the image; pass them from the hosting platform or deployment pipeline.
 
+
+### Docker Compose with SQL Server
+
+This milestone is intentionally SQL Server only because the app currently uses EF Core SQL Server (`UseSqlServer`). PostgreSQL, MinIO, and image-storage redesigns are not part of this step.
+
+1. Copy the Compose sample environment file and replace the placeholder values:
+
+```powershell
+Copy-Item .env.compose.example .env.compose
+```
+
+Use the same strong value for `MSSQL_SA_PASSWORD` and the password inside `ConnectionStrings__DefaultConnection`. The connection string host must remain `sqlserver` because that is the SQL Server service name on the Compose network.
+
+2. Build and start the app plus SQL Server:
+
+```powershell
+docker compose --env-file .env.compose up --build
+```
+
+3. Open the site:
+
+```text
+http://localhost:8080/es-AR
+```
+
+Compose runs the web app with `ASPNETCORE_ENVIRONMENT=Production`, exposes the app on `APP_HTTP_PORT` (default `8080`), starts SQL Server 2022 Developer Edition, and persists database files in the `sqlserver-data` Docker volume.
+
+`Database__RunMigrationsOnStartup` defaults to `false` to match production-like safety: the app process should not unexpectedly change schema on every container start. For a fresh local Compose database, you may temporarily set `DATABASE_RUN_MIGRATIONS_ON_STARTUP=true` in `.env.compose` so the existing startup initializer applies migrations, SQL views/triggers, roles, and the seed admin user. Set it back to `false` after initialization if you want to keep Compose closer to production behavior.
+
+Stop containers without deleting the database volume:
+
+```powershell
+docker compose --env-file .env.compose down
+```
+
+Delete the local SQL Server data volume only when you intentionally want a clean database:
+
+```powershell
+docker compose --env-file .env.compose down -v
+```
+
 ### Email Sender
 
 The application uses ASP.NET Core Identity's `IEmailSender` abstraction for account confirmation, password reset, and email-change messages.
