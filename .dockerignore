@@ -1,0 +1,71 @@
+# Git and Docker metadata
+.git/
+.github/
+.dockerignore
+Dockerfile
+
+# Build output
+**/bin/
+**/obj/
+**/out/
+**/publish/
+artifacts/
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pfx
+*.publishsettings
+*.pubxml
+*.azurePubxml
+PublishScripts/
+
+# Local AI/tooling configuration
+.agents/
+.claude/
+.opencode/
+skills-lock.json
+PROJECT_CONTEXT.local.md
+.local/
+
+# Dependencies and caches
+**/node_modules/
+**/.npm/
+**/.yarn/
+packages/
+**/packages/
+*.nupkg
+*.snupkg
+
+# Test and coverage output
+TestResults/
+**/TestResults/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+
+# Logs, temp files, and OS noise
+logs/
+Logs/
+*.log
+*.tmp
+**/.DS_Store
+**/Thumbs.db
+
+# Environment-specific content
+docs/deployment/
+UkiyoMono/wwwroot/images/products/

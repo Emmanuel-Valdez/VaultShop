@@ -88,11 +88,12 @@ Ukiyo is an active portfolio/case-study project. The public demo is published, m
 - [x] Add Stripe payment session abstraction and webhook-based payment status updates.
 - [x] Add automated tests for upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
 - [x] Add configurable startup database initialization so production can disable automatic migrations/schema setup.
+- [x] Add Dockerfile support for repeatable production-style container builds.
 
 ### Post-Portfolio Publish TODO
 
-- [ ] Add GitHub Actions CI for restore, build, and test.
-- [ ] Add Docker support in upcoming releases.
+- [x] Add GitHub Actions CI for restore, build, and test.
+- [x] Add Docker support in upcoming releases.
 - [ ] Optionally add Serilog or another external sink for persisted structured logs.
 - [ ] Add centralized exception-handling middleware.
 
@@ -191,6 +192,30 @@ https://localhost:7189/es-AR
 When `Database__RunMigrationsOnStartup=true`, the application applies pending EF Core migrations, creates the SQL views and triggers, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword` on startup. This remains enabled for local development. Production defaults to `false` in `appsettings.Production.json`; enable it only when you intentionally want the app process to apply startup database changes.
 
 Demo catalog, users, shopping activity, and orders are seeded manually from the Admin product page through guarded admin-only actions.
+
+## Docker
+
+Build the web app image from the repository root:
+
+```powershell
+docker build -t ukiyo-designs-web:latest .
+```
+
+Run the container on port 8080 and provide configuration through environment variables:
+
+```powershell
+docker run --rm -p 8080:8080 `
+  -e ASPNETCORE_ENVIRONMENT=Production `
+  -e Database__RunMigrationsOnStartup=false `
+  -e ConnectionStrings__DefaultConnection="your_connection_string" `
+  -e Stripe__SecretKey="your_stripe_secret_key" `
+  -e Stripe__PublishableKey="your_stripe_publishable_key" `
+  -e Stripe__WebhookSecret="your_stripe_webhook_secret" `
+  -e Email__Provider=Fake `
+  ukiyo-designs-web:latest
+```
+
+The image listens on `http://+:8080`, runs as the non-root user provided by the official .NET runtime image, and defaults `Database__RunMigrationsOnStartup=false` for production-like runs. Do not bake secrets or real environment values into the image; pass them from the hosting platform or deployment pipeline.
 
 ### Email Sender
 
