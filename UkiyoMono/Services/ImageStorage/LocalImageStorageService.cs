@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using UkiyoDesigns.Models;
 
 namespace UkiyoDesignsWeb.Services.ImageStorage;
 
@@ -42,5 +43,60 @@ public sealed class LocalImageStorageService : IImageStorageService
 			"image/jpeg",
 			request.SizeBytes,
 			ProviderName);
+	}
+
+	public Task DeleteProductImageAsync(ProductImage image, CancellationToken cancellationToken = default)
+	{
+		var relativePath = GetSafeRelativeImagePath(image);
+		if (relativePath is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		var filePath = Path.GetFullPath(Path.Combine(_webHostEnvironment.WebRootPath, relativePath));
+		var productImagesRoot = Path.GetFullPath(Path.Combine(_webHostEnvironment.WebRootPath, "images", "products"));
+		var productImagesRootWithSeparator = productImagesRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+		if (!filePath.StartsWith(productImagesRootWithSeparator, StringComparison.OrdinalIgnoreCase))
+		{
+			return Task.CompletedTask;
+		}
+
+		if (File.Exists(filePath))
+		{
+			File.Delete(filePath);
+		}
+
+		return Task.CompletedTask;
+	}
+
+	private static string? GetSafeRelativeImagePath(ProductImage image)
+	{
+		if (!string.IsNullOrWhiteSpace(image.StorageProvider)
+			&& !string.Equals(image.StorageProvider, ProviderName, StringComparison.OrdinalIgnoreCase))
+		{
+			return null;
+		}
+
+		var storagePath = !string.IsNullOrWhiteSpace(image.ObjectKey)
+			? image.ObjectKey
+			: image.ImageUrl;
+
+		if (string.IsNullOrWhiteSpace(storagePath)
+			|| Uri.TryCreate(storagePath, UriKind.Absolute, out _))
+		{
+			return null;
+		}
+
+		var normalizedPath = storagePath
+			.Replace('\\', '/')
+			.TrimStart('/');
+
+		if (!normalizedPath.StartsWith("images/products/", StringComparison.OrdinalIgnoreCase))
+		{
+			return null;
+		}
+
+		return Path.Combine(normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries));
 	}
 }

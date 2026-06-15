@@ -89,6 +89,7 @@ Ukiyo is an active portfolio/case-study project. The public demo is published, m
 - [x] Add automated tests for upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
 - [x] Add configurable startup database initialization so production can disable automatic migrations/schema setup.
 - [x] Add Dockerfile support for repeatable production-style container builds.
+- [x] Add product image storage abstraction with local filesystem implementation, storage metadata persistence, safe deletion, and tests as preparation for MinIO/S3-compatible storage.
 
 ### Post-Portfolio Publish TODO
 
@@ -273,6 +274,12 @@ Do not commit SMTP credentials or email provider API keys.
 ### Payments
 
 Stripe Checkout is isolated behind `IPaymentSessionService`, so controllers do not build Stripe session options directly. Payment status updates are handled through a Stripe webhook with signature validation using `Stripe__WebhookSecret`, rather than trusting only the browser redirect after checkout.
+
+### Product Image Storage
+
+Product image upload validation and resizing are handled by `ProductImageService`, while physical storage is isolated behind `IImageStorageService`. The current implementation, `LocalImageStorageService`, stores resized images under `wwwroot/images/products` for local/demo use and returns storage metadata such as `ObjectKey`, `FileName`, `ContentType`, `SizeBytes`, and `StorageProvider`.
+
+`ProductImage.ImageUrl` is still used by the current Razor views for display, but `ObjectKey` is the storage identity for newly uploaded images. This keeps the app compatible with the current UI while preparing the storage layer for a later MinIO/S3-compatible implementation.
 
 ### Database Architecture
 

@@ -7,6 +7,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.ImageStorage;
 using UkiyoDesignsWeb.Services.ProductImages;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
@@ -16,19 +17,19 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	public class ProductController : Controller
 	{
 		public readonly IUnitOfWork _unitOfWork;
-		private readonly IWebHostEnvironment _webHostEnvironment;
 		private readonly IStringLocalizer<ProductController> _localizer;
 		private readonly IDemoDataSeeder _demoDataSeeder;
 		private readonly IProductImageService _productImageService;
+		private readonly IImageStorageService _imageStorageService;
 		private readonly ILogger<ProductController> _logger;
 
-		public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment, IStringLocalizer<ProductController> localizer, IDemoDataSeeder demoDataSeeder, IProductImageService productImageService, ILogger<ProductController> logger)
+		public ProductController(IUnitOfWork unitOfWork, IStringLocalizer<ProductController> localizer, IDemoDataSeeder demoDataSeeder, IProductImageService productImageService, IImageStorageService imageStorageService, ILogger<ProductController> logger)
 		{
 			_unitOfWork = unitOfWork;
-			_webHostEnvironment = webHostEnvironment;
 			_localizer = localizer;
 			_demoDataSeeder = demoDataSeeder;
 			_productImageService = productImageService;
+			_imageStorageService = imageStorageService;
 			_logger = logger;
 		}
 		public IActionResult Index()
@@ -173,14 +174,19 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					return View(productVM);
 				}
 
-				if (imageUploadResult.SavedImageUrls.Count > 0)
+				if (imageUploadResult.SavedImages.Count > 0)
 				{
 					productVM.Product.ProductImages ??= new List<ProductImage>();
-					foreach (var imageUrl in imageUploadResult.SavedImageUrls)
+					foreach (var savedImage in imageUploadResult.SavedImages)
 					{
 						productVM.Product.ProductImages.Add(new ProductImage
 						{
-							ImageUrl = imageUrl,
+							ImageUrl = savedImage.ImageUrl,
+							ObjectKey = savedImage.ObjectKey,
+							FileName = savedImage.FileName,
+							ContentType = savedImage.ContentType,
+							SizeBytes = savedImage.SizeBytes,
+							StorageProvider = savedImage.StorageProvider,
 							ProductId = productVM.Product.Id,
 						});
 					}
@@ -222,7 +228,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			productVM.Product.ProductImages = productWithImages?.ProductImages ?? new List<ProductImage>();
 		}
 
-		public IActionResult DeleteImage(int imageId)
+		public async Task<IActionResult> DeleteImage(int imageId)
 		{
 			var imageToBeDeleted = _unitOfWork.ProductImage.Get(u => u.Id == imageId);
 			if (imageToBeDeleted == null)
@@ -231,19 +237,20 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 
 			int productId = imageToBeDeleted.ProductId;
-			if (imageToBeDeleted != null)
+			_unitOfWork.ProductImage.Remove(imageToBeDeleted);
+			_unitOfWork.Save();
+
+			try
 			{
-				if (!string.IsNullOrEmpty(imageToBeDeleted.ImageUrl))
-				{
-					var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, imageToBeDeleted.ImageUrl.TrimStart('\\'));
-					if (System.IO.File.Exists(oldImagePath))
-						System.IO.File.Delete(oldImagePath);
-				}
+				await _imageStorageService.DeleteProductImageAsync(imageToBeDeleted);
 				_logger.LogInformation("Deleted product image {ProductImageId} for product {ProductId}.", imageId, productId);
-				_unitOfWork.ProductImage.Remove(imageToBeDeleted);
-				_unitOfWork.Save();
-				TempData["success"] = _localizer["DeletedSuccessfully"].Value;
 			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Product image row {ProductImageId} for product {ProductId} was deleted, but storage cleanup failed.", imageId, productId);
+			}
+
+			TempData["success"] = _localizer["DeletedSuccessfully"].Value;
 			return RedirectToAction(nameof(Upsert), new { id = productId });
 		}
 
@@ -269,24 +276,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return StatusCode(500, new { success = false, message = _localizer["DeletingError"].Value });
 			}
 
-			string productPath = @"images\products\product-" + id;
-			string finalPath = Path.Combine(_webHostEnvironment.WebRootPath, productPath);
-
-			if (Directory.Exists(finalPath))
-			{
-				string[] filePaths = Directory.GetFiles(finalPath);
-				foreach (string filePath in filePaths)
-				{
-					System.IO.File.Delete(filePath);
-				}
-
-				Directory.Delete(finalPath);
-			}
-
 			productToBeDeleted.IsDeleted = true;
 			_unitOfWork.Product.Update(productToBeDeleted);
 			_unitOfWork.Save();
-			_logger.LogInformation("Soft-deleted product {ProductId} and removed product image directory if present.", id);
+			_logger.LogInformation("Soft-deleted product {ProductId}.", id);
 			return Ok(new { success = true, message = _localizer["DeletedSuccessfully"].Value });
 
 		}

@@ -93,6 +93,13 @@ namespace UkiyoDesignsWeb.Tests
 
 				var savedImagePath = Path.Combine(webRootPath, savedImageUrl.TrimStart('\\').Replace('\\', Path.DirectorySeparatorChar));
 				Assert.True(File.Exists(savedImagePath));
+
+				var savedImage = Assert.Single(result.SavedImages);
+				Assert.Equal(savedImageUrl, savedImage.ImageUrl);
+				Assert.StartsWith("images/products/product-42/", savedImage.ObjectKey);
+				Assert.Equal("image/jpeg", savedImage.ContentType);
+				Assert.Equal(LocalImageStorageService.ProviderName, savedImage.StorageProvider);
+				Assert.True(savedImage.SizeBytes > 0);
 			}
 			finally
 			{
