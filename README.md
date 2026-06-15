@@ -279,7 +279,7 @@ Stripe Checkout is isolated behind `IPaymentSessionService`, so controllers do n
 
 Product image upload validation and resizing are handled by `ProductImageService`, while physical storage is isolated behind `IImageStorageService`. The current implementation, `LocalImageStorageService`, stores resized images under `wwwroot/images/products` for local/demo use and returns storage metadata such as `ObjectKey`, `FileName`, `ContentType`, `SizeBytes`, and `StorageProvider`.
 
-`ProductImage.ImageUrl` is still used by the current Razor views for display, but `ObjectKey` is the storage identity for newly uploaded images. This keeps the app compatible with the current UI while preparing the storage layer for a later MinIO/S3-compatible implementation.
+`ProductImage.ImageUrl` is still used by the current Razor views for display, but `ObjectKey` is the storage identity for uploaded images and storage cleanup. Deletion intentionally does not fall back to `ImageUrl`; missing or unsafe object keys are logged and ignored. This keeps the app compatible with the current UI while preparing the storage layer for a later MinIO/S3-compatible implementation.
 
 ### Database Architecture
 

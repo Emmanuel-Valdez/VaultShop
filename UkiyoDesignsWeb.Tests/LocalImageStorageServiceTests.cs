@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using Moq;
 using UkiyoDesigns.Models;
 using UkiyoDesignsWeb.Services.ImageStorage;
@@ -31,20 +32,20 @@ namespace UkiyoDesignsWeb.Tests
 		}
 
 		[Fact]
-		public async Task DeleteProductImageAsync_LegacyImageUrlWithoutObjectKey_DeletesFile()
+		public async Task DeleteProductImageAsync_MissingObjectKey_DoesNotDeleteFile()
 		{
 			var webRootPath = Directory.CreateTempSubdirectory("ukiyo-local-storage-tests-").FullName;
 			try
 			{
-				var filePath = CreateProductImageFile(webRootPath, "product-2", "legacy.jpg");
+				var filePath = CreateProductImageFile(webRootPath, "product-2", "image.jpg");
 				var service = CreateService(webRootPath);
 
 				await service.DeleteProductImageAsync(new ProductImage
 				{
-					ImageUrl = "\\images\\products\\product-2\\legacy.jpg"
+					ImageUrl = "\\images\\products\\product-2\\image.jpg"
 				});
 
-				Assert.False(File.Exists(filePath));
+				Assert.True(File.Exists(filePath));
 			}
 			finally
 			{
@@ -53,7 +54,7 @@ namespace UkiyoDesignsWeb.Tests
 		}
 
 		[Fact]
-		public async Task DeleteProductImageAsync_TraversalImageUrl_DoesNotDeleteOutsideProductImagesRoot()
+		public async Task DeleteProductImageAsync_TraversalObjectKey_DoesNotDeleteOutsideProductImagesRoot()
 		{
 			var webRootPath = Directory.CreateTempSubdirectory("ukiyo-local-storage-tests-").FullName;
 			try
@@ -64,7 +65,8 @@ namespace UkiyoDesignsWeb.Tests
 
 				await service.DeleteProductImageAsync(new ProductImage
 				{
-					ImageUrl = "\\images\\products\\..\\..\\protected.txt"
+					ObjectKey = "images/products/../../protected.txt",
+					StorageProvider = LocalImageStorageService.ProviderName
 				});
 
 				Assert.True(File.Exists(protectedFilePath));
@@ -79,7 +81,7 @@ namespace UkiyoDesignsWeb.Tests
 		{
 			var environment = new Mock<IWebHostEnvironment>();
 			environment.Setup(x => x.WebRootPath).Returns(webRootPath);
-			return new LocalImageStorageService(environment.Object);
+			return new LocalImageStorageService(environment.Object, Mock.Of<ILogger<LocalImageStorageService>>());
 		}
 
 		private static string CreateProductImageFile(string webRootPath, string productFolder, string fileName)

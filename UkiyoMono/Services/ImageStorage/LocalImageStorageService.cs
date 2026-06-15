@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using UkiyoDesigns.Models;
 
 namespace UkiyoDesignsWeb.Services.ImageStorage;
@@ -8,10 +9,12 @@ public sealed class LocalImageStorageService : IImageStorageService
 	public const string ProviderName = "LocalFileSystem";
 
 	private readonly IWebHostEnvironment _webHostEnvironment;
+	private readonly ILogger<LocalImageStorageService> _logger;
 
-	public LocalImageStorageService(IWebHostEnvironment webHostEnvironment)
+	public LocalImageStorageService(IWebHostEnvironment webHostEnvironment, ILogger<LocalImageStorageService> logger)
 	{
 		_webHostEnvironment = webHostEnvironment;
+		_logger = logger;
 	}
 
 	public async Task<StoredImage> SaveProductImageAsync(ImageStorageSaveRequest request, CancellationToken cancellationToken = default)
@@ -50,6 +53,12 @@ public sealed class LocalImageStorageService : IImageStorageService
 		var relativePath = GetSafeRelativeImagePath(image);
 		if (relativePath is null)
 		{
+			_logger.LogWarning(
+				"Skipped local product image deletion for product image {ProductImageId}, product {ProductId}. ObjectKey: {ObjectKey}, StorageProvider: {StorageProvider}",
+				image.Id,
+				image.ProductId,
+				image.ObjectKey,
+				image.StorageProvider);
 			return Task.CompletedTask;
 		}
 
@@ -59,12 +68,25 @@ public sealed class LocalImageStorageService : IImageStorageService
 
 		if (!filePath.StartsWith(productImagesRootWithSeparator, StringComparison.OrdinalIgnoreCase))
 		{
+			_logger.LogWarning(
+				"Rejected local product image deletion outside product image root for product image {ProductImageId}, product {ProductId}. ObjectKey: {ObjectKey}",
+				image.Id,
+				image.ProductId,
+				image.ObjectKey);
 			return Task.CompletedTask;
 		}
 
 		if (File.Exists(filePath))
 		{
 			File.Delete(filePath);
+		}
+		else
+		{
+			_logger.LogInformation(
+				"Local product image file was already missing for product image {ProductImageId}, product {ProductId}. ObjectKey: {ObjectKey}",
+				image.Id,
+				image.ProductId,
+				image.ObjectKey);
 		}
 
 		return Task.CompletedTask;
@@ -78,17 +100,13 @@ public sealed class LocalImageStorageService : IImageStorageService
 			return null;
 		}
 
-		var storagePath = !string.IsNullOrWhiteSpace(image.ObjectKey)
-			? image.ObjectKey
-			: image.ImageUrl;
-
-		if (string.IsNullOrWhiteSpace(storagePath)
-			|| Uri.TryCreate(storagePath, UriKind.Absolute, out _))
+		if (string.IsNullOrWhiteSpace(image.ObjectKey)
+			|| Uri.TryCreate(image.ObjectKey, UriKind.Absolute, out _))
 		{
 			return null;
 		}
 
-		var normalizedPath = storagePath
+		var normalizedPath = image.ObjectKey
 			.Replace('\\', '/')
 			.TrimStart('/');
 

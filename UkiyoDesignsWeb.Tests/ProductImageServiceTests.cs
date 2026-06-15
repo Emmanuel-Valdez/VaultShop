@@ -111,7 +111,7 @@ namespace UkiyoDesignsWeb.Tests
 		{
 			var environment = new Mock<IWebHostEnvironment>();
 			environment.Setup(x => x.WebRootPath).Returns(webRootPath ?? Path.GetTempPath());
-			var imageStorageService = new LocalImageStorageService(environment.Object);
+			var imageStorageService = new LocalImageStorageService(environment.Object, Mock.Of<ILogger<LocalImageStorageService>>());
 			var logger = Mock.Of<ILogger<ProductImageService>>();
 
 			var localizer = new Mock<IStringLocalizer<ProductImageService>>();
@@ -146,4 +146,3 @@ namespace UkiyoDesignsWeb.Tests
 	}
 
 }
-
