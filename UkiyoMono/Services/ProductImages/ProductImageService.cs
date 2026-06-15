@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using SkiaSharp;
+using UkiyoDesignsWeb.Services.ImageStorage;
 
 namespace UkiyoDesignsWeb.Services.ProductImages;
 
@@ -26,13 +27,13 @@ public sealed class ProductImageService : IProductImageService
 		"image/webp"
 	};
 
-	private readonly IWebHostEnvironment _webHostEnvironment;
+	private readonly IImageStorageService _imageStorageService;
 	private readonly ILogger<ProductImageService> _logger;
 	private readonly IStringLocalizer<ProductImageService> _localizer;
 
-	public ProductImageService(IWebHostEnvironment webHostEnvironment, ILogger<ProductImageService> logger, IStringLocalizer<ProductImageService> localizer)
+	public ProductImageService(IImageStorageService imageStorageService, ILogger<ProductImageService> logger, IStringLocalizer<ProductImageService> localizer)
 	{
-		_webHostEnvironment = webHostEnvironment;
+		_imageStorageService = imageStorageService;
 		_logger = logger;
 		_localizer = localizer;
 	}
@@ -93,17 +94,17 @@ public sealed class ProductImageService : IProductImageService
 					throw new InvalidOperationException("Image validation passed, but decoding failed while saving.");
 				}
 
-				var productPath = Path.Combine("images", "products", $"product-{productId}");
-				var finalPath = Path.Combine(_webHostEnvironment.WebRootPath, productPath);
-				Directory.CreateDirectory(finalPath);
+				await using var outputStream = new MemoryStream();
+				WriteResizedJpeg(original, outputStream);
 
-				var fileName = $"{Guid.NewGuid():N}.jpg";
-				var outputFilePath = Path.Combine(finalPath, fileName);
+				var storedImage = await _imageStorageService.SaveProductImageAsync(new ImageStorageSaveRequest(
+					productId,
+					outputStream,
+					file.FileName,
+					"image/jpeg",
+					outputStream.Length));
 
-				SaveResizedJpeg(original, outputFilePath);
-
-				var imageUrl = "\\" + Path.Combine(productPath, fileName).Replace(Path.DirectorySeparatorChar, '\\');
-				result.AddSavedImageUrl(imageUrl);
+				result.AddSavedImage(storedImage);
 			}
 		}
 		catch (Exception ex)
@@ -148,7 +149,7 @@ public sealed class ProductImageService : IProductImageService
 		return bitmap is not null;
 	}
 
-	private static void SaveResizedJpeg(SKBitmap original, string outputFilePath)
+	private static void WriteResizedJpeg(SKBitmap original, Stream outputStream)
 	{
 		var aspectRatio = (float)original.Width / original.Height;
 		var newWidth = original.Width > original.Height ? OutputWidth : (int)(OutputHeight * aspectRatio);
@@ -171,7 +172,6 @@ public sealed class ProductImageService : IProductImageService
 
 		using var image = SKImage.FromBitmap(finalBitmap);
 		using var data = image.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
-		using var outputStream = new FileStream(outputFilePath, FileMode.CreateNew, FileAccess.Write);
 		data.SaveTo(outputStream);
 	}
 }

@@ -1,22 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace UkiyoDesigns.Models
 {
 	public class ProductImage
 	{
-        public int Id { get; set; }
-        [Required]
+		public int Id { get; set; }
+
+		[Required]
 		public string ImageUrl { get; set; } = string.Empty;
-        public int ProductId { get; set; }
-        [ForeignKey("ProductId")]
+
+		public string ObjectKey { get; set; } = string.Empty;
+
+		public string FileName { get; set; } = string.Empty;
+
+		public string ContentType { get; set; } = string.Empty;
+
+		public long SizeBytes { get; set; }
+
+		public string StorageProvider { get; set; } = string.Empty;
+
+		public int SortOrder { get; set; }
+
+		public bool IsPrimary { get; set; }
+
+		public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+		public int ProductId { get; set; }
+
+		[ForeignKey("ProductId")]
 		public Product Product { get; set; } = null!;
-
-
-    }
+	}
 }

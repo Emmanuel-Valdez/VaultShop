@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SkiaSharp;
+using UkiyoDesignsWeb.Services.ImageStorage;
 using UkiyoDesignsWeb.Services.ProductImages;
 
 namespace UkiyoDesignsWeb.Tests
@@ -103,12 +104,13 @@ namespace UkiyoDesignsWeb.Tests
 		{
 			var environment = new Mock<IWebHostEnvironment>();
 			environment.Setup(x => x.WebRootPath).Returns(webRootPath ?? Path.GetTempPath());
+			var imageStorageService = new LocalImageStorageService(environment.Object);
 			var logger = Mock.Of<ILogger<ProductImageService>>();
 
 			var localizer = new Mock<IStringLocalizer<ProductImageService>>();
 			localizer.Setup(x => x[It.IsAny<string>()])
 				.Returns((string key) => new LocalizedString(key, key));
-			return new ProductImageService(environment.Object, logger, localizer.Object);
+			return new ProductImageService(imageStorageService, logger, localizer.Object);
 		}
 
 		private static FormFile CreateFormFile(byte[] content, string fileName, string contentType)
@@ -137,3 +139,4 @@ namespace UkiyoDesignsWeb.Tests
 	}
 
 }
+

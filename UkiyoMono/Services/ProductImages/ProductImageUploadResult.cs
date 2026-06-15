@@ -1,19 +1,23 @@
+using UkiyoDesignsWeb.Services.ImageStorage;
+
 namespace UkiyoDesignsWeb.Services.ProductImages;
 
 public sealed class ProductImageUploadResult
 {
-	private readonly List<string> _savedImageUrls = new();
+	private readonly List<StoredImage> _savedImages = new();
 	private readonly List<string> _errors = new();
 
-	public IReadOnlyCollection<string> SavedImageUrls => _savedImageUrls;
+	public IReadOnlyCollection<StoredImage> SavedImages => _savedImages;
+
+	public IReadOnlyCollection<string> SavedImageUrls => _savedImages.Select(image => image.ImageUrl).ToArray();
 
 	public IReadOnlyCollection<string> Errors => _errors;
 
 	public bool HasErrors => _errors.Count > 0;
 
-	public void AddSavedImageUrl(string imageUrl)
+	public void AddSavedImage(StoredImage image)
 	{
-		_savedImageUrls.Add(imageUrl);
+		_savedImages.Add(image);
 	}
 
 	public void AddError(string error)

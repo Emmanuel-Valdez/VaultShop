@@ -16,6 +16,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Checkout;
+using UkiyoDesignsWeb.Services.ImageStorage;
 using UkiyoDesignsWeb.Services.ProductImages;
 using UkiyoDesignsWeb.Services.Payments;
 
@@ -97,6 +98,7 @@ builder.Services.AddScoped<IEmailSender>(serviceProvider =>
 builder.Services.AddScoped<FakeEmailSender>();
 builder.Services.AddScoped<ResendEmailSender>();
 builder.Services.AddScoped<UnconfiguredEmailSender>();
+builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionClient>();
@@ -155,3 +157,4 @@ void SeedDatabase()
 		dbInitializer.Initialize();
 	}
 }
+
