@@ -60,7 +60,7 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 
 ## Current Status (June 2026)
 
-Ukiyo is an active portfolio/case-study project. The public demo is published, manual regression testing has been completed, and recent hardening work focused on safer uploads, structured logging, email configuration, checkout/order separation, automated tests, transactional order creation, and Stripe webhook payment confirmation.
+Ukiyo is an active portfolio/case-study project. The public demo is published, manual regression testing has been completed, and recent hardening work focused on safer uploads, structured logging, email configuration, checkout/order separation, automated tests, transactional order creation, Stripe webhook payment confirmation, Docker Compose, and MinIO/S3-compatible product image storage.
 
 ### Publish Readiness
 
@@ -90,6 +90,9 @@ Ukiyo is an active portfolio/case-study project. The public demo is published, m
 - [x] Add configurable startup database initialization so production can disable automatic migrations/schema setup.
 - [x] Add Dockerfile support for repeatable production-style container builds.
 - [x] Add product image storage abstraction with local filesystem implementation, storage metadata persistence, safe deletion, and tests as preparation for MinIO/S3-compatible storage.
+- [x] Add Docker Compose support for the web app, SQL Server, MinIO, and MinIO bucket initialization.
+- [x] Add MinIO image storage provider selected by `ImageStorage:Provider`, with public image URL generation and `ObjectKey`-based deletion.
+- [x] Serve DataTables Spanish localization from a local static JSON asset instead of depending on the CDN at runtime.
 
 ### Post-Portfolio Publish TODO
 
@@ -131,6 +134,15 @@ Seed__AdminPassword=your_admin_password
 
 # Public Site URL used for canonical URLs, Open Graph, robots.txt, and sitemap.xml
 SiteUrl=https://ukiyo.bsite.net
+
+# Product image storage. Use Local for filesystem storage or Minio for S3-compatible storage.
+ImageStorage__Provider=Local
+ImageStorage__Minio__Endpoint=localhost:9000
+ImageStorage__Minio__UseSsl=false
+ImageStorage__Minio__BucketName=product-images
+ImageStorage__Minio__AccessKey=your_minio_access_key
+ImageStorage__Minio__SecretKey=your_minio_secret_key
+ImageStorage__Minio__PublicBaseUrl=http://localhost:9000/product-images
 
 # Social Media Links
 Social__TikTok=your_tiktok_link
@@ -219,9 +231,9 @@ docker run --rm -p 8080:8080 `
 The image listens on `http://+:8080`, runs as the non-root user provided by the official .NET runtime image, and defaults `Database__RunMigrationsOnStartup=false` for production-like runs. Do not bake secrets or real environment values into the image; pass them from the hosting platform or deployment pipeline.
 
 
-### Docker Compose with SQL Server
+### Docker Compose with SQL Server and MinIO
 
-This milestone is intentionally SQL Server only because the app currently uses EF Core SQL Server (`UseSqlServer`). PostgreSQL, MinIO, and image-storage redesigns are not part of this step.
+The current Compose stack runs the ASP.NET Core web app, SQL Server 2022 Developer Edition, MinIO object storage, and a short-lived MinIO initialization container. PostgreSQL remains a later roadmap item because the app currently uses EF Core SQL Server (`UseSqlServer`).
 
 1. Copy the Compose sample environment file and replace the placeholder values:
 
@@ -231,7 +243,7 @@ Copy-Item .env.compose.example .env.compose
 
 Use the same strong value for `MSSQL_SA_PASSWORD` and the password inside `ConnectionStrings__DefaultConnection`. The connection string host must remain `sqlserver` because that is the SQL Server service name on the Compose network.
 
-2. Build and start the app plus SQL Server:
+2. Build and start the app, SQL Server, and MinIO:
 
 ```powershell
 docker compose --env-file .env.compose up --build
@@ -243,7 +255,7 @@ docker compose --env-file .env.compose up --build
 http://localhost:8080/es-AR
 ```
 
-Compose runs the web app with `ASPNETCORE_ENVIRONMENT=Production`, exposes the app on `APP_HTTP_PORT` (default `8080`), starts SQL Server 2022 Developer Edition, and persists database files in the `sqlserver-data` Docker volume.
+Compose runs the web app with `ASPNETCORE_ENVIRONMENT=Production`, exposes the app on `APP_HTTP_PORT` (default `8080`), starts SQL Server 2022 Developer Edition, starts MinIO on ports `9000`/`9001`, and persists data in the `sqlserver-data` and `minio-data` Docker volumes.
 
 `Database__RunMigrationsOnStartup` defaults to `false` to match production-like safety: the app process should not unexpectedly change schema on every container start. For a fresh local Compose database, you may temporarily set `DATABASE_RUN_MIGRATIONS_ON_STARTUP=true` in `.env.compose` so the existing startup initializer applies migrations, SQL views/triggers, roles, and the seed admin user. Set it back to `false` after initialization if you want to keep Compose closer to production behavior.
 
@@ -258,6 +270,22 @@ Delete the local SQL Server data volume only when you intentionally want a clean
 ```powershell
 docker compose --env-file .env.compose down -v
 ```
+
+Use MinIO for product images in Compose by setting these values in your private `.env.compose`:
+
+```env
+ImageStorage__Provider=Minio
+ImageStorage__Minio__Endpoint=minio:9000
+ImageStorage__Minio__UseSsl=false
+ImageStorage__Minio__BucketName=product-images
+ImageStorage__Minio__AccessKey=minioadmin
+ImageStorage__Minio__SecretKey=Change_this_MinIO_Password_123!
+ImageStorage__Minio__PublicBaseUrl=http://localhost:9000/product-images
+```
+
+`ImageStorage__Minio__Endpoint` is the internal Docker network endpoint used by the app to upload and delete objects. `ImageStorage__Minio__PublicBaseUrl` is the browser-facing base URL used to render product images. After code or Dockerfile changes, rebuild the web container with `docker compose --env-file .env.compose up -d --build`.
+
+Open the MinIO console at `http://localhost:9001`. The `minio-init` service creates the `product-images` bucket and enables anonymous download for local/dev product image display. Do not store private files in this public-read bucket, and do not expose SQL Server or the MinIO console directly on a public VPS.
 
 ### Email Sender
 
@@ -277,9 +305,11 @@ Stripe Checkout is isolated behind `IPaymentSessionService`, so controllers do n
 
 ### Product Image Storage
 
-Product image upload validation and resizing are handled by `ProductImageService`, while physical storage is isolated behind `IImageStorageService`. The current implementation, `LocalImageStorageService`, stores resized images under `wwwroot/images/products` for local/demo use and returns storage metadata such as `ObjectKey`, `FileName`, `ContentType`, `SizeBytes`, and `StorageProvider`.
+Product image upload validation and resizing are handled by `ProductImageService`, while physical storage is isolated behind `IImageStorageService`. The app can use either `LocalImageStorageService` for local filesystem storage or `MinioImageStorageService` for S3-compatible object storage. The active provider is selected with `ImageStorage:Provider` (`Local` or `Minio`).
 
-`ProductImage.ImageUrl` is still used by the current Razor views for display, but `ObjectKey` is the storage identity for uploaded images and storage cleanup. Deletion intentionally does not fall back to `ImageUrl`; missing or unsafe object keys are logged and ignored. This keeps the app compatible with the current UI while preparing the storage layer for a later MinIO/S3-compatible implementation.
+`ProductImage.ImageUrl` is still used by the current Razor views for display, but `ObjectKey` is the storage identity for uploaded images and storage cleanup. MinIO object keys use a shape like `products/product-{id}/{guid}.jpg`, while display URLs are generated from `ImageStorage:Minio:PublicBaseUrl` plus the `ObjectKey`. Deletion intentionally does not fall back to `ImageUrl`; missing or unsafe object keys are logged and ignored.
+
+DataTables Spanish localization is served locally from `wwwroot/lib/datatables/i18n/es-AR.json` to avoid runtime dependency on the CDN i18n file.
 
 ### Database Architecture
 
@@ -319,6 +349,8 @@ Ukiyo.Utility/      # Helpers (Stripe, Email, SD)
 - Stripe Payment Gateway
 - Localization (Spanish/English)
 - DotNetEnv for secrets management
+- Docker Compose with SQL Server and MinIO
+- MinIO/S3-compatible product image storage
 
 ### Database Entities
 

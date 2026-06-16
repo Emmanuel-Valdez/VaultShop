@@ -11,7 +11,7 @@ window.SpanishNumberTables = function (culture) {
 window.SpanishCultureTables = function (culture) {
     if (culture == "es-AR") {
         return {
-            url: '//cdn.datatables.net/plug-ins/2.1.7/i18n/es-AR.json'
+            url: '/lib/datatables/i18n/es-AR.json'
         };
     }
 }
