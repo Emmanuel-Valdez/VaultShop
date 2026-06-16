@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Minio;
 using Stripe;
 using System.Globalization;
 using UkiyoDesigns.DataAccess.Data;
@@ -98,7 +99,31 @@ builder.Services.AddScoped<IEmailSender>(serviceProvider =>
 builder.Services.AddScoped<FakeEmailSender>();
 builder.Services.AddScoped<ResendEmailSender>();
 builder.Services.AddScoped<UnconfiguredEmailSender>();
-builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
+builder.Services.Configure<ImageStorageOptions>(builder.Configuration.GetSection("ImageStorage"));
+builder.Services.Configure<MinioStorageOptions>(builder.Configuration.GetSection("ImageStorage:Minio"));
+
+var imageStorageProvider = builder.Configuration["ImageStorage:Provider"] ?? "Local";
+switch (imageStorageProvider.Trim().ToUpperInvariant())
+{
+	case "LOCAL":
+		builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
+		break;
+	case "MINIO":
+		builder.Services.AddSingleton<IMinioClient>(serviceProvider =>
+		{
+			var options = serviceProvider.GetRequiredService<IOptions<MinioStorageOptions>>().Value;
+			return new MinioClient()
+				.WithEndpoint(options.Endpoint)
+				.WithCredentials(options.AccessKey, options.SecretKey)
+				.WithSSL(options.UseSsl)
+				.Build();
+		});
+		builder.Services.AddScoped<IImageStorageService, MinioImageStorageService>();
+		break;
+	default:
+		throw new InvalidOperationException($"Unsupported ImageStorage:Provider value '{imageStorageProvider}'. Use Local or Minio.");
+}
+
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionClient>();
