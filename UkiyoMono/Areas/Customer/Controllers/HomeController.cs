@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
@@ -155,7 +154,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		public IActionResult SetLanguage(string culture, string returnUrl)
 		{
-			if ((returnUrl.Contains("es-AR") || returnUrl.Contains("en-US"))&& !returnUrl.IsNullOrEmpty())
+			if ((returnUrl.Contains("es-AR") || returnUrl.Contains("en-US"))&& !string.IsNullOrEmpty(returnUrl))
 			{
 				if (returnUrl.Contains("es-AR"))
 				{

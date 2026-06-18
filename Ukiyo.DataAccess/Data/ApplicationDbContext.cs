@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using System.Reflection.Metadata;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Models.CalculatorModels.SQLViews;
@@ -66,33 +64,19 @@ namespace UkiyoDesigns.DataAccess.Data
 			//Columns calculated automatically when update prices
 			modelBuilder.Entity<Packaging>()
 				.Property(o => o.UnitPrice)
-				.HasComputedColumnSql("[Price] / [Quantity]")
+				.HasComputedColumnSql("\"Price\" / NULLIF(\"Quantity\", 0)", stored: true)
 				.HasField("_unitPrice");
 			modelBuilder.Entity<Fabric>()
 				.Property(o => o.PriceMeter)
-				.HasComputedColumnSql("[Price] / [Quantity]")
+				.HasComputedColumnSql("\"Price\" / NULLIF(\"Quantity\", 0)", stored: true)
 				.HasField("_priceMeter");
 			modelBuilder.Entity<GarmentHardware>()
 				.Property(o => o.UnitPrice)
-				.HasComputedColumnSql("[Price] / [Quantity]")
+				.HasComputedColumnSql("\"Price\" / NULLIF(\"Quantity\", 0)", stored: true)
 				.HasField("_unitPrice");
 
-			//Disable the OutputClause that informs a trigger in the column
-			//because EF may have possible problems if it doesn’t control potential errors when deleting.
-
-			modelBuilder.Entity<Fabric>()
-				.ToTable(tb => tb.UseSqlOutputClause(false));
-			modelBuilder.Entity<GarmentHardware>()
-				.ToTable(tb => tb.UseSqlOutputClause(false));
-			modelBuilder.Entity<Packaging>()
-				.ToTable(tb => tb.UseSqlOutputClause(false));
-			modelBuilder.Entity<UnitPackagingByCategory>()
-				.ToTable(tb => tb.UseSqlOutputClause(false));
-			modelBuilder.Entity<UnitFabricByProduct>()
-				.ToTable(tb => tb.UseSqlOutputClause(false));
-			modelBuilder.Entity<UnitGarmentHardwareByProduct>()
-				.ToTable(tb => tb.UseSqlOutputClause(false));
-
+			// SQL Server-specific UseSqlOutputClause configuration was removed for the PostgreSQL provider migration.
+			// Trigger/view behavior will be redesigned or rewritten in the PostgreSQL migration baseline step.
 
 		}
 	}
