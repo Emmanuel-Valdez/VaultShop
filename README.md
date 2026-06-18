@@ -60,7 +60,7 @@ Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks a
 
 ## Current Status (June 2026)
 
-Ukiyo is an active portfolio/case-study project. The public demo is published, manual regression testing has been completed, and recent hardening work focused on safer uploads, structured logging, email configuration, checkout/order separation, automated tests, transactional order creation, Stripe webhook payment confirmation, Docker Compose, and MinIO/S3-compatible product image storage.
+Ukiyo is an active portfolio/case-study project. The public demo is published, manual regression testing has been completed, and recent hardening work focused on safer uploads, structured logging, email configuration, checkout/order separation, automated tests, transactional order creation, Stripe webhook payment confirmation, Docker Compose, PostgreSQL/Npgsql migration work, and MinIO/S3-compatible product image storage.
 
 ### Publish Readiness
 
@@ -90,9 +90,10 @@ Ukiyo is an active portfolio/case-study project. The public demo is published, m
 - [x] Add configurable startup database initialization so production can disable automatic migrations/schema setup.
 - [x] Add Dockerfile support for repeatable production-style container builds.
 - [x] Add product image storage abstraction with local filesystem implementation, storage metadata persistence, safe deletion, and tests as preparation for MinIO/S3-compatible storage.
-- [x] Add Docker Compose support for the web app, SQL Server, MinIO, and MinIO bucket initialization.
+- [x] Add Docker Compose support for the web app, PostgreSQL, MinIO, and MinIO bucket initialization.
 - [x] Add MinIO image storage provider selected by `ImageStorage:Provider`, with public image URL generation and `ObjectKey`-based deletion.
 - [x] Serve DataTables Spanish localization from a local static JSON asset instead of depending on the CDN at runtime.
+- [x] Move the admin pricing calculator away from SQL Server views/triggers into `PricingCalculatorService` and remove obsolete SQL view/repository infrastructure.
 
 ### Post-Portfolio Publish TODO
 
@@ -157,7 +158,7 @@ Social__DevLink=your_devlink_link
 ### Prerequisites
 
 - .NET 8 SDK
-- SQL Server or SQL Server Express LocalDB
+- PostgreSQL for the current migration branch, or Docker Compose for a local PostgreSQL container
 - Stripe test keys
 - Facebook OAuth app credentials, if testing Facebook login
 
@@ -202,7 +203,7 @@ dotnet test UkiyoDesigns.sln
 https://localhost:7189/es-AR
 ```
 
-When `Database__RunMigrationsOnStartup=true`, the application applies pending EF Core migrations, creates the SQL views and triggers, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword` on startup. This remains enabled for local development. Production defaults to `false` in `appsettings.Production.json`; enable it only when you intentionally want the app process to apply startup database changes.
+When `Database__RunMigrationsOnStartup=true`, the application applies pending EF Core migrations, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword` on startup. This remains enabled for local development. Production defaults to `false` in `appsettings.Production.json`; enable it only when you intentionally want the app process to apply startup database changes.
 
 Demo catalog, users, shopping activity, and orders are seeded manually from the Admin product page through guarded admin-only actions.
 
@@ -231,9 +232,9 @@ docker run --rm -p 8080:8080 `
 The image listens on `http://+:8080`, runs as the non-root user provided by the official .NET runtime image, and defaults `Database__RunMigrationsOnStartup=false` for production-like runs. Do not bake secrets or real environment values into the image; pass them from the hosting platform or deployment pipeline.
 
 
-### Docker Compose with SQL Server and MinIO
+### Docker Compose with PostgreSQL and MinIO
 
-The current Compose stack runs the ASP.NET Core web app, SQL Server 2022 Developer Edition, MinIO object storage, and a short-lived MinIO initialization container. PostgreSQL remains a later roadmap item because the app currently uses EF Core SQL Server (`UseSqlServer`).
+The current Compose stack runs the ASP.NET Core web app, PostgreSQL 16, MinIO object storage, and a short-lived MinIO initialization container.
 
 1. Copy the Compose sample environment file and replace the placeholder values:
 
@@ -241,9 +242,9 @@ The current Compose stack runs the ASP.NET Core web app, SQL Server 2022 Develop
 Copy-Item .env.compose.example .env.compose
 ```
 
-Use the same strong value for `MSSQL_SA_PASSWORD` and the password inside `ConnectionStrings__DefaultConnection`. The connection string host must remain `sqlserver` because that is the SQL Server service name on the Compose network.
+Keep `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` in sync with `ConnectionStrings__DefaultConnection`. The connection string host must remain `postgres` because that is the PostgreSQL service name on the Compose network.
 
-2. Build and start the app, SQL Server, and MinIO:
+2. Build and start the app, PostgreSQL, and MinIO:
 
 ```powershell
 docker compose --env-file .env.compose up --build
@@ -255,9 +256,9 @@ docker compose --env-file .env.compose up --build
 http://localhost:8080/es-AR
 ```
 
-Compose runs the web app with `ASPNETCORE_ENVIRONMENT=Production`, exposes the app on `APP_HTTP_PORT` (default `8080`), starts SQL Server 2022 Developer Edition, starts MinIO on ports `9000`/`9001`, and persists data in the `sqlserver-data` and `minio-data` Docker volumes.
+Compose runs the web app with `ASPNETCORE_ENVIRONMENT=Production`, exposes the app on `APP_HTTP_PORT` (default `8080`), starts PostgreSQL 16 on `POSTGRES_PORT` (default `5432`), starts MinIO on ports `9000`/`9001`, and persists data in the `postgres-data` and `minio-data` Docker volumes.
 
-`Database__RunMigrationsOnStartup` defaults to `false` to match production-like safety: the app process should not unexpectedly change schema on every container start. For a fresh local Compose database, you may temporarily set `DATABASE_RUN_MIGRATIONS_ON_STARTUP=true` in `.env.compose` so the existing startup initializer applies migrations, SQL views/triggers, roles, and the seed admin user. Set it back to `false` after initialization if you want to keep Compose closer to production behavior.
+`Database__RunMigrationsOnStartup` defaults to `false` to match production-like safety: the app process should not unexpectedly change schema on every container start. For a fresh local Compose database, you may temporarily set `DATABASE_RUN_MIGRATIONS_ON_STARTUP=true` in `.env.compose` so the existing startup initializer applies migrations, roles, and the seed admin user. Set it back to `false` after initialization if you want to keep Compose closer to production behavior.
 
 Stop containers without deleting the database volume:
 
@@ -265,7 +266,7 @@ Stop containers without deleting the database volume:
 docker compose --env-file .env.compose down
 ```
 
-Delete the local SQL Server data volume only when you intentionally want a clean database:
+Delete the local PostgreSQL and MinIO data volumes only when you intentionally want a clean local stack:
 
 ```powershell
 docker compose --env-file .env.compose down -v
@@ -285,7 +286,7 @@ ImageStorage__Minio__PublicBaseUrl=http://localhost:9000/product-images
 
 `ImageStorage__Minio__Endpoint` is the internal Docker network endpoint used by the app to upload and delete objects. `ImageStorage__Minio__PublicBaseUrl` is the browser-facing base URL used to render product images. After code or Dockerfile changes, rebuild the web container with `docker compose --env-file .env.compose up -d --build`.
 
-Open the MinIO console at `http://localhost:9001`. The `minio-init` service creates the `product-images` bucket and enables anonymous download for local/dev product image display. Do not store private files in this public-read bucket, and do not expose SQL Server or the MinIO console directly on a public VPS.
+Open the MinIO console at `http://localhost:9001`. The `minio-init` service creates the `product-images` bucket and enables anonymous download for local/dev product image display. Do not store private files in this public-read bucket, and do not expose PostgreSQL or the MinIO console directly on a public VPS.
 
 ### Email Sender
 
@@ -313,17 +314,9 @@ DataTables Spanish localization is served locally from `wwwroot/lib/datatables/i
 
 ### Database Architecture
 
-The database uses **SQL Views** and **Triggers** for the price calculation system:
+The current migration branch uses EF Core with PostgreSQL/Npgsql. The admin pricing calculator is implemented in `PricingCalculatorService` using EF Core queries against the source cost tables instead of SQL Server views and triggers.
 
-**Views:**
-- `FixedCostMonthlyView`: Monthly fixed costs calculation
-- `TotalPercentageCostView`: Sum of all percentage-based costs
-- `CostByProductView`: Total cost breakdown per product (fabrics + hardware + packaging + fixed costs)
-- `FinalPriceView`: Calculates wholesale and retail prices based on costs and profit margins
-
-**Triggers:**
-- Automatically update unit totals when fabrics, hardware, or packaging quantities/prices change
-- Update product-level totals (FabricByProduct, GarmentHardwareByProduct, PackagingByCategory)
+Suggested prices recalculate from live cost inputs, while persisted storefront and checkout prices change only when an admin uses the controlled publish/update action. Trigger-maintained derived total columns were removed from the active model; unit and product/category totals used by the admin UI are calculated dynamically for display.
 ### Project Structure
 
 ```
@@ -344,12 +337,12 @@ Ukiyo.Utility/      # Helpers (Stripe, Email, SD)
 ### Tech Stack
 
 - ASP.NET Core 8.0 MVC
-- Entity Framework Core (SQL Server)
+- Entity Framework Core with PostgreSQL/Npgsql
 - Identity + Facebook OAuth
 - Stripe Payment Gateway
 - Localization (Spanish/English)
 - DotNetEnv for secrets management
-- Docker Compose with SQL Server and MinIO
+- Docker Compose with PostgreSQL and MinIO
 - MinIO/S3-compatible product image storage
 
 ### Database Entities
@@ -362,4 +355,4 @@ Ukiyo.Utility/      # Helpers (Stripe, Email, SD)
 - Packaging, PackagingByCategory, UnitPackagingByCategory
 - FixedCost, PercentageCost, PercentageProfit
 
-**SQL Views:** FixedCostMonthly, TotalPercentageCost, CostByProduct, FinalPrice
+**Pricing results:** FixedCostMonthly, TotalPercentageCost, CostByProduct, FinalPrice are calculated in application services for admin reporting/display.

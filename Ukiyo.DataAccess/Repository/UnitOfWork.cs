@@ -5,10 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.CalculatorRepository.ReadOnlyRepository;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.DataAccess.Repository.IRepository.IReadOnlyRepositorys;
-using UkiyoDesigns.Models.CalculatorModels.SQLViews;
 
 namespace UkiyoDesigns.DataAccess.Repository
 {
@@ -33,12 +30,8 @@ namespace UkiyoDesigns.DataAccess.Repository
 		public IGarmentHardwareByProductRepository GarmentHardwareByProduct { get; private set; }
 		public IUnitGarmentHardwareByProductRepository UnitGarmentHardwareByProduct { get; private set; }
 		public IFixedCostRepository FixedCost { get; private set; }
-        public IFixedCostMonthlyRepository FixedCostMonthly { get;  }
 		public IPercentageCostRepository PercentageCost { get; private set; }
-		public ITotalPercentageCostRepository TotalPercentageCost { get; }
-		public ICostByProductViewRepository CostByProductView { get; }
         public IPercentageProfitRepository PercentageProfit { get; }
-	    public IFinalPriceViewRepository FinalPriceView { get; }
 		public IFavoriteProductRepository FavoriteProduct { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db) 
@@ -59,15 +52,11 @@ namespace UkiyoDesigns.DataAccess.Repository
             FabricByProduct= new FabricByProductRepository(_db);
             UnitFabricByProduct= new UnitFabricByProductRepository(_db);
 			GarmentHardware = new GarmentHardwareRepository(_db);
-            GarmentHardwareByProduct = new GarmentHardwareByProductRepository(_db);
+			GarmentHardwareByProduct = new GarmentHardwareByProductRepository(_db);
             UnitGarmentHardwareByProduct = new UnitGarmentHardwareByProductRepository(_db);
 			FixedCost = new FixedCostRepository(_db);
-            FixedCostMonthly = new FixedCostMonthlyRepository(_db);
 			PercentageCost = new PercentageCostRepository(_db);
-            TotalPercentageCost= new TotalPercentageCostRepository(_db);
-			CostByProductView = new CostByProductViewRepository(_db);
             PercentageProfit= new PercentageProfitRepository(_db);
-			FinalPriceView = new FinalPriceViewRepository(_db);
 			FavoriteProduct = new FavoriteProductRepository(_db);
 
 		}

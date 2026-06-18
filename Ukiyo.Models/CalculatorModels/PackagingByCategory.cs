@@ -16,8 +16,6 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		[ForeignKey("CategoryId")]
 		[ValidateNever]
 		public Category Category { get; set; } = null!;
-		[Column(TypeName = "decimal(18, 2)")]
-		public decimal TotalPackagingByCategory {  get; private set; } = 0.0m;
 		[ValidateNever]
 		public List<UnitPackagingByCategory> UnitPackagingByCategoryList { get; set; } = new();
 	}

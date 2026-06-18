@@ -27,7 +27,5 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		[LocalizedRange(0.001, 10000, "Please enter a quantity between 0.001 and 10000.", "Ingresá una cantidad entre 0,001 y 10000.")]
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal Quantity { get; set; }
-		[Column(TypeName = "decimal(18, 2)")]
-		public decimal UnitTotal { get; private set; }
 	}
 }

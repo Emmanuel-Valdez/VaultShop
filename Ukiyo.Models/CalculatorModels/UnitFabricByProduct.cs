@@ -28,7 +28,5 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		[Display(Name = "Products Made Per Meter")]
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal Quantity { get; set; }
-		[Column(TypeName = "decimal(18, 2)")]
-		public decimal UnitTotal { get; private set; }
 	}
 }

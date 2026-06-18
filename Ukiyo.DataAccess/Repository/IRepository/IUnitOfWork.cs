@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.IRepository.IReadOnlyRepositorys;
 using UkiyoDesigns.Models.CalculatorModels;
 
 namespace UkiyoDesigns.DataAccess.Repository.IRepository
@@ -35,16 +34,11 @@ namespace UkiyoDesigns.DataAccess.Repository.IRepository
 		IUnitGarmentHardwareByProductRepository UnitGarmentHardwareByProduct { get; }
 
 		IFixedCostRepository FixedCost { get; }
-		IFixedCostMonthlyRepository FixedCostMonthly { get; }
 
 		IPercentageCostRepository PercentageCost { get; }
-		ITotalPercentageCostRepository TotalPercentageCost { get; }
-
-		ICostByProductViewRepository CostByProductView { get; }
 
 		IPercentageProfitRepository PercentageProfit { get; }
 
-		IFinalPriceViewRepository FinalPriceView{  get; }
 		IFavoriteProductRepository FavoriteProduct { get; }
 
 

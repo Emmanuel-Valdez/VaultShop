@@ -17,8 +17,6 @@ namespace UkiyoDesigns.Models.CalculatorModels
 		[ValidateNever]
 		public Product Product { get; set; } = null!;
 
-		[Column(TypeName = "decimal(18, 2)")]
-		public decimal TotalGarmentHardwareByProduct {  get; private set; } = 0.0m;
 		[ValidateNever]
 		public List<UnitGarmentHardwareByProduct> UnitGarmentHardwareByProductList { get; set; } = new();
 	}
