@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
@@ -8,6 +8,7 @@ using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Models.DTO;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Pricing;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -21,13 +22,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public FabricByProductVM FabricByProductVM { get; set; } = null!;
 		private readonly IStringLocalizer<FabricByProductController> _localizer;
 		private readonly ILogger<FabricByProductController> _logger;
+		private readonly IPricingCalculatorService _pricingCalculatorService;
 
 
-		public FabricByProductController(IUnitOfWork unitOfWork, IStringLocalizer<FabricByProductController> localizer, ILogger<FabricByProductController> logger)
+		public FabricByProductController(IUnitOfWork unitOfWork, IStringLocalizer<FabricByProductController> localizer, ILogger<FabricByProductController> logger, IPricingCalculatorService pricingCalculatorService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
+			_pricingCalculatorService = pricingCalculatorService;
 		}
 
 		public IActionResult Index()
@@ -59,6 +62,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Value = u.Id.ToString()
 				}),
 				FabricByProduct = fabricByProduct,
+				CalculatedTotalByProduct = _pricingCalculatorService.GetFabricTotalsByProduct().GetValueOrDefault(id),
 			};
 		
 			if (unitId == 0 || unitId == null)
@@ -142,24 +146,34 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAllProducts()
 		{
-			List<Product> objProductList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false, includeProperties: "FabricByProduct").ToList();
+			List<Product> objProductList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false).ToList();
+			var fabricTotalsByProduct = _pricingCalculatorService.GetFabricTotalsByProduct();
 			var productListDTOs = objProductList.Select(c => new ProductDTO
 			{
 				Id = c.Id,
 				Name = c.Name,
-				TotalByProduct = c.FabricByProduct.TotalFabricByProduct
+				TotalByProduct = fabricTotalsByProduct.GetValueOrDefault(c.Id)
 			}).ToList();
 			return Json(new { data = productListDTOs });
 		}
 		[HttpGet]
 		public IActionResult GetAllUnitFabrics(int productId)
 		{
-
 			List<UnitFabricByProduct> objUnitFabricByProducts = _unitOfWork.UnitFabricByProduct
 				.GetAll(u => u.ProductId == productId, includeProperties: "Fabric").ToList();
 
-			return Json(new { data = objUnitFabricByProducts });
+			var unitFabricDTOs = objUnitFabricByProducts.Select(unit => new
+			{
+				unit.Id,
+				unit.Quantity,
+				unit.Description,
+				unit.ProductId,
+				unit.FabricId,
+				unit.Fabric,
+				UnitTotal = unit.Fabric.Price / unit.Fabric.Quantity / unit.Quantity
+			}).ToList();
 
+			return Json(new { data = unitFabricDTOs });
 		}
 		[HttpDelete]
 		public IActionResult Delete(int? id)
@@ -184,3 +198,6 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		#endregion
 	}
 }
+
+
+

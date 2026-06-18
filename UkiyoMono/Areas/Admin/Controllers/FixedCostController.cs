@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Localization;
-using System.Globalization;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
-
 using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Models.CalculatorModels.SQLViews;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Pricing;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -16,16 +13,18 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	public class FixedCostController : Controller
 	{
 		public readonly IUnitOfWork _unitOfWork;
+		private readonly IPricingCalculatorService _pricingCalculatorService;
 		private readonly IStringLocalizer<FixedCostController> _localizer;
 
-		public FixedCostController(IUnitOfWork unitOfWork, IStringLocalizer<FixedCostController> localizer)
+		public FixedCostController(IUnitOfWork unitOfWork, IPricingCalculatorService pricingCalculatorService, IStringLocalizer<FixedCostController> localizer)
 		{
 			_unitOfWork = unitOfWork;
+			_pricingCalculatorService = pricingCalculatorService;
 			_localizer = localizer;
 		}
 		public IActionResult Index()
 		{
-			var objTotalMonthly = _unitOfWork.FixedCostMonthly.GetAll().FirstOrDefault();
+			var objTotalMonthly = _pricingCalculatorService.GetFixedCostMonthly();
 
 			return View(objTotalMonthly);
 		}
@@ -91,3 +90,5 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		#endregion
 	}
 }
+
+

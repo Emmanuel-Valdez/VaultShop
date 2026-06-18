@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
@@ -17,5 +17,7 @@ namespace UkiyoDesigns.Models.ViewModels
 		
 
 		public UnitPackagingByCategory UnitPackagingByCategory { get; set; } = new();
+		public decimal CalculatedTotalByCategory { get; set; }
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -42,7 +42,6 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 				{
 					_db.Database.Migrate();
 				}
-				CreateViewsAndTriggers();
 			}
 			catch (Exception ex)
 			{
@@ -374,26 +373,6 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 		private sealed record DemoUserSeed(string Email, string Name, string Role, int? CompanyId);
 
 		private sealed record DemoOrderSeed(int UserIndex, string OrderStatus, string PaymentStatus, int OrderAgeDays, bool HasStripeData);
-		private void CreateViewsAndTriggers()
-		{
-			ExecuteIfNotExists(SqlScripts.View_UpdateFixedCost);
-			ExecuteIfNotExists(SqlScripts.View_UpdatePercentageCost);
-			ExecuteIfNotExists(SqlScripts.View_CostByProduct);
-			ExecuteIfNotExists(SqlScripts.View_FinalPrice);
-
-			ExecuteIfNotExists(SqlScripts.TR_UpdateUnitsTotalFabric);
-			ExecuteIfNotExists(SqlScripts.TR_UpdateUnitsTotalGarmentHardware);
-			ExecuteIfNotExists(SqlScripts.TR_UpdateUnitsTotalPackaging);
-
-			ExecuteIfNotExists(SqlScripts.TR_UpdateUnitPackaging_UnitsTable);
-			ExecuteIfNotExists(SqlScripts.TR_UpdateUnitsTotalFabric_UnitsTable);
-			ExecuteIfNotExists(SqlScripts.TR_UpdateUnitsTotalGarmentHardware_UnitsTable);
-
-			ExecuteIfNotExists(SqlScripts.TR_UpdateTotalPackagingByCategory);
-			ExecuteIfNotExists(SqlScripts.TR_UpdateTotalFabricByProduct);
-			ExecuteIfNotExists(SqlScripts.TR_UpdateTotalGarmentHardwareByProduct);
-		}
-
 		private void SeedDemoData()
 		{
 			var categories = new[]
@@ -723,16 +702,6 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 			_db.SaveChanges();
 		}
 
-		private void ExecuteIfNotExists(string sql)
-		{
-			try
-			{
-				_db.Database.ExecuteSqlRaw(sql);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to execute database initialization SQL script.");
-			}
-		}
 	}
 }
+

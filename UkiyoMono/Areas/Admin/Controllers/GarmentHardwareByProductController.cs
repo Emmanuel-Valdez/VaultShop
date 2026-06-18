@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
@@ -8,6 +8,7 @@ using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Models.DTO;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Pricing;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -19,14 +20,16 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<GarmentHardwareByProductController> _localizer;
 		private readonly ILogger<GarmentHardwareByProductController> _logger;
+		private readonly IPricingCalculatorService _pricingCalculatorService;
 		[BindProperty]
 		public GarmentHardwareByProductVM GarmentHardwareByProductVM { get; set; } = null!;
 
-		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer, ILogger<GarmentHardwareByProductController> logger)
+		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer, ILogger<GarmentHardwareByProductController> logger, IPricingCalculatorService pricingCalculatorService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer= localizer;
 			_logger = logger;
+			_pricingCalculatorService = pricingCalculatorService;
 		}
 
 		public IActionResult Index()
@@ -58,6 +61,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Value = u.Id.ToString()
 				}),
 				GarmentHardwareByProduct = garmentHardwareByProduct,
+				CalculatedTotalByProduct = _pricingCalculatorService.GetGarmentHardwareTotalsByProduct().GetValueOrDefault(id),
 			};
 			if (unitId == 0 || unitId == null)
 			{
@@ -139,24 +143,34 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAllProducts()
 		{
-			List<Product> objProductList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false, includeProperties: "GarmentHardwareByProduct").ToList();
+			List<Product> objProductList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false).ToList();
+			var garmentHardwareTotalsByProduct = _pricingCalculatorService.GetGarmentHardwareTotalsByProduct();
 			var productListDTOs = objProductList.Select(c => new ProductDTO
 			{
 				Id = c.Id,
 				Name = c.Name,
-				TotalByProduct = c.GarmentHardwareByProduct.TotalGarmentHardwareByProduct
+				TotalByProduct = garmentHardwareTotalsByProduct.GetValueOrDefault(c.Id)
 			}).ToList();
 			return Json(new { data = productListDTOs });
 		}
 		[HttpGet]
 		public IActionResult GetAllUnitGarmentHardwares(int productId)
 		{
-
 			List<UnitGarmentHardwareByProduct> objUnitGarmentHardwareByProducts = _unitOfWork.UnitGarmentHardwareByProduct
 				.GetAll(u => u.ProductId == productId, includeProperties: "GarmentHardware").ToList();
 
-			return Json(new { data = objUnitGarmentHardwareByProducts });
+			var unitGarmentHardwareDTOs = objUnitGarmentHardwareByProducts.Select(unit => new
+			{
+				unit.Id,
+				unit.Quantity,
+				unit.Description,
+				unit.ProductId,
+				unit.GarmentHardwareId,
+				unit.GarmentHardware,
+				UnitTotal = unit.GarmentHardware.Price / unit.GarmentHardware.Quantity * unit.Quantity
+			}).ToList();
 
+			return Json(new { data = unitGarmentHardwareDTOs });
 		}
 		[HttpDelete]
 		public IActionResult Delete(int? id)
@@ -179,3 +193,6 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		#endregion
 	}
 }
+
+
+

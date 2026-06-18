@@ -1,4 +1,4 @@
-﻿@model FabricByProductVM
+@model FabricByProductVM
 
 <div class="card shadow border-0 my-4">
 	<div class="card-header bg-primary bg-gradient ml-0 py-3">
@@ -11,7 +11,7 @@
 	<div class="card-header bg-dark text-light ml-0">
 		<div class="container row col-12 ">
 			<div class="col-9 h5  ">
-				@Localizer["ProductTotal"]: @Model.FabricByProduct.TotalFabricByProduct.ToString("c")
+				@Localizer["ProductTotal"]: @Model.CalculatedTotalByProduct.ToString("c")
 			</div>
 			<div class="col-3  ">
 				<a asp-controller="FabricByProduct" asp-action="Index" class="btn btn-outline-info form-control ">
@@ -36,7 +36,7 @@
 					<th></th>
 					<th></th>
 					<th class="h6">@Localizer["TotalByProduct"]</th>
-					<th class="h6">@Model.FabricByProduct.TotalFabricByProduct.ToString("c")</th>
+					<th class="h6">@Model.CalculatedTotalByProduct.ToString("c")</th>
 					<th></th>
 				</tr>
 			</tfoot>
@@ -129,3 +129,4 @@
 		</script>
 	}
 }
+

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
@@ -8,6 +8,7 @@ using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Models.DTO;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Pricing;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -18,14 +19,16 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<PackagingByCategoryController> _localizer;
 		private readonly ILogger<PackagingByCategoryController> _logger;
+		private readonly IPricingCalculatorService _pricingCalculatorService;
 		[BindProperty]
 		public PackagingByCategoryVM PackagingByCategoryVM { get; set; } = null!;
 
-		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer, ILogger<PackagingByCategoryController> logger)
+		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer, ILogger<PackagingByCategoryController> logger, IPricingCalculatorService pricingCalculatorService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
+			_pricingCalculatorService = pricingCalculatorService;
 		}
 		public IActionResult Index()
 		{
@@ -56,6 +59,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 					Value = u.Id.ToString()
 				}),
 				PackagingByCategory = packagingByCategory,
+				CalculatedTotalByCategory = _pricingCalculatorService.GetPackagingTotalsByCategory().GetValueOrDefault(id),
 			};
 			if (unitId == 0 || unitId == null)
 			{
@@ -140,12 +144,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAllCategories()
 		{
-			List<Category> objCategoryList = _unitOfWork.Category.GetAll(u=> u.IsDeleted==false, includeProperties: "PackagingByCategory").ToList();
+			List<Category> objCategoryList = _unitOfWork.Category.GetAll(u=> u.IsDeleted==false).ToList();
+			var packagingTotalsByCategory = _pricingCalculatorService.GetPackagingTotalsByCategory();
 			var categoryListDTOs = objCategoryList.Select(c => new CategoryDTO
 			{
 				Id = c.Id,
 				Name = c.Name,
-				TotalPackagingByCategory = c.PackagingByCategory.TotalPackagingByCategory
+				TotalPackagingByCategory = packagingTotalsByCategory.GetValueOrDefault(c.Id)
 			}).ToList();
 			return Json(new { data = categoryListDTOs });
 		}
@@ -153,12 +158,21 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAllUnitPackagings(int categoryId)
 		{
-
 			List<UnitPackagingByCategory> objUnitPackagingByCategories = _unitOfWork.UnitPackagingByCategory
 				.GetAll(u => u.CategoryId == categoryId, includeProperties: "Packaging").ToList();
 
-			return Json(new { data = objUnitPackagingByCategories });
+			var unitPackagingDTOs = objUnitPackagingByCategories.Select(unit => new
+			{
+				unit.Id,
+				unit.Quantity,
+				unit.Description,
+				unit.CategoryId,
+				unit.PackagingId,
+				unit.Packaging,
+				UnitTotal = unit.Packaging.Price / unit.Packaging.Quantity * unit.Quantity
+			}).ToList();
 
+			return Json(new { data = unitPackagingDTOs });
 		}
 
 		[HttpDelete]
@@ -185,5 +199,8 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 	}
 }
+
+
+
 
 

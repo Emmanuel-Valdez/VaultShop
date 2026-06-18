@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using System.Globalization;
 using UkiyoDesigns.DataAccess.Repository.IRepository;
-
 using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.Pricing;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -15,16 +14,18 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	public class PercentageCostController : Controller
 	{
 		public readonly IUnitOfWork _unitOfWork;
+		private readonly IPricingCalculatorService _pricingCalculatorService;
 		private readonly IStringLocalizer<PercentageCostController> _localizer;
 
-		public PercentageCostController(IUnitOfWork unitOfWork, IStringLocalizer<PercentageCostController> localizer)
+		public PercentageCostController(IUnitOfWork unitOfWork, IPricingCalculatorService pricingCalculatorService, IStringLocalizer<PercentageCostController> localizer)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
+			_pricingCalculatorService = pricingCalculatorService;
 		}
 		public IActionResult Index()
 		{
-			var objTotalPercentage = _unitOfWork.TotalPercentageCost.GetAll().FirstOrDefault();
+			var objTotalPercentage = _pricingCalculatorService.GetTotalPercentageCost();
 			return View(objTotalPercentage);
 			
 		}
