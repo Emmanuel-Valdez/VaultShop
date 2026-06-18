@@ -207,20 +207,21 @@ namespace UkiyoDesigns.DataAccess.DbInitializer
 
 				var selectedProducts = products.Skip((seed.UserIndex * 2) % products.Count).Take(2).ToList();
 				var orderTotal = selectedProducts.Sum(product => GetPriceForUser(product, user) * (user.CompanyId.HasValue ? 3 : 1));
-				var orderDate = DateTime.Now.Date.AddDays(seed.OrderAgeDays).AddHours(10 + seed.UserIndex);
+				var orderDate = DateTime.UtcNow.Date.AddDays(seed.OrderAgeDays).AddHours(10 + seed.UserIndex);
+				var unsetDate = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
 
 				var orderHeader = new OrderHeader
 				{
 					ApplicationUserId = user.Id,
 					CompanyId = user.CompanyId,
 					OrderDate = orderDate,
-					ShippingDate = seed.OrderStatus == SD.StatusShipped ? orderDate.AddDays(5) : DateTime.MinValue,
+					ShippingDate = seed.OrderStatus == SD.StatusShipped ? orderDate.AddDays(5) : unsetDate,
 					OrderTotal = orderTotal,
 					OrderStatus = seed.OrderStatus,
 					PaymentStatus = seed.PaymentStatus,
 					TrackingNumber = seed.OrderStatus == SD.StatusShipped ? $"UKIYO-DEMO-{seed.UserIndex + 1:000000}" : null,
 					Carrier = seed.OrderStatus == SD.StatusShipped ? "Demo Carrier" : null,
-					PaymentDate = seed.HasStripeData ? orderDate.AddMinutes(15) : DateTime.MinValue,
+					PaymentDate = seed.HasStripeData ? orderDate.AddMinutes(15) : unsetDate,
 					PaymentDueDate = DateOnly.FromDateTime(orderDate.AddDays(14)),
 					SessionId = sessionId,
 					PaymentIntentId = seed.HasStripeData ? $"pi_demo_ukiyo_{seed.UserIndex + 1:000000}" : null,

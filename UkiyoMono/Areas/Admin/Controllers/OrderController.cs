@@ -116,10 +116,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			orderHeader.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
 			orderHeader.Carrier = OrderVM.OrderHeader.Carrier;
 			orderHeader.OrderStatus = SD.StatusShipped;
-			orderHeader.ShippingDate = DateTime.Now;
+			var shippedAt = DateTime.UtcNow;
+			orderHeader.ShippingDate = shippedAt;
 			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
 			{
-				orderHeader.PaymentDueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(7));
+				orderHeader.PaymentDueDate = DateOnly.FromDateTime(shippedAt.AddDays(7));
 			}
 
 			_unitOfWork.OrderHeader.Update(orderHeader);

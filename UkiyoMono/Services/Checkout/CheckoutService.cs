@@ -134,7 +134,7 @@ namespace UkiyoDesignsWeb.Services.Checkout
 			}
 
 			shoppingCartVM.OrderHeader.ApplicationUserId = userId;
-			shoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
+			shoppingCartVM.OrderHeader.OrderDate = DateTime.UtcNow;
 			shoppingCartVM.OrderHeader.OrderTotal = 0;
 
 			foreach (var cart in shoppingCartVM.ShoppingCartList)
