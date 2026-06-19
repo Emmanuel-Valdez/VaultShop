@@ -1,10 +1,12 @@
-# Ukiyo - E-commerce Project
+# Ukiyo - ASP.NET Core E-commerce Case Study
 
 **Live demo:** https://ukiyo.bsite.net
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 ![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 ![License](https://img.shields.io/badge/license-source--available-blue)
+
+Ukiyo is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is being evolved into a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, and deployment-oriented hardening.
 
 ## Screenshots
 
@@ -26,333 +28,200 @@
 
 ![Ukiyo admin final prices dashboard](docs/screenshots/final-prices-dashboard.png)
 
-## Project Description
+## Features
 
-Ukiyo is an e-commerce platform specialized in custom anime-inspired backpacks and accessories. The platform features:
+- Customer storefront with product browsing, favorites, cart, checkout, and retail/wholesale pricing.
+- Admin product, category, inventory, company, order, and price-management flows.
+- Admin pricing calculator for fabrics, garment hardware, packaging, fixed costs, percentage costs, profit margins, and final prices.
+- Final price dashboard that compares current storefront prices with calculated cost-based suggestions.
+- ASP.NET Core Identity with roles for Customer, Company, Employee, and Admin users.
+- Stripe Checkout integration with webhook-based payment status updates.
+- Product image upload validation, resizing, metadata persistence, and storage abstraction.
+- Localization for Spanish and English.
 
-### Core Features
+## Tech Stack
 
-- **Customer Store**: Public-facing shop where customers can browse, search, and purchase products with support for both retail and wholesale pricing.
+- ASP.NET Core 8 MVC
+- Entity Framework Core with PostgreSQL/Npgsql
+- ASP.NET Core Identity + Facebook OAuth
+- Stripe Checkout
+- Resend email provider with fake/local email mode
+- Docker and Docker Compose
+- MinIO/S3-compatible product image storage
+- xUnit, Moq, and SQLite in-memory tests for selected service/integration coverage
 
-- **Admin Price Calculator**: The administrative panel allows adding products with detailed production costs including:
-  - **Fabrics**: Material costs per product
-  - **Garment Hardware**: Buttons, zippers, buckles, and other hardware components
-  - **Packaging**: Per-category packaging costs
-  - **Fixed Costs**: Monthly operational expenses (taxes, rent, utilities, etc.)
-  - **Percentage Costs**: Platform fees, payment processing fees, etc.
-  
-  The system automatically calculates the optimal cost by summing all production expenses and applying profit margins. It then determines:
-  - **Fair Wholesale Price**: Based on actual production costs plus a percentage
-  - **Suggested Retail Price**: Wholesale price plus an additional margin
-  
-  **Note**: For marketing and competitive reasons, the final retail price is left to the admin's discretion.
+## Architecture Highlights
 
-- **Admin Final Price Dashboard**: Compares current retail and wholesale prices against calculated cost-based prices, highlights outdated values, supports PDF export, column visibility, availability filters, and controlled price updates.
+- PostgreSQL is the active database provider. Earlier SQL Server migration history is archived and no longer part of the active runtime path.
+- The admin pricing calculator uses `PricingCalculatorService` and EF Core queries instead of SQL Server views/triggers.
+- Product image persistence is behind `IImageStorageService`; the app supports local filesystem storage and MinIO.
+- `ProductImage.ObjectKey` is the storage identity for uploaded images. `ImageUrl` is used only as the browser display URL.
+- Checkout order creation is handled by `CheckoutService` and wrapped in a transaction to avoid partial orders.
+- Stripe session creation is behind `IPaymentSessionService`; payment status changes are handled through signed webhooks instead of trusting only browser redirects.
+- Production-like environments can disable startup migrations with `Database__RunMigrationsOnStartup=false`.
 
-- **Multi-Company Support**: Different companies can manage their own users, and users belonging to the same company can collaboratively manage orders and inventory.
+## Project Structure
 
-### User Roles
-
-- **Customer**: Regular shoppers who can purchase products
-- **Company**: Business accounts with multiple users who can manage orders together
-- **Employee**: Company staff members with order management capabilities
-- **Admin**: Platform administrators with full system access
-
-## Current Status (June 2026)
-
-Ukiyo is an active portfolio/case-study project. The public demo is published, manual regression testing has been completed, and recent hardening work focused on safer uploads, structured logging, email configuration, checkout/order separation, automated tests, transactional order creation, Stripe webhook payment confirmation, Docker Compose, PostgreSQL/Npgsql migration work, and MinIO/S3-compatible product image storage.
-
-### Publish Readiness
-
-- [x] Full pending manual testing pass completed.
-- [x] Targeted regression testing for the May 30 fixes completed.
-- [x] Company soft-delete, checkout guards, order access, product availability, calculator deletes, localization metadata, and normal login/cart flows verified manually.
-- [x] Latest build passed before publish readiness update.
-
-### Documentation / Presentation TODO
-
-- [x] Add favicon
-- [x] Add screenshots or GIFs of the project, especially mobile views
-- [x] Add a step-by-step "How to run locally" section
-- [x] Confirm license and update the license badge
-
-### Production Hardening Progress
-
-- [x] Harden product image uploads with extension, size, content-type, decodable-image, generated-name, and controlled-path validation.
-- [x] Replace important `Console.WriteLine` usage with `ILogger` and structured logging.
-- [x] Add focused logs around checkout, Stripe payment/refund flows, admin order changes, product image deletion, product availability changes, demo data seeding, and startup database initialization failures.
-- [x] Avoid logging secrets or sensitive user/payment values such as Stripe keys, Stripe session IDs, payment intent IDs, session URLs, passwords, emails, phone numbers, and addresses.
-- [x] Add configurable email sender support with explicit fake/local mode and Resend transactional email integration.
-- [x] Extract checkout summary and order creation logic from controllers into `CheckoutService`.
-- [x] Wrap checkout order creation in an EF Core transaction to avoid partial orders.
-- [x] Add Stripe payment session abstraction and webhook-based payment status updates.
-- [x] Add automated tests for upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
-- [x] Add configurable startup database initialization so production can disable automatic migrations/schema setup.
-- [x] Add Dockerfile support for repeatable production-style container builds.
-- [x] Add product image storage abstraction with local filesystem implementation, storage metadata persistence, safe deletion, and tests as preparation for MinIO/S3-compatible storage.
-- [x] Add Docker Compose support for the web app, PostgreSQL, MinIO, and MinIO bucket initialization.
-- [x] Add MinIO image storage provider selected by `ImageStorage:Provider`, with public image URL generation and `ObjectKey`-based deletion.
-- [x] Serve DataTables Spanish localization from a local static JSON asset instead of depending on the CDN at runtime.
-- [x] Move the admin pricing calculator away from SQL Server views/triggers into `PricingCalculatorService` and remove obsolete SQL view/repository infrastructure.
-
-### Post-Portfolio Publish TODO
-
-- [x] Add GitHub Actions CI for restore, build, and test.
-- [x] Add Docker support in upcoming releases.
-- [ ] Optionally add Serilog or another external sink for persisted structured logs.
-- [ ] Add centralized exception-handling middleware.
-
-### Environment Variables Setup (.env)
-
-The project uses **DotNetEnv** to manage secrets. The `.env` file is in `.gitignore` and is NOT pushed to GitHub.
-
-**Required variables in `UkiyoMono/.env`:**
-
-```env
-# Database Connection
-ConnectionStrings__DefaultConnection=your_connection_string
-# Optional: local/demo defaults to true. Production defaults to false in appsettings.Production.json.
-# Database__RunMigrationsOnStartup=true
-
-# Stripe Payment Gateway
-Stripe__SecretKey=your_stripe_secret_key
-Stripe__PublishableKey=your_stripe_publishable_key
-Stripe__WebhookSecret=your_stripe_webhook_secret
-
-# Facebook OAuth
-Facebook__AppId=your_facebook_app_id
-Facebook__AppSecret=your_facebook_app_secret
-
-# Email Configuration
-Email__Provider=Fake
-Email__UseFakeEmailSender=true
-Resend__ApiKey=re_xxxxxxxxx
-Resend__FromEmail=onboarding@resend.dev
-
-# Seed Admin User (created on first run)
-Seed__AdminEmail=your_admin_email
-Seed__AdminPassword=your_admin_password
-
-# Public Site URL used for canonical URLs, Open Graph, robots.txt, and sitemap.xml
-SiteUrl=https://ukiyo.bsite.net
-
-# Product image storage. Use Local for filesystem storage or Minio for S3-compatible storage.
-ImageStorage__Provider=Local
-ImageStorage__Minio__Endpoint=localhost:9000
-ImageStorage__Minio__UseSsl=false
-ImageStorage__Minio__BucketName=product-images
-ImageStorage__Minio__AccessKey=your_minio_access_key
-ImageStorage__Minio__SecretKey=your_minio_secret_key
-ImageStorage__Minio__PublicBaseUrl=http://localhost:9000/product-images
-
-# Social Media Links
-Social__TikTok=your_tiktok_link
-Social__WhatsApp=your_whatsapp_link
-Social__Instagram=your_instagram_link
-Social__Facebook=your_facebook_link
-Social__DevLink=your_devlink_link
+```text
+UkiyoMono/              ASP.NET Core MVC web app
+Ukiyo.DataAccess/      EF Core DbContext, repositories, migrations
+Ukiyo.Models/          Domain models and view models
+Ukiyo.Utility/         Shared constants and infrastructure helpers
+UkiyoDesignsWeb.Tests/ Automated tests
+docs/                  Screenshots and archived historical migration files
 ```
 
-## How to Run Locally
+## Configuration
 
-### Prerequisites
+Configuration is supplied through environment variables or ignored `.env` files. Do not commit real secrets.
+
+Common variables:
+
+```text
+ConnectionStrings__DefaultConnection
+Database__RunMigrationsOnStartup
+Stripe__SecretKey
+Stripe__PublishableKey
+Stripe__WebhookSecret
+Facebook__AppId
+Facebook__AppSecret
+Email__Provider
+Email__UseFakeEmailSender
+Resend__ApiKey
+Resend__FromEmail
+Seed__AdminEmail
+Seed__AdminPassword
+SiteUrl
+ImageStorage__Provider
+ImageStorage__Minio__Endpoint
+ImageStorage__Minio__UseSsl
+ImageStorage__Minio__BucketName
+ImageStorage__Minio__AccessKey
+ImageStorage__Minio__SecretKey
+ImageStorage__Minio__PublicBaseUrl
+```
+
+For local/demo email behavior, use `Email__Provider=Fake`. For real transactional email, use `Email__Provider=Resend` with a private `Resend__ApiKey` and verified sender.
+
+## Run Locally
+
+Prerequisites:
 
 - .NET 8 SDK
-- PostgreSQL for the current migration branch, or Docker Compose for a local PostgreSQL container
-- Stripe test keys
-- Facebook OAuth app credentials, if testing Facebook login
+- PostgreSQL or Docker Compose
+- Stripe test keys if testing checkout payments
+- Facebook OAuth credentials if testing Facebook login
 
-### Steps
-
-1. Clone the repository and enter the project folder.
-
-```powershell
-git clone <repository-url>
-cd UkiyoMono
-```
-
-2. Create `UkiyoMono/.env` with the required variables listed above.
-
-3. Restore dependencies.
+1. Restore dependencies.
 
 ```powershell
 dotnet restore UkiyoDesigns.sln
 ```
 
-4. Build the solution.
+2. Create `UkiyoMono/.env` with local configuration values.
+
+3. Build the solution.
 
 ```powershell
 dotnet build UkiyoDesigns.sln
 ```
 
-5. Run the web app.
+4. Run the web app.
 
 ```powershell
 dotnet run --project UkiyoMono/UkiyoDesignsWeb.csproj --launch-profile https
 ```
 
-6. Run the automated tests.
-
-```powershell
-dotnet test UkiyoDesigns.sln
-```
-
-7. Open the local site.
+5. Open the local site.
 
 ```text
 https://localhost:7189/es-AR
 ```
 
-When `Database__RunMigrationsOnStartup=true`, the application applies pending EF Core migrations, ensures required roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword` on startup. This remains enabled for local development. Production defaults to `false` in `appsettings.Production.json`; enable it only when you intentionally want the app process to apply startup database changes.
+When `Database__RunMigrationsOnStartup=true`, the app applies pending migrations, ensures roles, and creates the admin user from `Seed__AdminEmail` and `Seed__AdminPassword`. Production configuration defaults this to `false` so schema changes are intentional.
 
-Demo catalog, users, shopping activity, and orders are seeded manually from the Admin product page through guarded admin-only actions.
+## Docker Compose
 
-## Docker
+The Compose stack runs the web app, PostgreSQL 16, MinIO object storage, and a short-lived MinIO initialization container.
 
-Build the web app image from the repository root:
-
-```powershell
-docker build -t ukiyo-designs-web:latest .
-```
-
-Run the container on port 8080 and provide configuration through environment variables:
-
-```powershell
-docker run --rm -p 8080:8080 `
-  -e ASPNETCORE_ENVIRONMENT=Production `
-  -e Database__RunMigrationsOnStartup=false `
-  -e ConnectionStrings__DefaultConnection="your_connection_string" `
-  -e Stripe__SecretKey="your_stripe_secret_key" `
-  -e Stripe__PublishableKey="your_stripe_publishable_key" `
-  -e Stripe__WebhookSecret="your_stripe_webhook_secret" `
-  -e Email__Provider=Fake `
-  ukiyo-designs-web:latest
-```
-
-The image listens on `http://+:8080`, runs as the non-root user provided by the official .NET runtime image, and defaults `Database__RunMigrationsOnStartup=false` for production-like runs. Do not bake secrets or real environment values into the image; pass them from the hosting platform or deployment pipeline.
-
-
-### Docker Compose with PostgreSQL and MinIO
-
-The current Compose stack runs the ASP.NET Core web app, PostgreSQL 16, MinIO object storage, and a short-lived MinIO initialization container.
-
-1. Copy the Compose sample environment file and replace the placeholder values:
+1. Copy the sample Compose environment file and replace placeholders.
 
 ```powershell
 Copy-Item .env.compose.example .env.compose
 ```
 
-Keep `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` in sync with `ConnectionStrings__DefaultConnection`. The connection string host must remain `postgres` because that is the PostgreSQL service name on the Compose network.
-
-2. Build and start the app, PostgreSQL, and MinIO:
+2. Build and start the stack.
 
 ```powershell
 docker compose --env-file .env.compose up --build
 ```
 
-3. Open the site:
+3. Open the app.
 
 ```text
 http://localhost:8080/es-AR
 ```
 
-Compose runs the web app with `ASPNETCORE_ENVIRONMENT=Production`, exposes the app on `APP_HTTP_PORT` (default `8080`), starts PostgreSQL 16 on `POSTGRES_PORT` (default `5432`), starts MinIO on ports `9000`/`9001`, and persists data in the `postgres-data` and `minio-data` Docker volumes.
+Compose persists PostgreSQL data in `postgres-data` and MinIO objects in `minio-data`. For a fresh local database, temporarily enable startup initialization with `DATABASE_RUN_MIGRATIONS_ON_STARTUP=true`, then set it back to `false` if you want production-like behavior.
 
-`Database__RunMigrationsOnStartup` defaults to `false` to match production-like safety: the app process should not unexpectedly change schema on every container start. For a fresh local Compose database, you may temporarily set `DATABASE_RUN_MIGRATIONS_ON_STARTUP=true` in `.env.compose` so the existing startup initializer applies migrations, roles, and the seed admin user. Set it back to `false` after initialization if you want to keep Compose closer to production behavior.
-
-Stop containers without deleting the database volume:
+Stop containers without deleting data:
 
 ```powershell
 docker compose --env-file .env.compose down
 ```
 
-Delete the local PostgreSQL and MinIO data volumes only when you intentionally want a clean local stack:
+Delete local PostgreSQL and MinIO volumes only when intentionally resetting the local stack:
 
 ```powershell
 docker compose --env-file .env.compose down -v
 ```
 
-Use MinIO for product images in Compose by setting these values in your private `.env.compose`:
+For Compose image storage, use MinIO settings like:
 
 ```env
 ImageStorage__Provider=Minio
 ImageStorage__Minio__Endpoint=minio:9000
 ImageStorage__Minio__UseSsl=false
 ImageStorage__Minio__BucketName=product-images
-ImageStorage__Minio__AccessKey=minioadmin
-ImageStorage__Minio__SecretKey=Change_this_MinIO_Password_123!
 ImageStorage__Minio__PublicBaseUrl=http://localhost:9000/product-images
 ```
 
-`ImageStorage__Minio__Endpoint` is the internal Docker network endpoint used by the app to upload and delete objects. `ImageStorage__Minio__PublicBaseUrl` is the browser-facing base URL used to render product images. After code or Dockerfile changes, rebuild the web container with `docker compose --env-file .env.compose up -d --build`.
+`ImageStorage__Minio__Endpoint` is used by the web container over the Docker network. `ImageStorage__Minio__PublicBaseUrl` is the browser-facing URL for product image display.
 
-Open the MinIO console at `http://localhost:9001`. The `minio-init` service creates the `product-images` bucket and enables anonymous download for local/dev product image display. Do not store private files in this public-read bucket, and do not expose PostgreSQL or the MinIO console directly on a public VPS.
+Do not expose PostgreSQL or the MinIO console directly on a public server.
 
-### Email Sender
+## Tests
 
-The application uses ASP.NET Core Identity's `IEmailSender` abstraction for account confirmation, password reset, and email-change messages.
+Run the automated tests:
 
-For local/demo environments, keep `Email__Provider=Fake`. This registers `FakeEmailSender`, which logs that an email was intercepted but does not send the message or log the email address/body.
-
-For real transactional email, set `Email__Provider=Resend`, replace `Resend__ApiKey=re_xxxxxxxxx` with your real Resend API key in your private `.env` or hosting environment variables, and set `Resend__FromEmail` to a verified sender/domain. The default `onboarding@resend.dev` is useful only for initial Resend testing.
-
-When no provider is configured and `Email__UseFakeEmailSender=false`, the app uses `UnconfiguredEmailSender`, which fails explicitly if email sending is requested. This avoids silently dropping production emails.
-
-Do not commit SMTP credentials or email provider API keys.
-
-### Payments
-
-Stripe Checkout is isolated behind `IPaymentSessionService`, so controllers do not build Stripe session options directly. Payment status updates are handled through a Stripe webhook with signature validation using `Stripe__WebhookSecret`, rather than trusting only the browser redirect after checkout.
-
-### Product Image Storage
-
-Product image upload validation and resizing are handled by `ProductImageService`, while physical storage is isolated behind `IImageStorageService`. The app can use either `LocalImageStorageService` for local filesystem storage or `MinioImageStorageService` for S3-compatible object storage. The active provider is selected with `ImageStorage:Provider` (`Local` or `Minio`).
-
-`ProductImage.ImageUrl` is still used by the current Razor views for display, but `ObjectKey` is the storage identity for uploaded images and storage cleanup. MinIO object keys use a shape like `products/product-{id}/{guid}.jpg`, while display URLs are generated from `ImageStorage:Minio:PublicBaseUrl` plus the `ObjectKey`. Deletion intentionally does not fall back to `ImageUrl`; missing or unsafe object keys are logged and ignored.
-
-DataTables Spanish localization is served locally from `wwwroot/lib/datatables/i18n/es-AR.json` to avoid runtime dependency on the CDN i18n file.
-
-### Database Architecture
-
-The current migration branch uses EF Core with PostgreSQL/Npgsql. The admin pricing calculator is implemented in `PricingCalculatorService` using EF Core queries against the source cost tables instead of SQL Server views and triggers.
-
-Suggested prices recalculate from live cost inputs, while persisted storefront and checkout prices change only when an admin uses the controlled publish/update action. Trigger-maintained derived total columns were removed from the active model; unit and product/category totals used by the admin UI are calculated dynamically for display.
-### Project Structure
-
-```
-UkiyoMono/           # ASP.NET Core MVC Web App
-├── Areas/
-│   ├── Admin/       # CRUD for products, categories, price calculator
-│   ├── Customer/    # Home, Cart, Favorites
-│   └── Identity/    # Auth (Login, Register, Manage)
-├── Resources/       # .resx files for localization (es-AR/en-US)
-├── Program.cs      # Entry point with DotNetEnv configuration
-└── .env            # Local secrets (DO NOT COMMIT)
-
-Ukiyo.DataAccess/   # DbContext, Repositories, Migrations
-Ukiyo.Models/       # Entities and ViewModels
-Ukiyo.Utility/      # Helpers (Stripe, Email, SD)
+```powershell
+dotnet test UkiyoDesigns.sln
 ```
 
-### Tech Stack
+Current tests focus on high-value service behavior: upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
 
-- ASP.NET Core 8.0 MVC
-- Entity Framework Core with PostgreSQL/Npgsql
-- Identity + Facebook OAuth
-- Stripe Payment Gateway
-- Localization (Spanish/English)
-- DotNetEnv for secrets management
-- Docker Compose with PostgreSQL and MinIO
-- MinIO/S3-compatible product image storage
+## Deployment Direction
 
-### Database Entities
+The intended next deployment target is a fresh Ubuntu LTS Oracle/VPS server using Docker Compose behind Nginx or Caddy with HTTPS.
 
-**Core:** Product, Category, Company, ApplicationUser, ShoppingCart, OrderHeader, OrderDetail, ProductImage
+Production-style deployment goals:
 
-**Calculator:**
-- Fabric, FabricByProduct, UnitFabricByProduct
-- GarmentHardware, GarmentHardwareByProduct, UnitGarmentHardwareByProduct
-- Packaging, PackagingByCategory, UnitPackagingByCategory
-- FixedCost, PercentageCost, PercentageProfit
+- Keep PostgreSQL and MinIO private on the Docker network.
+- Expose only HTTP/HTTPS publicly through a reverse proxy.
+- Use private environment files or host secrets for configuration.
+- Keep `Database__RunMigrationsOnStartup=false` and run migrations intentionally.
+- Add PostgreSQL and MinIO backup/restore procedures before treating the server as durable.
+- Verify image upload/display/delete and checkout flows after deployment.
 
-**Pricing results:** FixedCostMonthly, TotalPercentageCost, CostByProduct, FinalPrice are calculated in application services for admin reporting/display.
+## Current Limitations / Next Work
+
+- Final branch verification and merge are still required for the PostgreSQL/MinIO migration work.
+- VPS deployment, HTTPS, backup/restore, and monitoring are planned next.
+- Identity 2FA QR generation needs a fix before real production-style deployment.
+- TinyMCE may be replaced with a free/open-source rich text editor alternative.
+- Wholesale pricing should include percentage costs.
+- Product Price screens should link directly to the product edit/upload view.
+
+## Portfolio Scope
+
+This is a production-style portfolio project, not an enterprise-scale production system. The focus is demonstrating practical .NET backend skills: database migration, secure file upload handling, object storage, payments, testing, Docker-based deployment, configuration, and operational basics.
