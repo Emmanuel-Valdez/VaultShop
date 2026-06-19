@@ -13,7 +13,7 @@
 
     function initializeEditor(textarea) {
         const editor = document.createElement('div');
-        editor.className = 'rich-text-editor border-0 shadow bg-white';
+        editor.className = 'rich-text-editor shadow';
         editor.innerHTML = textarea.value || '';
 
         textarea.classList.add('d-none');
