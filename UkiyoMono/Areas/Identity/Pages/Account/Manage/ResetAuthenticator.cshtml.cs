@@ -40,6 +40,11 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnGet()
         {
+            if (!TwoFactorManagement.IsEnabled)
+            {
+                return NotFound();
+            }
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -51,6 +56,11 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!TwoFactorManagement.IsEnabled)
+            {
+                return NotFound();
+            }
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {

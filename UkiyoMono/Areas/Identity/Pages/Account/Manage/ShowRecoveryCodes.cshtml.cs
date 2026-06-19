@@ -35,6 +35,11 @@ namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public IActionResult OnGet()
         {
+            if (!TwoFactorManagement.IsEnabled)
+            {
+                return NotFound();
+            }
+
             if (RecoveryCodes == null || RecoveryCodes.Length == 0)
             {
                 return RedirectToPage("./TwoFactorAuthentication");
