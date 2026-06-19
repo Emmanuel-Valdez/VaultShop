@@ -9,6 +9,7 @@ using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.ImageStorage;
 using UkiyoDesignsWeb.Services.ProductImages;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -21,15 +22,17 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly IDemoDataSeeder _demoDataSeeder;
 		private readonly IProductImageService _productImageService;
 		private readonly IImageStorageService _imageStorageService;
+		private readonly IRichTextSanitizer _richTextSanitizer;
 		private readonly ILogger<ProductController> _logger;
 
-		public ProductController(IUnitOfWork unitOfWork, IStringLocalizer<ProductController> localizer, IDemoDataSeeder demoDataSeeder, IProductImageService productImageService, IImageStorageService imageStorageService, ILogger<ProductController> logger)
+		public ProductController(IUnitOfWork unitOfWork, IStringLocalizer<ProductController> localizer, IDemoDataSeeder demoDataSeeder, IProductImageService productImageService, IImageStorageService imageStorageService, IRichTextSanitizer richTextSanitizer, ILogger<ProductController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_demoDataSeeder = demoDataSeeder;
 			_productImageService = productImageService;
 			_imageStorageService = imageStorageService;
+			_richTextSanitizer = richTextSanitizer;
 			_logger = logger;
 		}
 		public IActionResult Index()
@@ -136,6 +139,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Upsert(ProductVM productVM, List<IFormFile> files)
 		{
+			productVM.Product.Description = _richTextSanitizer.Sanitize(productVM.Product.Description) ?? string.Empty;
+			ModelState.Remove("Product.Description");
+
 			if (productVM.Product.FinalWholesalePrice > productVM.Product.FinalRetailPrice && productVM.Product.Id != 0 && productVM.Product.FinalRetailPrice > 0)
 			{
 				ModelState.AddModelError("", _localizer["MinorLowerMajor"].Value);

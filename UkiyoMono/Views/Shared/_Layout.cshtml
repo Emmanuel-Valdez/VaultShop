@@ -59,6 +59,7 @@
 	<link rel="apple-touch-icon" href="~/apple-touch-icon.png" />
 	<link rel="manifest" href="~/site.webmanifest" />
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+	<link rel="stylesheet" href="~/lib/quill/quill.snow.css" asp-append-version="true" />
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 	<link rel="stylesheet" href=" //cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
 	<link rel="stylesheet" href="~/UkiyoDesignsWeb.styles.css" asp-append-version="true" />
@@ -349,7 +350,7 @@
 	<script src="https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.js"></script>
 	<script src="https://cdn.datatables.net/responsive/3.0.3/js/responsive.bootstrap5.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	<script src="https://cdn.tiny.cloud/1/i512xeptxidiq8degyguvy75e4q42t00srpxq6l3nnezm7v1/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+	<script src="~/lib/quill/quill.js" asp-append-version="true"></script>
 	<script src="https://cdn.datatables.net/buttons/3.1.2/js/dataTables.buttons.js"></script>
 	<script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.dataTables.js"></script>
 	<script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.bootstrap5.js"></script>
@@ -361,6 +362,7 @@
 	<script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.print.min.js"></script>
 
 	<script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+	<script src="~/js/richTextEditor.js" asp-append-version="true"></script>
 
 	@await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -6,6 +6,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 
 using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -15,10 +16,12 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	{
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<FabricController> _localizer;
-		public FabricController(IUnitOfWork unitOfWork, IStringLocalizer<FabricController> localizer)
+		private readonly IRichTextSanitizer _richTextSanitizer;
+		public FabricController(IUnitOfWork unitOfWork, IStringLocalizer<FabricController> localizer, IRichTextSanitizer richTextSanitizer)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
+			_richTextSanitizer = richTextSanitizer;
 		}
 		public IActionResult Index()
 		{
@@ -45,6 +48,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert(Fabric obj)
 		{
+			obj.Description = _richTextSanitizer.Sanitize(obj.Description);
+			ModelState.Remove(nameof(Fabric.Description));
+
 			if (!ModelState.IsValid)
 				return View(obj);
 

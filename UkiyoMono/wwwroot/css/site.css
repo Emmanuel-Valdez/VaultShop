@@ -109,3 +109,7 @@ div.dt-button-collection .dt-button:hover {
     color: #fef3c7;
     box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.22);
 }
+
+.rich-text-editor .ql-editor {
+    min-height: 12rem;
+}

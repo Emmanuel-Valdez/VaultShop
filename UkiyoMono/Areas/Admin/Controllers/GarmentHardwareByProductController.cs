@@ -9,6 +9,7 @@ using UkiyoDesigns.Models.DTO;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Pricing;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -21,15 +22,17 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly IStringLocalizer<GarmentHardwareByProductController> _localizer;
 		private readonly ILogger<GarmentHardwareByProductController> _logger;
 		private readonly IPricingCalculatorService _pricingCalculatorService;
+		private readonly IRichTextSanitizer _richTextSanitizer;
 		[BindProperty]
 		public GarmentHardwareByProductVM GarmentHardwareByProductVM { get; set; } = null!;
 
-		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer, ILogger<GarmentHardwareByProductController> logger, IPricingCalculatorService pricingCalculatorService)
+		public GarmentHardwareByProductController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareByProductController> localizer, ILogger<GarmentHardwareByProductController> logger, IPricingCalculatorService pricingCalculatorService, IRichTextSanitizer richTextSanitizer)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer= localizer;
 			_logger = logger;
 			_pricingCalculatorService = pricingCalculatorService;
+			_richTextSanitizer = richTextSanitizer;
 		}
 
 		public IActionResult Index()
@@ -85,6 +88,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert()
 		{
+			GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.Description = _richTextSanitizer.Sanitize(GarmentHardwareByProductVM.UnitGarmentHardwareByProduct.Description);
+			ModelState.Remove("UnitGarmentHardwareByProduct.Description");
+
 			if (!ModelState.IsValid)
 			{
 				return View(GarmentHardwareByProductVM);

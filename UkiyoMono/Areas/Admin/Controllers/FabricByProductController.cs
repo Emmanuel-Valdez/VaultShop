@@ -9,6 +9,7 @@ using UkiyoDesigns.Models.DTO;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Pricing;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -23,14 +24,16 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly IStringLocalizer<FabricByProductController> _localizer;
 		private readonly ILogger<FabricByProductController> _logger;
 		private readonly IPricingCalculatorService _pricingCalculatorService;
+		private readonly IRichTextSanitizer _richTextSanitizer;
 
 
-		public FabricByProductController(IUnitOfWork unitOfWork, IStringLocalizer<FabricByProductController> localizer, ILogger<FabricByProductController> logger, IPricingCalculatorService pricingCalculatorService)
+		public FabricByProductController(IUnitOfWork unitOfWork, IStringLocalizer<FabricByProductController> localizer, ILogger<FabricByProductController> logger, IPricingCalculatorService pricingCalculatorService, IRichTextSanitizer richTextSanitizer)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
 			_pricingCalculatorService = pricingCalculatorService;
+			_richTextSanitizer = richTextSanitizer;
 		}
 
 		public IActionResult Index()
@@ -87,6 +90,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert()
 		{
+			FabricByProductVM.UnitFabricByProduct.Description = _richTextSanitizer.Sanitize(FabricByProductVM.UnitFabricByProduct.Description);
+			ModelState.Remove("UnitFabricByProduct.Description");
+
 			if (!ModelState.IsValid)
 			{
 				return View(FabricByProductVM);

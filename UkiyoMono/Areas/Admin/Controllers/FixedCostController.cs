@@ -5,6 +5,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Pricing;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -15,12 +16,14 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IPricingCalculatorService _pricingCalculatorService;
 		private readonly IStringLocalizer<FixedCostController> _localizer;
+		private readonly IRichTextSanitizer _richTextSanitizer;
 
-		public FixedCostController(IUnitOfWork unitOfWork, IPricingCalculatorService pricingCalculatorService, IStringLocalizer<FixedCostController> localizer)
+		public FixedCostController(IUnitOfWork unitOfWork, IPricingCalculatorService pricingCalculatorService, IStringLocalizer<FixedCostController> localizer, IRichTextSanitizer richTextSanitizer)
 		{
 			_unitOfWork = unitOfWork;
 			_pricingCalculatorService = pricingCalculatorService;
 			_localizer = localizer;
+			_richTextSanitizer = richTextSanitizer;
 		}
 		public IActionResult Index()
 		{
@@ -46,6 +49,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert(FixedCost obj)
 		{
+			obj.Description = _richTextSanitizer.Sanitize(obj.Description);
+			ModelState.Remove(nameof(FixedCost.Description));
+
 			if (!ModelState.IsValid)
 				return View(obj);
 			if (obj.Id == 0)

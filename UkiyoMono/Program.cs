@@ -21,6 +21,7 @@ using UkiyoDesignsWeb.Services.ImageStorage;
 using UkiyoDesignsWeb.Services.ProductImages;
 using UkiyoDesignsWeb.Services.Payments;
 using UkiyoDesignsWeb.Services.Pricing;
+using UkiyoDesignsWeb.Services.RichText;
 
 
 DotNetEnv.Env.Load();
@@ -131,6 +132,7 @@ builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionCl
 builder.Services.AddScoped<IPaymentSessionService, StripePaymentSessionService>();
 builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
 builder.Services.AddScoped<IPricingCalculatorService, PricingCalculatorService>();
+builder.Services.AddScoped<IRichTextSanitizer, RichTextSanitizer>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {

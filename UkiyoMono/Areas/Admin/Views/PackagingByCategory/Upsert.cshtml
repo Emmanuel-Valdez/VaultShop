@@ -100,7 +100,7 @@
 								</div>
 								<div class="formform-floating py-2 col-12">
 									<label asp-for="UnitPackagingByCategory.Description" class="ms-2 mb-2 text-muted ">@Localizer["Description"]</label>
-									<textarea asp-for="UnitPackagingByCategory.Description" class="form-control border-0 shadow"></textarea>
+									<textarea asp-for="UnitPackagingByCategory.Description" class="form-control border-0 shadow js-rich-text"></textarea>
 								</div>
 							</div>
 						</form>
@@ -120,13 +120,6 @@
 		</script>
 		<partial name="_ValidationScriptsPartial" />
 		<script src="~/js/unitPackagingByCategory.js"></script>
-		<script>
-			tinymce.init({
-				selector: 'textarea',
-				plugins: 'anchor autolink charmap codesample emoticons link lists searchreplace  ',
-				toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link | align | numlist bullist indent outdent | emoticons',
-			});
-		</script>
 	}
 }
 

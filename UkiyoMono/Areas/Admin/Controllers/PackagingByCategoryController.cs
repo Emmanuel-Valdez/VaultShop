@@ -9,6 +9,7 @@ using UkiyoDesigns.Models.DTO;
 using UkiyoDesigns.Models.ViewModels;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Pricing;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -20,15 +21,17 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly IStringLocalizer<PackagingByCategoryController> _localizer;
 		private readonly ILogger<PackagingByCategoryController> _logger;
 		private readonly IPricingCalculatorService _pricingCalculatorService;
+		private readonly IRichTextSanitizer _richTextSanitizer;
 		[BindProperty]
 		public PackagingByCategoryVM PackagingByCategoryVM { get; set; } = null!;
 
-		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer, ILogger<PackagingByCategoryController> logger, IPricingCalculatorService pricingCalculatorService)
+		public PackagingByCategoryController(IUnitOfWork unitOfWork, IStringLocalizer<PackagingByCategoryController> localizer, ILogger<PackagingByCategoryController> logger, IPricingCalculatorService pricingCalculatorService, IRichTextSanitizer richTextSanitizer)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
 			_pricingCalculatorService = pricingCalculatorService;
+			_richTextSanitizer = richTextSanitizer;
 		}
 		public IActionResult Index()
 		{
@@ -84,6 +87,8 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert()
 		{
+			PackagingByCategoryVM.UnitPackagingByCategory.Description = _richTextSanitizer.Sanitize(PackagingByCategoryVM.UnitPackagingByCategory.Description);
+			ModelState.Remove("UnitPackagingByCategory.Description");
 
 			if (!ModelState.IsValid)
 			{

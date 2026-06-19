@@ -6,6 +6,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 
 using UkiyoDesigns.Models.CalculatorModels;
 using UkiyoDesigns.Utility;
+using UkiyoDesignsWeb.Services.RichText;
 
 namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 {
@@ -15,11 +16,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 	{
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<GarmentHardwareController> _localizer; 
+		private readonly IRichTextSanitizer _richTextSanitizer;
 
-		public GarmentHardwareController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareController> localizer)
+		public GarmentHardwareController(IUnitOfWork unitOfWork, IStringLocalizer<GarmentHardwareController> localizer, IRichTextSanitizer richTextSanitizer)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
+			_richTextSanitizer = richTextSanitizer;
 		}
 		public IActionResult Index()
 		{
@@ -44,6 +47,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert(GarmentHardware obj)
 		{
+			obj.Description = _richTextSanitizer.Sanitize(obj.Description);
+			ModelState.Remove(nameof(GarmentHardware.Description));
+
 			if (!ModelState.IsValid)
 				return View(obj);
 

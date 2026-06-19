@@ -215,10 +215,8 @@ Production-style deployment goals:
 
 ## Current Limitations / Next Work
 
-- Final branch verification and merge are still required for the PostgreSQL/MinIO migration work.
 - VPS deployment, HTTPS, backup/restore, and monitoring are planned next.
 - Identity 2FA QR generation needs a fix before real production-style deployment.
-- TinyMCE may be replaced with a free/open-source rich text editor alternative.
 - Wholesale pricing should include percentage costs.
 - Product Price screens should link directly to the product edit/upload view.
 
