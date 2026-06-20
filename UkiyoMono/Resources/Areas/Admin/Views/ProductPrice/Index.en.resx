@@ -175,13 +175,37 @@
     <value>Total Cost</value>
   </data>
   <data name="TotalPercentageCost" xml:space="preserve">
-    <value>Total Retail Percentage Cost</value>
+    <value>Retail cost total</value>
   </data>
   <data name="TotalPercentageCostWholesale" xml:space="preserve">
-    <value>Total Wholesale Percentage Cost</value>
+    <value>Wholesale cost total</value>
   </data>
   <data name="PercentageCostTotalsHelp" xml:space="preserve">
     <value>Retail and wholesale percentage cost totals are read-only here. Manage them from their percentage cost pages.</value>
+  </data>
+  <data name="PricingSettings" xml:space="preserve">
+    <value>Pricing settings</value>
+  </data>
+  <data name="PricingSettingsDescription" xml:space="preserve">
+    <value>Review read-only cost totals and update the profit percentages used to calculate suggested prices.</value>
+  </data>
+  <data name="CostTotals" xml:space="preserve">
+    <value>Cost totals</value>
+  </data>
+  <data name="ProfitPercentages" xml:space="preserve">
+    <value>Profit percentages</value>
+  </data>
+  <data name="RetailCostTotal" xml:space="preserve">
+    <value>Retail cost total</value>
+  </data>
+  <data name="WholesaleCostTotal" xml:space="preserve">
+    <value>Wholesale cost total</value>
+  </data>
+  <data name="RetailProfit" xml:space="preserve">
+    <value>Retail profit</value>
+  </data>
+  <data name="WholesaleProfit" xml:space="preserve">
+    <value>Wholesale profit</value>
   </data>
   <data name="PriceCurrent" xml:space="preserve">
     <value>Published price matches the suggested price.</value>
@@ -199,7 +223,7 @@
     <value>Update</value>
   </data>
   <data name="UpdateProfits" xml:space="preserve">
-    <value>Update Profits</value>
+    <value>Update profit percentages</value>
   </data>
   <data name="UpdateProfitVariables" xml:space="preserve">
     <value>Update Profit Variables</value>

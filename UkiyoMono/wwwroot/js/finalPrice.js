@@ -39,17 +39,26 @@ function loadDataTable() {
     dataTable = table.DataTable({
         "ajax": { url: `/${culture}/admin/ProductPrice/GetAllProductFinalPrice` },
         "columns": [
-            { data: 'product.id' },
             {
-                data: { name: 'product.name', isAvailableInStore: 'product.isAvailableInStore' },
-                "render": function (data) {
-                    const isAvailable = data.product.isAvailableInStore;
+                data: 'product',
+                "render": function (product, type) {
+                    const productName = product?.name || '';
+
+                    if (type !== 'display') {
+                        return productName;
+                    }
+
+                    const isAvailable = product?.isAvailableInStore;
                     const color = isAvailable ? 'success' : 'warning';
                     const statusText = isAvailable ? labels.productAvailable : labels.productUnavailable;
-                    const productName = data.product.name || '';
                     const ariaLabel = `${productName}. ${statusText}`;
+                    const productId = product?.id;
 
-                    return `<span class="text-${color}" title="${escapeHtml(statusText)}" aria-label="${escapeHtml(ariaLabel)}">${escapeHtml(productName)}</span>`;
+                    if (productId === undefined || productId === null) {
+                        return `<span class="text-${color}" title="${escapeHtml(statusText)}" aria-label="${escapeHtml(ariaLabel)}">${escapeHtml(productName)}</span>`;
+                    }
+
+                    return `<a href="/${culture}/admin/product/upsert?id=${encodeURIComponent(productId)}" class="text-${color} fw-semibold" title="${escapeHtml(statusText)}" aria-label="${escapeHtml(ariaLabel)}">${escapeHtml(productName)}</a>`;
                 }
             },
             { data: 'categoryName' },
@@ -75,7 +84,12 @@ function loadDataTable() {
                     return renderPriceStatus(data.finalWholesale, data.actualWholesalePrice, 'text-danger', labels);
                 }
             },
-            { data: 'product.isAvailableInStore' }
+            {
+                data: 'product.isAvailableInStore',
+                render: function (data) {
+                    return data ? 'true' : 'false';
+                }
+            }
         ],
         "language": window.SpanishCultureTables(culture),
         layout: { topStart: 'buttons' },
@@ -109,17 +123,17 @@ function loadDataTable() {
             ],
         },
         columnDefs: [
-            { responsivePriority: 1, targets: 10 },
-            { responsivePriority: 2, targets: 8 },
-            { responsivePriority: 3, targets: 9 },
-            { responsivePriority: 4, targets: 7 },
-            { responsivePriority: 5, targets: 1 },
-            { responsivePriority: 6, targets: 0 },
-            { targets: 11, visible: false },
+            { responsivePriority: 1, targets: 9 },
+            { responsivePriority: 2, targets: 7 },
+            { responsivePriority: 3, targets: 8 },
+            { responsivePriority: 4, targets: 6 },
+            { responsivePriority: 5, targets: 0 },
+            { responsivePriority: 6, targets: 1 },
+            { targets: 10, visible: false, searchable: true },
+            { targets: 2, visible: false },
             { targets: 3, visible: false },
             { targets: 4, visible: false },
-            { targets: 5, visible: false },
-            { targets: 6, visible: false }
+            { targets: 5, visible: false }
         ],
         responsive: {
             details: {

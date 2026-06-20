@@ -175,13 +175,37 @@
     <value>Costo Total</value>
   </data>
   <data name="TotalPercentageCost" xml:space="preserve">
-    <value>Costo Porcentual Minorista Total</value>
+    <value>Costo minorista total</value>
   </data>
   <data name="TotalPercentageCostWholesale" xml:space="preserve">
-    <value>Costo Porcentual Mayorista Total</value>
+    <value>Costo mayorista total</value>
   </data>
   <data name="PercentageCostTotalsHelp" xml:space="preserve">
     <value>Los totales de costo porcentual minorista y mayorista son de solo lectura acá. Administralos desde sus páginas de costos porcentuales.</value>
+  </data>
+  <data name="PricingSettings" xml:space="preserve">
+    <value>Configuración de precios</value>
+  </data>
+  <data name="PricingSettingsDescription" xml:space="preserve">
+    <value>Revisá los totales de costo de solo lectura y actualizá los porcentajes de ganancia usados para calcular precios sugeridos.</value>
+  </data>
+  <data name="CostTotals" xml:space="preserve">
+    <value>Totales de costos</value>
+  </data>
+  <data name="ProfitPercentages" xml:space="preserve">
+    <value>Porcentajes de ganancia</value>
+  </data>
+  <data name="RetailCostTotal" xml:space="preserve">
+    <value>Costo minorista total</value>
+  </data>
+  <data name="WholesaleCostTotal" xml:space="preserve">
+    <value>Costo mayorista total</value>
+  </data>
+  <data name="RetailProfit" xml:space="preserve">
+    <value>Ganancia minorista</value>
+  </data>
+  <data name="WholesaleProfit" xml:space="preserve">
+    <value>Ganancia mayorista</value>
   </data>
   <data name="PriceCurrent" xml:space="preserve">
     <value>El precio publicado coincide con el precio sugerido.</value>
@@ -199,7 +223,7 @@
     <value>Actualizar</value>
   </data>
   <data name="UpdateProfits" xml:space="preserve">
-    <value>Actualizar Ganancias</value>
+    <value>Actualizar porcentajes de ganancia</value>
   </data>
   <data name="UpdateProfitVariables" xml:space="preserve">
     <value>Actualizar Variables de Ganancias</value>

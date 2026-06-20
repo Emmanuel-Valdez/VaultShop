@@ -18,75 +18,61 @@
 				</button>
 			}
 		</form>
-		<div class="accordion accordion-flush  m-2 " id="accordionFlush">
-			<div class="accordion-item  ">
-				<h2 class="accordion-header ">
-					<button class="accordion-button collapsed rounded-pill border shadow " type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-						@Localizer["UpdateProfitVariables"]
-					</button>
-				</h2>
-				<div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlush">
-					<div class="accordion-body">
-						<form method="post" class="col-12">
-							@Html.AntiForgeryToken()
-							<input asp-for="CountOutdated" hidden />
-							<div class="border p-3">
-								<div asp-validation-summary="ModelOnly" class="text-danger"></div>
-								<p id="percentage-cost-totals-help" class="small text-muted mb-3">@Localizer["PercentageCostTotalsHelp"]</p>
-								<div class="row align-items-center">
-									<div class="mb-3 col-lg-3 col-md-6 shadow">
-										<div class="mb-3 ">
-											<div class="input-group mb-3">
-												<span class="input-group-text text-dark">%</span>
-												<div class="form-floating">
-													<input asp-for="@Model.TotalPercentageCost.TotalPercentage" disabled class="form-control" placeholder="TotalPercentageCost" aria-describedby="percentage-cost-totals-help" />
-													<label asp-for="@Model.TotalPercentageCost.TotalPercentage" class="ms-2 text-muted">@Localizer["TotalPercentageCost"]</label>
-												</div>
-											</div>
-										</div>
-									</div>
-									<div class="mb-3 col-lg-3 col-md-6 shadow">
-										<div class="mb-3 ">
-											<div class="input-group mb-3">
-												<span class="input-group-text text-dark">%</span>
-												<div class="form-floating">
-													<input asp-for="@Model.TotalPercentageCostWholesale.TotalPercentage" disabled class="form-control" placeholder="TotalPercentageCostWholesale" aria-describedby="percentage-cost-totals-help" />
-													<label asp-for="@Model.TotalPercentageCostWholesale.TotalPercentage" class="ms-2 text-muted">@Localizer["TotalPercentageCostWholesale"]</label>
-												</div>
-											</div>
-										</div>
-									</div>
-									<div class="mb-3 col-lg-3 col-md-6 shadow">
-										<div class="mb-3">
-											<div class="input-group mb-3">
-												<span class="input-group-text text-dark">%</span>
-												<div class="form-floating">
-													<input asp-for="@Model.PercentageProfit.Retail" class="form-control" placeholder="Retail Profit" />
-													<label asp-for="@Model.PercentageProfit.Retail" class="ms-2 text-muted">@Localizer["Retail"]</label>
-												</div>
-											</div>
-										</div>
-										<span asp-validation-for="@Model.PercentageProfit.Retail" class="text-danger"></span>
-									</div>
-									<div class="mb-3 col-lg-3 col-md-6 shadow">
-										<div class="mb-3 ">
-											<div class="input-group mb-3">
-												<span class="input-group-text text-dark">%</span>
-												<div class="form-floating">
-													<input asp-for="@Model.PercentageProfit.Wholesale" class="form-control" placeholder="Wholesale Profit" />
-													<label asp-for="@Model.PercentageProfit.Wholesale" class="ms-2 text-muted">@Localizer["Wholesale"]</label>
-												</div>
-											</div>
-										</div>
-										<span asp-validation-for="@Model.PercentageProfit.Wholesale" class="text-danger"></span>
-									</div>
-									<div class="col-12 d-flex justify-content-center align-items-center">
-										<button type="submit" asp-action="Index" class="btn btn-primary ">@Localizer["UpdateProfits"]</button>
-									</div>
+		<div class="border rounded-3 bg-body-tertiary p-3 mb-4">
+			<div class="mb-3">
+				<h3 class="h5 mb-1">@Localizer["PricingSettings"]</h3>
+				<p id="pricing-settings-help" class="small text-muted mb-0">@Localizer["PricingSettingsDescription"]</p>
+			</div>
+			<div class="row g-3 align-items-stretch">
+				<div class="col-12 col-xl-5">
+					<section class="h-100 border rounded-3 bg-body p-3" aria-labelledby="cost-totals-heading">
+						<h4 id="cost-totals-heading" class="h6 text-uppercase text-muted fw-semibold mb-3">@Localizer["CostTotals"]</h4>
+						<div class="row g-2">
+							<div class="col-12 col-sm-6 col-xl-12">
+								<div class="border rounded-3 p-3 h-100">
+									<div class="small text-muted mb-1">@Localizer["RetailCostTotal"]</div>
+									<div class="fs-4 fw-semibold text-body">@($"{Model.TotalPercentageCost.TotalPercentage:N2}%")</div>
 								</div>
 							</div>
-						</form>
-					</div>
+							<div class="col-12 col-sm-6 col-xl-12">
+								<div class="border rounded-3 p-3 h-100">
+									<div class="small text-muted mb-1">@Localizer["WholesaleCostTotal"]</div>
+									<div class="fs-4 fw-semibold text-body">@($"{Model.TotalPercentageCostWholesale.TotalPercentage:N2}%")</div>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+				<div class="col-12 col-xl-7">
+					<form method="post" class="h-100" aria-describedby="pricing-settings-help">
+						@Html.AntiForgeryToken()
+						<input asp-for="CountOutdated" hidden />
+						<section class="h-100 border rounded-3 bg-body p-3" aria-labelledby="profit-percentages-heading">
+							<h4 id="profit-percentages-heading" class="h6 text-uppercase text-muted fw-semibold mb-3">@Localizer["ProfitPercentages"]</h4>
+							<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+							<div class="row g-3 align-items-end">
+								<div class="col-12 col-md-6">
+									<label asp-for="PercentageProfit.Retail" class="form-label fw-semibold">@Localizer["RetailProfit"]</label>
+									<div class="input-group">
+										<input asp-for="PercentageProfit.Retail" class="form-control" inputmode="decimal" />
+										<span class="input-group-text text-dark">%</span>
+									</div>
+									<span asp-validation-for="PercentageProfit.Retail" class="text-danger small"></span>
+								</div>
+								<div class="col-12 col-md-6">
+									<label asp-for="PercentageProfit.Wholesale" class="form-label fw-semibold">@Localizer["WholesaleProfit"]</label>
+									<div class="input-group">
+										<input asp-for="PercentageProfit.Wholesale" class="form-control" inputmode="decimal" />
+										<span class="input-group-text text-dark">%</span>
+									</div>
+									<span asp-validation-for="PercentageProfit.Wholesale" class="text-danger small"></span>
+								</div>
+								<div class="col-12 d-grid d-md-flex justify-content-md-end">
+									<button type="submit" asp-action="Index" class="btn btn-primary">@Localizer["UpdateProfits"]</button>
+								</div>
+							</div>
+						</section>
+					</form>
 				</div>
 			</div>
 		</div>
@@ -97,7 +83,6 @@
 			   data-product-unavailable="@Localizer["ProductUnavailable"]">
 			<thead>
 				<tr>
-					<th>@Localizer["Id"]</th>
 					<th>@Localizer["ProductName"]</th>
 					<th>@Localizer["Category"]</th>
 					<th>@Localizer["ShippingCostByCategory"]</th>

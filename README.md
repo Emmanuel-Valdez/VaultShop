@@ -32,7 +32,7 @@ Ukiyo is a portfolio e-commerce project for custom anime-inspired backpacks and 
 
 - Customer storefront with product browsing, favorites, cart, checkout, and retail/wholesale pricing.
 - Admin product, category, inventory, company, order, and price-management flows.
-- Admin pricing calculator for fabrics, garment hardware, packaging, fixed costs, percentage costs, profit margins, and final prices.
+- Admin pricing calculator for fabrics, garment hardware, packaging, fixed costs, separate retail/wholesale percentage costs, profit margins, and final prices.
 - Final price dashboard that compares current storefront prices with calculated cost-based suggestions.
 - ASP.NET Core Identity with roles for Customer, Company, Employee, and Admin users.
 - Stripe Checkout integration with webhook-based payment status updates.
@@ -54,6 +54,7 @@ Ukiyo is a portfolio e-commerce project for custom anime-inspired backpacks and 
 
 - PostgreSQL is the active database provider. Earlier SQL Server migration history is archived and no longer part of the active runtime path.
 - The admin pricing calculator uses `PricingCalculatorService` and EF Core queries instead of SQL Server views/triggers.
+- Retail and wholesale percentage costs are modeled separately; wholesale suggestions include wholesale profit plus wholesale percentage costs in the final margin formula.
 - Product image persistence is behind `IImageStorageService`; the app supports local filesystem storage and MinIO.
 - `ProductImage.ObjectKey` is the storage identity for uploaded images. `ImageUrl` is used only as the browser display URL.
 - Checkout order creation is handled by `CheckoutService` and wrapped in a transaction to avoid partial orders.
@@ -198,7 +199,7 @@ Run the automated tests:
 dotnet test UkiyoDesigns.sln
 ```
 
-Current tests focus on high-value service behavior: upload validation, checkout rules, transactional order creation, Stripe session creation, and payment status updates.
+Current tests focus on high-value service behavior: upload validation, checkout rules, transactional order creation, Stripe session creation, payment status updates, and pricing calculator formulas/publish behavior.
 
 ## Deployment Direction
 
@@ -216,9 +217,8 @@ Production-style deployment goals:
 ## Current Limitations / Next Work
 
 - VPS deployment, HTTPS, backup/restore, and monitoring are planned next.
+- Apply pending EF Core migrations intentionally during deployment, including the wholesale percentage cost migration.
 - Identity 2FA management is intentionally hidden until the QR setup/recovery flow is completed and tested.
-- Wholesale pricing should include percentage costs.
-- Product Price screens should link directly to the product edit/upload view.
 
 ## Portfolio Scope
 
