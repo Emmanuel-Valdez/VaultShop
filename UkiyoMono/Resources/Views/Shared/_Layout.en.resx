@@ -193,6 +193,12 @@
   <data name="PercentageCost" xml:space="preserve">
     <value>Percentage Cost</value>
   </data>
+  <data name="RetailPercentageCost" xml:space="preserve">
+    <value>Retail Percentage Cost</value>
+  </data>
+  <data name="WholesalePercentageCost" xml:space="preserve">
+    <value>Wholesale Percentage Cost</value>
+  </data>
   <data name="Privacy" xml:space="preserve">
     <value>Privacy</value>
   </data>

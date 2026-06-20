@@ -34,6 +34,7 @@ namespace UkiyoDesigns.DataAccess.Data
 		public DbSet<UnitGarmentHardwareByProduct> UnitsGarmentHardwareByProduct { get; set; }
 		public DbSet<FixedCost> FixedCosts { get; set; }
 		public DbSet<PercentageCost> PercentageCosts { get; set; }
+		public DbSet<PercentageCostWholesale> PercentageCostsWholesale { get; set; }
 		public DbSet<PercentageProfit> PercentageProfits { get; set; }
 		public DbSet<FavoriteProduct> FavoriteProducts { get; set; }
 
@@ -41,6 +42,9 @@ namespace UkiyoDesigns.DataAccess.Data
 		{
 
 			base.OnModelCreating(modelBuilder);
+
+			modelBuilder.Entity<PercentageCostWholesale>()
+				.ToTable("PercentageCostsWholesale");
 
 			//Columns calculated automatically when update prices
 			modelBuilder.Entity<Packaging>()

@@ -21,7 +21,9 @@ public class PricingCalculatorService : IPricingCalculatorService
 		{
 			TotalFixedCostMonthly = _db.FixedCosts
 				.AsNoTracking()
-				.Sum(fixedCost => fixedCost.Cost)
+				.Select(fixedCost => fixedCost.Cost)
+				.AsEnumerable()
+				.Sum()
 		};
 	}
 	public TotalPercentageCost GetTotalPercentageCost()
@@ -30,7 +32,21 @@ public class PricingCalculatorService : IPricingCalculatorService
 		{
 			TotalPercentage = _db.PercentageCosts
 				.AsNoTracking()
-				.Sum(percentageCost => percentageCost.Percentage)
+				.Select(percentageCost => percentageCost.Percentage)
+				.AsEnumerable()
+				.Sum()
+		};
+	}
+
+	public TotalPercentageCostWholesale GetTotalPercentageCostWholesale()
+	{
+		return new TotalPercentageCostWholesale
+		{
+			TotalPercentage = _db.PercentageCostsWholesale
+				.AsNoTracking()
+				.Select(percentageCost => percentageCost.Percentage)
+				.AsEnumerable()
+				.Sum()
 		};
 	}
 
@@ -60,7 +76,9 @@ public class PricingCalculatorService : IPricingCalculatorService
 	{
 		var fixedCost = _db.FixedCosts
 			.AsNoTracking()
-			.Sum(fixedCost => fixedCost.Cost);
+			.Select(fixedCost => fixedCost.Cost)
+			.AsEnumerable()
+			.Sum();
 
 		var fabricTotals = GetFabricTotalsByProduct();
 		var garmentHardwareTotals = GetGarmentHardwareTotalsByProduct();
@@ -107,16 +125,19 @@ public class PricingCalculatorService : IPricingCalculatorService
 		}
 
 		var totalPercentage = GetTotalPercentageCost().TotalPercentage;
+		var totalPercentageCostWholesale = GetTotalPercentageCostWholesale().TotalPercentage;
 		var costsByProduct = GetCostByProducts();
 
 		return costsByProduct
 			.Select(costByProduct =>
 			{
 				var product = costByProduct.Product;
-				var retailWithProfit = costByProduct.TotalCostByProduct / (1 - percentageProfit.Retail / 100);
+				var retailWithProfit = CalculatePriceWithPercentage(costByProduct.TotalCostByProduct, percentageProfit.Retail, "retail profit");
 				var retailWithShipping = retailWithProfit + product.Category.AvgShippingCost;
-				var finalRetail = retailWithShipping / (1 - totalPercentage / 100);
-				var wholesaleWithProfit = costByProduct.TotalCostByProduct / (1 - percentageProfit.Wholesale / 100);
+				var finalRetail = CalculatePriceWithPercentage(retailWithShipping, totalPercentage, "retail percentage cost");
+				var wholesaleWithProfit = CalculatePriceWithPercentage(costByProduct.TotalCostByProduct, percentageProfit.Wholesale, "wholesale profit");
+				var combinedWholesalePercentage = percentageProfit.Wholesale + totalPercentageCostWholesale;
+				var finalWholesale = CalculatePriceWithPercentage(costByProduct.TotalCostByProduct, combinedWholesalePercentage, "combined wholesale percentage");
 
 				return new FinalPriceView
 				{
@@ -131,7 +152,8 @@ public class PricingCalculatorService : IPricingCalculatorService
 					ActualListPrice = product.ListPrice,
 					ActualRetailPrice = product.FinalRetailPrice,
 					ActualWholesalePrice = product.FinalWholesalePrice,
-					WholesaleWithProfit = wholesaleWithProfit
+					WholesaleWithProfit = wholesaleWithProfit,
+					FinalWholesale = finalWholesale
 				};
 			})
 			.ToList();
@@ -142,7 +164,7 @@ public class PricingCalculatorService : IPricingCalculatorService
 		return GetFinalPrices()
 			.Count(suggestedPrice =>
 				!ArePricesEqual(suggestedPrice.FinalRetail, suggestedPrice.ActualListPrice, tolerance) ||
-				!ArePricesEqual(suggestedPrice.WholesaleWithProfit, suggestedPrice.ActualWholesalePrice, tolerance));
+				!ArePricesEqual(suggestedPrice.FinalWholesale, suggestedPrice.ActualWholesalePrice, tolerance));
 	}
 
 	public int PublishSuggestedPrices(decimal tolerance = 0.02m)
@@ -164,13 +186,13 @@ public class PricingCalculatorService : IPricingCalculatorService
 			}
 
 			if (ArePricesEqual(suggestedPrice.FinalRetail, product.ListPrice, tolerance) &&
-				ArePricesEqual(suggestedPrice.WholesaleWithProfit, product.FinalWholesalePrice, tolerance))
+				ArePricesEqual(suggestedPrice.FinalWholesale, product.FinalWholesalePrice, tolerance))
 			{
 				continue;
 			}
 
 			product.ListPrice = suggestedPrice.FinalRetail;
-			product.FinalWholesalePrice = suggestedPrice.WholesaleWithProfit;
+			product.FinalWholesalePrice = suggestedPrice.FinalWholesale;
 			updatedCount++;
 		}
 
@@ -213,6 +235,16 @@ public class PricingCalculatorService : IPricingCalculatorService
 			.ToDictionary(
 				group => group.Key,
 				group => group.Sum(unit => (unit.Packaging.Price / unit.Packaging.Quantity) * unit.Quantity));
+	}
+
+	private static decimal CalculatePriceWithPercentage(decimal basePrice, decimal percentage, string calculationName)
+	{
+		if (percentage >= 100m)
+		{
+			throw new InvalidOperationException($"Cannot calculate {calculationName}: percentage must be less than 100%.");
+		}
+
+		return basePrice / (1m - percentage / 100m);
 	}
 
 	private static bool ArePricesEqual(decimal price1, decimal price2, decimal tolerance)

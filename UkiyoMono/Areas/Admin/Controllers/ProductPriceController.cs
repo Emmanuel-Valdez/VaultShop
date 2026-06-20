@@ -26,6 +26,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		public IActionResult Index()
 		{
 			var totalPercentageCost = _pricingCalculatorService.GetTotalPercentageCost();
+			var totalPercentageCostWholesale = _pricingCalculatorService.GetTotalPercentageCostWholesale();
 			var percentageProfit = _pricingCalculatorService.GetPercentageProfit();
 			if (percentageProfit == null)
 			{
@@ -35,6 +36,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			FinalPriceVM = new FinalPriceVM()
 			{
 				TotalPercentageCost = totalPercentageCost,
+				TotalPercentageCostWholesale = totalPercentageCostWholesale,
 				PercentageProfit = percentageProfit,
 			};
 			ProductsOutdatedCount();
@@ -62,6 +64,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		{
 			if (!ModelState.IsValid)
 			{
+				RefreshPercentageCosts();
 				ProductsOutdatedCount();
 				return View(FinalPriceVM);
 			}
@@ -72,8 +75,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 
 			_pricingCalculatorService.UpdatePercentageProfit(FinalPriceVM.PercentageProfit.Retail, FinalPriceVM.PercentageProfit.Wholesale);
+			RefreshPercentageCosts();
 			ProductsOutdatedCount();
 			return View(FinalPriceVM);
+		}
+
+		private void RefreshPercentageCosts()
+		{
+			FinalPriceVM.TotalPercentageCost = _pricingCalculatorService.GetTotalPercentageCost();
+			FinalPriceVM.TotalPercentageCostWholesale = _pricingCalculatorService.GetTotalPercentageCostWholesale();
 		}
 
 		public IActionResult CostByProduct()

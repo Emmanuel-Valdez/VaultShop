@@ -7,6 +7,7 @@ public interface IPricingCalculatorService
 {
 	FixedCostMonthly GetFixedCostMonthly();
 	TotalPercentageCost GetTotalPercentageCost();
+	TotalPercentageCostWholesale GetTotalPercentageCostWholesale();
 	PercentageProfit? GetPercentageProfit();
 	void UpdatePercentageProfit(decimal retail, decimal wholesale);
 	IReadOnlyDictionary<int, decimal> GetFabricTotalsByProduct();

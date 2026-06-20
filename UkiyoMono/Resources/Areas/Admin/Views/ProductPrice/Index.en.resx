@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -138,6 +138,18 @@
   <data name="ListPriceRetail" xml:space="preserve">
     <value>List Price Retail</value>
   </data>
+  <data name="CurrentRetailPrice" xml:space="preserve">
+    <value>Current Calculated Retail</value>
+  </data>
+  <data name="SuggestedRetailPrice" xml:space="preserve">
+    <value>Suggested Calculated Retail</value>
+  </data>
+  <data name="CurrentWholesalePrice" xml:space="preserve">
+    <value>Current Wholesale</value>
+  </data>
+  <data name="SuggestedWholesalePrice" xml:space="preserve">
+    <value>Suggested Wholesale</value>
+  </data>
   <data name="ProductName" xml:space="preserve">
     <value>Product Name</value>
   </data>
@@ -163,7 +175,25 @@
     <value>Total Cost</value>
   </data>
   <data name="TotalPercentageCost" xml:space="preserve">
-    <value>Total Percentage Cost</value>
+    <value>Total Retail Percentage Cost</value>
+  </data>
+  <data name="TotalPercentageCostWholesale" xml:space="preserve">
+    <value>Total Wholesale Percentage Cost</value>
+  </data>
+  <data name="PercentageCostTotalsHelp" xml:space="preserve">
+    <value>Retail and wholesale percentage cost totals are read-only here. Manage them from their percentage cost pages.</value>
+  </data>
+  <data name="PriceCurrent" xml:space="preserve">
+    <value>Published price matches the suggested price.</value>
+  </data>
+  <data name="PriceOutdated" xml:space="preserve">
+    <value>Published price differs from the suggested price.</value>
+  </data>
+  <data name="ProductAvailable" xml:space="preserve">
+    <value>Available in store.</value>
+  </data>
+  <data name="ProductUnavailable" xml:space="preserve">
+    <value>Not available in store.</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Update</value>

@@ -13,6 +13,8 @@ namespace UkiyoDesigns.Models.ViewModels
 	{
 		[ValidateNever]
 		public TotalPercentageCost TotalPercentageCost { get; set; } = new();
+		[ValidateNever]
+		public TotalPercentageCostWholesale TotalPercentageCostWholesale { get; set; } = new();
 		public PercentageProfit PercentageProfit { get; set; } = new();
 		public int CountOutdated { get; set; }
 

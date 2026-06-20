@@ -31,6 +31,7 @@ namespace UkiyoDesigns.DataAccess.Repository
 		public IUnitGarmentHardwareByProductRepository UnitGarmentHardwareByProduct { get; private set; }
 		public IFixedCostRepository FixedCost { get; private set; }
 		public IPercentageCostRepository PercentageCost { get; private set; }
+		public IPercentageCostWholesaleRepository PercentageCostWholesale { get; private set; }
         public IPercentageProfitRepository PercentageProfit { get; }
 		public IFavoriteProductRepository FavoriteProduct { get; private set; }
 
@@ -56,6 +57,7 @@ namespace UkiyoDesigns.DataAccess.Repository
             UnitGarmentHardwareByProduct = new UnitGarmentHardwareByProductRepository(_db);
 			FixedCost = new FixedCostRepository(_db);
 			PercentageCost = new PercentageCostRepository(_db);
+			PercentageCostWholesale = new PercentageCostWholesaleRepository(_db);
             PercentageProfit= new PercentageProfitRepository(_db);
 			FavoriteProduct = new FavoriteProductRepository(_db);
 

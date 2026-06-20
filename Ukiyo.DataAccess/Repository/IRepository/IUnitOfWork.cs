@@ -36,6 +36,7 @@ namespace UkiyoDesigns.DataAccess.Repository.IRepository
 		IFixedCostRepository FixedCost { get; }
 
 		IPercentageCostRepository PercentageCost { get; }
+		IPercentageCostWholesaleRepository PercentageCostWholesale { get; }
 
 		IPercentageProfitRepository PercentageProfit { get; }
 

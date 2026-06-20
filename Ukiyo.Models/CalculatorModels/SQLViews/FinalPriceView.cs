@@ -27,6 +27,8 @@ namespace UkiyoDesigns.Models.CalculatorModels.SQLViews
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal WholesaleWithProfit { get; set; } = 0.0m;
 		[Column(TypeName = "decimal(18, 2)")]
+		public decimal FinalWholesale { get; set; } = 0.0m;
+		[Column(TypeName = "decimal(18, 2)")]
 		public decimal ActualListPrice { get; set; } = 0.0m;
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal ActualRetailPrice { get; set; } = 0.0m;

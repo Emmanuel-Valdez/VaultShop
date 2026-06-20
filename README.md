@@ -216,7 +216,7 @@ Production-style deployment goals:
 ## Current Limitations / Next Work
 
 - VPS deployment, HTTPS, backup/restore, and monitoring are planned next.
-- Identity 2FA QR generation needs a fix before real production-style deployment.
+- Identity 2FA management is intentionally hidden until the QR setup/recovery flow is completed and tested.
 - Wholesale pricing should include percentage costs.
 - Product Price screens should link directly to the product edit/upload view.
 

@@ -192,6 +192,12 @@
   <data name="PercentageCost" xml:space="preserve">
     <value>Costo Porcentual</value>
   </data>
+  <data name="RetailPercentageCost" xml:space="preserve">
+    <value>Costo Porcentual Minorista</value>
+  </data>
+  <data name="WholesalePercentageCost" xml:space="preserve">
+    <value>Costo Porcentual Mayorista</value>
+  </data>
   <data name="Privacy" xml:space="preserve">
     <value>Privacidad</value>
   </data>
