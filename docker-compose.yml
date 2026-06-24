@@ -34,7 +34,7 @@ services:
       ImageStorage__Minio__SecretKey: ${ImageStorage__Minio__SecretKey:-${MINIO_ROOT_PASSWORD:-change-this-local-password}}
       ImageStorage__Minio__PublicBaseUrl: ${ImageStorage__Minio__PublicBaseUrl:-http://localhost:9000/product-images}
     ports:
-      - "${APP_HTTP_PORT:-8080}:8080"
+      - "${APP_HTTP_BIND_IP:-127.0.0.1}:${APP_HTTP_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,8 +46,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
     ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${MINIO_BIND_IP:-127.0.0.1}:${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_BIND_IP:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio-data:/data
     healthcheck:
@@ -80,7 +80,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-ukiyomono_app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
