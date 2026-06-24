@@ -1,12 +1,12 @@
-# Ukiyo - ASP.NET Core E-commerce Case Study
+# VaultShop - ASP.NET Core E-commerce Case Study
 
-**Live demo:** https://ukiyo.bsite.net
+**Live demo:** https://vaultshop.evaldez.ar
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 ![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 ![License](https://img.shields.io/badge/license-source--available-blue)
 
-Ukiyo is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is being evolved into a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, and deployment-oriented hardening.
+VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is being evolved into a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, and deployment-oriented hardening.
 
 ## Screenshots
 
@@ -60,6 +60,7 @@ Ukiyo is a portfolio e-commerce project for custom anime-inspired backpacks and 
 - Checkout order creation is handled by `CheckoutService` and wrapped in a transaction to avoid partial orders.
 - Stripe session creation is behind `IPaymentSessionService`; payment status changes are handled through signed webhooks instead of trusting only browser redirects.
 - Production-like environments can disable startup migrations with `Database__RunMigrationsOnStartup=false`.
+- The public deployment runs behind Nginx HTTPS reverse proxy on a Linux VPS, with PostgreSQL and MinIO kept off the public internet.
 
 ## Project Structure
 
@@ -203,22 +204,27 @@ Current tests focus on high-value service behavior: upload validation, checkout 
 
 ## Deployment Direction
 
-The intended next deployment target is a fresh Ubuntu LTS Oracle/VPS server using Docker Compose behind Nginx or Caddy with HTTPS.
+The current public deployment runs on an Ubuntu 24.04 Oracle/VPS server using Docker Compose behind host-level Nginx with HTTPS.
 
-Production-style deployment goals:
+Current deployment shape:
 
 - Keep PostgreSQL and MinIO private on the Docker network.
 - Expose only HTTP/HTTPS publicly through a reverse proxy.
 - Use private environment files or host secrets for configuration.
 - Keep `Database__RunMigrationsOnStartup=false` and run migrations intentionally.
+- Serve product images from MinIO through the public HTTPS domain instead of exposing the MinIO console.
+
+Remaining deployment hardening:
+
 - Add PostgreSQL and MinIO backup/restore procedures before treating the server as durable.
-- Verify image upload/display/delete and checkout flows after deployment.
+- Add lightweight uptime/TLS and operational monitoring.
+- Verify payment webhooks and key user flows after every deployment change.
 
 ## Current Limitations / Next Work
 
-- VPS deployment, HTTPS, backup/restore, and monitoring are planned next.
-- Apply pending EF Core migrations intentionally during deployment, including the wholesale percentage cost migration.
-- Identity 2FA management is intentionally hidden until the QR setup/recovery flow is completed and tested.
+- Backup/restore and monitoring are planned next.
+- Portfolio/case-study copy still needs to be refreshed around the live VPS deployment.
+- Internal repository/project names still use historical Ukiyo naming and can be renamed deliberately later.
 
 ## Portfolio Scope
 
