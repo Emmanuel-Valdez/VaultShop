@@ -71,6 +71,6 @@
     <value>The uploaded file is not a valid image.</value>
   </data>
   <data name="UploadFileTooLarge" xml:space="preserve">
-    <value>The uploaded image is larger than the 5 MB limit.</value>
+    <value>The uploaded image is larger than the 10 MB limit.</value>
   </data>
 </root>

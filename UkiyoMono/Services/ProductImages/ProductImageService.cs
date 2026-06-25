@@ -7,7 +7,7 @@ namespace UkiyoDesignsWeb.Services.ProductImages;
 
 public sealed class ProductImageService : IProductImageService
 {
-	private const long MaxFileSizeBytes = 5 * 1024 * 1024;
+	private const long MaxFileSizeBytes = 10 * 1024 * 1024;
 	private const int OutputWidth = 1000;
 	private const int OutputHeight = 1200;
 	private const int JpegQuality = 75;

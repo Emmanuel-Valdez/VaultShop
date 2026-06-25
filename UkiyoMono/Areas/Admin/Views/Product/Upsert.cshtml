@@ -63,7 +63,8 @@
 
 						<div class="formform-floating py-2 col-12">
 							<label asp-for="Product.ProductImages" class="ms-2">@Localizer["ProductImages"]</label>
-							<input type="file" name="files" class="form-control border-0 shadow" multiple />
+							<input type="file" name="files" class="form-control border-0 shadow" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<div class="form-text">@Localizer["ProductImagesHelp"]</div>
 						</div>
 						<div class="formform-floating py-2 col-12">
 							<label asp-for="Product.CategoryId" class="ms-2">@Localizer["Category"]</label>

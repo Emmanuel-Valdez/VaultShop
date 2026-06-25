@@ -147,6 +147,9 @@
   <data name="ProductImages" xml:space="preserve">
     <value>Product Images</value>
   </data>
+  <data name="ProductImagesHelp" xml:space="preserve">
+    <value>Maximum 10 MB per image. JPG, PNG, and WebP are allowed.</value>
+  </data>
   <data name="RetailPrice" xml:space="preserve">
     <value>Final Retail Price</value>
   </data>
