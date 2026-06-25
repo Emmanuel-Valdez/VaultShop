@@ -1,13 +1,17 @@
 ﻿@using System.Globalization
+@using Microsoft.Extensions.Options
+@using UkiyoDesignsWeb.Services.Branding
+@inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
     Layout = "_Layout";
+    var branding = BrandingOptionsAccessor.Value;
     var isSpanish = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es";
     ViewData["Description"] = ViewData["Description"] ?? (isSpanish
-        ? "Ukiyo - Productos únicos inspirados en anime, cómics y fantasía. Mochilas, bolsos y accesorios hechos con cuidado en Argentina."
-        : "Ukiyo - Unique anime, comic, and fantasy-inspired products. Backpacks, bags, and accessories carefully made in Argentina.");
+        ? $"{branding.PublicName} - Productos únicos inspirados en anime, cómics y fantasía. Mochilas, bolsos y accesorios hechos con cuidado en Argentina."
+        : $"{branding.PublicName} - Unique anime, comic, and fantasy-inspired products. Backpacks, bags, and accessories carefully made in Argentina.");
     ViewData["Keywords"] = ViewData["Keywords"] ?? (isSpanish
-        ? "Ukiyo, mochilas, bolsos, accesorios, anime, cómics, fantasía, Argentina"
-        : "Ukiyo, backpacks, bags, accessories, anime, comics, fantasy, Argentina");
+        ? $"{branding.PublicName}, mochilas, bolsos, accesorios, anime, cómics, fantasía, Argentina"
+        : $"{branding.PublicName}, backpacks, bags, accessories, anime, comics, fantasy, Argentina");
     ViewData["Robots"] = ViewData["Robots"] ?? "index, follow";
-    ViewData["OgImage"] = ViewData["OgImage"] ?? $"{SD.SiteUrl}/images/marca.png";
+    ViewData["OgImage"] = ViewData["OgImage"] ?? $"{SD.SiteUrl}{branding.SocialPreviewImagePath}";
 }

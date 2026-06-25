@@ -21,6 +21,12 @@ services:
       Seed__AdminEmail: ${Seed__AdminEmail:?Seed__AdminEmail is required when startup initialization is enabled}
       Seed__AdminPassword: ${Seed__AdminPassword:?Seed__AdminPassword is required when startup initialization is enabled}
       SiteUrl: ${SiteUrl:-http://localhost:8080}
+      Branding__PublicName: ${Branding__PublicName:-VaultShop}
+      Branding__LogoPath: ${Branding__LogoPath:-/images/brand/vaultshop-logo.svg}
+      Branding__LogoDarkPath: ${Branding__LogoDarkPath:-/images/brand/vaultshop-logo-dark.svg}
+      Branding__MarkPath: ${Branding__MarkPath:-/images/brand/vaultshop-mark.svg}
+      Branding__SocialPreviewImagePath: ${Branding__SocialPreviewImagePath:-/images/brand/vaultshop-og.svg}
+      Branding__TwitterSite: ${Branding__TwitterSite:-@VaultShop}
       Social__TikTok: ${Social__TikTok:-}
       Social__WhatsApp: ${Social__WhatsApp:-}
       Social__Instagram: ${Social__Instagram:-}

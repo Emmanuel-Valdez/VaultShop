@@ -6,7 +6,9 @@
 ![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 ![License](https://img.shields.io/badge/license-source--available-blue)
 
-VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is being evolved into a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, and deployment-oriented hardening.
+VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is being evolved into a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, backup/restore validation, lightweight monitoring, and deployment-oriented hardening.
+
+The application is live and functional. Current work focuses on improving the public case study, screenshots, portfolio material, and a future frontend redesign.
 
 ## Screenshots
 
@@ -61,6 +63,13 @@ VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks 
 - Stripe session creation is behind `IPaymentSessionService`; payment status changes are handled through signed webhooks instead of trusting only browser redirects.
 - Production-like environments can disable startup migrations with `Database__RunMigrationsOnStartup=false`.
 - The public deployment runs behind Nginx HTTPS reverse proxy on a Linux VPS, with PostgreSQL and MinIO kept off the public internet.
+- Public branding values are configurable through the `Branding` configuration section so future isolated deployments can use different public names, logos, and social preview images without branching the codebase.
+
+See the architecture notes in [`docs/architecture.md`](docs/architecture.md).
+
+## Case Study
+
+See [`docs/case-study.md`](docs/case-study.md) for a concise project case study covering goals, decisions, operations evidence, and current limitations.
 
 ## Project Structure
 
@@ -94,6 +103,12 @@ Resend__FromEmail
 Seed__AdminEmail
 Seed__AdminPassword
 SiteUrl
+Branding__PublicName
+Branding__LogoPath
+Branding__LogoDarkPath
+Branding__MarkPath
+Branding__SocialPreviewImagePath
+Branding__TwitterSite
 ImageStorage__Provider
 ImageStorage__Minio__Endpoint
 ImageStorage__Minio__UseSsl
@@ -216,14 +231,17 @@ Current deployment shape:
 
 Remaining deployment hardening:
 
-- Add PostgreSQL and MinIO backup/restore procedures before treating the server as durable.
-- Add lightweight uptime/TLS and operational monitoring.
+- Automate PostgreSQL and MinIO backups after the manual restore-tested process.
+- Expand monitoring beyond uptime/TLS if the project starts handling real usage.
 - Verify payment webhooks and key user flows after every deployment change.
+
+Operations runbook: [`docs/operations/runbook.md`](docs/operations/runbook.md).
 
 ## Current Limitations / Next Work
 
-- Backup/restore and monitoring are planned next.
-- Portfolio/case-study copy still needs to be refreshed around the live VPS deployment.
+- Backups and restore have been tested manually; automation is planned later.
+- Portfolio/case-study copy and updated screenshots are being refreshed around the live VPS deployment.
+- The storefront frontend is functional but visually dated and planned for a future redesign.
 - Internal repository/project names still use historical Ukiyo naming and can be renamed deliberately later.
 
 ## Portfolio Scope

@@ -17,6 +17,7 @@ using UkiyoDesigns.DataAccess.Repository.IRepository;
 using UkiyoDesigns.Models;
 using UkiyoDesigns.Utility;
 using UkiyoDesignsWeb.Services.Checkout;
+using UkiyoDesignsWeb.Services.Branding;
 using UkiyoDesignsWeb.Services.ImageStorage;
 using UkiyoDesignsWeb.Services.ProductImages;
 using UkiyoDesignsWeb.Services.Payments;
@@ -57,6 +58,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));
 
 builder.Services.AddRazorPages();
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();

@@ -2,10 +2,17 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Antiforgery
 @using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Options
+@using UkiyoDesignsWeb.Services.Branding
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IAntiforgery Antiforgery
+@inject IOptions<BrandingOptions> BrandingOptionsAccessor
+
+@{
+	var branding = BrandingOptionsAccessor.Value;
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +31,7 @@
 		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
 		var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 		var pageTitle = GetViewDataText("Title");
-		var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? "Ukiyo" : $"{pageTitle} - Ukiyo";
+		var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? branding.PublicName : $"{pageTitle} - {branding.PublicName}";
 		var description = GetViewDataText("Description");
 		var keywords = GetViewDataText("Keywords");
 		var robots = GetViewDataText("Robots");
@@ -45,16 +52,17 @@
 	<meta property="og:image" content="@ogImage" />
 	<meta property="og:url" content="@currentUrl" />
 	<meta property="og:type" content="website" />
-	<meta property="og:site_name" content="Ukiyo" />
+	<meta property="og:site_name" content="@branding.PublicName" />
 	<meta property="og:locale" content="@(culture == "es-AR" ? "es_AR" : "en_US")" />
 
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@@ukiyo designs" />
+	<meta name="twitter:site" content="@branding.TwitterSite" />
 	<meta name="twitter:title" content="@fullTitle" />
 	<meta name="twitter:description" content="@description" />
 	<meta name="twitter:image" content="@ogImage" />
 
 	<link rel="icon" href="~/favicon.ico" sizes="any" />
+	<link rel="icon" type="image/svg+xml" href="@branding.MarkPath" />
 	<link rel="icon" type="image/png" href="~/flor-de-cerezo.png" />
 	<link rel="apple-touch-icon" href="~/apple-touch-icon.png" />
 	<link rel="manifest" href="~/site.webmanifest" />
@@ -80,7 +88,7 @@
 		<nav class="navbar navbar-expand-lg d-flex bg-primary" aria-label="Main navigation">
 			<div class="container-fluid">
 				<a class="navbar-brand" asp-area="Customer" asp-controller="Home" asp-action="Index">
-					<img src="/images/marca.png" style="width:60px" />
+					<img src="@branding.LogoDarkPath" alt="@branding.PublicName" style="width:150px; max-width:48vw;" />
 				</a>
 				<button class="navbar-toggler collapsed border-0 " type="button" id="navbarSideTop"
 						aria-label="Toggle navigation"
@@ -284,7 +292,7 @@
 		<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top  bg-gradient rounded">
 			<div class="col-md-4 d-flex align-items-center">
 				<a class="navbar-brand px-4 " asp-area="" asp-controller="Home" asp-action="Index">
-					<img src="/images/marca.png" style="width:80px" />
+					<img src="@branding.LogoPath" alt="@branding.PublicName" style="width:170px; max-width:52vw;" />
 				</a>
 
 				<div class="container text-primary">

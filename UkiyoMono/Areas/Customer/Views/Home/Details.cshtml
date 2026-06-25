@@ -1,13 +1,17 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Options
+@using UkiyoDesignsWeb.Services.Branding
 @model ShoppingCart
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IOptions<BrandingOptions> BrandingOptionsAccessor
 
 @{
+    var branding = BrandingOptionsAccessor.Value;
     ViewData["Title"] = Model.Product.Name;
     ViewData["Description"] = Model.Product.Description?.Length > 150 ? Model.Product.Description.Substring(0, 150) + "..." : Model.Product.Description ?? string.Format(Localizer["ProductFallbackDescription"].Value, Model.Product.Name);
     ViewData["Keywords"] = $"{Model.Product.Name}, {Model.Product.Category.Name}, {Localizer["MetaKeywordsSuffix"].Value}";
-    var imageUrl = Model.Product.ProductImages?.FirstOrDefault()?.ImageUrl ?? $"{SD.SiteUrl}/images/marca.png";
+    var imageUrl = Model.Product.ProductImages?.FirstOrDefault()?.ImageUrl ?? $"{SD.SiteUrl}{branding.SocialPreviewImagePath}";
     ViewData["OgImage"] = imageUrl;
 }
 
@@ -26,7 +30,7 @@
     },
     "brand": {
         "@( "@" )type": "Brand",
-        "name": "Ukiyo"
+        "name": "@branding.PublicName"
     }
 }
 </script>

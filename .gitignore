@@ -377,6 +377,8 @@ skills-lock.json
 # Local project context for AI-assisted development
 PROJECT_CONTEXT.local.md
 .local/
+plans/
+docs/portfolio-copy.md
 
 # Local deployment notes and server-specific deployment context
 docs/deployment/
