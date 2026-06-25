@@ -182,6 +182,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 				if (imageUploadResult.SavedImages.Count > 0)
 				{
+					var existingImages = _unitOfWork.ProductImage
+						.GetAll(image => image.ProductId == productVM.Product.Id)
+						.ToList();
+					var hasExistingImages = existingImages.Count > 0;
+					var nextSortOrder = hasExistingImages ? existingImages.Max(image => image.SortOrder) + 1 : 0;
+					var isFirstUploadedImage = true;
+
 					productVM.Product.ProductImages ??= new List<ProductImage>();
 					foreach (var savedImage in imageUploadResult.SavedImages)
 					{
@@ -194,7 +201,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 							SizeBytes = savedImage.SizeBytes,
 							StorageProvider = savedImage.StorageProvider,
 							ProductId = productVM.Product.Id,
+							SortOrder = nextSortOrder++,
+							IsPrimary = !hasExistingImages && isFirstUploadedImage,
 						});
+
+						isFirstUploadedImage = false;
 					}
 
 					_unitOfWork.Product.Update(productVM.Product);
@@ -231,7 +242,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 
 			var productWithImages = _unitOfWork.Product.Get(u => u.Id == productVM.Product.Id && u.IsDeleted == false, includeProperties: "ProductImages");
-			productVM.Product.ProductImages = productWithImages?.ProductImages ?? new List<ProductImage>();
+			productVM.Product.ProductImages = productWithImages?.ProductImages.OrderedForDisplay().ToList() ?? new List<ProductImage>();
 		}
 
 		public async Task<IActionResult> DeleteImage(int imageId)

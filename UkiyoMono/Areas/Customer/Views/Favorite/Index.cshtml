@@ -28,12 +28,13 @@
 
 					@foreach (var item in Model)
 					{
+						var primaryImage = item.Product.ProductImages.PrimaryOrFirstForDisplay();
 						<div class="row border-bottom pb-3">
 							<div class="d-none d-lg-block col-lg-1 text-center py-2">
-								@if (item.Product.ProductImages != null && item.Product.ProductImages.Count() > 0)
+								@if (primaryImage != null)
 								{
 									<a asp-action="Details" asp-controller="Home"  asp-route-productId="@item.Product.Id">
-										<img src="@item.Product.ProductImages.First().ImageUrl" class="card-img-top rounded w-100" />
+										<img src="@primaryImage.ImageUrl" class="card-img-top rounded w-100" />
 									</a>
 									
 								}

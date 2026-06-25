@@ -11,7 +11,8 @@
     ViewData["Title"] = Model.Product.Name;
     ViewData["Description"] = Model.Product.Description?.Length > 150 ? Model.Product.Description.Substring(0, 150) + "..." : Model.Product.Description ?? string.Format(Localizer["ProductFallbackDescription"].Value, Model.Product.Name);
     ViewData["Keywords"] = $"{Model.Product.Name}, {Model.Product.Category.Name}, {Localizer["MetaKeywordsSuffix"].Value}";
-    var imageUrl = Model.Product.ProductImages?.FirstOrDefault()?.ImageUrl ?? $"{SD.SiteUrl}{branding.SocialPreviewImagePath}";
+    var productImages = Model.Product.ProductImages.OrderedForDisplay().ToList();
+    var imageUrl = productImages.FirstOrDefault()?.ImageUrl ?? $"{SD.SiteUrl}{branding.SocialPreviewImagePath}";
     ViewData["OgImage"] = imageUrl;
 }
 
@@ -60,13 +61,13 @@
 				</div>
 				<div class="row">
 					<div class="col-12 col-lg-3 offset-lg-1 text-center mb-3">
-						@if (Model.Product.ProductImages != null && Model.Product.ProductImages.Count > 0)
+						@if (productImages.Count > 0)
 						{
 							<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
 								<div class="carousel-indicators">
 
 									@foreach (var imageWithIndex in
-																									Model.Product.ProductImages.Select((image, index) =>
+																									productImages.Select((image, index) =>
 																									new { Image = image, Index = index }))
 									{
 										<button type="button" data-bs-target="#carouselExampleIndicators"
@@ -75,7 +76,7 @@
 								</div>
 								<div class="carousel-inner">
 									@foreach (var imageWithIndex in
-																									Model.Product.ProductImages.Select((image, index) =>
+																									productImages.Select((image, index) =>
 																									new { Image = image, Index = index }))
 									{
 										<div class="carousel-item @(imageWithIndex.Index==0?"active":"")">

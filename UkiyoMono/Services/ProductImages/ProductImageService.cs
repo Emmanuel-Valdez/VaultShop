@@ -88,7 +88,7 @@ public sealed class ProductImageService : IProductImageService
 			foreach (var file in files)
 			{
 				await using var inputStream = file.OpenReadStream();
-				using var original = SKBitmap.Decode(inputStream);
+				using var original = DecodeImageWithOrientation(inputStream);
 				if (original is null)
 				{
 					throw new InvalidOperationException("Image validation passed, but decoding failed while saving.");
@@ -147,6 +147,83 @@ public sealed class ProductImageService : IProductImageService
 		using var stream = file.OpenReadStream();
 		using var bitmap = SKBitmap.Decode(stream);
 		return bitmap is not null;
+	}
+
+	private static SKBitmap? DecodeImageWithOrientation(Stream stream)
+	{
+		using var codec = SKCodec.Create(stream);
+		if (codec is null)
+		{
+			return null;
+		}
+
+		var decoded = SKBitmap.Decode(codec);
+		if (decoded is null)
+		{
+			return null;
+		}
+
+		var oriented = ApplyEncodedOrigin(decoded, codec.EncodedOrigin);
+		if (!ReferenceEquals(oriented, decoded))
+		{
+			decoded.Dispose();
+		}
+
+		return oriented;
+	}
+
+	private static SKBitmap ApplyEncodedOrigin(SKBitmap source, SKEncodedOrigin origin)
+	{
+		if (origin is SKEncodedOrigin.Default or SKEncodedOrigin.TopLeft)
+		{
+			return source;
+		}
+
+		var swapsDimensions = origin is SKEncodedOrigin.LeftTop
+				or SKEncodedOrigin.RightTop
+				or SKEncodedOrigin.RightBottom
+				or SKEncodedOrigin.LeftBottom;
+
+		var outputWidth = swapsDimensions ? source.Height : source.Width;
+		var outputHeight = swapsDimensions ? source.Width : source.Height;
+		var destination = new SKBitmap(outputWidth, outputHeight, source.ColorType, source.AlphaType);
+
+		using var canvas = new SKCanvas(destination);
+		switch (origin)
+		{
+			case SKEncodedOrigin.TopRight:
+				canvas.Translate(source.Width, 0);
+				canvas.Scale(-1, 1);
+				break;
+			case SKEncodedOrigin.BottomRight:
+				canvas.Translate(source.Width, source.Height);
+				canvas.RotateDegrees(180);
+				break;
+			case SKEncodedOrigin.BottomLeft:
+				canvas.Translate(0, source.Height);
+				canvas.Scale(1, -1);
+				break;
+			case SKEncodedOrigin.LeftTop:
+				canvas.Scale(1, -1);
+				canvas.RotateDegrees(90);
+				break;
+			case SKEncodedOrigin.RightTop:
+				canvas.Translate(source.Height, 0);
+				canvas.RotateDegrees(90);
+				break;
+			case SKEncodedOrigin.RightBottom:
+				canvas.Translate(source.Height, source.Width);
+				canvas.Scale(1, -1);
+				canvas.RotateDegrees(270);
+				break;
+			case SKEncodedOrigin.LeftBottom:
+				canvas.Translate(0, source.Width);
+				canvas.RotateDegrees(270);
+				break;
+		}
+
+		canvas.DrawBitmap(source, 0, 0);
+		return destination;
 	}
 
 	private static void WriteResizedJpeg(SKBitmap original, Stream outputStream)

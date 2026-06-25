@@ -101,7 +101,7 @@
 				<div class=" d-flex d-md-block col-4 col-md-2">
 					@if (Model.Product.ProductImages != null)
 					{
-						foreach (var image in Model.Product.ProductImages)
+						foreach (var image in Model.Product.ProductImages.OrderedForDisplay())
 						{
 							<div class="border p-1 m-2 text-center">
 								<img src="@image.ImageUrl" width="100%"

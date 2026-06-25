@@ -9,14 +9,15 @@
 	<h1>@Localizer["SearchResults"]</h1>
 	@foreach (var product in Model)
 	{
+		var primaryImage = product.ProductImages.PrimaryOrFirstForDisplay();
 		<div class="col-lg-3 col-sm-6">
 			<div class="row p-2">
 				<div class="col-12 p-1">
 					<div class="card border-0 p-3 shadow border-top border-5 rounded bg-secondary">
-						@if(product.ProductImages!= null && product.ProductImages.Count() > 0)
+						@if(primaryImage != null)
 						{
 							<a asp-action="Details" asp-route-productId="@product.Id" >
-								<img src="@product.ProductImages.First().ImageUrl" class="card-img-top rounded " />
+								<img src="@primaryImage.ImageUrl" class="card-img-top rounded " />
 							</a>
 							
 						}else
