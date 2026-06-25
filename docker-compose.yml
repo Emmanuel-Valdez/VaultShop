@@ -1,6 +1,7 @@
 services:
   web:
     image: ukiyo-designs-web:compose
+    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     build:
       context: .
       dockerfile: Dockerfile
@@ -47,6 +48,7 @@ services:
 
   minio:
     image: quay.io/minio/minio:latest
+    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
@@ -81,6 +83,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
+    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ukiyomono}
       POSTGRES_USER: ${POSTGRES_USER:-ukiyomono_app}
