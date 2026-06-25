@@ -144,6 +144,12 @@
   <data name="Product" xml:space="preserve">
     <value>Producto</value>
   </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Portada</value>
+  </data>
+  <data name="ProductImageAlt" xml:space="preserve">
+    <value>Imagen de producto para {0}</value>
+  </data>
   <data name="ProductImages" xml:space="preserve">
     <value>Imágenes de Producto</value>
   </data>
@@ -155,6 +161,9 @@
   </data>
   <data name="SelectCategory" xml:space="preserve">
     <value>Seleccionar Categoría</value>
+  </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>Establecer como portada</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Actualizar</value>

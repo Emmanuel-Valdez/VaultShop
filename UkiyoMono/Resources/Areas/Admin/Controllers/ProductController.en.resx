@@ -123,6 +123,9 @@
   <data name="DeletedSuccessfully" xml:space="preserve">
     <value>Deleted Successfully</value>
   </data>
+  <data name="CoverImageUpdated" xml:space="preserve">
+    <value>Cover image updated successfully.</value>
+  </data>
   <data name="DeletingError" xml:space="preserve">
     <value>Error deleting files:</value>
   </data>

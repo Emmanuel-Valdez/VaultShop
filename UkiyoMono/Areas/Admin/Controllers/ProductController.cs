@@ -245,6 +245,32 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			productVM.Product.ProductImages = productWithImages?.ProductImages.OrderedForDisplay().ToList() ?? new List<ProductImage>();
 		}
 
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public IActionResult SetPrimaryImage(int productId, int imageId)
+		{
+			var productImages = _unitOfWork.ProductImage
+				.GetAll(image => image.ProductId == productId)
+				.ToList();
+			var selectedImage = productImages.FirstOrDefault(image => image.Id == imageId);
+			if (selectedImage is null)
+			{
+				return NotFound();
+			}
+
+			foreach (var image in productImages)
+			{
+				image.IsPrimary = image.Id == imageId;
+				_unitOfWork.ProductImage.Update(image);
+			}
+
+			_unitOfWork.Save();
+			_logger.LogInformation("Set product image {ProductImageId} as primary for product {ProductId}.", imageId, productId);
+			TempData["success"] = _localizer["CoverImageUpdated"].Value;
+
+			return RedirectToAction(nameof(Upsert), new { id = productId });
+		}
+
 		public async Task<IActionResult> DeleteImage(int imageId)
 		{
 			var imageToBeDeleted = _unitOfWork.ProductImage.Get(u => u.Id == imageId);

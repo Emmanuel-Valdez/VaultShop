@@ -144,6 +144,12 @@
   <data name="Product" xml:space="preserve">
     <value>Product</value>
   </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Cover</value>
+  </data>
+  <data name="ProductImageAlt" xml:space="preserve">
+    <value>Product image for {0}</value>
+  </data>
   <data name="ProductImages" xml:space="preserve">
     <value>Product Images</value>
   </data>
@@ -155,6 +161,9 @@
   </data>
   <data name="SelectCategory" xml:space="preserve">
     <value>Select Category</value>
+  </data>
+  <data name="SetAsCover" xml:space="preserve">
+    <value>Set as cover</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Update</value>

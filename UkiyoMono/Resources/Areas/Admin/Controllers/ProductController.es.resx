@@ -123,6 +123,9 @@
   <data name="DeletedSuccessfully" xml:space="preserve">
     <value>Borrado Correcto</value>
   </data>
+  <data name="CoverImageUpdated" xml:space="preserve">
+    <value>Imagen de portada actualizada correctamente.</value>
+  </data>
   <data name="DeletingError" xml:space="preserve">
     <value>Error al Borrar Archivos</value>
   </data>
