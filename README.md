@@ -14,21 +14,31 @@ The application is live and functional. Current work focuses on improving the pu
 
 ### Desktop
 
-![Ukiyo desktop home page](docs/screenshots/home-desktop.png)
+![VaultShop desktop home page](docs/screenshots/HomeWeb.webp)
 
 ### Mobile
 
-![Ukiyo mobile home page](docs/screenshots/home-mobile.png)
+![VaultShop mobile home page](docs/screenshots/HomeMobile.webp)
 
 ### Product Detail
 
-![Ukiyo product detail desktop page](docs/screenshots/product-detail-desktop.png)
+![VaultShop product detail desktop page](docs/screenshots/ProductDetailsWeb.webp)
 
-![Ukiyo product detail mobile page](docs/screenshots/product-detail-mobile.png)
+![VaultShop product detail mobile page](docs/screenshots/ProductDetailsMobile.webp)
+
+### Cart And Checkout
+
+![VaultShop shopping cart](docs/screenshots/Shopping-cart.webp)
+
+![VaultShop checkout order summary](docs/screenshots/Order-Summary.webp)
+
+### Admin Product Images
+
+![VaultShop admin product upload and cover selection](docs/screenshots/admin-product-upload-cover.webp)
 
 ### Admin Final Prices
 
-![Ukiyo admin final prices dashboard](docs/screenshots/final-prices-dashboard.png)
+![VaultShop admin final prices dashboard](docs/screenshots/final-prices-dashboard.webp)
 
 ## Features
 
