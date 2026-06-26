@@ -343,6 +343,55 @@ div.dt-button-collection .dt-button:hover {
     border-color: rgba(232, 234, 242, 0.14) !important;
 }
 
+.final-prices-dashboard {
+    border: 1px solid rgba(26, 42, 74, 0.1) !important;
+}
+
+.final-prices-dashboard__header {
+    background: linear-gradient(135deg, #1a2a4a, #0d1625) !important;
+}
+
+.final-prices-dashboard__badge {
+    background-color: rgba(212, 160, 23, 0.16);
+    color: #f7f8fa;
+    border: 1px solid rgba(212, 160, 23, 0.45);
+}
+
+.final-prices-dashboard__action {
+    padding: 1rem;
+    border: 1px solid rgba(212, 160, 23, 0.35);
+    border-left: 4px solid var(--vault-accent);
+    border-radius: 0.75rem;
+    background-color: rgba(212, 160, 23, 0.08);
+}
+
+.final-prices-dashboard__settings,
+.final-prices-dashboard__table,
+.final-prices-dashboard__panel,
+.final-prices-dashboard__metric {
+    border-color: rgba(26, 42, 74, 0.12) !important;
+}
+
+.final-prices-dashboard__metric {
+    border-top: 3px solid var(--vault-accent) !important;
+}
+
+.final-prices-dashboard__table thead th {
+    white-space: nowrap;
+}
+
+[data-bs-theme=dark] .final-prices-dashboard,
+[data-bs-theme=dark] .final-prices-dashboard__settings,
+[data-bs-theme=dark] .final-prices-dashboard__table,
+[data-bs-theme=dark] .final-prices-dashboard__panel,
+[data-bs-theme=dark] .final-prices-dashboard__metric {
+    border-color: rgba(232, 234, 242, 0.14) !important;
+}
+
+[data-bs-theme=dark] .final-prices-dashboard__action {
+    background-color: rgba(212, 160, 23, 0.12);
+}
+
 .rich-text-editor .ql-editor {
     min-height: 12rem;
 }

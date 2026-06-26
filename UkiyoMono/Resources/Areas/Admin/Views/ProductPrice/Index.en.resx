@@ -141,6 +141,9 @@
   <data name="CurrentRetailPrice" xml:space="preserve">
     <value>Current Calculated Retail</value>
   </data>
+  <data name="CurrentRetailStorePrice" xml:space="preserve">
+    <value>Current Retail</value>
+  </data>
   <data name="SuggestedRetailPrice" xml:space="preserve">
     <value>Suggested Calculated Retail</value>
   </data>
@@ -218,6 +221,9 @@
   </data>
   <data name="ProductUnavailable" xml:space="preserve">
     <value>Not available in store.</value>
+  </data>
+  <data name="OutdatedProductPricesBadge" xml:space="preserve">
+    <value>{0} outdated product prices</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Update</value>

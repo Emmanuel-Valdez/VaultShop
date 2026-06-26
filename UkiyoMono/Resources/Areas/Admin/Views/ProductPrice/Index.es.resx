@@ -141,6 +141,9 @@
   <data name="CurrentRetailPrice" xml:space="preserve">
     <value>Minorista calculado actual</value>
   </data>
+  <data name="CurrentRetailStorePrice" xml:space="preserve">
+    <value>Minorista actual</value>
+  </data>
   <data name="SuggestedRetailPrice" xml:space="preserve">
     <value>Minorista calculado sugerido</value>
   </data>
@@ -218,6 +221,9 @@
   </data>
   <data name="ProductUnavailable" xml:space="preserve">
     <value>No disponible en la tienda.</value>
+  </data>
+  <data name="OutdatedProductPricesBadge" xml:space="preserve">
+    <value>{0} precios de productos desactualizados</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Actualizar</value>

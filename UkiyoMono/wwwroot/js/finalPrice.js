@@ -38,6 +38,8 @@ function loadDataTable() {
 
     dataTable = table.DataTable({
         "ajax": { url: `/${culture}/admin/ProductPrice/GetAllProductFinalPrice` },
+        "paging": false,
+        "info": false,
         "columns": [
             {
                 data: 'product',
@@ -66,7 +68,7 @@ function loadDataTable() {
             { data: 'totalCost', render: window.SpanishNumberTables(culture) },
             { data: 'retailWithProfit', render: window.SpanishNumberTables(culture) },
             { data: 'retailWithShipping', render: window.SpanishNumberTables(culture) },
-            { data: 'actualListPrice', render: window.SpanishNumberTables(culture) },
+            { data: 'actualRetailPrice', render: window.SpanishNumberTables(culture) },
             {
                 data: {
                     finalRetail: 'finalRetail', actualListPrice: 'actualListPrice'
@@ -130,6 +132,7 @@ function loadDataTable() {
             { responsivePriority: 5, targets: 0 },
             { responsivePriority: 6, targets: 1 },
             { targets: 10, visible: false, searchable: true },
+            { targets: 6, visible: false },
             { targets: 2, visible: false },
             { targets: 3, visible: false },
             { targets: 4, visible: false },
