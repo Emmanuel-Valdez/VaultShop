@@ -1,18 +1,18 @@
 <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">VaultShop mark</title>
   <desc id="desc">A shopping bag with a vault dial.</desc>
-  <rect width="96" height="96" rx="22" fill="#F8F3E8"/>
-  <path d="M28 35C28 23.9543 36.9543 15 48 15C59.0457 15 68 23.9543 68 35" stroke="#111827" stroke-width="6" stroke-linecap="round"/>
-  <path d="M20 33H76L72 80H24L20 33Z" fill="#111827"/>
-  <path d="M27 40H69L66.2 73H29.8L27 40Z" fill="#1F2937"/>
-  <circle cx="48" cy="57" r="14" fill="#F8F3E8"/>
-  <circle cx="48" cy="57" r="6" fill="#D6A84F"/>
-  <path d="M48 43V49" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M48 65V71" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M34 57H40" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M56 57H62" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M38 47L42 51" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M54 63L58 67" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M58 47L54 51" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M42 63L38 67" stroke="#111827" stroke-width="3.5" stroke-linecap="round"/>
+  <rect width="96" height="96" rx="22" fill="#f7f8fa"/>
+  <path d="M28 35C28 23.9543 36.9543 15 48 15C59.0457 15 68 23.9543 68 35" stroke="#1a2a4a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M20 33H76L72 80H24L20 33Z" fill="#1a2a4a"/>
+  <path d="M27 40H69L66.2 73H29.8L27 40Z" fill="#0d1625"/>
+  <circle cx="48" cy="57" r="14" fill="#f7f8fa"/>
+  <circle cx="48" cy="57" r="6" fill="#d4a017"/>
+  <path d="M48 43V49" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M48 65V71" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M34 57H40" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M56 57H62" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M38 47L42 51" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M54 63L58 67" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M58 47L54 51" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M42 63L38 67" stroke="#1a2a4a" stroke-width="3.5" stroke-linecap="round"/>
 </svg>

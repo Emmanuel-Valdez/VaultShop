@@ -120,13 +120,22 @@
   <data name="Details" xml:space="preserve">
     <value>Details</value>
   </data>
+  <data name="FeaturedProducts" xml:space="preserve">
+    <value>Featured products</value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value>Home</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Discover Ukiyo products inspired by anime, comics, and fantasy. Unique backpacks, bags, and accessories carefully made in Argentina.</value>
+    <value>Discover VaultShop products inspired by anime, comics, and fantasy. Unique backpacks, bags, and accessories carefully made in Argentina.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>Ukiyo, anime backpacks, bags, accessories, unique products, comics, fantasy, Argentina</value>
+    <value>VaultShop, anime backpacks, bags, accessories, unique products, comics, fantasy, Argentina</value>
+  </data>
+  <data name="NoProductsMessage" xml:space="preserve">
+    <value>Check back soon for new items.</value>
+  </data>
+  <data name="NoProductsTitle" xml:space="preserve">
+    <value>No products available right now</value>
   </data>
 </root>

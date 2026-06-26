@@ -120,13 +120,22 @@
   <data name="Details" xml:space="preserve">
     <value>Detalles</value>
   </data>
+  <data name="FeaturedProducts" xml:space="preserve">
+    <value>Productos destacados</value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value>Inicio</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Descubrí productos Ukiyo inspirados en anime, cómics y fantasía. Mochilas, bolsos y accesorios únicos, hechos con cuidado en Argentina.</value>
+    <value>Descubrí productos VaultShop inspirados en anime, cómics y fantasía. Mochilas, bolsos y accesorios únicos, hechos con cuidado en Argentina.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>Ukiyo, mochilas anime, bolsos, accesorios, productos únicos, cómics, fantasía, Argentina</value>
+    <value>VaultShop, mochilas anime, bolsos, accesorios, productos únicos, cómics, fantasía, Argentina</value>
+  </data>
+  <data name="NoProductsMessage" xml:space="preserve">
+    <value>Volvé pronto para ver nuevos productos.</value>
+  </data>
+  <data name="NoProductsTitle" xml:space="preserve">
+    <value>No hay productos disponibles ahora</value>
   </data>
 </root>

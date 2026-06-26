@@ -6,35 +6,52 @@
 }
 
 <div class="row pb-3  ">
+	<div class="col-12 storefront-section">
+		<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+			<div>
+				<p class="product-card__meta mb-1">VaultShop</p>
+				<h1 class="h3 text-primary mb-0">@Localizer["FeaturedProducts"]</h1>
+			</div>
+		</div>
+	</div>
+	@if (!Model.Any())
+	{
+		<div class="col-12">
+			<div class="empty-state rounded-3 text-center p-5">
+				<h2 class="h5 text-primary">@Localizer["NoProductsTitle"]</h2>
+				<p class="mb-0 text-muted">@Localizer["NoProductsMessage"]</p>
+			</div>
+		</div>
+	}
 	@foreach (var product in Model)
 	{
 		var primaryImage = product.ProductImages.PrimaryOrFirstForDisplay();
-		<div class="col-lg-3 col-sm-6">
-			<div class="row p-2">
-				<div class="col-12 p-1">
-					<div class="card border-0 p-3 shadow border-top border-5 rounded bg-secondary ">
+		<div class="col-lg-3 col-sm-6 mb-4">
+			<div class="h-100">
+				<div class="col-12 h-100">
+					<div class="card product-card p-3 shadow-sm rounded bg-secondary">
 						@if(primaryImage != null)
 						{
-							<a asp-action="Details" asp-route-productId="@product.Id" >
-								<img src="@primaryImage.ImageUrl" class="card-img-top rounded " />
+							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded">
+								<img src="@primaryImage.ImageUrl" class="product-card__image" alt="@product.Name" />
 							</a>
 							
 						}else
 						{
-							<a asp-action="Details" asp-route-productId="@product.Id" >
-								<img src="https://placehold.co/500x600/png" class="card-img-top rounded" />
+							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded">
+								<img src="https://placehold.co/500x600/png" class="product-card__image" alt="@product.Name" />
 							</a>
 							
 						}
 
-						<div class="pl-1">
-							<p class="card-title h5 text-primary text-uppercase text-center">@product.Name</p>
-						</div>
-						<div class="pl-1">
-							<p class="text-center text-primary h5"><span>@product.FinalRetailPrice.ToString("c")</span></p>
-						</div>
-						<div>
-							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 form-control">
+						<div class="card-body px-0 pb-0 d-flex flex-column flex-grow-1">
+							@if (!string.IsNullOrWhiteSpace(product.Category?.Name))
+							{
+								<p class="product-card__meta mb-1">@product.Category.Name</p>
+							}
+							<h2 class="card-title h5 text-primary mb-2">@product.Name</h2>
+							<p class="product-price h5 mb-3"><span>@product.FinalRetailPrice.ToString("c")</span></p>
+							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 								@Localizer["Details"]
 							</a>
 						</div>
