@@ -120,6 +120,9 @@
   <data name="AddToCart" xml:space="preserve">
     <value>Add To Cart</value>
   </data>
+  <data name="AddToFavorites" xml:space="preserve">
+    <value>Add to favorites</value>
+  </data>
   <data name="BackToHome" xml:space="preserve">
     <value>Back to home</value>
   </data>
@@ -132,13 +135,19 @@
   <data name="Price" xml:space="preserve">
     <value>Price</value>
   </data>
+  <data name="ProductImage" xml:space="preserve">
+    <value>Product image {0}</value>
+  </data>
+  <data name="RemoveFromFavorites" xml:space="preserve">
+    <value>Remove from favorites</value>
+  </data>
   <data name="TemporarilyUnavailable" xml:space="preserve">
     <value>Temporarily Unavailable</value>
   </data>
   <data name="ProductFallbackDescription" xml:space="preserve">
-    <value>Buy {0} at Ukiyo - A unique product inspired by anime, comics, and fantasy.</value>
+    <value>Buy {0} at VaultShop - A unique product inspired by anime, comics, and fantasy.</value>
   </data>
   <data name="MetaKeywordsSuffix" xml:space="preserve">
-    <value>Ukiyo, anime, comics, fantasy, accessories</value>
+    <value>VaultShop, anime, comics, fantasy, accessories</value>
   </data>
 </root>

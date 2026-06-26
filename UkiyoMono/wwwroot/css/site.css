@@ -161,13 +161,79 @@ html {
     background-color: #f7f8fa;
 }
 
+.product-detail {
+    border: 1px solid rgba(26, 42, 74, 0.1) !important;
+}
+
+.product-detail__media {
+    overflow: hidden;
+    background-color: #fff;
+    border: 1px solid rgba(26, 42, 74, 0.1);
+}
+
+.product-detail__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 5 / 6;
+    object-fit: cover;
+}
+
+.product-detail__panel {
+    padding: 0.5rem;
+}
+
+.product-detail__badge {
+    background-color: rgba(212, 160, 23, 0.14);
+    color: #1a2a4a;
+    border: 1px solid rgba(212, 160, 23, 0.35);
+}
+
+.product-detail__price {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+}
+
+.product-detail__description {
+    color: var(--bs-body-color);
+    background-color: rgba(255, 255, 255, 0.74);
+    border-left: 4px solid var(--vault-accent);
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.product-detail__quantity-input {
+    min-height: 2.75rem;
+    border-color: rgba(26, 42, 74, 0.22);
+    border-radius: 0.75rem;
+}
+
+.product-detail__quantity-input:focus {
+    border-color: var(--vault-accent);
+}
+
+.product-detail__quantity-validation {
+    display: block;
+    min-height: 1.25rem;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+@media (min-width: 576px) {
+    .product-detail__actions {
+        margin-bottom: 1.5rem;
+    }
+}
+
 [data-bs-theme=dark] .product-card,
-[data-bs-theme=dark] .empty-state {
+[data-bs-theme=dark] .empty-state,
+[data-bs-theme=dark] .product-detail {
     border-color: rgba(232, 234, 242, 0.14) !important;
     background-color: var(--vault-surface-dark) !important;
 }
 
-[data-bs-theme=dark] .product-card__image-link {
+[data-bs-theme=dark] .product-card__image-link,
+[data-bs-theme=dark] .product-detail__media {
     background-color: var(--vault-navy-dark);
 }
 
@@ -177,6 +243,18 @@ html {
 
 [data-bs-theme=dark] .product-price {
     color: #e8eaf2;
+}
+
+[data-bs-theme=dark] .product-detail__badge {
+    color: #e8eaf2;
+}
+
+[data-bs-theme=dark] .product-detail__description {
+    background-color: rgba(13, 22, 37, 0.58);
+}
+
+[data-bs-theme=dark] .product-detail__quantity-input {
+    border-color: rgba(232, 234, 242, 0.22);
 }
 
 div.dt-button-collection {

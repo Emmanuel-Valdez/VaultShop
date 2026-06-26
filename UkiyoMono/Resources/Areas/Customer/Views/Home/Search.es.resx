@@ -120,16 +120,25 @@
   <data name="Details" xml:space="preserve">
     <value>Detalles</value>
   </data>
+  <data name="NoResultsMessage" xml:space="preserve">
+    <value>Probá con otra búsqueda o explorá los últimos productos desde el inicio.</value>
+  </data>
+  <data name="NoResultsTitle" xml:space="preserve">
+    <value>No encontramos productos para tu búsqueda</value>
+  </data>
   <data name="SearchResults" xml:space="preserve">
     <value>Resultados de Búsqueda</value>
+  </data>
+  <data name="SearchTerm" xml:space="preserve">
+    <value>Resultados para "{0}"</value>
   </data>
   <data name="Search" xml:space="preserve">
     <value>Buscar</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Buscá productos Ukiyo y encontrá mochilas, bolsos y accesorios inspirados en anime, cómics y fantasía.</value>
+    <value>Buscá productos VaultShop y encontrá mochilas, bolsos y accesorios inspirados en anime, cómics y fantasía.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>buscar productos Ukiyo, mochilas anime, bolsos, accesorios, cómics, fantasía</value>
+    <value>buscar productos VaultShop, mochilas anime, bolsos, accesorios, cómics, fantasía</value>
   </data>
 </root>

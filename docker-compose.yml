@@ -1,3 +1,5 @@
+name: ${COMPOSE_PROJECT_NAME:-vaultshop}
+
 services:
   web:
     image: ukiyo-designs-web:compose

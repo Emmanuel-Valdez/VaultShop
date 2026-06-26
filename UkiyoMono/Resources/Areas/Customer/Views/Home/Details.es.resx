@@ -118,7 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AddToCart" xml:space="preserve">
-    <value>Aggregar al Carrito</value>
+    <value>Agregar al Carrito</value>
+  </data>
+  <data name="AddToFavorites" xml:space="preserve">
+    <value>Agregar a favoritos</value>
   </data>
   <data name="BackToHome" xml:space="preserve">
     <value>Volver al Inicio</value>
@@ -132,13 +135,19 @@
   <data name="Price" xml:space="preserve">
     <value>Precio</value>
   </data>
+  <data name="ProductImage" xml:space="preserve">
+    <value>Imagen de producto {0}</value>
+  </data>
+  <data name="RemoveFromFavorites" xml:space="preserve">
+    <value>Quitar de favoritos</value>
+  </data>
   <data name="TemporarilyUnavailable" xml:space="preserve">
     <value>Termporalmente No Disponible</value>
   </data>
   <data name="ProductFallbackDescription" xml:space="preserve">
-    <value>Comprar {0} en Ukiyo - Producto único inspirado en anime, cómics y fantasía.</value>
+    <value>Comprar {0} en VaultShop - Producto único inspirado en anime, cómics y fantasía.</value>
   </data>
   <data name="MetaKeywordsSuffix" xml:space="preserve">
-    <value>Ukiyo, anime, cómics, fantasía, accesorios</value>
+    <value>VaultShop, anime, cómics, fantasía, accesorios</value>
   </data>
 </root>
