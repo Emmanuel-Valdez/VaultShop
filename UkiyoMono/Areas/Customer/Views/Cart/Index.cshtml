@@ -18,8 +18,8 @@
 			<div class="row">
 			</div>
 			<div class="row mb-3 pb-3">
-				<div class="col-md-2 offset-md-1">
-					<a asp-area="Customer" asp-Controller="Home" asp-action="Index" class="btn btn-primary text-uppercase mb-5 btn-sm">
+				<div class="col-12 col-md-10 offset-md-1 mb-4">
+					<a asp-area="Customer" asp-Controller="Home" asp-action="Index" class="btn btn-primary text-uppercase btn-sm">
 						<small>@Localizer["ContinueShopping"]</small>
 					</a>
 				</div>
@@ -27,7 +27,7 @@
 					@foreach (var item in Model.ShoppingCartList)
 					{
 						var primaryImage = item.Product.ProductImages.PrimaryOrFirstForDisplay();
-						<div class="row border-bottom pb-3">
+						<div class="row border-bottom pb-3 gy-3">
 							<div class="d-none d-lg-block col-lg-1 text-center py-2">
 								@if (primaryImage != null)
 								{
@@ -48,15 +48,15 @@
 								</a>
 								<p><small>@Html.Raw(item.Product.Description)</small></p>
 							</div>
-							<div class="col-12  col-lg-5 text-center row">
-								<div class="col-4 text-sm-right pt-2 pt-md-4">
+							<div class="col-12 col-lg-5 row text-center align-items-center gy-2">
+								<div class="col-12 col-sm-4 pt-2 pt-md-4">
 									<h6 class="fw-semibold">
 										@item.Price.ToString("c")
 										<span class="text-muted">&nbsp;x&nbsp;</span>@item.Count
 									</h6>
 								</div>
-								<div class="col-6 col-sm-4 col-lg-5 pt-2">
-									<div class="w-75 btn-group" role="group">
+								<div class="col-8 col-sm-5 pt-2">
+									<div class="btn-group" role="group">
 										<button type="submit" asp-action="Plus" asp-route-cartId="@item.Id" class="btn btn-outline-primary bg-gradient py-2">
 											<i class="bi bi-plus-square"></i>
 										</button> &nbsp;
@@ -65,7 +65,7 @@
 										</button>
 									</div>
 								</div>
-								<div a class="col-3 col-sm-4 col-lg-2 offset-lg-1 text-right pt-2">
+								<div class="col-4 col-sm-3 pt-2">
 									<button type="submit" asp-action="Remove" asp-route-cartId="@item.Id" class="btn btn-danger bg-gradient py-2 ">
 										<i class="bi bi-trash-fill"></i>
 									</button>

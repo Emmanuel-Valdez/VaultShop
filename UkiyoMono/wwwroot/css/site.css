@@ -3,6 +3,12 @@ html {
 }
 
 :root {
+    --primary: #1a2a4a;
+    --primary-rgb: 26, 42, 74;
+    --primary-emphasis: #0d1625;
+    --secondary: #f7f8fa;
+    --secondary-rgb: 247, 248, 250;
+    --secondary-emphasis: #d4a017;
     --bs-primary: #1a2a4a;
     --bs-primary-rgb: 26, 42, 74;
     --bs-secondary: #f7f8fa;
@@ -15,8 +21,16 @@ html {
 }
 
 [data-bs-theme=dark] {
+    --primary: #e8eaf2;
+    --primary-rgb: 232, 234, 242;
+    --secondary: #e8eaf2;
+    --secondary-rgb: 232, 234, 242;
     --bs-primary: #e8eaf2;
     --bs-primary-rgb: 232, 234, 242;
+    --bs-secondary: #e8eaf2;
+    --bs-secondary-rgb: 232, 234, 242;
+    --bs-secondary-color: #c7cfdd;
+    --bs-tertiary-color: #aeb8c8;
 }
 
 @media (min-width: 768px) {
@@ -89,6 +103,31 @@ html {
     --bs-btn-hover-color: #0d1625;
 }
 
+.btn-language,
+.btn-language-active {
+    --bs-btn-border-color: rgba(212, 160, 23, 0.72);
+    --bs-btn-hover-bg: #d4a017;
+    --bs-btn-hover-border-color: #d4a017;
+    --bs-btn-hover-color: #0d1625;
+    --bs-btn-active-bg: #b8860b;
+    --bs-btn-active-border-color: #b8860b;
+}
+
+.btn-language {
+    --bs-btn-color: #1a2a4a;
+    --bs-btn-bg: transparent;
+}
+
+.btn-language-active {
+    --bs-btn-color: #0d1625;
+    --bs-btn-bg: #d4a017;
+}
+
+[data-bs-theme=dark] .btn-language {
+    --bs-btn-color: #e8eaf2;
+    --bs-btn-bg: rgba(13, 22, 37, 0.18);
+}
+
 [data-bs-theme=dark] .btn-outline-primary {
     --bs-btn-color: #e8eaf2;
     --bs-btn-border-color: #e8eaf2;
@@ -97,10 +136,45 @@ html {
     --bs-btn-hover-color: #0d1625;
 }
 
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: #1a2a4a;
+    color: #e8eaf2;
+}
+
 .icon-link,
 .navbar .nav-link:hover,
 .navbar .nav-link:focus {
     color: var(--vault-accent) !important;
+}
+
+.footer-signature {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    opacity: 0.82;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.footer-signature:hover,
+.footer-signature:focus {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.footer-signature__mark {
+    display: block;
+    width: 44px;
+    height: auto;
+}
+
+.navbar.bg-primary {
+    background: linear-gradient(135deg, #0d1625, #1a2a4a) !important;
+    box-shadow: 0 0.5rem 1.25rem rgba(13, 22, 37, 0.22);
+}
+
+[data-bs-theme=dark] .navbar.bg-primary {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
 }
 
 .bg-primary {
@@ -123,12 +197,13 @@ html {
     height: 100%;
     border: 1px solid rgba(26, 42, 74, 0.1) !important;
     border-top: 4px solid var(--vault-accent) !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .product-card:hover {
     border-color: rgba(212, 160, 23, 0.45) !important;
     box-shadow: 0 0.75rem 1.5rem rgba(13, 22, 37, 0.12) !important;
+    transform: translateY(-2px);
 }
 
 .product-card__image-link {
@@ -238,7 +313,12 @@ html {
 }
 
 [data-bs-theme=dark] .product-card__meta {
-    color: #a8b0c3;
+    color: #c7cfdd;
+}
+
+[data-bs-theme=dark] .product-card:hover {
+    border-color: rgba(212, 160, 23, 0.7) !important;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(212, 160, 23, 0.24) !important;
 }
 
 [data-bs-theme=dark] .product-price {
@@ -271,19 +351,17 @@ div.dt-button-collection .dt-button {
 div.dt-button-collection .dt-button:hover {
     background-color: var(--bs-tertiary-bg);
 }
-/* Estilos para la tarjeta en tema claro */
 [data-bs-theme=light] .theme-card {
-    background-color: #ffe5d4; /* Fondo claro */
-    color: #593f62; /* Texto oscuro */
+    background-color: #f7f8fa;
+    color: #1a2a4a;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos para la tarjeta en tema oscuro */
 [data-bs-theme=dark] .theme-card {
-    background-color: #593f62; /* Fondo oscuro */
-    color: #ffe5d4; /* Texto claro */
+    background-color: var(--vault-surface-dark);
+    color: #e8eaf2;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
