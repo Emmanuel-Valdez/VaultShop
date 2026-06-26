@@ -1,92 +1,70 @@
 ﻿@model ShoppingCartVM
-<form method="post">
+<form method="post" class="checkout-summary">
 	@Html.AntiForgeryToken()
 	<br />
 	<div class="container">
-		<div class="card shadow border-0">
+		<div class="card shadow border-0 checkout-summary__card">
 
-			<div class="card-header bg-secondary bg-gradient text-light ml-0 py-4">
-				<div class="row px-4">
-					<div class="col-6">
-						<h5 class="pt-2 text-primary">
+			<div class="card-header bg-secondary bg-gradient ml-0 py-4 border-0">
+				<div class="row px-4 align-items-center g-3">
+					<div class="col-12 col-md-7">
+						<h1 class="h3 mb-0 text-primary">
 							@Localizer["Title"]
-						</h5>
+						</h1>
 					</div>
-					<div class="col-6 text-end">
-						<a asp-area="Customer" asp-Controller="Cart" asp-action="Index" class="btn btn-outline-danger btn-sm">@Localizer["BackToCart"]</a>
+					<div class="col-12 col-md-5 text-md-end">
+						<a asp-area="Customer" asp-Controller="Cart" asp-action="Index" class="btn btn-outline-primary btn-sm">@Localizer["BackToCart"]</a>
 					</div>
 				</div>
 			</div>
-			<div class="card-body">
+			<div class="card-body p-4 p-lg-5">
 				 <input asp-for="@Model.OrderHeader.ApplicationUserId" hidden />
-				<div class="container rounded p-2">
-					<div class="row">
+				<div class="container-fluid rounded p-0">
+					<div class="row g-4">
 						<div class="col-12 col-lg-6 pb-4">
-							<div class="row">
-								<h4 class="d-flex justify-content-between align-items-center mb-3">
-									<span class="text-info">@Localizer["ShippingDetails"]:</span>
-								</h4>
+							<h2 class="h5 mb-3 text-primary">@Localizer["ShippingDetails"]</h2>
+							<div class="form-floating mb-3">
+								<input asp-for="OrderHeader.Name" class="form-control" placeholder=" " />
+								<label asp-for="OrderHeader.Name">@Localizer["UserName"]</label>
+								<span asp-validation-for="OrderHeader.Name" class="text-danger small"></span>
 							</div>
-							<div class="row my-1">
-								<div class="col-3">
-									<label asp-for="OrderHeader.Name">@Localizer["UserName"]</label>
-								</div>
-								<div class="col-9">
-									<input asp-for="OrderHeader.Name" class="form-control" />
-									<span asp-validation-for="OrderHeader.Name" class="text-danger"></span>
-								</div>
+							<div class="form-floating mb-3">
+								<input asp-for="OrderHeader.PhoneNumber" class="form-control" placeholder=" " />
+								<label asp-for="OrderHeader.PhoneNumber">@Localizer["UserPhoneNumber"]</label>
+								<span asp-validation-for="OrderHeader.PhoneNumber" class="text-danger small"></span>
 							</div>
-							<div class="row my-1">
-								<div class="col-3">
-									<label asp-for="OrderHeader.PhoneNumber">@Localizer["UserPhoneNumber"]</label>
-								</div>
-								<div class="col-9">
-									<input asp-for="OrderHeader.PhoneNumber" class="form-control" />
-									<span asp-validation-for="OrderHeader.PhoneNumber" class="text-danger"></span>
-								</div>
+							<div class="form-floating mb-3">
+								<input asp-for="OrderHeader.StreetAddress" class="form-control" placeholder=" " />
+								<label asp-for="OrderHeader.StreetAddress">@Localizer["UserStreetAddress"]</label>
+								<span asp-validation-for="OrderHeader.StreetAddress" class="text-danger small"></span>
 							</div>
-							<div class="row my-1">
-								<div class="col-3">
-									<label asp-for="OrderHeader.StreetAddress">@Localizer["UserStreetAddress"]</label>
+							<div class="row g-3">
+								<div class="col-12 col-md-6">
+									<div class="form-floating">
+										<input asp-for="OrderHeader.City" class="form-control" placeholder=" " />
+										<label asp-for="OrderHeader.City">@Localizer["UserCity"]</label>
+										<span asp-validation-for="OrderHeader.City" class="text-danger small"></span>
+									</div>
 								</div>
-								<div class="col-9">
-									<input asp-for="OrderHeader.StreetAddress" class="form-control" />
-									<span asp-validation-for="OrderHeader.StreetAddress" class="text-danger"></span>
+								<div class="col-12 col-md-6">
+									<div class="form-floating">
+										<input asp-for="OrderHeader.State" class="form-control" placeholder=" " />
+										<label asp-for="OrderHeader.State">@Localizer["UserState"]</label>
+										<span asp-validation-for="OrderHeader.State" class="text-danger small"></span>
+									</div>
 								</div>
-							</div>
-							<div class="row my-1">
-								<div class="col-3">
-									<label asp-for="OrderHeader.City">@Localizer["UserCity"]</label>
-								</div>
-								<div class="col-9">
-									<input asp-for="OrderHeader.City" class="form-control" />
-									<span asp-validation-for="OrderHeader.City" class="text-danger"></span>
-								</div>
-							</div>
-							<div class="row my-1">
-								<div class="col-3">
-									<label asp-for="OrderHeader.State">@Localizer["UserState"]</label>
-								</div>
-								<div class="col-9">
-									<input asp-for="OrderHeader.State" class="form-control" />
-									<span asp-validation-for="OrderHeader.State" class="text-danger"></span>
-								</div>
-							</div>
-							<div class="row my-1">
-								<div class="col-3">
-									<label asp-for="OrderHeader.PostalCode">@Localizer["UserPostalCode"]</label>
-								</div>
-								<div class="col-9">
-									<input asp-for="OrderHeader.PostalCode" class="form-control" />
-									<span asp-validation-for="OrderHeader.PostalCode" class="text-danger"></span>
+								<div class="col-12 col-md-6">
+									<div class="form-floating">
+										<input asp-for="OrderHeader.PostalCode" class="form-control" placeholder=" " />
+										<label asp-for="OrderHeader.PostalCode">@Localizer["UserPostalCode"]</label>
+										<span asp-validation-for="OrderHeader.PostalCode" class="text-danger small"></span>
+									</div>
 								</div>
 							</div>
 						</div>
 						<div class="col-12 col-lg-5 offset-lg-1">
-							<h4 class="d-flex justify-content-between align-items-center mb-3">
-								<span class="text-info">@Localizer["OrderSummary"]:</span>
-							</h4>
-							 <ul class="list-group mb-3">
+							<h2 class="h5 mb-3 text-primary">@Localizer["OrderSummary"]</h2>
+							 <ul class="list-group mb-3 shadow-sm">
 								@foreach (var details in Model.ShoppingCartList)
 								{
 									
@@ -95,13 +73,13 @@
 											<h6 class="my-0">@details.Product.Name</h6>
 											<small class="text-muted">@Localizer["Quantity"]: @details.Count</small>
 										</div>
-										<span class="text-muted">@((details.Price * details.Count).ToString("c")) </span>
+										<span class="fw-semibold">@((details.Price * details.Count).ToString("c")) </span>
 									</li>
 								}
 
-								<li class="list-group-item d-flex justify-content-between bg-light">
-									<small class="text-info">@Localizer["Total"] </small>
-									<strong class="text-info">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+								<li class="list-group-item d-flex justify-content-between bg-secondary">
+									<strong class="text-primary">@Localizer["Total"] </strong>
+									<strong class="text-primary">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
 									
 								</li>
 
@@ -110,8 +88,8 @@
 					</div>
 				</div>
 			</div>
-			<div class="card-footer">
-				<div class="row">
+			<div class="card-footer bg-white border-0 p-4 p-lg-5 pt-0">
+				<div class="row align-items-center g-3">
 					<div class="col-12 mb-3">
 						<div class="checkout-demo-notice" role="alert">
 							<div class="checkout-demo-notice__icon" aria-hidden="true">
@@ -124,7 +102,7 @@
 						</div>
 					</div>
 					<div class="col-12 col-md-8 pt-2">
-						<p class="text-danger" style=" font-size:14px;">
+						<p class="text-muted small mb-0">
 							@Localizer["EstimateArrivalDate"] :
 							@DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()
 

@@ -315,12 +315,32 @@ div.dt-button-collection .dt-button:hover {
     font-size: 1.1rem;
 }
 
+.checkout-summary__card,
+.admin-product-upsert .border {
+    border-color: rgba(26, 42, 74, 0.12) !important;
+}
+
+.product-image-card__image {
+    width: 100%;
+    aspect-ratio: 5 / 6;
+    object-fit: cover;
+}
+
 [data-bs-theme=dark] .checkout-demo-notice {
     border-color: rgba(251, 191, 36, 0.45);
     border-left-color: #fbbf24;
     background: linear-gradient(135deg, rgba(69, 26, 3, 0.96), rgba(120, 53, 15, 0.72));
     color: #fef3c7;
     box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.22);
+}
+
+[data-bs-theme=dark] .checkout-summary .card-footer.bg-white {
+    background-color: var(--vault-surface-dark) !important;
+}
+
+[data-bs-theme=dark] .checkout-summary__card,
+[data-bs-theme=dark] .admin-product-upsert .border {
+    border-color: rgba(232, 234, 242, 0.14) !important;
 }
 
 .rich-text-editor .ql-editor {
