@@ -35,6 +35,8 @@ namespace UkiyoDesigns.Models
 		public decimal FinalWholesalePrice { get; set; }
 
         public bool IsAvailableInStore { get; set; } = false;
+        public bool IsFeatured { get; set; } = false;
+        public int FeaturedSortOrder { get; set; } = 0;
         public bool IsDeleted { get; set; } = false;
 
 		[LocalizedRequired("Category is required.", "La categoría es obligatoria.")]

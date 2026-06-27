@@ -34,6 +34,8 @@ namespace UkiyoDesigns.DataAccess.Repository
                 objFromDB.ProductImages = obj.ProductImages;
                 objFromDB.IsDeleted = obj.IsDeleted;
                 objFromDB.IsAvailableInStore= obj.IsAvailableInStore;
+                objFromDB.IsFeatured = obj.IsFeatured;
+                objFromDB.FeaturedSortOrder = obj.FeaturedSortOrder;
                 //if(obj.ImageUrl!= null)
                 //{
                 //    objFromDB.ImageUrl = obj.ImageUrl;

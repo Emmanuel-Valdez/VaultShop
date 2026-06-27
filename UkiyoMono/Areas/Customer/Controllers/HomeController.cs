@@ -33,10 +33,21 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 
 		public IActionResult Index()
 		{
-			IEnumerable<Product> productList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages");
+			var productList = _unitOfWork.Product
+				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages")
+				.ToList();
+			var featuredProducts = productList
+				.Where(u => u.IsFeatured)
+				.OrderBy(u => u.FeaturedSortOrder)
+				.ThenBy(u => u.Id)
+				.ToList();
 			var culture = CultureInfo.CurrentCulture.Name;
 
-			return View(productList);
+			return View(new HomeIndexVM
+			{
+				Products = productList,
+				FeaturedProducts = featuredProducts
+			});
 		}
 
 

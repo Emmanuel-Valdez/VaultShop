@@ -1,55 +1,128 @@
-﻿@model IEnumerable<Product>
+﻿@model HomeIndexVM
 @{
     ViewData["Title"] = Localizer["Home"];
     ViewData["Description"] = Localizer["MetaDescription"];
     ViewData["Keywords"] = Localizer["MetaKeywords"];
+
+    var products = Model?.Products.ToList() ?? new List<Product>();
+    var featuredProducts = Model?.FeaturedProducts.ToList() ?? new List<Product>();
+    var categories = products
+        .Where(product => product.Category != null && !string.IsNullOrWhiteSpace(product.Category.Name))
+        .GroupBy(product => product.Category.Id)
+        .Select(group => group.First().Category)
+        .OrderBy(category => category.Name)
+        .ToList();
 }
 
-<div class="row pb-3  ">
-	<div class="col-12 storefront-section">
-		<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
-			<div>
-				<p class="product-card__meta mb-1">VaultShop</p>
-				<h1 class="h3 text-primary mb-0">@Localizer["FeaturedProducts"]</h1>
+<section class="storefront-section">
+	<div class="row align-items-center g-3 mb-4">
+		<div class="col-lg-8">
+			<p class="product-card__meta mb-1">@Localizer["Home"]</p>
+			<h1 class="display-6 text-primary mb-2">VaultShop</h1>
+			<p class="lead text-muted mb-0">@Localizer["MetaDescription"]</p>
+		</div>
+		<div class="col-lg-4">
+			<div class="home-value-banner rounded-3 p-3 h-100">
+				<p class="product-card__meta mb-1">@Localizer["ValueBannerLabel"]</p>
+				<p class="fw-semibold mb-0">@Localizer["ValueBannerText"]</p>
 			</div>
 		</div>
 	</div>
-	@if (!Model.Any())
-	{
-		<div class="col-12">
-			<div class="empty-state rounded-3 text-center p-5">
-				<h2 class="h5 text-primary">@Localizer["NoProductsTitle"]</h2>
-				<p class="mb-0 text-muted">@Localizer["NoProductsMessage"]</p>
-			</div>
+</section>
+
+@if (!products.Any())
+{
+	<section class="pb-4" aria-labelledby="empty-products-heading">
+		<div class="empty-state rounded-3 text-center p-5">
+			<h2 id="empty-products-heading" class="h5 text-primary">@Localizer["NoProductsTitle"]</h2>
+			<p class="mb-0 text-muted">@Localizer["NoProductsMessage"]</p>
 		</div>
-	}
-	@foreach (var product in Model)
+	</section>
+}
+else
+{
+	@if (featuredProducts.Any())
 	{
-		var primaryImage = product.ProductImages.PrimaryOrFirstForDisplay();
-		<div class="col-lg-3 col-sm-6 mb-4">
-			<div class="h-100">
-				<div class="col-12 h-100">
-					<div class="card product-card p-3 shadow-sm rounded bg-secondary">
-						@if(primaryImage != null)
-						{
-							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded">
+		<section class="storefront-section pt-0" aria-labelledby="highlighted-products-heading">
+			<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+				<h2 id="highlighted-products-heading" class="h4 text-primary mb-0">@Localizer["FeaturedProducts"]</h2>
+				<a href="#all-products" class="btn btn-outline-primary btn-sm rounded-pill">@Localizer["AllProducts"]</a>
+			</div>
+			<div class="row g-3 g-md-4">
+				@foreach (var product in featuredProducts)
+				{
+					var primaryImage = product.ProductImages.PrimaryOrFirstForDisplay();
+					<div class="col-6 col-md-4 col-lg-3">
+						<div class="card product-card h-100 p-3 shadow-sm rounded bg-secondary">
+							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded" aria-label="@product.Name">
+								@if (primaryImage != null)
+								{
+									<img src="@primaryImage.ImageUrl" class="product-card__image" alt="@product.Name" />
+								}
+								else
+								{
+									<img src="https://placehold.co/500x600/png" class="product-card__image" alt="@product.Name" />
+								}
+							</a>
+
+							<div class="card-body px-0 pb-0 d-flex flex-column flex-grow-1">
+								@if (!string.IsNullOrWhiteSpace(product.Category?.Name))
+								{
+									<p class="product-card__meta mb-1">@product.Category.Name</p>
+								}
+								<h3 class="card-title h6 text-primary mb-2">@product.Name</h3>
+								<p class="product-price h5 mb-3"><span>@product.FinalRetailPrice.ToString("c")</span></p>
+								<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
+									@Localizer["Details"]
+								</a>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</section>
+	}
+
+	@if (categories.Any())
+	{
+		<section class="storefront-section" aria-labelledby="category-shortcuts-heading">
+			<h2 id="category-shortcuts-heading" class="h4 text-primary mb-3">@Localizer["ShopByCategory"]</h2>
+			<div class="d-flex flex-wrap gap-2" aria-label='@Localizer["ShopByCategory"]'>
+				@foreach (var category in categories)
+				{
+					<a asp-action="Search" asp-route-searchString="@category.Name" class="btn btn-outline-primary btn-sm rounded-pill">@category.Name</a>
+				}
+			</div>
+		</section>
+	}
+
+	<section id="all-products" class="storefront-section" aria-labelledby="all-products-heading">
+		<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+			<h2 id="all-products-heading" class="h4 text-primary mb-0">@Localizer["AllProducts"]</h2>
+		</div>
+		<div class="row g-3 g-md-4">
+			@foreach (var product in products)
+			{
+				var primaryImage = product.ProductImages.PrimaryOrFirstForDisplay();
+				<div class="col-6 col-md-4 col-lg-3">
+					<div class="card product-card h-100 p-3 shadow-sm rounded bg-secondary">
+						<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded" aria-label="@product.Name">
+							@if (primaryImage != null)
+							{
 								<img src="@primaryImage.ImageUrl" class="product-card__image" alt="@product.Name" />
-							</a>
-							
-						}else
-						{
-							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded">
+							}
+							else
+							{
 								<img src="https://placehold.co/500x600/png" class="product-card__image" alt="@product.Name" />
-							</a>
-							
-						}
+							}
+						</a>
 
 						<div class="card-body px-0 pb-0 d-flex flex-column flex-grow-1">
 							@if (!string.IsNullOrWhiteSpace(product.Category?.Name))
 							{
 								<p class="product-card__meta mb-1">@product.Category.Name</p>
 							}
-							<h2 class="card-title h5 text-primary mb-2">@product.Name</h2>
+							<h3 class="card-title h6 text-primary mb-2">@product.Name</h3>
 							<p class="product-price h5 mb-3"><span>@product.FinalRetailPrice.ToString("c")</span></p>
 							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 								@Localizer["Details"]
@@ -57,8 +130,15 @@
 						</div>
 					</div>
 				</div>
-			</div>
+			}
 		</div>
-	}
-</div>
+	</section>
+
+	<section class="storefront-section pb-4" aria-labelledby="trust-strip-heading">
+		<div class="home-trust-strip rounded-3 p-3 d-flex flex-column flex-md-row justify-content-between gap-2">
+			<h2 id="trust-strip-heading" class="h5 text-primary mb-0">@Localizer["TrustStripLabel"]</h2>
+			<span>@Localizer["TrustStripText"]</span>
+		</div>
+	</section>
+}
 

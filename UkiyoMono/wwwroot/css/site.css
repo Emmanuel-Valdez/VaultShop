@@ -193,6 +193,13 @@ html {
     padding-top: 1.5rem;
 }
 
+.home-value-banner,
+.home-trust-strip {
+    border: 1px solid rgba(26, 42, 74, 0.12);
+    border-left: 4px solid var(--vault-accent);
+    background-color: #f7f8fa;
+}
+
 .product-card {
     height: 100%;
     border: 1px solid rgba(26, 42, 74, 0.1) !important;
@@ -305,6 +312,13 @@ html {
 [data-bs-theme=dark] .product-detail {
     border-color: rgba(232, 234, 242, 0.14) !important;
     background-color: var(--vault-surface-dark) !important;
+}
+
+[data-bs-theme=dark] .home-value-banner,
+[data-bs-theme=dark] .home-trust-strip {
+    border-color: rgba(232, 234, 242, 0.14);
+    border-left-color: var(--vault-accent);
+    background-color: var(--vault-surface-dark);
 }
 
 [data-bs-theme=dark] .product-card__image-link,

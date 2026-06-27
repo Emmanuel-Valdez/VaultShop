@@ -27,26 +27,23 @@
 					@foreach (var item in Model.ShoppingCartList)
 					{
 						var primaryImage = item.Product.ProductImages.PrimaryOrFirstForDisplay();
+						var imageUrl = primaryImage?.ImageUrl ?? "https://placehold.co/500x600/png";
+						var imageAlt = primaryImage is null ? $"No product image available for {item.Product.Name}" : item.Product.Name;
 						<div class="row border-bottom pb-3 gy-3">
-							<div class="d-none d-lg-block col-lg-1 text-center py-2">
-								@if (primaryImage != null)
-								{
-									<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id">
-										<img src="@primaryImage.ImageUrl" class="card-img-top rounded w-100" />
-									</a>
-								}
-								else
-								{
-									<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id">
-										<img src="https://placehold.co/500x600/png" class="card-img-top rounded w-100" />
-									</a>
-								}
+							<div class="col-3 col-sm-2 col-lg-1 text-center py-2">
+								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" class="product-card__image-link rounded">
+									<img src="@imageUrl" class="product-card__image" alt="@imageAlt" />
+								</a>
 							</div>
-							<div class="col-12 col-lg-5 pt-md-3">
+							<div class="col-9 col-sm-10 col-lg-5 pt-2 pt-md-3">
+								@if (!string.IsNullOrWhiteSpace(item.Product.Category?.Name))
+								{
+									<p class="product-card__meta mb-1">@item.Product.Category.Name</p>
+								}
 								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" class="text-decoration-none">
 									<h5 class="text-uppercase" ><strong>@item.Product.Name</strong></h5>
 								</a>
-								<p><small>@Html.Raw(item.Product.Description)</small></p>
+								<div class="d-none d-md-block small">@Html.Raw(item.Product.Description)</div>
 							</div>
 							<div class="col-12 col-lg-5 row text-center align-items-center gy-2">
 								<div class="col-12 col-sm-4 pt-2 pt-md-4">

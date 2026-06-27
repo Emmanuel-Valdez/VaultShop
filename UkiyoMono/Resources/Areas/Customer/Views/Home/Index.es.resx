@@ -138,4 +138,22 @@
   <data name="NoProductsTitle" xml:space="preserve">
     <value>No hay productos disponibles ahora</value>
   </data>
+  <data name="AllProducts" xml:space="preserve">
+    <value>Todos los productos</value>
+  </data>
+  <data name="ShopByCategory" xml:space="preserve">
+    <value>Comprar por categoría</value>
+  </data>
+  <data name="TrustStripLabel" xml:space="preserve">
+    <value>Comprá con claridad</value>
+  </data>
+  <data name="TrustStripText" xml:space="preserve">
+    <value>Revisá disponibilidad actual, detalles del producto y confirmá el envío antes de pagar.</value>
+  </data>
+  <data name="ValueBannerLabel" xml:space="preserve">
+    <value>Nota de envío</value>
+  </data>
+  <data name="ValueBannerText" xml:space="preserve">
+    <value>Los costos de envío y cualquier oferta de envío gratis se confirman en el checkout antes de pagar.</value>
+  </data>
 </root>

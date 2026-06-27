@@ -120,6 +120,12 @@
   <data name="AvailableInStore" xml:space="preserve">
     <value>Disponible en tienda</value>
   </data>
+  <data name="FeaturedProduct" xml:space="preserve">
+    <value>Producto destacado</value>
+  </data>
+  <data name="FeaturedSortOrder" xml:space="preserve">
+    <value>Orden destacado</value>
+  </data>
   <data name="BackToList" xml:space="preserve">
     <value>Volver a Lista</value>
   </data>

@@ -44,14 +44,12 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			}
 			ShoppingCartVM = new()
 			{
-				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product"),
+				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product.Category,Product.ProductImages"),
 				OrderHeader = new()
 			};
-			IEnumerable<ProductImage> productImages = _unitOfWork.ProductImage.GetAll();
 			RemoveShoppingCartsOutdated(userId);
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
-				cart.Product.ProductImages = productImages.Where(u => u.ProductId == cart.Product.Id).ToList();
 				cart.Price = GetPriceBasedOnRole(cart);
 				ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
 			}
@@ -71,7 +69,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				}
 			}
 			_unitOfWork.Save();
-			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages");
 			HttpContext.Session.SetInt32(SD.SessionCart, ShoppingCartVM.ShoppingCartList.Count());
 
 		}
