@@ -64,7 +64,7 @@ The project now has a lightweight operations baseline:
 - Backups are manual/documented, not fully automated yet.
 - Monitoring is lightweight uptime/TLS monitoring, not full observability.
 - Internal repository/project names still contain historical Ukiyo naming and should be cleaned up deliberately later.
-- The frontend is functional but planned for a future visual redesign.
+- The storefront UI has been refreshed for the portfolio path; future work should focus on deployment evidence, screenshots, CI, and deliberate naming cleanup before more visual redesign.
 
 ## Interview Summary
 

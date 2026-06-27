@@ -6,9 +6,9 @@
 ![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 ![License](https://img.shields.io/badge/license-source--available-blue)
 
-VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is being evolved into a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, backup/restore validation, lightweight monitoring, and deployment-oriented hardening.
+VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is now a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, backup/restore validation, lightweight monitoring, and deployment-oriented hardening.
 
-The application is live and functional. Current work focuses on improving the public case study, screenshots, portfolio material, and a future frontend redesign.
+The application is live and functional. Current work focuses on deploying the refreshed Home/cart/featured-products flow, updating screenshots, and turning the project into portfolio/CV/LinkedIn evidence.
 
 ## Screenshots
 
@@ -64,7 +64,7 @@ The application is live and functional. Current work focuses on improving the pu
 
 ## Architecture Highlights
 
-- PostgreSQL is the active database provider. Earlier SQL Server migration history is archived and no longer part of the active runtime path.
+- PostgreSQL is the active database provider. Earlier SQL Server-specific runtime assumptions were removed; old SQL Server migration files are intentionally not kept in the active repository.
 - The admin pricing calculator uses `PricingCalculatorService` and EF Core queries instead of SQL Server views/triggers.
 - Retail and wholesale percentage costs are modeled separately; wholesale suggestions include wholesale profit plus wholesale percentage costs in the final margin formula.
 - Product image persistence is behind `IImageStorageService`; the app supports local filesystem storage and MinIO.
@@ -89,7 +89,7 @@ Ukiyo.DataAccess/      EF Core DbContext, repositories, migrations
 Ukiyo.Models/          Domain models and view models
 Ukiyo.Utility/         Shared constants and infrastructure helpers
 UkiyoDesignsWeb.Tests/ Automated tests
-docs/                  Screenshots and archived historical migration files
+docs/                  Architecture, operations notes, case study, and screenshots
 ```
 
 ## Configuration
