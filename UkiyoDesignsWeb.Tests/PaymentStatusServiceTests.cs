@@ -16,6 +16,7 @@ namespace UkiyoDesignsWeb.Tests
 			var order = new OrderHeader
 			{
 				Id = 42,
+				SessionId = "cs_test_paid",
 				PaymentStatus = SD.PaymentStatusPending,
 				OrderStatus = SD.StatusPending
 			};
@@ -28,6 +29,89 @@ namespace UkiyoDesignsWeb.Tests
 			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(42, "cs_test_paid", "pi_test_paid"), Times.Once);
 			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusApproved, SD.PaymentStatusApproved), Times.Once);
 			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void MarkCheckoutSessionPaid_PreservesDelayedPaymentOrderStatus()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_test_paid",
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusInProcess
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
+
+			Assert.True(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusInProcess, SD.PaymentStatusApproved), Times.Once);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void MarkCheckoutSessionPaid_IgnoresCancelledOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_test_paid",
+				PaymentStatus = SD.StatusCancelled,
+				OrderStatus = SD.StatusCancelled
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
+
+			Assert.False(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void MarkCheckoutSessionPaid_IgnoresStaleSession()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_current",
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_old", "pi_test_paid"));
+
+			Assert.False(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void MarkCheckoutSessionPaid_IgnoresDuplicatePaidSession()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_test_paid",
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusApproved
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
+
+			Assert.True(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
 		}
 
 		[Fact]

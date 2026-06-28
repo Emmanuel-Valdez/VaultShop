@@ -1,14 +1,24 @@
-﻿@model int
+﻿@model OrderHeader
+@{
+	var isTerminal = Model.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
+		Model.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
+	var isPending = Model.PaymentStatus == SD.PaymentStatusPending;
+	var isDelayed = Model.PaymentStatus == SD.PaymentStatusDelayedPayment;
+	var titleKey = isTerminal ? "OrderNotAvailableTitle" : isPending ? "PaymentNotCompletedTitle" : "OrderPlaced";
+	var messageKey = isTerminal ? "OrderNotAvailableMessage" : isPending ? "PaymentNotCompletedMessage" : isDelayed ? "DelayedPaymentMessage" : "Success";
+	var titleClass = isTerminal ? "text-danger" : isPending ? "text-warning" : "text-primary";
+	var alertClass = isTerminal ? "alert-danger" : isPending ? "alert-warning" : "alert-success";
+}
 
-<div class="containter row pt-4">
+<div class="container row pt-4">
 	<div class="col-12 text-center">
-		<h1 class="text-primary text-center ">@Localizer["OrderPlaced"]</h1>
-		@Localizer["OrderNumber"] @Model <br /><br />
+		<h1 class="@titleClass text-center">@Localizer[titleKey]</h1>
+		@Localizer["OrderNumber"] @Model.Id <br /><br />
 		<img src="~/images/UkiyoOlas.webp" width="50%"/>
 	</div> 
 	<div class="col-12 text-center pb-3">
 		<br />
-		@Localizer["Success"] 
+		<div class="alert @alertClass" role="alert">@Localizer[messageKey]</div>
 		<br />
 
 		<a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-primary  mt-3">

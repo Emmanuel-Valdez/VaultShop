@@ -46,5 +46,10 @@ namespace UkiyoDesignsWeb.Services.Payments
 			var session = _stripeCheckoutSessionClient.Get(sessionId);
 			return new PaymentSessionStatusResult(session.Id, session.PaymentIntentId, session.PaymentStatus);
 		}
+
+		public void ExpireCheckoutSession(string sessionId)
+		{
+			_stripeCheckoutSessionClient.Expire(sessionId);
+		}
 	}
 }

@@ -157,7 +157,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 					session = _paymentSessionService.CreateCheckoutSession(new PaymentSessionRequest(
 						orderId,
 						result.ShoppingCartVM.ShoppingCartList.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
-						domain + $"customer/cart/OrderConfirmation?id={orderId}",
+						domain + $"customer/cart/OrderConfirmation?id={orderId}&session_id={{CHECKOUT_SESSION_ID}}",
 						domain + "customer/cart/index"));
 				}
 				catch (Exception ex)
@@ -174,7 +174,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			return RedirectToAction(nameof(OrderConfirmation), new { id = result.OrderId.Value });
 		}
 
-		public IActionResult OrderConfirmation(int id)
+		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
 			if (orderHeader == null)
@@ -185,25 +185,37 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			{
 				return NotFound();
 			}
+			if (!ConfirmationSessionMatches(orderHeader, sessionId))
+			{
+				_logger.LogWarning("Rejected order confirmation for order {OrderId} with session {SessionId}. Stored session: {StoredSessionId}.", orderHeader.Id, sessionId, orderHeader.SessionId);
+				return NotFound();
+			}
 
 			if (orderHeader.OrderStatus == SD.StatusPending && orderHeader.PaymentStatus == SD.PaymentStatusPending)
 			{
 				SyncPaidCheckoutSession(orderHeader);
+				orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser") ?? orderHeader;
 			}
 
-			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+			if (orderHeader.PaymentStatus is SD.PaymentStatusApproved or SD.PaymentStatusDelayedPayment)
 			{
 				HttpContext.Session.Clear();
+				var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+				if (!string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId)
+				{
+					List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart
+						.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+					_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
+					_unitOfWork.Save();
+				}
 			}
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (!string.IsNullOrEmpty(userId) && orderHeader.ApplicationUserId == userId)
-			{
-				List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart
-					.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
-				_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
-				_unitOfWork.Save();
-			}
-			return View(id);
+			return View(orderHeader);
+		}
+
+		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)
+		{
+			return string.IsNullOrWhiteSpace(orderHeader.SessionId) ||
+				string.Equals(orderHeader.SessionId, sessionId, StringComparison.Ordinal);
 		}
 
 		private void SyncPaidCheckoutSession(OrderHeader orderHeader)

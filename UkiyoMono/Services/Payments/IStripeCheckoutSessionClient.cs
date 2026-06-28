@@ -6,6 +6,7 @@ namespace UkiyoDesignsWeb.Services.Payments
 	{
 		Session Create(SessionCreateOptions options);
 		Session Get(string sessionId);
+		Session Expire(string sessionId);
 	}
 
 	public sealed class StripeCheckoutSessionClient : IStripeCheckoutSessionClient
@@ -20,6 +21,11 @@ namespace UkiyoDesignsWeb.Services.Payments
 		public Session Get(string sessionId)
 		{
 			return _sessionService.Get(sessionId);
+		}
+
+		public Session Expire(string sessionId)
+		{
+			return _sessionService.Expire(sessionId);
 		}
 	}
 }

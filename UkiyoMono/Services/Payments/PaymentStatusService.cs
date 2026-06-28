@@ -23,6 +23,26 @@ namespace UkiyoDesignsWeb.Services.Payments
 				_logger.LogWarning("Could not find order for paid checkout session {SessionId}.", update.SessionId);
 				return false;
 			}
+			if (!SessionMatches(orderHeader, update))
+			{
+				_logger.LogWarning("Ignored paid checkout session {SessionId} for order {OrderId} because the order currently stores session {StoredSessionId}.", update.SessionId, orderHeader.Id, orderHeader.SessionId);
+				return false;
+			}
+			if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
+			{
+				_logger.LogInformation("Ignored duplicate paid checkout session {SessionId} for already-paid order {OrderId}.", update.SessionId, orderHeader.Id);
+				return true;
+			}
+			if (IsTerminal(orderHeader))
+			{
+				_logger.LogError("Paid checkout session {SessionId} arrived for terminal order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}. Manual review/refund may be required.", update.SessionId, orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return false;
+			}
+			if (!IsPayable(orderHeader))
+			{
+				_logger.LogWarning("Ignored paid checkout session {SessionId} for order {OrderId} in non-payable state. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", update.SessionId, orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return false;
+			}
 
 			_unitOfWork.OrderHeader.UpdateStripePaymentId(orderHeader.Id, update.SessionId, update.PaymentIntentId ?? string.Empty);
 			var nextOrderStatus = orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment
@@ -58,6 +78,29 @@ namespace UkiyoDesignsWeb.Services.Payments
 			}
 
 			return _unitOfWork.OrderHeader.Get(order => order.SessionId == update.SessionId, tracked: true);
+		}
+
+		private static bool SessionMatches(OrderHeader orderHeader, PaymentSessionStatusUpdate update)
+		{
+			return !string.IsNullOrWhiteSpace(orderHeader.SessionId) &&
+				string.Equals(orderHeader.SessionId, update.SessionId, StringComparison.Ordinal);
+		}
+
+		private static bool IsPayable(OrderHeader orderHeader)
+		{
+			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
+			{
+				return true;
+			}
+
+			return orderHeader.OrderStatus == SD.StatusPending &&
+				orderHeader.PaymentStatus == SD.PaymentStatusPending;
+		}
+
+		private static bool IsTerminal(OrderHeader orderHeader)
+		{
+			return orderHeader.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
+				orderHeader.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
 		}
 	}
 }

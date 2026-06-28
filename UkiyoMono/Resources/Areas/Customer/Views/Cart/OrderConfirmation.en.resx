@@ -129,4 +129,19 @@
   <data name="Success" xml:space="preserve">
     <value>Your order has been placed successfully!</value>
   </data>
+  <data name="PaymentNotCompletedTitle" xml:space="preserve">
+    <value>Payment Not Completed</value>
+  </data>
+  <data name="PaymentNotCompletedMessage" xml:space="preserve">
+    <value>Your payment has not been confirmed yet. This order is unpaid and cannot be processed.</value>
+  </data>
+  <data name="OrderNotAvailableTitle" xml:space="preserve">
+    <value>Order Not Available</value>
+  </data>
+  <data name="OrderNotAvailableMessage" xml:space="preserve">
+    <value>This order is no longer active, so this confirmation page cannot be used for payment success.</value>
+  </data>
+  <data name="DelayedPaymentMessage" xml:space="preserve">
+    <value>Your order has been placed. Payment is still pending under your company payment terms.</value>
+  </data>
 </root>

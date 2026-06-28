@@ -1,16 +1,25 @@
-﻿@model int
+﻿@model OrderHeader
+@{
+	var isTerminal = Model.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
+		Model.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
+	var isPaid = Model.PaymentStatus == SD.PaymentStatusApproved;
+	var titleKey = isPaid ? "Title" : isTerminal ? "PaymentNotAvailableTitle" : "PaymentNotCompletedTitle";
+	var messageKey = isPaid ? "PaymentSuccess" : isTerminal ? "PaymentNotAvailableMessage" : "PaymentNotCompletedMessage";
+	var titleClass = isPaid ? "text-primary" : isTerminal ? "text-danger" : "text-warning";
+	var alertClass = isPaid ? "alert-success" : isTerminal ? "alert-danger" : "alert-warning";
+}
 
-<div class="containter row pt-4">
+<div class="container row pt-4">
 	<div class="col-12 text-center">
-		<h1 class="text-primary text-center">@Localizer["Title"]</h1>
-		@Localizer["OrderNumber"]: @Model <br /><br />
+		<h1 class="@titleClass text-center">@Localizer[titleKey]</h1>
+		@Localizer["OrderNumber"]: @Model.Id <br /><br />
 		<img src="~/images/UkiyoOlas.webp" width="50%" />
 	</div>
 	<div class="col-12 text-center pb-3">
 		<br />
-		@Localizer["PaymentSuccess"]
+		<div class="alert @alertClass" role="alert">@Localizer[messageKey]</div>
 		<br />
-		<a asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-orderId="@Model" class="btn btn-primary mt-3">
+		<a asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-orderId="@Model.Id" class="btn btn-primary mt-3">
 			 @Localizer["BackToOrderDetails"]
 		 </a>
 	</div>

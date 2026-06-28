@@ -129,4 +129,16 @@
   <data name="Title" xml:space="preserve">
     <value>Payment Successful</value>
   </data>
+  <data name="PaymentNotCompletedTitle" xml:space="preserve">
+    <value>Payment Not Completed</value>
+  </data>
+  <data name="PaymentNotCompletedMessage" xml:space="preserve">
+    <value>Stripe has not confirmed payment for this order yet.</value>
+  </data>
+  <data name="PaymentNotAvailableTitle" xml:space="preserve">
+    <value>Payment Not Available</value>
+  </data>
+  <data name="PaymentNotAvailableMessage" xml:space="preserve">
+    <value>This order is no longer active, so this page cannot be used as payment confirmation.</value>
+  </data>
 </root>

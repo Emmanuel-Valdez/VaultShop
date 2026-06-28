@@ -163,6 +163,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			}
 			else
 			{
+				TryExpireCheckoutSession(orderHeader);
 				_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusCancelled);
 			}
 			_unitOfWork.Save();
@@ -184,6 +185,10 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
+			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment || IsTerminal(orderHeader))
+			{
+				return NotFound();
+			}
 
 			OrderVM.OrderHeader = orderHeader;
 			OrderVM.OrderDetail = _unitOfWork.OrderDetail
@@ -197,7 +202,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				session = _paymentSessionService.CreateCheckoutSession(new PaymentSessionRequest(
 					OrderVM.OrderHeader.Id,
 					OrderVM.OrderDetail.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
-					domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}",
+					domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}&session_id={{CHECKOUT_SESSION_ID}}",
 					domain + $"{currentCulture}/admin/order/details?orderId={OrderVM.OrderHeader.Id}"));
 			}
 			catch (Exception ex)
@@ -213,7 +218,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 
 		}
 
-		public IActionResult PaymentConfirmation(int orderHeaderId)
+		public IActionResult PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
 			if (orderHeader == null)
@@ -224,13 +229,48 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
+			if (!ConfirmationSessionMatches(orderHeader, sessionId))
+			{
+				_logger.LogWarning("Rejected payment confirmation for order {OrderId} with session {SessionId}. Stored session: {StoredSessionId}.", orderHeader.Id, sessionId, orderHeader.SessionId);
+				return NotFound();
+			}
 
 			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
 			{
 				SyncPaidCheckoutSession(orderHeader);
+				orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId) ?? orderHeader;
 			}
 
-			return View(orderHeaderId);
+			return View(orderHeader);
+		}
+
+		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)
+		{
+			return !string.IsNullOrWhiteSpace(orderHeader.SessionId) &&
+				string.Equals(orderHeader.SessionId, sessionId, StringComparison.Ordinal);
+		}
+
+		private static bool IsTerminal(OrderHeader orderHeader)
+		{
+			return orderHeader.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
+				orderHeader.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
+		}
+
+		private void TryExpireCheckoutSession(OrderHeader orderHeader)
+		{
+			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
+			{
+				return;
+			}
+
+			try
+			{
+				_paymentSessionService.ExpireCheckoutSession(orderHeader.SessionId);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Could not expire checkout session {SessionId} while cancelling order {OrderId}.", orderHeader.SessionId, orderHeader.Id);
+			}
 		}
 
 		private void SyncPaidCheckoutSession(OrderHeader orderHeader)

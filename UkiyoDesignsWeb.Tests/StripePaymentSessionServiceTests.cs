@@ -70,10 +70,22 @@ namespace UkiyoDesignsWeb.Tests
 			Assert.True(result.IsPaid);
 		}
 
+		[Fact]
+		public void ExpireCheckoutSession_ExpiresStoredStripeSession()
+		{
+			var stripeClient = new CapturingStripeCheckoutSessionClient();
+			var service = new StripePaymentSessionService(stripeClient);
+
+			service.ExpireCheckoutSession("cs_test_expire");
+
+			Assert.Equal("cs_test_expire", stripeClient.ExpiredSessionId);
+		}
+
 		private sealed class CapturingStripeCheckoutSessionClient : IStripeCheckoutSessionClient
 		{
 			public SessionCreateOptions? CapturedOptions { get; private set; }
 			public string? RequestedSessionId { get; private set; }
+			public string? ExpiredSessionId { get; private set; }
 			public Session? SessionToReturn { get; init; }
 
 			public Session Create(SessionCreateOptions options)
@@ -91,6 +103,12 @@ namespace UkiyoDesignsWeb.Tests
 			{
 				RequestedSessionId = sessionId;
 				return SessionToReturn ?? new Session { Id = sessionId };
+			}
+
+			public Session Expire(string sessionId)
+			{
+				ExpiredSessionId = sessionId;
+				return new Session { Id = sessionId };
 			}
 		}
 	}

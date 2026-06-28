@@ -4,6 +4,7 @@ namespace UkiyoDesignsWeb.Services.Payments
 	{
 		PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request);
 		PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId);
+		void ExpireCheckoutSession(string sessionId);
 	}
 
 	public sealed record PaymentSessionRequest(

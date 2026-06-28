@@ -129,4 +129,19 @@
   <data name="Success" xml:space="preserve">
     <value>Tu órden ah sido Generada Exitosamente</value>
   </data>
+  <data name="PaymentNotCompletedTitle" xml:space="preserve">
+    <value>Pago no completado</value>
+  </data>
+  <data name="PaymentNotCompletedMessage" xml:space="preserve">
+    <value>Tu pago todavía no fue confirmado. Esta orden está impaga y no puede procesarse.</value>
+  </data>
+  <data name="OrderNotAvailableTitle" xml:space="preserve">
+    <value>Orden no disponible</value>
+  </data>
+  <data name="OrderNotAvailableMessage" xml:space="preserve">
+    <value>Esta orden ya no está activa, por lo que esta confirmación no puede usarse como pago exitoso.</value>
+  </data>
+  <data name="DelayedPaymentMessage" xml:space="preserve">
+    <value>Tu orden fue generada. El pago sigue pendiente según las condiciones de pago de tu empresa.</value>
+  </data>
 </root>
