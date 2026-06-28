@@ -1,10 +1,9 @@
-using UkiyoDesigns.Models;
-
 namespace UkiyoDesignsWeb.Services.Payments
 {
 	public interface IPaymentSessionService
 	{
 		PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request);
+		PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId);
 	}
 
 	public sealed record PaymentSessionRequest(
@@ -22,4 +21,12 @@ namespace UkiyoDesignsWeb.Services.Payments
 		string SessionId,
 		string? PaymentIntentId,
 		string Url);
+
+	public sealed record PaymentSessionStatusResult(
+		string SessionId,
+		string? PaymentIntentId,
+		string? PaymentStatus)
+	{
+		public bool IsPaid => string.Equals(PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase);
+	}
 }

@@ -47,9 +47,34 @@ namespace UkiyoDesignsWeb.Tests
 				});
 		}
 
+		[Fact]
+		public void GetCheckoutSessionStatus_ReturnsStripePaymentStatusWithoutApprovingRedirect()
+		{
+			var stripeClient = new CapturingStripeCheckoutSessionClient
+			{
+				SessionToReturn = new Session
+				{
+					Id = "cs_test_paid",
+					PaymentIntentId = "pi_test_paid",
+					PaymentStatus = "paid"
+				}
+			};
+			var service = new StripePaymentSessionService(stripeClient);
+
+			var result = service.GetCheckoutSessionStatus("cs_test_paid");
+
+			Assert.Equal("cs_test_paid", stripeClient.RequestedSessionId);
+			Assert.Equal("cs_test_paid", result.SessionId);
+			Assert.Equal("pi_test_paid", result.PaymentIntentId);
+			Assert.Equal("paid", result.PaymentStatus);
+			Assert.True(result.IsPaid);
+		}
+
 		private sealed class CapturingStripeCheckoutSessionClient : IStripeCheckoutSessionClient
 		{
 			public SessionCreateOptions? CapturedOptions { get; private set; }
+			public string? RequestedSessionId { get; private set; }
+			public Session? SessionToReturn { get; init; }
 
 			public Session Create(SessionCreateOptions options)
 			{
@@ -60,6 +85,12 @@ namespace UkiyoDesignsWeb.Tests
 					PaymentIntentId = "pi_test_123",
 					Url = "https://stripe.test/checkout"
 				};
+			}
+
+			public Session Get(string sessionId)
+			{
+				RequestedSessionId = sessionId;
+				return SessionToReturn ?? new Session { Id = sessionId };
 			}
 		}
 	}

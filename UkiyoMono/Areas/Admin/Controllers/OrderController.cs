@@ -21,13 +21,15 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly IStringLocalizer<OrderController> _localizer;
 		private readonly ILogger<OrderController> _logger;
 		private readonly IPaymentSessionService _paymentSessionService;
+		private readonly IPaymentStatusService _paymentStatusService;
 
-		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, IPaymentSessionService paymentSessionService)
+		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
 			_paymentSessionService = paymentSessionService;
+			_paymentStatusService = paymentStatusService;
 		}
 
 		public IActionResult Index()
@@ -223,7 +225,33 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				return NotFound();
 			}
 
+			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
+			{
+				SyncPaidCheckoutSession(orderHeader);
+			}
+
 			return View(orderHeaderId);
+		}
+
+		private void SyncPaidCheckoutSession(OrderHeader orderHeader)
+		{
+			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
+			{
+				return;
+			}
+
+			try
+			{
+				var session = _paymentSessionService.GetCheckoutSessionStatus(orderHeader.SessionId);
+				if (session.IsPaid)
+				{
+					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Could not sync payment status for order {OrderId} from checkout session {SessionId}.", orderHeader.Id, orderHeader.SessionId);
+			}
 		}
 		#region API CALLS
 

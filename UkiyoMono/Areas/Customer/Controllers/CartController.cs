@@ -25,8 +25,9 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 		private readonly ILogger<CartController> _logger;
 		private readonly ICheckoutService _checkoutService;
 		private readonly IPaymentSessionService _paymentSessionService;
+		private readonly IPaymentStatusService _paymentStatusService;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
-			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService)
+			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -34,6 +35,7 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 			_logger = logger;
 			_checkoutService = checkoutService;
 			_paymentSessionService = paymentSessionService;
+			_paymentStatusService = paymentStatusService;
 		}
 		public IActionResult Index()
 		{
@@ -184,6 +186,11 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				return NotFound();
 			}
 
+			if (orderHeader.OrderStatus == SD.StatusPending && orderHeader.PaymentStatus == SD.PaymentStatusPending)
+			{
+				SyncPaidCheckoutSession(orderHeader);
+			}
+
 			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
 			{
 				HttpContext.Session.Clear();
@@ -197,6 +204,27 @@ namespace UkiyoDesignsWeb.Areas.Customer.Controllers
 				_unitOfWork.Save();
 			}
 			return View(id);
+		}
+
+		private void SyncPaidCheckoutSession(OrderHeader orderHeader)
+		{
+			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
+			{
+				return;
+			}
+
+			try
+			{
+				var session = _paymentSessionService.GetCheckoutSessionStatus(orderHeader.SessionId);
+				if (session.IsPaid)
+				{
+					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Could not sync payment status for order {OrderId} from checkout session {SessionId}.", orderHeader.Id, orderHeader.SessionId);
+			}
 		}
 
 		private bool UserCanAccessOrder(OrderHeader orderHeader)
