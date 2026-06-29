@@ -268,7 +268,7 @@
 													Model.OrderHeader.OrderStatus != SD.StatusCancelled &&
 													Model.OrderHeader.OrderStatus != SD.StatusShipped)
 								{
-									<button type="submit" asp-action="CancelOrder" class="btn btn-danger form-control my-1">
+									<button type="submit" asp-action="CancelOrder" onclick="return confirmCancelOrder(event)" class="btn btn-danger form-control my-1">
 										@Localizer["CancelOrder"]
 									</button>
 								}
@@ -302,6 +302,32 @@
 				return false;
 			}
 			return true;
+		}
+
+		function confirmCancelOrder(event) {
+			const button = event.currentTarget;
+			if (button.dataset.confirmed === "true") {
+				return true;
+			}
+
+			event.preventDefault();
+			Swal.fire({
+				icon: 'warning',
+				title: @Json.Serialize(Localizer["CancelOrderConfirmTitle"].Value),
+				text: @Json.Serialize(Localizer["CancelOrderConfirmText"].Value),
+				showCancelButton: true,
+				confirmButtonText: @Json.Serialize(Localizer["CancelOrderConfirmButton"].Value),
+				cancelButtonText: @Json.Serialize(Localizer["CancelOrderKeepButton"].Value),
+				confirmButtonColor: '#dc3545',
+				focusCancel: true
+			}).then((result) => {
+				if (result.isConfirmed) {
+					button.dataset.confirmed = "true";
+					button.click();
+				}
+			});
+
+			return false;
 		}
 
 		document.addEventListener("DOMContentLoaded", function () {

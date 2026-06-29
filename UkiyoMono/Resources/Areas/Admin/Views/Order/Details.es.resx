@@ -135,6 +135,18 @@
   <data name="CancelOrder" xml:space="preserve">
     <value>Cancelar Órden</value>
   </data>
+  <data name="CancelOrderConfirmTitle" xml:space="preserve">
+    <value>¿Cancelar esta orden?</value>
+  </data>
+  <data name="CancelOrderConfirmText" xml:space="preserve">
+    <value>Esto cancelará la orden y vencerá cualquier sesión de pago abierta.</value>
+  </data>
+  <data name="CancelOrderConfirmButton" xml:space="preserve">
+    <value>Sí, cancelar orden</value>
+  </data>
+  <data name="CancelOrderKeepButton" xml:space="preserve">
+    <value>No cancelar</value>
+  </data>
   <data name="Carrier" xml:space="preserve">
     <value>Transportista</value>
   </data>

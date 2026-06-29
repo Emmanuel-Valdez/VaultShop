@@ -135,6 +135,18 @@
   <data name="CancelOrder" xml:space="preserve">
     <value>Cancel Order</value>
   </data>
+  <data name="CancelOrderConfirmTitle" xml:space="preserve">
+    <value>Cancel this order?</value>
+  </data>
+  <data name="CancelOrderConfirmText" xml:space="preserve">
+    <value>This will cancel the order and expire any open checkout session.</value>
+  </data>
+  <data name="CancelOrderConfirmButton" xml:space="preserve">
+    <value>Yes, cancel order</value>
+  </data>
+  <data name="CancelOrderKeepButton" xml:space="preserve">
+    <value>Keep order</value>
+  </data>
   <data name="Carrier" xml:space="preserve">
     <value>Carrier</value>
   </data>
