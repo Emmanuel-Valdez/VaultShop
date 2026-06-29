@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Stripe;
 using System.Security.Claims;
@@ -22,14 +25,18 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		private readonly ILogger<OrderController> _logger;
 		private readonly IPaymentSessionService _paymentSessionService;
 		private readonly IPaymentStatusService _paymentStatusService;
+		private readonly IWebHostEnvironment _environment;
+		private readonly IConfiguration _configuration;
 
-		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService)
+		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService, IWebHostEnvironment environment, IConfiguration configuration)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
 			_paymentSessionService = paymentSessionService;
 			_paymentStatusService = paymentStatusService;
+			_environment = environment;
+			_configuration = configuration;
 		}
 
 		public IActionResult Index()
@@ -54,6 +61,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				OrderHeader = orderHeader,
 				OrderDetail = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderId, includeProperties: "Product")
 			};
+			ViewData["AllowDevelopmentManualPaymentApproval"] = ManualPaymentApprovalEnabled();
 			return View(OrderVM);
 		}
 
@@ -98,11 +106,27 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult StartProcessing()
 		{
-			_unitOfWork.OrderHeader.UpdateStatus(OrderVM.OrderHeader.Id, SD.StatusInProcess);
+			if (OrderVM == null || OrderVM.OrderHeader.Id <= 0)
+			{
+				return NotFound();
+			}
+
+			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+			if (!CanStartProcessing(orderHeader))
+			{
+				_logger.LogWarning("Rejected start-processing request for unpaid or non-approved order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
+			}
+
+			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusInProcess);
 			_unitOfWork.Save();
-			_logger.LogInformation("Marked order {OrderId} as in process.", OrderVM.OrderHeader.Id);
+			_logger.LogInformation("Marked order {OrderId} as in process.", orderHeader.Id);
 			TempData["Success"] = _localizer["OrderDetailsUpdatedSuccessfully"].Value;
-			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
+			return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
 		}
 
 		[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
@@ -244,6 +268,36 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			return View(orderHeader);
 		}
 
+		[Authorize(Roles = SD.Role_Admin)]
+		[HttpPost]
+		public IActionResult ApprovePaymentDevelopment()
+		{
+			if (!ManualPaymentApprovalEnabled())
+			{
+				return NotFound();
+			}
+
+			if (OrderVM == null || OrderVM.OrderHeader.Id <= 0)
+			{
+				return NotFound();
+			}
+
+			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+			if (orderHeader == null || string.IsNullOrWhiteSpace(orderHeader.SessionId))
+			{
+				return NotFound();
+			}
+
+			var approved = _paymentStatusService.MarkCheckoutSessionPaid(
+				new PaymentSessionStatusUpdate(orderHeader.Id, orderHeader.SessionId, orderHeader.PaymentIntentId));
+			if (approved)
+			{
+				_logger.LogWarning("Development-only manual payment approval used for order {OrderId}.", orderHeader.Id);
+			}
+
+			return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
+		}
+
 		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)
 		{
 			return !string.IsNullOrWhiteSpace(orderHeader.SessionId) &&
@@ -254,6 +308,20 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 		{
 			return orderHeader.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
 				orderHeader.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
+		}
+
+		private static bool CanStartProcessing(OrderHeader orderHeader)
+		{
+			return orderHeader.OrderStatus == SD.StatusApproved &&
+				(orderHeader.PaymentStatus == SD.PaymentStatusApproved ||
+					(orderHeader.CompanyId.GetValueOrDefault() > 0 &&
+						orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment));
+		}
+
+		private bool ManualPaymentApprovalEnabled()
+		{
+			return _environment.IsDevelopment() &&
+				_configuration.GetValue<bool>("Payments:AllowDevelopmentManualApproval");
 		}
 
 		private void TryExpireCheckoutSession(OrderHeader orderHeader)

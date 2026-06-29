@@ -2,6 +2,20 @@
 @{
 	var canManageOrder = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
 	var canEditShippingDetails = User.IsInRole(SD.Role_Admin);
+	var allowDevelopmentManualApproval = ViewData["AllowDevelopmentManualPaymentApproval"] is true;
+	var paymentCanBeManuallyApproved = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
+	var orderIsTerminal = Model.OrderHeader.OrderStatus == SD.StatusCancelled ||
+		Model.OrderHeader.OrderStatus == SD.StatusRefunded ||
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusRejected;
+	var paymentNeedsApproval = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
+	var isCompanyDelayedPayment = Model.OrderHeader.CompanyId.GetValueOrDefault() > 0 &&
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
+	var canStartProcessing = Model.OrderHeader.OrderStatus == SD.StatusApproved &&
+		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusApproved || isCompanyDelayedPayment);
+	var canManuallyApprovePayment = allowDevelopmentManualApproval && canEditShippingDetails &&
+		!string.IsNullOrWhiteSpace(Model.OrderHeader.SessionId) && paymentCanBeManuallyApproved && !orderIsTerminal;
 }
 
 <form method="post">
@@ -214,6 +228,10 @@
 							</h4>
 
 							<label class="btn btn-outline-primary form-control my-2">@Localizer["OrderStatus"] - @Localizer[Model.OrderHeader.OrderStatus ?? string.Empty]</label>
+							@if (paymentNeedsApproval)
+							{
+								<div class="alert alert-warning my-2" role="alert">@Localizer["PaymentNotApprovedMessage"]</div>
+							}
 
 							<ul class="list-group mb-3">
 								@foreach (var detail in Model.OrderDetail)
@@ -251,7 +269,14 @@
 							}
 							@if (canManageOrder)
 							{
-								if (Model.OrderHeader.OrderStatus == SD.StatusApproved)
+								if (canManuallyApprovePayment)
+								{
+									<div class="alert alert-warning my-2">
+										Development only: manually approves this order as paid. Do not use in preview or production.
+									</div>
+									<button type="submit" asp-action="ApprovePaymentDevelopment" class="btn btn-outline-warning form-control my-1">Development only: approve payment manually</button>
+								}
+								if (canStartProcessing)
 								{
 									<button type="submit" asp-action="StartProcessing" class="btn btn-primary form-control my-1">
 										@Localizer["StartProcessing"]
