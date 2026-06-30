@@ -228,6 +228,9 @@
   <data name="ShippingValidationTitle" xml:space="preserve">
     <value>Missing shipping information</value>
   </data>
+  <data name="ShippingBlockedUntilPaymentApprovedMessage" xml:space="preserve">
+    <value>Shipping is blocked until payment is approved. You can prepare the order, but do not ship it yet.</value>
+  </data>
   <data name="StartProcessing" xml:space="preserve">
     <value>Start Processing</value>
   </data>
@@ -236,6 +239,9 @@
   </data>
   <data name="Total" xml:space="preserve">
     <value>TOTAL</value>
+  </data>
+  <data name="TerminalOrderReadOnlyMessage" xml:space="preserve">
+    <value>Terminal orders are read-only for fulfillment changes.</value>
   </data>
   <data name="Tracking" xml:space="preserve">
     <value>Tracking</value>

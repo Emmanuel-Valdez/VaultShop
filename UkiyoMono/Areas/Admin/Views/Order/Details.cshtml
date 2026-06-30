@@ -1,25 +1,42 @@
 ﻿@model OrderVM
 @{
 	var canManageOrder = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
-	var canEditShippingDetails = User.IsInRole(SD.Role_Admin);
-	var allowDevelopmentManualApproval = ViewData["AllowDevelopmentManualPaymentApproval"] is true;
-	var paymentCanBeManuallyApproved = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
-		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
 	var orderIsTerminal = Model.OrderHeader.OrderStatus == SD.StatusCancelled ||
 		Model.OrderHeader.OrderStatus == SD.StatusRefunded ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusRejected;
+	var canEditShippingDetails = User.IsInRole(SD.Role_Admin) && !orderIsTerminal;
+	var canEditFulfillmentDetails = canManageOrder && !orderIsTerminal;
+	var allowDevelopmentManualApproval = ViewData["AllowDevelopmentManualPaymentApproval"] is true;
+	var paymentCanBeManuallyApproved = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
 	var paymentNeedsApproval = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
 	var isCompanyDelayedPayment = Model.OrderHeader.CompanyId.GetValueOrDefault() > 0 &&
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
 	var canStartProcessing = Model.OrderHeader.OrderStatus == SD.StatusApproved &&
 		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusApproved || isCompanyDelayedPayment);
+	var canShipOrder = Model.OrderHeader.OrderStatus == SD.StatusInProcess &&
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusApproved &&
+		!orderIsTerminal;
+	var shippingBlockedUntilPaymentApproved = canManageOrder &&
+		Model.OrderHeader.OrderStatus == SD.StatusInProcess &&
+		Model.OrderHeader.PaymentStatus != SD.PaymentStatusApproved &&
+		!orderIsTerminal;
 	var canManuallyApprovePayment = allowDevelopmentManualApproval && canEditShippingDetails &&
 		!string.IsNullOrWhiteSpace(Model.OrderHeader.SessionId) && paymentCanBeManuallyApproved && !orderIsTerminal;
 	var canPayNow = User.IsInRole(SD.Role_Company) &&
 		Model.OrderHeader.CompanyId.GetValueOrDefault() > 0 &&
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment &&
 		!orderIsTerminal;
+
+	string StatusBadgeClass(string? status) => status switch
+	{
+		SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected => "bg-danger",
+		SD.StatusPending or SD.PaymentStatusDelayedPayment => "bg-warning text-dark",
+		SD.StatusInProcess => "bg-info text-dark",
+		SD.StatusApproved or SD.StatusShipped or SD.PaymentStatusApproved => "bg-success",
+		_ => "bg-secondary"
+	};
 }
 
 <form method="post">
@@ -150,7 +167,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Carrier"]</div>
 								<div class="col-9">
-									@if (canManageOrder)
+									@if (canEditFulfillmentDetails)
 									{
 										<input asp-for="OrderHeader.Carrier" id="carrier" type="text" class="form-control shadow" />
 									}
@@ -163,7 +180,7 @@
 							<div class="row my-1">
 								<div class="col-3">@Localizer["Tracking"]</div>
 								<div class="col-9">
-									@if (canManageOrder)
+									@if (canEditFulfillmentDetails)
 									{
 										<input asp-for="OrderHeader.TrackingNumber" id="trackingNumber" type="text" class="form-control shadow" />
 									}
@@ -219,7 +236,7 @@
 										   data-localizer-key="PaymentStatus" />
 								</div>
 							</div>
-							@if (canManageOrder)
+							@if (canEditFulfillmentDetails)
 							{
 								<Button type="submit" asp-action="UpdateOrderDetail" class="btn btn-warning form-control my-1">
 									@Localizer["UpdateOrderDetails"]
@@ -231,10 +248,27 @@
 								<span class="text-primary">@Localizer["OrderSummary"]</span>
 							</h4>
 
-							<label class="btn btn-outline-primary form-control my-2">@Localizer["OrderStatus"] - @Localizer[Model.OrderHeader.OrderStatus ?? string.Empty]</label>
+							<div class="border rounded p-2 my-2">
+								<div class="d-flex justify-content-between gap-2">
+									<span>@Localizer["OrderStatus"]</span>
+									<span class="badge @StatusBadgeClass(Model.OrderHeader.OrderStatus)">@Localizer[Model.OrderHeader.OrderStatus ?? string.Empty]</span>
+								</div>
+								<div class="d-flex justify-content-between gap-2 mt-1">
+									<span>@Localizer["PaymentStatus"]</span>
+									<span class="badge @StatusBadgeClass(Model.OrderHeader.PaymentStatus)">@Localizer[Model.OrderHeader.PaymentStatus ?? string.Empty]</span>
+								</div>
+							</div>
+							@if (orderIsTerminal)
+							{
+								<div class="alert alert-danger my-2" role="alert">@Localizer["TerminalOrderReadOnlyMessage"]</div>
+							}
 							@if (paymentNeedsApproval)
 							{
 								<div class="alert alert-warning my-2" role="alert">@Localizer["PaymentNotApprovedMessage"]</div>
+							}
+							@if (shippingBlockedUntilPaymentApproved)
+							{
+								<div class="alert alert-warning my-2" role="alert">@Localizer["ShippingBlockedUntilPaymentApprovedMessage"]</div>
 							}
 
 							<ul class="list-group mb-3">
@@ -284,13 +318,14 @@
 										@Localizer["StartProcessing"]
 									</button>
 								}
-								if (Model.OrderHeader.OrderStatus == SD.StatusInProcess)
+								if (canShipOrder)
 								{
 									<button type="submit" asp-action="ShipOrder" onClick="return validateImput()" class="btn btn-primary form-control my-1">
 										@Localizer["ShipOrder"]
 									</button>
 								}
 								if (User.IsInRole(SD.Role_Admin) &&
+													!orderIsTerminal &&
 													Model.OrderHeader.OrderStatus != SD.StatusRefunded &&
 													Model.OrderHeader.OrderStatus != SD.StatusCancelled &&
 													Model.OrderHeader.OrderStatus != SD.StatusShipped)

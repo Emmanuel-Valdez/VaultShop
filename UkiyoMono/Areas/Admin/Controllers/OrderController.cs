@@ -77,6 +77,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
+			if (IsTerminal(orderHeaderFromDb))
+			{
+				_logger.LogWarning("Rejected order-detail update for terminal order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeaderFromDb.Id, orderHeaderFromDb.OrderStatus, orderHeaderFromDb.PaymentStatus);
+				return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
+			}
 
 			if (User.IsInRole(SD.Role_Admin))
 			{
@@ -137,6 +142,11 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			if (orderHeader == null)
 			{
 				return NotFound();
+			}
+			if (!CanShipOrder(orderHeader))
+			{
+				_logger.LogWarning("Rejected ship-order request for unpaid or non-processing order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
 			}
 
 			orderHeader.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
@@ -313,6 +323,13 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				(orderHeader.PaymentStatus == SD.PaymentStatusApproved ||
 					(orderHeader.CompanyId.GetValueOrDefault() > 0 &&
 						orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment));
+		}
+
+		private static bool CanShipOrder(OrderHeader orderHeader)
+		{
+			return orderHeader.OrderStatus == SD.StatusInProcess &&
+				orderHeader.PaymentStatus == SD.PaymentStatusApproved &&
+				!IsTerminal(orderHeader);
 		}
 
 		private bool ManualPaymentApprovalEnabled()

@@ -191,6 +191,107 @@ namespace UkiyoDesignsWeb.Tests
 		}
 
 		[Fact]
+		public void ShipOrder_DoesNotShipUnpaidCompanyOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				CompanyId = 7,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusInProcess
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin));
+			test.Controller.OrderVM.OrderHeader = new OrderHeader
+			{
+				Id = 42,
+				Carrier = "Test Carrier",
+				TrackingNumber = "TRACK-1"
+			};
+
+			var result = test.Controller.ShipOrder();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			Assert.Equal(SD.StatusInProcess, order.OrderStatus);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void ShipOrder_ShipsPaidProcessingOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusInProcess
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin));
+			test.Controller.OrderVM.OrderHeader = new OrderHeader
+			{
+				Id = 42,
+				Carrier = "Test Carrier",
+				TrackingNumber = "TRACK-1"
+			};
+
+			var result = test.Controller.ShipOrder();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			Assert.Equal(SD.StatusShipped, order.OrderStatus);
+			Assert.Equal("Test Carrier", order.Carrier);
+			Assert.Equal("TRACK-1", order.TrackingNumber);
+			Assert.NotEqual(default, order.ShippingDate);
+			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void UpdateOrderDetail_DoesNotEditTerminalOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Original Name",
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusCancelled
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin));
+			test.Controller.OrderVM.OrderHeader = new OrderHeader
+			{
+				Id = 42,
+				Name = "Changed Name",
+				Carrier = "Changed Carrier",
+				TrackingNumber = "TRACK-1"
+			};
+
+			var result = test.Controller.UpdateOrderDetail();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			Assert.Equal("Original Name", order.Name);
+			Assert.Null(order.Carrier);
+			Assert.Null(order.TrackingNumber);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
 		public void GetAll_PendingIncludesCustomerPendingAndCompanyDelayedPaymentOrders()
 		{
 			var orders = new[]

@@ -228,6 +228,9 @@
   <data name="ShippingValidationTitle" xml:space="preserve">
     <value>Faltan datos de envío</value>
   </data>
+  <data name="ShippingBlockedUntilPaymentApprovedMessage" xml:space="preserve">
+    <value>El envio esta bloqueado hasta que el pago este aprobado. Podes preparar la orden, pero no enviarla todavia.</value>
+  </data>
   <data name="StartProcessing" xml:space="preserve">
     <value>Comenzar Procesamiento</value>
   </data>
@@ -236,6 +239,9 @@
   </data>
   <data name="Total" xml:space="preserve">
     <value>TOTAL</value>
+  </data>
+  <data name="TerminalOrderReadOnlyMessage" xml:space="preserve">
+    <value>Las ordenes terminales son de solo lectura para cambios de preparacion y envio.</value>
   </data>
   <data name="Tracking" xml:space="preserve">
     <value>Seguimiento</value>
