@@ -142,12 +142,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			orderHeader.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
 			orderHeader.Carrier = OrderVM.OrderHeader.Carrier;
 			orderHeader.OrderStatus = SD.StatusShipped;
-			var shippedAt = DateTime.UtcNow;
-			orderHeader.ShippingDate = shippedAt;
-			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
-			{
-				orderHeader.PaymentDueDate = DateOnly.FromDateTime(shippedAt.AddDays(7));
-			}
+			orderHeader.ShippingDate = DateTime.UtcNow;
 
 			_unitOfWork.OrderHeader.Update(orderHeader);
 			_unitOfWork.Save();
@@ -209,7 +204,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
-			if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment || IsTerminal(orderHeader))
+			if (orderHeader.CompanyId.GetValueOrDefault() == 0 ||
+				orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment ||
+				IsTerminal(orderHeader))
 			{
 				return NotFound();
 			}

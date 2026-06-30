@@ -16,6 +16,10 @@
 		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusApproved || isCompanyDelayedPayment);
 	var canManuallyApprovePayment = allowDevelopmentManualApproval && canEditShippingDetails &&
 		!string.IsNullOrWhiteSpace(Model.OrderHeader.SessionId) && paymentCanBeManuallyApproved && !orderIsTerminal;
+	var canPayNow = User.IsInRole(SD.Role_Company) &&
+		Model.OrderHeader.CompanyId.GetValueOrDefault() > 0 &&
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment &&
+		!orderIsTerminal;
 }
 
 <form method="post">
@@ -190,24 +194,24 @@
 									</div>
 								</div>
 							}
-							<div class="row my-1">
-								@if (Model.OrderHeader.SessionId == null)
-								{
-									<div class="col-3">@Localizer["PaymentDueDate"]</div>
-									<div class="col-9">
-
-										<input value="@Model.OrderHeader.PaymentDueDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
-
-									</div>
-								}
-								else
-								{
+							@if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusApproved)
+							{
+								<div class="row my-1">
 									<div class="col-3">@Localizer["PaymentDate"]</div>
 									<div class="col-9">
-										<input value="@Model.OrderHeader.PaymentDate.ToShortDateString()" readonly type="text" class="form-control shadow" />
+										<input value="@(Model.OrderHeader.PaymentDate == default ? string.Empty : Model.OrderHeader.PaymentDate.ToShortDateString())" readonly type="text" class="form-control shadow" />
 									</div>
-								}
-							</div>
+								</div>
+							}
+							else if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
+							{
+								<div class="row my-1">
+									<div class="col-3">@Localizer["PaymentDueDate"]</div>
+									<div class="col-9">
+										<input value="@(Model.OrderHeader.PaymentDueDate == default ? string.Empty : Model.OrderHeader.PaymentDueDate.ToShortDateString())" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+							}
 							<div class="row my-1">
 								<div class="col-3">@Localizer["PaymentStatus"]</div>
 								<div class="col-9">
@@ -261,9 +265,7 @@
 									</div>
 								</li>
 							</ul>
-							@if (Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment 
-							&& Model.OrderHeader.OrderStatus == SD.StatusShipped 
-							&& User.IsInRole(SD.Role_Company))
+							@if (canPayNow)
 							{
 								<button type="submit" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
 							}

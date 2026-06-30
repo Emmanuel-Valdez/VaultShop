@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -145,10 +146,62 @@ namespace UkiyoDesignsWeb.Tests
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
 		}
 
-		private static TestController CreateController(string environmentName, bool allowManualApproval, OrderHeader? orderHeader = null)
+		[Fact]
+		public void DetailsPayNow_CreatesSession_ForCompanyDelayedPaymentBeforeShipping()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved
+			};
+			var detail = new OrderDetail
+			{
+				OrderHeaderId = 42,
+				Product = new Product { Name = "Test Product" },
+				Price = 100m,
+				Count = 2
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				orderDetails: [detail],
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company));
+			test.PaymentSessionMock
+				.Setup(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()))
+				.Returns(new PaymentSessionResult("cs_test_pay_now", "pi_test_pay_now", "https://stripe.test/pay"));
+
+			var result = test.Controller.Details_PAY_NOW(42);
+
+			var status = Assert.IsType<StatusCodeResult>(result);
+			Assert.Equal(303, status.StatusCode);
+			Assert.Equal("https://stripe.test/pay", test.Controller.Response.Headers["Location"].ToString());
+			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(
+				It.Is<PaymentSessionRequest>(request =>
+					request.OrderId == 42 &&
+					request.LineItems.Single().ProductName == "Test Product" &&
+					request.LineItems.Single().UnitPrice == 100m &&
+					request.LineItems.Single().Quantity == 2)), Times.Once);
+			test.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(42, "cs_test_pay_now", "pi_test_pay_now"), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		private static TestController CreateController(
+			string environmentName,
+			bool allowManualApproval,
+			OrderHeader? orderHeader = null,
+			IEnumerable<OrderDetail>? orderDetails = null,
+			ApplicationUser? currentUser = null,
+			ClaimsPrincipal? user = null)
 		{
 			var unitOfWorkMock = new Mock<IUnitOfWork>();
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();
+			var orderDetailMock = new Mock<IOrderDetailRepository>();
+			var applicationUserMock = new Mock<IApplicationUserRepository>();
 			if (orderHeader is not null)
 			{
 				orderHeaderMock
@@ -160,9 +213,32 @@ namespace UkiyoDesignsWeb.Tests
 						new[] { orderHeader }.SingleOrDefault(filter.Compile()));
 			}
 
+			var orderDetailList = (orderDetails ?? []).ToList();
+			orderDetailMock
+				.Setup(x => x.GetAll(
+					It.IsAny<Expression<Func<OrderDetail, bool>>>(),
+					It.IsAny<string?>(),
+					It.IsAny<bool>()))
+				.Returns((Expression<Func<OrderDetail, bool>> filter, string? _, bool _) =>
+					orderDetailList.Where(filter.Compile()).ToList());
+
+			if (currentUser is not null)
+			{
+				applicationUserMock
+					.Setup(x => x.Get(
+						It.IsAny<Expression<Func<ApplicationUser, bool>>>(),
+						It.IsAny<string?>(),
+						It.IsAny<bool>()))
+					.Returns((Expression<Func<ApplicationUser, bool>> filter, string? _, bool _) =>
+						new[] { currentUser }.SingleOrDefault(filter.Compile()));
+			}
+
 			unitOfWorkMock.Setup(x => x.OrderHeader).Returns(orderHeaderMock.Object);
+			unitOfWorkMock.Setup(x => x.OrderDetail).Returns(orderDetailMock.Object);
+			unitOfWorkMock.Setup(x => x.ApplicationUser).Returns(applicationUserMock.Object);
 
 			var paymentStatusMock = new Mock<IPaymentStatusService>();
+			var paymentSessionMock = new Mock<IPaymentSessionService>();
 			var localizerMock = new Mock<IStringLocalizer<OrderController>>();
 			localizerMock
 				.Setup(x => x[It.IsAny<string>()])
@@ -176,22 +252,37 @@ namespace UkiyoDesignsWeb.Tests
 				})
 				.Build();
 
+			var httpContext = new DefaultHttpContext
+			{
+				User = user ?? new ClaimsPrincipal(new ClaimsIdentity())
+			};
+			httpContext.Request.Scheme = "https";
+			httpContext.Request.Host = new HostString("vaultshop.test");
+
 			var controller = new OrderController(
 				unitOfWorkMock.Object,
 				localizerMock.Object,
 				NullLogger<OrderController>.Instance,
-				new Mock<IPaymentSessionService>().Object,
+				paymentSessionMock.Object,
 				paymentStatusMock.Object,
 				environmentMock.Object,
 				configuration)
 			{
 				OrderVM = new OrderVM { OrderHeader = new OrderHeader { Id = orderHeader?.Id ?? 42 } },
-				TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>())
+				ControllerContext = new ControllerContext { HttpContext = httpContext },
+				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
 			};
 
-			return new TestController(controller, paymentStatusMock, unitOfWorkMock, orderHeaderMock);
+			return new TestController(controller, paymentStatusMock, paymentSessionMock, unitOfWorkMock, orderHeaderMock);
 		}
 
-		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock);
+		private static ClaimsPrincipal CreateUser(string userId, params string[] roles)
+		{
+			var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, userId) };
+			claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+			return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+		}
+
+		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock);
 	}
 }

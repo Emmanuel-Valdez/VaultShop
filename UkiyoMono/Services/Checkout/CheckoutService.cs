@@ -164,6 +164,7 @@ namespace UkiyoDesignsWeb.Services.Checkout
 				shoppingCartVM.OrderHeader.CompanyId = applicationUser.CompanyId;
 				shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
 				shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+				shoppingCartVM.OrderHeader.PaymentDueDate = DateOnly.FromDateTime(shoppingCartVM.OrderHeader.OrderDate.AddDays(5));
 			}
 
 			_unitOfWork.ExecuteInTransaction(() =>
