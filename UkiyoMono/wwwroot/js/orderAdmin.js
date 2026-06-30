@@ -1,6 +1,19 @@
 ﻿var dataTable;
 const translations = window.orderTableTranslations ?? {};
 
+function statusBadgeClass(status) {
+    if (status === "Cancelled" || status === "Refunded" || status === "Rejected") return "bg-danger";
+    if (status === "Pending" || status === "ApprovedForDelayedPayment") return "bg-warning text-dark";
+    if (status === "Approved" || status === "Shipped") return "bg-success";
+    if (status === "Processing") return "bg-info text-dark";
+    return "bg-secondary";
+}
+
+function renderStatusBadge(data, type, statusTranslations) {
+    const text = statusTranslations?.[data] ?? data ?? "";
+    return type === 'display' ? `<span class="badge ${statusBadgeClass(data)}">${text}</span>` : text;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     var url = window.location.search;
     if (url.includes("inprocess")) {
@@ -31,14 +44,26 @@ function loadDataTable(status) {
             { data: 'phoneNumber', "width": "10%" },
             { data: 'applicationUser.email', "width": "20%" },
             {
+                data: 'company',
+                "width": "15%",
+                render: function (data) {
+                    return data?.name ?? "";
+                }
+            },
+            {
                 data: 'orderStatus',
                 "width": "10%",
                 render: function (data, type) {
-                    const translatedStatus = window.orderStatusTranslations?.[data] ?? data;
-                    return type === 'display' || type === 'filter' ? translatedStatus : data;
+                    return renderStatusBadge(data, type, window.orderStatusTranslations);
                 }
             },
-            { data: 'paymentStatus', "width": "10%" }, 
+            {
+                data: 'paymentStatus',
+                "width": "10%",
+                render: function (data, type) {
+                    return renderStatusBadge(data, type, window.paymentStatusTranslations);
+                }
+            },
             { data: 'orderTotal', "width": "10%", render: window.SpanishNumberTables(culture) },
             {
                 data: 'id',
@@ -51,6 +76,7 @@ function loadDataTable(status) {
                 "width": "10%"
             }
         ],
+        "order": [],
         "language": window.SpanishCultureTables(culture),
         responsive: {
             details: {
@@ -78,10 +104,10 @@ function loadDataTable(status) {
             ],
         },
         columnDefs: [
-            { responsivePriority: 1, targets: 7 },
-            { responsivePriority: 2, targets: 6 },
+            { responsivePriority: 1, targets: 8 },
+            { responsivePriority: 2, targets: 7 },
             { targets: 2, visible: false },
-            { targets: 5, visible: false },
+            { targets: 6, visible: false },
         ],
 
     });

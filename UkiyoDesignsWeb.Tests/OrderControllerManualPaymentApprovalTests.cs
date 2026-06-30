@@ -190,10 +190,76 @@ namespace UkiyoDesignsWeb.Tests
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
 		}
 
+		[Fact]
+		public void GetAll_PendingIncludesCustomerPendingAndCompanyDelayedPaymentOrders()
+		{
+			var orders = new[]
+			{
+				new OrderHeader
+				{
+					Id = 1,
+					PaymentStatus = SD.PaymentStatusPending,
+					OrderStatus = SD.StatusPending,
+					OrderDate = new DateTime(2026, 1, 2, 10, 0, 0, DateTimeKind.Utc)
+				},
+				new OrderHeader
+				{
+					Id = 2,
+					CompanyId = 7,
+					Company = new Company { Id = 7, Name = "Acme Corp" },
+					PaymentStatus = SD.PaymentStatusDelayedPayment,
+					OrderStatus = SD.StatusApproved,
+					OrderDate = new DateTime(2026, 1, 3, 10, 0, 0, DateTimeKind.Utc)
+				},
+				new OrderHeader
+				{
+					Id = 3,
+					PaymentStatus = SD.PaymentStatusApproved,
+					OrderStatus = SD.StatusApproved,
+					OrderDate = new DateTime(2026, 1, 4, 10, 0, 0, DateTimeKind.Utc)
+				}
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeaders: orders,
+				user: CreateUser("admin-user", SD.Role_Admin));
+
+			var result = test.Controller.GetAll("pending");
+
+			var resultOrders = GetJsonOrders(result);
+			Assert.Equal(new[] { 2, 1 }, resultOrders.Select(GetJsonOrderId));
+			Assert.Equal("Acme Corp", GetNestedJsonString(resultOrders[0], "company", "name"));
+		}
+
+		[Fact]
+		public void GetAll_SortsNewestOrdersFirst()
+		{
+			var orders = new[]
+			{
+				new OrderHeader { Id = 1, OrderDate = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc) },
+				new OrderHeader { Id = 2, OrderDate = new DateTime(2026, 1, 3, 10, 0, 0, DateTimeKind.Utc) },
+				new OrderHeader { Id = 4, OrderDate = new DateTime(2026, 1, 3, 10, 0, 0, DateTimeKind.Utc) },
+				new OrderHeader { Id = 3, OrderDate = new DateTime(2026, 1, 2, 10, 0, 0, DateTimeKind.Utc) }
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeaders: orders,
+				user: CreateUser("admin-user", SD.Role_Admin));
+
+			var result = test.Controller.GetAll("all");
+
+			var resultOrders = GetJsonOrders(result);
+			Assert.Equal(new[] { 4, 2, 3, 1 }, resultOrders.Select(GetJsonOrderId));
+			test.OrderHeaderMock.Verify(x => x.GetAll(null, "ApplicationUser,Company", false), Times.Once);
+		}
+
 		private static TestController CreateController(
 			string environmentName,
 			bool allowManualApproval,
 			OrderHeader? orderHeader = null,
+			IEnumerable<OrderHeader>? orderHeaders = null,
 			IEnumerable<OrderDetail>? orderDetails = null,
 			ApplicationUser? currentUser = null,
 			ClaimsPrincipal? user = null)
@@ -202,16 +268,23 @@ namespace UkiyoDesignsWeb.Tests
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();
 			var orderDetailMock = new Mock<IOrderDetailRepository>();
 			var applicationUserMock = new Mock<IApplicationUserRepository>();
-			if (orderHeader is not null)
-			{
-				orderHeaderMock
-					.Setup(x => x.Get(
-						It.IsAny<Expression<Func<OrderHeader, bool>>>(),
-						It.IsAny<string?>(),
-						It.IsAny<bool>()))
-					.Returns((Expression<Func<OrderHeader, bool>> filter, string? _, bool _) =>
-						new[] { orderHeader }.SingleOrDefault(filter.Compile()));
-			}
+			var orderHeaderList = (orderHeaders ?? (orderHeader is null ? [] : [orderHeader])).ToList();
+			orderHeaderMock
+				.Setup(x => x.Get(
+					It.IsAny<Expression<Func<OrderHeader, bool>>>(),
+					It.IsAny<string?>(),
+					It.IsAny<bool>()))
+				.Returns((Expression<Func<OrderHeader, bool>> filter, string? _, bool _) =>
+					orderHeaderList.SingleOrDefault(filter.Compile()));
+			orderHeaderMock
+				.Setup(x => x.GetAll(
+					It.IsAny<Expression<Func<OrderHeader, bool>>?>(),
+					It.IsAny<string?>(),
+					It.IsAny<bool>()))
+				.Returns((Expression<Func<OrderHeader, bool>>? filter, string? _, bool _) =>
+					filter is null
+						? orderHeaderList
+						: orderHeaderList.Where(filter.Compile()).ToList());
 
 			var orderDetailList = (orderDetails ?? []).ToList();
 			orderDetailMock
@@ -274,6 +347,34 @@ namespace UkiyoDesignsWeb.Tests
 			};
 
 			return new TestController(controller, paymentStatusMock, paymentSessionMock, unitOfWorkMock, orderHeaderMock);
+		}
+
+		private static List<object> GetJsonOrders(IActionResult result)
+		{
+			var json = Assert.IsType<JsonResult>(result);
+			Assert.NotNull(json.Value);
+			var dataProperty = json.Value.GetType().GetProperty("data");
+			Assert.NotNull(dataProperty);
+			var data = Assert.IsAssignableFrom<IEnumerable<object>>(dataProperty!.GetValue(json.Value));
+			return data.ToList();
+		}
+
+		private static int GetJsonOrderId(object order)
+		{
+			var idProperty = order.GetType().GetProperty("id");
+			Assert.NotNull(idProperty);
+			return Assert.IsType<int>(idProperty!.GetValue(order));
+		}
+
+		private static string? GetNestedJsonString(object value, string propertyName, string nestedPropertyName)
+		{
+			var property = value.GetType().GetProperty(propertyName);
+			Assert.NotNull(property);
+			var nestedValue = property!.GetValue(value);
+			Assert.NotNull(nestedValue);
+			var nestedProperty = nestedValue!.GetType().GetProperty(nestedPropertyName);
+			Assert.NotNull(nestedProperty);
+			return nestedProperty!.GetValue(nestedValue) as string;
 		}
 
 		private static ClaimsPrincipal CreateUser(string userId, params string[] roles)

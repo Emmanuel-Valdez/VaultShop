@@ -123,8 +123,14 @@
   <data name="Approved" xml:space="preserve">
     <value>Aprobado</value>
   </data>
+  <data name="ApprovedForDelayedPayment" xml:space="preserve">
+    <value>Aprobado Para Pago Diferido</value>
+  </data>
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelado</value>
+  </data>
+  <data name="Company" xml:space="preserve">
+    <value>Empresa</value>
   </data>
   <data name="Completed" xml:space="preserve">
     <value>Completo</value>
@@ -170,6 +176,9 @@
   </data>
   <data name="Refunded" xml:space="preserve">
     <value>Reembolsado</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rechazado</value>
   </data>
   <data name="Shipped" xml:space="preserve">
     <value>Enviado</value>

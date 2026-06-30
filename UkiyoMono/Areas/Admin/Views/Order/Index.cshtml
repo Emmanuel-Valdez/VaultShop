@@ -64,6 +64,10 @@
 					<th>@Localizer["Name"]</th>
 					<th>@Localizer["PhoneNumber"]</th>
 					<th>@Localizer["Email"]</th>
+					@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+					{
+						<th>@Localizer["Company"]</th>
+					}
 					<th>@Localizer["OrderStatus"]</th>
 					<th>@Localizer["PaymentStatus"]</th>
 					<th>@Localizer["Total"]</th>
@@ -83,6 +87,14 @@
 			Shipped: @Json.Serialize(Localizer["Shipped"].Value),
 			Cancelled: @Json.Serialize(Localizer["Cancelled"].Value),
 			Refunded: @Json.Serialize(Localizer["Refunded"].Value)
+		};
+		window.paymentStatusTranslations = {
+			Pending: @Json.Serialize(Localizer["Pending"].Value),
+			Approved: @Json.Serialize(Localizer["Approved"].Value),
+			ApprovedForDelayedPayment: @Json.Serialize(Localizer["ApprovedForDelayedPayment"].Value),
+			Rejected: @Json.Serialize(Localizer["Rejected"].Value),
+			Refunded: @Json.Serialize(Localizer["Refunded"].Value),
+			Cancelled: @Json.Serialize(Localizer["Cancelled"].Value)
 		};
 		window.orderTableTranslations = {
 			exportToPDF: @Json.Serialize(Localizer["ExportToPDF"].Value),

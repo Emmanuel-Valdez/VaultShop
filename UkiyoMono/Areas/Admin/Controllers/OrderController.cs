@@ -367,7 +367,7 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			IEnumerable<OrderHeader> objOrderHeaders;
 			if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
 			{
-				objOrderHeaders = _unitOfWork.OrderHeader.GetAll(includeProperties: "ApplicationUser").ToList();
+				objOrderHeaders = _unitOfWork.OrderHeader.GetAll(includeProperties: "ApplicationUser,Company").ToList();
 			}
 			else
 			{
@@ -393,7 +393,9 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 			switch (status)
 			{
 				case "pending":
-					objOrderHeaders = objOrderHeaders.Where(u => u.PaymentStatus == SD.PaymentStatusDelayedPayment);
+					objOrderHeaders = objOrderHeaders.Where(u =>
+						u.PaymentStatus == SD.PaymentStatusPending ||
+						u.PaymentStatus == SD.PaymentStatusDelayedPayment);
 					break;
 				case "inprocess":
 					objOrderHeaders = objOrderHeaders.Where(u => u.OrderStatus == SD.StatusInProcess);
@@ -407,7 +409,21 @@ namespace UkiyoDesignsWeb.Areas.Admin.Controllers
 				default:
 					break;
 			}
-			return Json(new { data = objOrderHeaders });
+			var data = objOrderHeaders
+				.OrderByDescending(u => u.OrderDate)
+				.ThenByDescending(u => u.Id)
+				.Select(u => new
+				{
+					id = u.Id,
+					name = u.Name,
+					phoneNumber = u.PhoneNumber,
+					applicationUser = new { email = u.ApplicationUser?.Email ?? string.Empty },
+					company = u.Company == null ? null : new { name = u.Company.Name },
+					orderStatus = u.OrderStatus,
+					paymentStatus = u.PaymentStatus,
+					orderTotal = u.OrderTotal
+				});
+			return Json(new { data });
 
 		}
 		#endregion
