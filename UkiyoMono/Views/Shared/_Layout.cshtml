@@ -9,9 +9,11 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IAntiforgery Antiforgery
 @inject IOptions<BrandingOptions> BrandingOptionsAccessor
+@inject IOptions<ThemeOptions> ThemeOptionsAccessor
 
 @{
 	var branding = BrandingOptionsAccessor.Value;
+	var theme = ThemeOptionsAccessor.Value;
 }
 
 <!DOCTYPE html>
@@ -78,6 +80,19 @@
 	<link rel="stylesheet" href=" https://cdn.datatables.net/buttons/3.1.2/css/buttons.bootstrap5.css" />
 
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+	<style>
+		:root {
+			--theme-primary: @theme.PrimaryCss;
+			--theme-primary-rgb: @theme.PrimaryRgb;
+			--theme-primary-dark: @theme.PrimaryDarkCss;
+			--theme-primary-dark-rgb: @theme.PrimaryDarkRgb;
+			--theme-accent: @theme.AccentCss;
+			--theme-accent-rgb: @theme.AccentRgb;
+			--theme-surface: @theme.SurfaceCss;
+			--theme-surface-rgb: @theme.SurfaceRgb;
+			--theme-surface-dark: @theme.SurfaceDarkCss;
+		}
+	</style>
 
 
 </head>

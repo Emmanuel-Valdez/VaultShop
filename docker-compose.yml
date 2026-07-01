@@ -31,6 +31,11 @@ services:
       Branding__AppleTouchIconPath: ${Branding__AppleTouchIconPath:-/images/brand/vaultshop-mark.svg}
       Branding__SocialPreviewImagePath: ${Branding__SocialPreviewImagePath:-/images/brand/vaultshop-og.svg}
       Branding__TwitterSite: ${Branding__TwitterSite:-@VaultShop}
+      Theme__Primary: "${Theme__Primary:-#1a2a4a}"
+      Theme__PrimaryDark: "${Theme__PrimaryDark:-#0d1625}"
+      Theme__Accent: "${Theme__Accent:-#d4a017}"
+      Theme__Surface: "${Theme__Surface:-#f7f8fa}"
+      Theme__SurfaceDark: "${Theme__SurfaceDark:-#1e2030}"
       Social__TikTok: ${Social__TikTok:-}
       Social__WhatsApp: ${Social__WhatsApp:-}
       Social__Instagram: ${Social__Instagram:-}
