@@ -10,6 +10,8 @@ public sealed class BrandingOptions
 
 	public string MarkPath { get; set; } = "/images/brand/vaultshop-mark.svg";
 
+	public string AppleTouchIconPath { get; set; } = "/images/brand/vaultshop-mark.svg";
+
 	public string SocialPreviewImagePath { get; set; } = "/images/brand/vaultshop-og.svg";
 
 	public string TwitterSite { get; set; } = "@VaultShop";

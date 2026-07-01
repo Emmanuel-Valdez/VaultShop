@@ -175,6 +175,24 @@ else
 
 app.MapRazorPages();
 
+app.MapGet("/site.webmanifest", (IOptions<BrandingOptions> brandingOptions) =>
+{
+	var branding = brandingOptions.Value;
+
+	return Results.Json(new
+	{
+		name = branding.PublicName,
+		short_name = branding.PublicName,
+		icons = new[]
+		{
+			new { src = branding.MarkPath, sizes = "any", purpose = "any" },
+			new { src = branding.AppleTouchIconPath, sizes = "180x180", purpose = "any" }
+		},
+		theme_color = "#ffffff",
+		background_color = "#ffffff",
+		display = "standalone"
+	}, contentType: "application/manifest+json");
+});
 app.MapControllerRoute(
 	name: "default",
 	pattern: "{culture=es-AR}/{area=Customer}/{controller=Home}/{action=Index}/{id?}");

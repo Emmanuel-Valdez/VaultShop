@@ -384,6 +384,10 @@ docs/portfolio-copy.md
 # Local deployment notes and server-specific deployment context
 docs/deployment/
 
+# Private deployment brand assets should be mounted/copied outside git.
+UkiyoMono/wwwroot/images/brand/private/
+UkiyoMono/wwwroot/images/brand/ukiyo-*
+
 # Uploaded product images are environment-specific content
 UkiyoMono/wwwroot/images/products/
 
