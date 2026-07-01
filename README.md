@@ -8,37 +8,23 @@
 
 VaultShop is a portfolio e-commerce project for custom anime-inspired backpacks and accessories. It started as a traditional ASP.NET Core MVC store and is now a production-style case study with PostgreSQL, Docker Compose, MinIO/S3-compatible image storage, Stripe payments, automated tests, backup/restore validation, lightweight monitoring, and deployment-oriented hardening.
 
-The application is live and functional. Current work focuses on deploying the refreshed Home/cart/featured-products flow, updating screenshots, and turning the project into portfolio/CV/LinkedIn evidence.
+The application is live and functional. Current work focuses on keeping the portfolio demo explainable, recoverable, and honest about its remaining production gaps.
 
 ## Screenshots
 
-### Desktop
+Selected current flows for backend/portfolio review.
 
-![VaultShop desktop home page](docs/screenshots/HomeWeb.webp)
-
-### Mobile
-
-![VaultShop mobile home page](docs/screenshots/HomeMobile.webp)
-
-### Product Detail
-
-![VaultShop product detail desktop page](docs/screenshots/ProductDetailsWeb.webp)
-
-![VaultShop product detail mobile page](docs/screenshots/ProductDetailsMobile.webp)
-
-### Cart And Checkout
-
-![VaultShop shopping cart](docs/screenshots/Shopping-cart.webp)
-
-![VaultShop checkout order summary](docs/screenshots/Order-Summary.webp)
-
-### Admin Product Images
-
-![VaultShop admin product upload and cover selection](docs/screenshots/admin-product-upload-cover.webp)
-
-### Admin Final Prices
-
-![VaultShop admin final prices dashboard](docs/screenshots/final-prices-dashboard.webp)
+<p>
+  <img src="docs/screenshots/01-vaultshop-storefront.webp" alt="VaultShop storefront home page" width="420">
+  <img src="docs/screenshots/02-vaultshop-checkout-summary.webp" alt="VaultShop checkout summary" width="420">
+</p>
+<p>
+  <img src="docs/screenshots/03-vaultshop-admin-orders.webp" alt="VaultShop admin orders list" width="420">
+  <img src="docs/screenshots/04-vaultshop-payment-gate.webp" alt="VaultShop admin order payment gate" width="420">
+</p>
+<p>
+  <img src="docs/screenshots/05-vaultshop-final-prices.webp" alt="VaultShop final prices dashboard" width="420">
+</p>
 
 ## Features
 
@@ -70,10 +56,12 @@ The application is live and functional. Current work focuses on deploying the re
 - Product image persistence is behind `IImageStorageService`; the app supports local filesystem storage and MinIO.
 - `ProductImage.ObjectKey` is the storage identity for uploaded images. `ImageUrl` is used only as the browser display URL.
 - Checkout order creation is handled by `CheckoutService` and wrapped in a transaction to avoid partial orders.
-- Stripe session creation is behind `IPaymentSessionService`; payment status changes are handled through signed webhooks instead of trusting only browser redirects.
+- Stripe Checkout confirmation is hardened: signed webhooks and server-side Checkout Session reads are the trusted payment sources; browser redirects only trigger verification, `session_id` must match the stored order session, stale/terminal sessions are ignored, and unpaid orders cannot be shipped.
+- Customer orders remain `Pending / Pending` until Stripe reports `paid`; Company delayed-payment orders can be prepared before payment, but shipping remains blocked until `PaymentStatus == Approved`.
 - Production-like environments can disable startup migrations with `Database__RunMigrationsOnStartup=false`.
 - The public deployment runs behind Nginx HTTPS reverse proxy on a Linux VPS, with PostgreSQL and MinIO kept off the public internet.
-- Public branding values are configurable through the `Branding` configuration section so future isolated deployments can use different public names, logos, and social preview images without branching the codebase.
+- Public branding values, including `/site.webmanifest` icon paths, are configurable through `Branding__...` so preview/demo and future private deployments can use different names/assets without branching the codebase.
+- Public theme colors are configurable through validated hex `Theme__...` values emitted as CSS custom properties.
 
 See the architecture notes in [`docs/architecture.md`](docs/architecture.md).
 
@@ -117,8 +105,14 @@ Branding__PublicName
 Branding__LogoPath
 Branding__LogoDarkPath
 Branding__MarkPath
+Branding__AppleTouchIconPath
 Branding__SocialPreviewImagePath
 Branding__TwitterSite
+Theme__Primary
+Theme__PrimaryDark
+Theme__Accent
+Theme__Surface
+Theme__SurfaceDark
 ImageStorage__Provider
 ImageStorage__Minio__Endpoint
 ImageStorage__Minio__UseSsl
@@ -129,6 +123,10 @@ ImageStorage__Minio__PublicBaseUrl
 ```
 
 For local/demo email behavior, use `Email__Provider=Fake`. For real transactional email, use `Email__Provider=Resend` with a private `Resend__ApiKey` and verified sender.
+
+Development-only manual payment approval exists for local testing only: it requires `ASPNETCORE_ENVIRONMENT=Development` and `Payments__AllowDevelopmentManualApproval=true`. Keep it disabled in preview and production.
+
+Branding and theme values are safe to override per deployment. Private brand assets should be mounted or copied outside git under the configured public paths; theme values must be hex colors.
 
 ## Run Locally
 
@@ -249,9 +247,9 @@ Operations runbook: [`docs/operations/runbook.md`](docs/operations/runbook.md).
 
 ## Current Limitations / Next Work
 
-- Backups and restore have been tested manually; automation is planned later.
-- Portfolio/case-study copy and updated screenshots are being refreshed around the live VPS deployment.
-- The storefront frontend is functional but visually dated and planned for a future redesign.
+- Backups and restore have been tested manually; backup automation and freshness checks are planned later.
+- Manual browser checks should still be repeated after deployment changes for Stripe paid/unpaid flows, branding/theme overrides, and fulfillment guards.
+- The storefront frontend is functional, but backend/deployment evidence remains the main portfolio value.
 - Internal repository/project names still use historical Ukiyo naming and can be renamed deliberately later.
 
 ## Portfolio Scope

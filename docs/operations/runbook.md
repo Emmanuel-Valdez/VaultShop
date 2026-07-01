@@ -36,19 +36,19 @@ Expected result:
 
 Containers should use `restart: unless-stopped`.
 
-Verify:
+Verify from the VPS repo root:
 
 ```bash
-docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}}' ukiyo-web-1 ukiyo-postgres-1 ukiyo-minio-1
+cd /opt/vaultshop/Ukiyo
+docker compose --env-file .env.compose ps web postgres minio
+docker compose --env-file .env.compose ps -q web postgres minio | xargs -r docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}}'
 ```
 
 Expected:
 
-```text
-/ukiyo-web-1 unless-stopped
-/ukiyo-postgres-1 unless-stopped
-/ukiyo-minio-1 unless-stopped
-```
+- Web, PostgreSQL, and MinIO are running.
+- Each inspected container reports `unless-stopped`.
+- Container names follow the active `COMPOSE_PROJECT_NAME`; keep that name stable after first deployment so volumes do not silently change.
 
 After a VPS reboot:
 
@@ -124,19 +124,19 @@ Important: PostgreSQL restores can depend on roles/owners. If the dump contains 
 
 ## MinIO Backup
 
-The current Compose volume name is `ukiyo_minio-data`.
+Keep `COMPOSE_PROJECT_NAME=vaultshop` stable after first deployment. With that project name, the MinIO Docker volume is `vaultshop_minio-data`. If the project name is changed, use the matching `<project>_minio-data` volume instead.
 
 Verify volumes:
 
 ```bash
-docker volume ls
+docker volume ls | grep minio-data
 ```
 
 Create a read-only archive of the MinIO data volume:
 
 ```bash
 mkdir -p ~/vaultshop-backups/minio
-docker run --rm -v ukiyo_minio-data:/data:ro -v ~/vaultshop-backups/minio:/backup alpine tar czf /backup/minio_$(date +%F_%H%M).tar.gz -C /data .
+docker run --rm -v vaultshop_minio-data:/data:ro -v ~/vaultshop-backups/minio:/backup alpine tar czf /backup/minio_$(date +%F_%H%M).tar.gz -C /data .
 ls -lh ~/vaultshop-backups/minio
 tar tzf ~/vaultshop-backups/minio/*.tar.gz | head
 ```
@@ -267,8 +267,11 @@ VaultShop is the public portfolio/demo deployment. A future real Ukiyo deploymen
 
 - Separate domain/subdomain.
 - Separate `.env` file.
+- Separate Compose project name/volumes, kept stable after first deployment.
 - Separate PostgreSQL database and user.
 - Separate MinIO bucket and app-specific credentials.
 - Separate Stripe keys and webhook secret.
 - Separate backups and restore verification.
 - No demo seed data in the real client deployment.
+- Private branding assets configured through `Branding__...` and stored outside git.
+- Separate `Theme__...` hex color values for the deployment.
