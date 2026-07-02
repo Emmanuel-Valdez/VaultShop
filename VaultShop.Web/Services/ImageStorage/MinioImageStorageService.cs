@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
-using UkiyoDesigns.Models;
+using VaultShop.Models;
 
-namespace UkiyoDesignsWeb.Services.ImageStorage;
+namespace VaultShop.Web.Services.ImageStorage;
 
 public sealed class MinioImageStorageService : IImageStorageService
 {

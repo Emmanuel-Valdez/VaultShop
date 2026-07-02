@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace UkiyoDesignsWeb.Services.ProductImages;
+namespace VaultShop.Web.Services.ProductImages;
 
 public interface IProductImageService
 {

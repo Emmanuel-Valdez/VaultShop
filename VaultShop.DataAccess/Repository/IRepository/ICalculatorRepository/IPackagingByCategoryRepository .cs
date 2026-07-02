@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.CalculatorModels;
+using VaultShop.Models;
+using VaultShop.Models.CalculatorModels;
 
-namespace UkiyoDesigns.DataAccess.Repository.IRepository
+namespace VaultShop.DataAccess.Repository.IRepository
 {
 	public interface IPackagingByCategoryRepository : IRepository<PackagingByCategory>
 	{

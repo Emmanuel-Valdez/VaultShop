@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace UkiyoDesigns.DataAccess.Migrations
+namespace VaultShop.DataAccess.Migrations
 {
     /// <inheritdoc />
     public partial class InitialPostgres : Migration

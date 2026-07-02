@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.Models;
+using VaultShop.Models;
 
-namespace UkiyoDesigns.DataAccess.Repository.IRepository
+namespace VaultShop.DataAccess.Repository.IRepository
 {
 	public interface IFavoriteProductRepository : IRepository<FavoriteProduct>
 	{

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -17,12 +17,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Localization;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.Validation;
-using UkiyoDesigns.Utility;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Models.Validation;
+using VaultShop.Utility;
 
-namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
+namespace VaultShop.Web.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {

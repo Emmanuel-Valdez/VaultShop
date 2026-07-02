@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
+using VaultShop.DataAccess.Data;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
 
-namespace UkiyoDesigns.DataAccess.Repository
+namespace VaultShop.DataAccess.Repository
 {
     public class CompanyRepository : Repository<Company>, ICompanyRepository
     {

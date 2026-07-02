@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -17,13 +17,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Utility;
+using VaultShop.Models;
+using VaultShop.Utility;
 using Microsoft.Extensions.Localization;
-using UkiyoDesigns.Models.Validation;
+using VaultShop.Models.Validation;
 
 
-namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account
+namespace VaultShop.Web.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
     public class ExternalLoginModel : PageModel

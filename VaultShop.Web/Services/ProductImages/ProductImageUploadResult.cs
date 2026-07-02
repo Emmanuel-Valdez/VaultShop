@@ -1,6 +1,6 @@
-using UkiyoDesignsWeb.Services.ImageStorage;
+using VaultShop.Web.Services.ImageStorage;
 
-namespace UkiyoDesignsWeb.Services.ProductImages;
+namespace VaultShop.Web.Services.ProductImages;
 
 public sealed class ProductImageUploadResult
 {

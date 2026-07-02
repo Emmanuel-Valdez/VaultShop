@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Models.CalculatorModels.SQLViews;
-using UkiyoDesigns.Models.ViewModels;
-using UkiyoDesigns.Utility;
-using UkiyoDesignsWeb.Services.Pricing;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Models.CalculatorModels.SQLViews;
+using VaultShop.Models.ViewModels;
+using VaultShop.Utility;
+using VaultShop.Web.Services.Pricing;
 
-namespace UkiyoDesignsWeb.Areas.Admin.Controllers
+namespace VaultShop.Web.Areas.Admin.Controllers
 {
 	[Area("Admin")]
 	[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]

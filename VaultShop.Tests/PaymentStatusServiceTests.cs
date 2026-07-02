@@ -1,12 +1,12 @@
 using System.Linq.Expressions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Utility;
-using UkiyoDesignsWeb.Services.Payments;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Utility;
+using VaultShop.Web.Services.Payments;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class PaymentStatusServiceTests
 	{

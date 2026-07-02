@@ -1,6 +1,6 @@
-﻿using UkiyoDesigns.Models;
+using VaultShop.Models;
 
-namespace UkiyoDesigns.DataAccess.Repository.IRepository
+namespace VaultShop.DataAccess.Repository.IRepository
 {
 	public interface IOrderHeaderRepository : IRepository<OrderHeader>
 	{

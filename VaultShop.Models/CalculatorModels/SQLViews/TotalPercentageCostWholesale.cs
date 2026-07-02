@@ -1,7 +1,7 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace UkiyoDesigns.Models.CalculatorModels.SQLViews
+namespace VaultShop.Models.CalculatorModels.SQLViews
 {
 	public class TotalPercentageCostWholesale
 	{

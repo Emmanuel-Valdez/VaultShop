@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Utility;
+using VaultShop.DataAccess.Data;
+using VaultShop.Models;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Utility;
 
 
-namespace UkiyoDesigns.DataAccess.DbInitializer
+namespace VaultShop.DataAccess.DbInitializer
 {
 	public class DbInitializer : IDbInitializer, IDemoDataSeeder
 	{

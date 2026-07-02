@@ -1,4 +1,4 @@
-namespace UkiyoDesignsWeb.Services.ImageStorage;
+namespace VaultShop.Web.Services.ImageStorage;
 
 public sealed record StoredImage(
 	string ImageUrl,

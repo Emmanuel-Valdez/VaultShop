@@ -1,6 +1,6 @@
-using UkiyoDesignsWeb.Services.ImageStorage;
+using VaultShop.Web.Services.ImageStorage;
 
-namespace UkiyoDesignsWeb.Tests;
+namespace VaultShop.Web.Tests;
 
 public class MinioImageStorageServiceTests
 {

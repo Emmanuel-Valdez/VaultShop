@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Resend;
 
-namespace UkiyoDesigns.Utility
+namespace VaultShop.Utility
 {
     public class FakeEmailSender : IEmailSender
     {

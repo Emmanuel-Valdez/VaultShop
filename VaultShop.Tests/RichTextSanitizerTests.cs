@@ -1,6 +1,6 @@
-using UkiyoDesignsWeb.Services.RichText;
+using VaultShop.Web.Services.RichText;
 
-namespace UkiyoDesignsWeb.Tests;
+namespace VaultShop.Web.Tests;
 
 public class RichTextSanitizerTests
 {

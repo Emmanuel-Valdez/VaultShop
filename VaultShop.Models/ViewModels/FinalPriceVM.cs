@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Models.CalculatorModels.SQLViews;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Models.CalculatorModels.SQLViews;
 
-namespace UkiyoDesigns.Models.ViewModels
+namespace VaultShop.Models.ViewModels
 {
 	public class FinalPriceVM
 	{

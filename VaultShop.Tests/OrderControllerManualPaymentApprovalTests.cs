@@ -9,14 +9,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.ViewModels;
-using UkiyoDesigns.Utility;
-using UkiyoDesignsWeb.Areas.Admin.Controllers;
-using UkiyoDesignsWeb.Services.Payments;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Models.ViewModels;
+using VaultShop.Utility;
+using VaultShop.Web.Areas.Admin.Controllers;
+using VaultShop.Web.Services.Payments;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class OrderControllerManualPaymentApprovalTests
 	{

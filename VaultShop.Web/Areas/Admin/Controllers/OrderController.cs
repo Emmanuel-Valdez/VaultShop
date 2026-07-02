@@ -6,13 +6,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Stripe;
 using System.Security.Claims;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.ViewModels;
-using UkiyoDesigns.Utility;
-using UkiyoDesignsWeb.Services.Payments;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Models.ViewModels;
+using VaultShop.Utility;
+using VaultShop.Web.Services.Payments;
 
-namespace UkiyoDesignsWeb.Areas.Admin.Controllers
+namespace VaultShop.Web.Areas.Admin.Controllers
 {
 	[Area("Admin")]
 	[Authorize]

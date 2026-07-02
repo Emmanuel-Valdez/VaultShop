@@ -1,8 +1,8 @@
-﻿using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
+using VaultShop.DataAccess.Data;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
 
-namespace UkiyoDesigns.DataAccess.Repository
+namespace VaultShop.DataAccess.Repository
 {
 	public class ApplicationUserRepository : Repository<ApplicationUser>, IApplicationUserRepository
 	{

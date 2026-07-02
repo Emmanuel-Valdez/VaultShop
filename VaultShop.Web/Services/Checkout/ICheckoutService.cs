@@ -1,7 +1,7 @@
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.ViewModels;
+using VaultShop.Models;
+using VaultShop.Models.ViewModels;
 
-namespace UkiyoDesignsWeb.Services.Checkout
+namespace VaultShop.Web.Services.Checkout
 {
 	public interface ICheckoutService
 	{

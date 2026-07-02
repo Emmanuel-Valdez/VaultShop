@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using UkiyoDesigns.Utility;
-using UkiyoDesigns.DataAccess.Data;
+using VaultShop.Utility;
+using VaultShop.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace UkiyoDesigns.Controllers
+namespace VaultShop.Controllers
 {
     public class SeoController : Controller
     {

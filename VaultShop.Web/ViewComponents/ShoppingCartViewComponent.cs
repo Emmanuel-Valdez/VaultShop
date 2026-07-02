@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Numerics;
 using System.Security.Claims;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Utility;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Utility;
 
-namespace UkiyoDesignsWeb.ViewComponents
+namespace VaultShop.Web.ViewComponents
 {
 	public class ShoppingCartViewComponent: ViewComponent
 	{

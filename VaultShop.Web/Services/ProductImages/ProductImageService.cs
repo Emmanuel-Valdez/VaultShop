@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using SkiaSharp;
-using UkiyoDesignsWeb.Services.ImageStorage;
+using VaultShop.Web.Services.ImageStorage;
 
-namespace UkiyoDesignsWeb.Services.ProductImages;
+namespace VaultShop.Web.Services.ProductImages;
 
 public sealed class ProductImageService : IProductImageService
 {

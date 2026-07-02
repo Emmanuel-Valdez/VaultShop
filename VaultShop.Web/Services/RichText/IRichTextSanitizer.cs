@@ -1,4 +1,4 @@
-namespace UkiyoDesignsWeb.Services.RichText
+namespace VaultShop.Web.Services.RichText
 {
     public interface IRichTextSanitizer
     {

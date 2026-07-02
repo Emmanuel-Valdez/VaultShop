@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace UkiyoDesigns.Models.Validation
+namespace VaultShop.Models.Validation
 {
 	public sealed class LocalizedStringLengthAttribute : StringLengthAttribute
 	{

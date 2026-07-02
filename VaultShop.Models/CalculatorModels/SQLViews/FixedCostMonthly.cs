@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UkiyoDesigns.Models.CalculatorModels.SQLViews
+namespace VaultShop.Models.CalculatorModels.SQLViews
 {
     public class FixedCostMonthly
     {

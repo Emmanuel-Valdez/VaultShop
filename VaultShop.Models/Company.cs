@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using UkiyoDesigns.Models.Validation;
+using System.ComponentModel.DataAnnotations;
+using VaultShop.Models.Validation;
 
-namespace UkiyoDesigns.Models
+namespace VaultShop.Models
 {
 	public class Company
 	{

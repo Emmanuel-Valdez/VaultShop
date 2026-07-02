@@ -5,16 +5,16 @@ using Microsoft.Extensions.Localization;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.ViewModels;
-using UkiyoDesigns.Utility;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Models.ViewModels;
+using VaultShop.Utility;
 
 
 
 
 
-namespace UkiyoDesignsWeb.Areas.Customer.Controllers
+namespace VaultShop.Web.Areas.Customer.Controllers
 {
 	[Area("Customer")]
 	public class HomeController : Controller

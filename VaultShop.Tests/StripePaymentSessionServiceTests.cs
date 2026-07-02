@@ -1,7 +1,7 @@
 using Stripe.Checkout;
-using UkiyoDesignsWeb.Services.Payments;
+using VaultShop.Web.Services.Payments;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class StripePaymentSessionServiceTests
 	{

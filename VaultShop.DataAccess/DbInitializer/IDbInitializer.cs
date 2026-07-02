@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UkiyoDesigns.DataAccess.DbInitializer
+namespace VaultShop.DataAccess.DbInitializer
 {
 	public interface IDbInitializer
 	{

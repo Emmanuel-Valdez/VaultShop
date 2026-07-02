@@ -1,10 +1,10 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
+using VaultShop.DataAccess.Data;
+using VaultShop.DataAccess.Repository.IRepository;
 
-namespace UkiyoDesigns.DataAccess.Repository
+namespace VaultShop.DataAccess.Repository
 {
 	public class Repository<T> : IRepository<T> where T : class
 	{

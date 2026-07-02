@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
-using UkiyoDesigns.Utility;
-using UkiyoDesignsWeb.Services.Payments;
+using VaultShop.Utility;
+using VaultShop.Web.Services.Payments;
 
-namespace UkiyoDesignsWeb.Controllers
+namespace VaultShop.Web.Controllers
 {
 	[ApiController]
 	[Route("api/stripe/webhook")]

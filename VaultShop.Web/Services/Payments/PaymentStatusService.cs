@@ -1,8 +1,8 @@
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Utility;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Utility;
 
-namespace UkiyoDesignsWeb.Services.Payments
+namespace VaultShop.Web.Services.Payments
 {
 	public sealed class PaymentStatusService : IPaymentStatusService
 	{

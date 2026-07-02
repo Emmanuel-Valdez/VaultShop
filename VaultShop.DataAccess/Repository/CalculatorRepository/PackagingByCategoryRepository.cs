@@ -1,9 +1,9 @@
-﻿using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models.CalculatorModels;
+using VaultShop.DataAccess.Data;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models.CalculatorModels;
 
 
-namespace UkiyoDesigns.DataAccess.Repository
+namespace VaultShop.DataAccess.Repository
 {
 	public class PackagingByCategoryRepository : Repository<PackagingByCategory>, IPackagingByCategoryRepository
 	{

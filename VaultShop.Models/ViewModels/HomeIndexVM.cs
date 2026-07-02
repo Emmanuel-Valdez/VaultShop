@@ -1,4 +1,4 @@
-namespace UkiyoDesigns.Models.ViewModels
+namespace VaultShop.Models.ViewModels
 {
 	public class HomeIndexVM
 	{

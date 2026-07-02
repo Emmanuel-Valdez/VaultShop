@@ -1,11 +1,11 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesignsWeb.Services.Pricing;
+using VaultShop.DataAccess.Data;
+using VaultShop.Models;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Web.Services.Pricing;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class PricingCalculatorServiceTests
 	{

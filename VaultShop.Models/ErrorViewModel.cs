@@ -1,4 +1,4 @@
-﻿namespace UkiyoDesigns.Models
+namespace VaultShop.Models
 {
     public class ErrorViewModel
     {

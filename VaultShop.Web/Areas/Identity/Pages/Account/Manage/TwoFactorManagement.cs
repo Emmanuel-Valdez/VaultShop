@@ -1,4 +1,4 @@
-namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage;
+namespace VaultShop.Web.Areas.Identity.Pages.Account.Manage;
 
 internal static class TwoFactorManagement
 {

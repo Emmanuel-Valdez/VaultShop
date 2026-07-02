@@ -1,7 +1,7 @@
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Models.CalculatorModels.SQLViews;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Models.CalculatorModels.SQLViews;
 
-namespace UkiyoDesignsWeb.Services.Pricing;
+namespace VaultShop.Web.Services.Pricing;
 
 public interface IPricingCalculatorService
 {

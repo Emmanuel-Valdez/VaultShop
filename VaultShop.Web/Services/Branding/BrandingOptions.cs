@@ -1,4 +1,4 @@
-namespace UkiyoDesignsWeb.Services.Branding;
+namespace VaultShop.Web.Services.Branding;
 
 public sealed class BrandingOptions
 {

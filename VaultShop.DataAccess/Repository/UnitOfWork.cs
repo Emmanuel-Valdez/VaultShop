@@ -1,13 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
+using VaultShop.DataAccess.Data;
+using VaultShop.DataAccess.Repository.IRepository;
 
-namespace UkiyoDesigns.DataAccess.Repository
+namespace VaultShop.DataAccess.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {

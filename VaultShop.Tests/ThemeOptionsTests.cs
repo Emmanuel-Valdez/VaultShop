@@ -1,6 +1,6 @@
-using UkiyoDesignsWeb.Services.Branding;
+using VaultShop.Web.Services.Branding;
 
-namespace UkiyoDesignsWeb.Tests;
+namespace VaultShop.Web.Tests;
 
 public sealed class ThemeOptionsTests
 {

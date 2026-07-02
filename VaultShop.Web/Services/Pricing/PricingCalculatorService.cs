@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Models.CalculatorModels.SQLViews;
+using VaultShop.DataAccess.Data;
+using VaultShop.Models;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Models.CalculatorModels.SQLViews;
 
-namespace UkiyoDesignsWeb.Services.Pricing;
+namespace VaultShop.Web.Services.Pricing;
 
 public class PricingCalculatorService : IPricingCalculatorService
 {

@@ -1,6 +1,6 @@
-using UkiyoDesigns.Models;
+using VaultShop.Models;
 
-namespace UkiyoDesignsWeb.Services.ImageStorage;
+namespace VaultShop.Web.Services.ImageStorage;
 
 public interface IImageStorageService
 {

@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using UkiyoDesigns.Models.Validation;
+using VaultShop.Models.Validation;
 
-namespace UkiyoDesigns.Models
+namespace VaultShop.Models
 {
 	public class OrderHeader
 	{

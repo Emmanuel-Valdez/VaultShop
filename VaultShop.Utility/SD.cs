@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace UkiyoDesigns.Utility
+namespace VaultShop.Utility
 {
     public static class SD
     {

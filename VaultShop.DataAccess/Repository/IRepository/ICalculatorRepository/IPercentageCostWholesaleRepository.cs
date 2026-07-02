@@ -1,6 +1,6 @@
-﻿using UkiyoDesigns.Models.CalculatorModels;
+using VaultShop.Models.CalculatorModels;
 
-namespace UkiyoDesigns.DataAccess.Repository.IRepository
+namespace VaultShop.DataAccess.Repository.IRepository
 {
 	public interface IPercentageCostWholesaleRepository : IRepository<PercentageCostWholesale>
 	{

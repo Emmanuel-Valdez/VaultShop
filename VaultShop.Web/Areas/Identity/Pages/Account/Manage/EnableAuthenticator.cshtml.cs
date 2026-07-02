@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -15,9 +15,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.Validation;
-namespace UkiyoDesignsWeb.Areas.Identity.Pages.Account.Manage
+using VaultShop.Models;
+using VaultShop.Models.Validation;
+namespace VaultShop.Web.Areas.Identity.Pages.Account.Manage
 {
     public class EnableAuthenticatorModel : PageModel
     {

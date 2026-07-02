@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using System.Security.Claims;
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.ViewModels;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Models.ViewModels;
 
-namespace UkiyoDesignsWeb.Areas.Customer.Controllers
+namespace VaultShop.Web.Areas.Customer.Controllers
 {
 	[Area("Customer")]
 	[Authorize]

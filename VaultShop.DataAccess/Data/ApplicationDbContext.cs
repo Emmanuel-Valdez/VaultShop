@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.CalculatorModels;
-using UkiyoDesigns.Models.ViewModels;
+using VaultShop.Models;
+using VaultShop.Models.CalculatorModels;
+using VaultShop.Models.ViewModels;
 
-namespace UkiyoDesigns.DataAccess.Data
+namespace VaultShop.DataAccess.Data
 {
 	public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 	{

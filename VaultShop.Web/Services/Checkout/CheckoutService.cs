@@ -1,10 +1,10 @@
-using UkiyoDesigns.DataAccess.Repository.IRepository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Models.ViewModels;
-using UkiyoDesigns.Utility;
-using static UkiyoDesignsWeb.Services.Checkout.ICheckoutService;
+using VaultShop.DataAccess.Repository.IRepository;
+using VaultShop.Models;
+using VaultShop.Models.ViewModels;
+using VaultShop.Utility;
+using static VaultShop.Web.Services.Checkout.ICheckoutService;
 
-namespace UkiyoDesignsWeb.Services.Checkout
+namespace VaultShop.Web.Services.Checkout
 {
 	public class CheckoutService : ICheckoutService
 	{

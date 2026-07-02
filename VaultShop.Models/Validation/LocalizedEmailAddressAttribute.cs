@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
-namespace UkiyoDesigns.Models.Validation
+namespace VaultShop.Models.Validation
 {
 	public sealed class LocalizedEmailAddressAttribute : ValidationAttribute, IClientModelValidator
 	{

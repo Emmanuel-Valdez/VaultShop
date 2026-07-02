@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using UkiyoDesigns.Models;
+using VaultShop.Models;
 
-namespace UkiyoDesignsWeb.Services.ImageStorage;
+namespace VaultShop.Web.Services.ImageStorage;
 
 public sealed class LocalImageStorageService : IImageStorageService
 {

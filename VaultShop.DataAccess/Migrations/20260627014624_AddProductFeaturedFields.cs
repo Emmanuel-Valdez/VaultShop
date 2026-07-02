@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace UkiyoDesigns.DataAccess.Migrations
+namespace VaultShop.DataAccess.Migrations
 {
     /// <inheritdoc />
     public partial class AddProductFeaturedFields : Migration

@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UkiyoDesigns.Models.CalculatorModels;
+using VaultShop.Models.CalculatorModels;
 
-namespace UkiyoDesigns.Models.ViewModels
+namespace VaultShop.Models.ViewModels
 {
 	public class PackagingByCategoryVM
 	{

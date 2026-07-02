@@ -1,13 +1,13 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using UkiyoDesigns.DataAccess.Data;
-using UkiyoDesigns.DataAccess.Repository;
-using UkiyoDesigns.Models;
-using UkiyoDesigns.Utility;
-using UkiyoDesignsWeb.Services.Checkout;
+using VaultShop.DataAccess.Data;
+using VaultShop.DataAccess.Repository;
+using VaultShop.Models;
+using VaultShop.Utility;
+using VaultShop.Web.Services.Checkout;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class CheckoutServiceIntegrationTests
 	{

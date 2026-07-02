@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using UkiyoDesigns.Models;
-using UkiyoDesignsWeb.Services.ImageStorage;
+using VaultShop.Models;
+using VaultShop.Web.Services.ImageStorage;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class LocalImageStorageServiceTests
 	{

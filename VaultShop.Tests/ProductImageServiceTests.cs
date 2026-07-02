@@ -4,10 +4,10 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SkiaSharp;
-using UkiyoDesignsWeb.Services.ImageStorage;
-using UkiyoDesignsWeb.Services.ProductImages;
+using VaultShop.Web.Services.ImageStorage;
+using VaultShop.Web.Services.ProductImages;
 
-namespace UkiyoDesignsWeb.Tests
+namespace VaultShop.Web.Tests
 {
 	public class ProductImageServiceTests
 	{

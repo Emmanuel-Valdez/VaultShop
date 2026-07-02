@@ -1,6 +1,6 @@
 using Ganss.Xss;
 
-namespace UkiyoDesignsWeb.Services.RichText
+namespace VaultShop.Web.Services.RichText
 {
     public sealed class RichTextSanitizer : IRichTextSanitizer
     {

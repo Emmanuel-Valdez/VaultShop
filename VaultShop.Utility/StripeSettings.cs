@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UkiyoDesigns.Utility
+namespace VaultShop.Utility
 {
     public class StripeSettings
     {

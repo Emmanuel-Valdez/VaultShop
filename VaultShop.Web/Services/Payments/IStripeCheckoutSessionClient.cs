@@ -1,6 +1,6 @@
 using Stripe.Checkout;
 
-namespace UkiyoDesignsWeb.Services.Payments
+namespace VaultShop.Web.Services.Payments
 {
 	public interface IStripeCheckoutSessionClient
 	{
