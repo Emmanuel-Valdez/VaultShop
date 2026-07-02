@@ -6,7 +6,7 @@ This runbook documents the current lightweight operations process for the VaultS
 
 - Public URL: `https://vaultshop.evaldez.ar`
 - VPS OS: Ubuntu 24.04
-- App path on VPS: `/opt/vaultshop/VaultShop`
+- App path on VPS: `/opt/vaultshop`
 - Public ingress: Nginx on `80/443`
 - App container bind: `127.0.0.1:8080`
 - PostgreSQL: Docker Compose private service
@@ -20,7 +20,7 @@ Do not expose PostgreSQL, MinIO API, or the MinIO console directly to the public
 Run on the VPS:
 
 ```bash
-cd /opt/vaultshop/VaultShop
+cd /opt/vaultshop
 docker compose --env-file .env.compose ps
 curl -I https://vaultshop.evaldez.ar
 df -h
@@ -39,7 +39,7 @@ Containers should use `restart: unless-stopped`.
 Verify from the VPS repo root:
 
 ```bash
-cd /opt/vaultshop/VaultShop
+cd /opt/vaultshop
 docker compose --env-file .env.compose ps web postgres minio
 docker compose --env-file .env.compose ps -q web postgres minio | xargs -r docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}}'
 ```
@@ -53,7 +53,7 @@ Expected:
 After a VPS reboot:
 
 ```bash
-cd /opt/vaultshop/VaultShop
+cd /opt/vaultshop
 docker compose --env-file .env.compose ps
 curl -I https://vaultshop.evaldez.ar
 ```
@@ -66,7 +66,7 @@ Create a compressed custom-format PostgreSQL dump on the VPS:
 
 ```bash
 mkdir -p ~/vaultshop-backups/postgres
-cd /opt/vaultshop/VaultShop
+cd /opt/vaultshop
 docker compose --env-file .env.compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > ~/vaultshop-backups/postgres/vaultshop_$(date +%F_%H%M).dump
 ls -lh ~/vaultshop-backups/postgres
 ```
@@ -222,7 +222,7 @@ This detects basic availability problems. It does not replace backup/restore or 
 App logs:
 
 ```bash
-cd /opt/vaultshop/VaultShop
+cd /opt/vaultshop
 docker compose --env-file .env.compose logs --tail=100 web
 ```
 
