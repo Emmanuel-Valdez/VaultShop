@@ -63,8 +63,7 @@ The project now has a lightweight operations baseline:
 - This is a production-style portfolio project, not a high-availability production system.
 - Backups are manual/documented, not fully automated yet.
 - Monitoring is lightweight uptime/TLS monitoring, not full observability.
-- Internal repository/project names still contain historical Ukiyo naming and should be cleaned up deliberately later.
-- The storefront UI has been refreshed for the portfolio path; future work should focus on deployment evidence, screenshots, CI, and deliberate naming cleanup before more visual redesign.
+- The storefront UI has been refreshed for the portfolio path; future work should focus on deployment evidence, screenshots, CI, and documentation/deployment hardening before more visual redesign.
 
 ## Interview Summary
 

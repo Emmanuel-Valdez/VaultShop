@@ -6,7 +6,7 @@ This runbook documents the current lightweight operations process for the VaultS
 
 - Public URL: `https://vaultshop.evaldez.ar`
 - VPS OS: Ubuntu 24.04
-- App path on VPS: `/opt/vaultshop/Ukiyo`
+- App path on VPS: `/opt/vaultshop/VaultShop`
 - Public ingress: Nginx on `80/443`
 - App container bind: `127.0.0.1:8080`
 - PostgreSQL: Docker Compose private service
@@ -20,7 +20,7 @@ Do not expose PostgreSQL, MinIO API, or the MinIO console directly to the public
 Run on the VPS:
 
 ```bash
-cd /opt/vaultshop/Ukiyo
+cd /opt/vaultshop/VaultShop
 docker compose --env-file .env.compose ps
 curl -I https://vaultshop.evaldez.ar
 df -h
@@ -39,7 +39,7 @@ Containers should use `restart: unless-stopped`.
 Verify from the VPS repo root:
 
 ```bash
-cd /opt/vaultshop/Ukiyo
+cd /opt/vaultshop/VaultShop
 docker compose --env-file .env.compose ps web postgres minio
 docker compose --env-file .env.compose ps -q web postgres minio | xargs -r docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}}'
 ```
@@ -53,7 +53,7 @@ Expected:
 After a VPS reboot:
 
 ```bash
-cd /opt/vaultshop/Ukiyo
+cd /opt/vaultshop/VaultShop
 docker compose --env-file .env.compose ps
 curl -I https://vaultshop.evaldez.ar
 ```
@@ -66,7 +66,7 @@ Create a compressed custom-format PostgreSQL dump on the VPS:
 
 ```bash
 mkdir -p ~/vaultshop-backups/postgres
-cd /opt/vaultshop/Ukiyo
+cd /opt/vaultshop/VaultShop
 docker compose --env-file .env.compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > ~/vaultshop-backups/postgres/vaultshop_$(date +%F_%H%M).dump
 ls -lh ~/vaultshop-backups/postgres
 ```
@@ -91,7 +91,7 @@ Start a clean local PostgreSQL container:
 
 ```powershell
 docker rm -f vaultshop-restore-postgres
-docker run --name vaultshop-restore-postgres -e POSTGRES_USER=ukiyomono_app -e POSTGRES_PASSWORD=restoretest -e POSTGRES_DB=vaultshop_restore -p 55432:5432 -d postgres:16
+docker run --name vaultshop-restore-postgres -e POSTGRES_USER=vaultshop_app -e POSTGRES_PASSWORD=restoretest -e POSTGRES_DB=vaultshop_restore -p 55432:5432 -d postgres:16
 ```
 
 Copy the dump into the container:
@@ -103,24 +103,24 @@ docker cp C:\Users\evald\Backups\VaultShop\Postgres\vaultshop_YYYY-MM-DD_HHMM.du
 Restore:
 
 ```powershell
-docker exec vaultshop-restore-postgres pg_restore -U ukiyomono_app -d vaultshop_restore /backup.dump
+docker exec vaultshop-restore-postgres pg_restore -U vaultshop_app -d vaultshop_restore /backup.dump
 ```
 
 Verify tables:
 
 ```powershell
-docker exec vaultshop-restore-postgres psql -U ukiyomono_app -d vaultshop_restore -c "\dt"
+docker exec vaultshop-restore-postgres psql -U vaultshop_app -d vaultshop_restore -c "\dt"
 ```
 
 Verify counts, preserving PostgreSQL's quoted table names through the container shell:
 
 ```powershell
-docker exec vaultshop-restore-postgres sh -c 'psql -U ukiyomono_app -d vaultshop_restore -c "SELECT COUNT(*) FROM \"Products\";"'
-docker exec vaultshop-restore-postgres sh -c 'psql -U ukiyomono_app -d vaultshop_restore -c "SELECT COUNT(*) FROM \"ProductImages\";"'
-docker exec vaultshop-restore-postgres sh -c 'psql -U ukiyomono_app -d vaultshop_restore -c "SELECT COUNT(*) FROM \"AspNetUsers\";"'
+docker exec vaultshop-restore-postgres sh -c 'psql -U vaultshop_app -d vaultshop_restore -c "SELECT COUNT(*) FROM \"Products\";"'
+docker exec vaultshop-restore-postgres sh -c 'psql -U vaultshop_app -d vaultshop_restore -c "SELECT COUNT(*) FROM \"ProductImages\";"'
+docker exec vaultshop-restore-postgres sh -c 'psql -U vaultshop_app -d vaultshop_restore -c "SELECT COUNT(*) FROM \"AspNetUsers\";"'
 ```
 
-Important: PostgreSQL restores can depend on roles/owners. If the dump contains objects owned by `ukiyomono_app`, create the restore database with `POSTGRES_USER=ukiyomono_app` or restore with appropriate ownership options.
+Important: PostgreSQL restores can depend on roles/owners. If the dump contains objects owned by `vaultshop_app`, create the restore database with `POSTGRES_USER=vaultshop_app` or restore with appropriate ownership options.
 
 ## MinIO Backup
 
@@ -222,7 +222,7 @@ This detects basic availability problems. It does not replace backup/restore or 
 App logs:
 
 ```bash
-cd /opt/vaultshop/Ukiyo
+cd /opt/vaultshop/VaultShop
 docker compose --env-file .env.compose logs --tail=100 web
 ```
 
@@ -261,9 +261,9 @@ Use this to stop containers without deleting data:
 docker compose --env-file .env.compose down
 ```
 
-## Future Ukiyo Deployment Notes
+## Future Private Deployment Notes
 
-VaultShop is the public portfolio/demo deployment. A future real Ukiyo deployment should use the same general pattern but with stronger separation:
+VaultShop is the public portfolio/demo deployment. A future private/client deployment should use the same general pattern but with stronger separation:
 
 - Separate domain/subdomain.
 - Separate `.env` file.

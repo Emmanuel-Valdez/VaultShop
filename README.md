@@ -72,11 +72,11 @@ See [`docs/case-study.md`](docs/case-study.md) for a concise project case study 
 ## Project Structure
 
 ```text
-UkiyoMono/              ASP.NET Core MVC web app
-Ukiyo.DataAccess/      EF Core DbContext, repositories, migrations
-Ukiyo.Models/          Domain models and view models
-Ukiyo.Utility/         Shared constants and infrastructure helpers
-UkiyoDesignsWeb.Tests/ Automated tests
+VaultShop.Web/          ASP.NET Core MVC web app
+VaultShop.DataAccess/   EF Core DbContext, repositories, migrations
+VaultShop.Models/       Domain models and view models
+VaultShop.Utility/      Shared constants and infrastructure helpers
+VaultShop.Tests/        Automated tests
 docs/                  Architecture, operations notes, case study, and screenshots
 ```
 
@@ -140,21 +140,21 @@ Prerequisites:
 1. Restore dependencies.
 
 ```powershell
-dotnet restore UkiyoDesigns.sln
+dotnet restore VaultShop.sln
 ```
 
-2. Create `UkiyoMono/.env` with local configuration values.
+2. Create `VaultShop.Web/.env` with local configuration values, or use `.env.compose` for Docker Compose.
 
 3. Build the solution.
 
 ```powershell
-dotnet build UkiyoDesigns.sln
+dotnet build VaultShop.sln
 ```
 
 4. Run the web app.
 
 ```powershell
-dotnet run --project UkiyoMono/UkiyoDesignsWeb.csproj --launch-profile https
+dotnet run --project VaultShop.Web/VaultShop.Web.csproj --launch-profile https
 ```
 
 5. Open the local site.
@@ -220,7 +220,7 @@ Do not expose PostgreSQL or the MinIO console directly on a public server.
 Run the automated tests:
 
 ```powershell
-dotnet test UkiyoDesigns.sln
+dotnet test VaultShop.sln
 ```
 
 Current tests focus on high-value service behavior: upload validation, checkout rules, transactional order creation, Stripe session creation, payment status updates, and pricing calculator formulas/publish behavior.
@@ -250,7 +250,6 @@ Operations runbook: [`docs/operations/runbook.md`](docs/operations/runbook.md).
 - Backups and restore have been tested manually; backup automation and freshness checks are planned later.
 - Manual browser checks should still be repeated after deployment changes for Stripe paid/unpaid flows, branding/theme overrides, and fulfillment guards.
 - The storefront frontend is functional, but backend/deployment evidence remains the main portfolio value.
-- Internal repository/project names still use historical Ukiyo naming and can be renamed deliberately later.
 
 ## Portfolio Scope
 
