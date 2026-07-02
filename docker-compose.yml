@@ -2,7 +2,7 @@ name: ${COMPOSE_PROJECT_NAME:-vaultshop}
 
 services:
   web:
-    image: ukiyo-designs-web:compose
+    image: vaultshop-web:compose
     restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     build:
       context: .
@@ -93,8 +93,8 @@ services:
     image: postgres:16-alpine
     restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-ukiyomono}
-      POSTGRES_USER: ${POSTGRES_USER:-ukiyomono_app}
+      POSTGRES_DB: ${POSTGRES_DB:-vaultshop}
+      POSTGRES_USER: ${POSTGRES_USER:-vaultshop_app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
       - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
