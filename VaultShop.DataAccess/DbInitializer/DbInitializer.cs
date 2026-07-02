@@ -88,19 +88,19 @@ namespace VaultShop.DataAccess.DbInitializer
 
 			var users = new[]
 			{
-				new DemoUserSeed("demo.company1@ukiyo.local", "Demo Company User 1", SD.Role_Company, companyIds[0]),
-				new DemoUserSeed("demo.company2@ukiyo.local", "Demo Company User 2", SD.Role_Company, companyIds[0]),
-				new DemoUserSeed("demo.company3@ukiyo.local", "Demo Company User 3", SD.Role_Company, companyIds[Math.Min(1, companyIds.Count - 1)]),
-				new DemoUserSeed("demo.company4@ukiyo.local", "Demo Company User 4", SD.Role_Company, companyIds[Math.Min(1, companyIds.Count - 1)]),
-				new DemoUserSeed("demo.company5@ukiyo.local", "Demo Company User 5", SD.Role_Company, companyIds[Math.Min(2, companyIds.Count - 1)]),
-				new DemoUserSeed("demo.customer1@ukiyo.local", "Demo Customer 1", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer2@ukiyo.local", "Demo Customer 2", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer3@ukiyo.local", "Demo Customer 3", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer4@ukiyo.local", "Demo Customer 4", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer5@ukiyo.local", "Demo Customer 5", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer6@ukiyo.local", "Demo Customer 6", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer7@ukiyo.local", "Demo Customer 7", SD.Role_Customer, null),
-				new DemoUserSeed("demo.customer8@ukiyo.local", "Demo Customer 8", SD.Role_Customer, null)
+				new DemoUserSeed("demo.company1@vaultshop.local", "Demo Company User 1", SD.Role_Company, companyIds[0]),
+				new DemoUserSeed("demo.company2@vaultshop.local", "Demo Company User 2", SD.Role_Company, companyIds[0]),
+				new DemoUserSeed("demo.company3@vaultshop.local", "Demo Company User 3", SD.Role_Company, companyIds[Math.Min(1, companyIds.Count - 1)]),
+				new DemoUserSeed("demo.company4@vaultshop.local", "Demo Company User 4", SD.Role_Company, companyIds[Math.Min(1, companyIds.Count - 1)]),
+				new DemoUserSeed("demo.company5@vaultshop.local", "Demo Company User 5", SD.Role_Company, companyIds[Math.Min(2, companyIds.Count - 1)]),
+				new DemoUserSeed("demo.customer1@vaultshop.local", "Demo Customer 1", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer2@vaultshop.local", "Demo Customer 2", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer3@vaultshop.local", "Demo Customer 3", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer4@vaultshop.local", "Demo Customer 4", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer5@vaultshop.local", "Demo Customer 5", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer6@vaultshop.local", "Demo Customer 6", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer7@vaultshop.local", "Demo Customer 7", SD.Role_Customer, null),
+				new DemoUserSeed("demo.customer8@vaultshop.local", "Demo Customer 8", SD.Role_Customer, null)
 			};
 
 			foreach (var demoUser in users)
@@ -198,7 +198,7 @@ namespace VaultShop.DataAccess.DbInitializer
 			foreach (var seed in orderSeeds)
 			{
 				var user = customers[seed.UserIndex % customers.Count];
-				var sessionId = seed.HasStripeData ? $"cs_test_demo_ukiyo_{seed.UserIndex + 1:000000}" : null;
+				var sessionId = seed.HasStripeData ? $"cs_test_demo_vaultshop_{seed.UserIndex + 1:000000}" : null;
 
 				if (sessionId != null && _db.OrderHeaders.Any(order => order.SessionId == sessionId))
 				{
@@ -219,12 +219,12 @@ namespace VaultShop.DataAccess.DbInitializer
 					OrderTotal = orderTotal,
 					OrderStatus = seed.OrderStatus,
 					PaymentStatus = seed.PaymentStatus,
-					TrackingNumber = seed.OrderStatus == SD.StatusShipped ? $"UKIYO-DEMO-{seed.UserIndex + 1:000000}" : null,
+					TrackingNumber = seed.OrderStatus == SD.StatusShipped ? $"VAULTSHOP-DEMO-{seed.UserIndex + 1:000000}" : null,
 					Carrier = seed.OrderStatus == SD.StatusShipped ? "Demo Carrier" : null,
 					PaymentDate = seed.HasStripeData ? orderDate.AddMinutes(15) : unsetDate,
 					PaymentDueDate = DateOnly.FromDateTime(orderDate.AddDays(14)),
 					SessionId = sessionId,
-					PaymentIntentId = seed.HasStripeData ? $"pi_demo_ukiyo_{seed.UserIndex + 1:000000}" : null,
+					PaymentIntentId = seed.HasStripeData ? $"pi_demo_vaultshop_{seed.UserIndex + 1:000000}" : null,
 					Name = user.Name,
 					StreetAddress = user.StreetAddress ?? "Demo Street 100",
 					City = user.City ?? "Mendoza",

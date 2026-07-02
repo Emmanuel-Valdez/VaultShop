@@ -1,4 +1,4 @@
-﻿@model OrderHeader
+@model OrderHeader
 @{
 	var isTerminal = Model.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
 		Model.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
@@ -14,7 +14,7 @@
 	<div class="col-12 text-center">
 		<h1 class="@titleClass text-center">@Localizer[titleKey]</h1>
 		@Localizer["OrderNumber"] @Model.Id <br /><br />
-		<img src="~/images/UkiyoOlas.webp" width="50%"/>
+		<img src="~/images/vaultshop-confirmation.webp" width="50%"/>
 	</div> 
 	<div class="col-12 text-center pb-3">
 		<br />

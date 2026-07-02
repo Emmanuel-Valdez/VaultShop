@@ -28,7 +28,7 @@ namespace VaultShop.Utility
         public static string InstagramLink => GetEnvOrDefault("Social__Instagram", "");
         public static string FacebookLink => GetEnvOrDefault("Social__Facebook", "");
         public static string DevLink => GetEnvOrDefault("Social__DevLink", "");
-        public static string SiteUrl => GetEnvOrDefault("SiteUrl", "https://ukiyo.bsite.net");
+        public static string SiteUrl => GetEnvOrDefault("SiteUrl", "https://vaultshop.evaldez.ar");
 
         private static string GetEnvOrDefault(string key, string defaultValue)
         {

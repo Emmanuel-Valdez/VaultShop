@@ -389,7 +389,7 @@ docs/deployment/
 
 # Private deployment brand assets should be mounted/copied outside git.
 VaultShop.Web/wwwroot/images/brand/private/
-VaultShop.Web/wwwroot/images/brand/ukiyo-*
+VaultShop.Web/wwwroot/images/brand/vaultshop-*
 
 # Uploaded product images are environment-specific content
 VaultShop.Web/wwwroot/images/products/

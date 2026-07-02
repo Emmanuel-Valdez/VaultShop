@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,10 +121,10 @@
     <value>Preguntas Frecuentes</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Preguntas frecuentes sobre Ukiyo: productos, envíos, pagos, compras mayoristas y canales de contacto.</value>
+    <value>Preguntas frecuentes sobre VaultShop: productos, envíos, pagos, compras mayoristas y canales de contacto.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>preguntas frecuentes, FAQs, envíos, métodos de pago, ventas mayoristas, ayuda Ukiyo</value>
+    <value>preguntas frecuentes, FAQs, envíos, métodos de pago, ventas mayoristas, ayuda VaultShop</value>
   </data>
   <data name="Question1" xml:space="preserve">
     <value>1. ¿Qué productos ofrecen?</value>
@@ -136,7 +136,7 @@
     <value>2. ¿Realizan pedidos personalizados?</value>
   </data>
   <data name="Answer2" xml:space="preserve">
-    <value>Por el momento no tomamos pedidos personalizados. Cada producto de Ukiyo está diseñado y fabricado por nosotros, y te invitamos a recorrer el catálogo para encontrar una pieza que conecte con tu estilo.</value>
+    <value>Por el momento no tomamos pedidos personalizados. Cada producto de VaultShop está diseñado y fabricado por nosotros, y te invitamos a recorrer el catálogo para encontrar una pieza que conecte con tu estilo.</value>
   </data>
   <data name="Question3" xml:space="preserve">
     <value>3. ¿Hacen envíos?</value>

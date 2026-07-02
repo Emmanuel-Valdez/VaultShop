@@ -77,7 +77,7 @@ namespace VaultShop.Web.Tests
 		[Fact]
 		public async Task SaveProductImagesAsync_ValidImage_SavesImageWithGeneratedSafeUrl()
 		{
-			var webRootPath = Directory.CreateTempSubdirectory("ukiyo-product-image-tests-").FullName;
+			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-product-image-tests-").FullName;
 			try
 			{
 				var service = CreateService(webRootPath);

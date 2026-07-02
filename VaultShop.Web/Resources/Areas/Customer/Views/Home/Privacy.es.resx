@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,7 +121,7 @@
     <value>Privacidad</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Política de privacidad de Ukiyo: cómo cuidamos, usamos y protegemos tus datos personales.</value>
+    <value>Política de privacidad de VaultShop: cómo cuidamos, usamos y protegemos tus datos personales.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
     <value>política de privacidad, protección de datos, datos personales, privacidad</value>
@@ -148,7 +148,7 @@
     <value>4. Cuándo compartimos datos</value>
   </data>
   <data name="Section4Body" xml:space="preserve">
-    <value>No vendemos ni compartimos tus datos con terceros para fines ajenos a Ukiyo. Solo los compartimos cuando es necesario para completar tu pedido, por ejemplo con servicios de envío, procesadores de pago, o cuando la ley lo requiere.</value>
+    <value>No vendemos ni compartimos tus datos con terceros para fines ajenos a VaultShop. Solo los compartimos cuando es necesario para completar tu pedido, por ejemplo con servicios de envío, procesadores de pago, o cuando la ley lo requiere.</value>
   </data>
   <data name="Section5Title" xml:space="preserve">
     <value>5. Tus derechos</value>

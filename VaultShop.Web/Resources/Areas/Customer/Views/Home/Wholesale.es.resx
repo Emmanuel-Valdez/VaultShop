@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,10 +121,10 @@
     <value>Mayorista</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Información para compras mayoristas en Ukiyo: mínimos, pagos, tiempos de preparación y condiciones especiales.</value>
+    <value>Información para compras mayoristas en VaultShop: mínimos, pagos, tiempos de preparación y condiciones especiales.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>venta mayorista, compras al por mayor, productos Ukiyo, mochilas mayoristas, accesorios mayoristas</value>
+    <value>venta mayorista, compras al por mayor, productos VaultShop, mochilas mayoristas, accesorios mayoristas</value>
   </data>
   <data name="IntroPrefix" xml:space="preserve">
     <value>En</value>

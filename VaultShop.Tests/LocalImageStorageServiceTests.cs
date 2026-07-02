@@ -11,7 +11,7 @@ namespace VaultShop.Web.Tests
 		[Fact]
 		public async Task DeleteProductImageAsync_ObjectKeyLocalImage_DeletesFile()
 		{
-			var webRootPath = Directory.CreateTempSubdirectory("ukiyo-local-storage-tests-").FullName;
+			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
 			try
 			{
 				var filePath = CreateProductImageFile(webRootPath, "product-1", "image.jpg");
@@ -34,7 +34,7 @@ namespace VaultShop.Web.Tests
 		[Fact]
 		public async Task DeleteProductImageAsync_MissingObjectKey_DoesNotDeleteFile()
 		{
-			var webRootPath = Directory.CreateTempSubdirectory("ukiyo-local-storage-tests-").FullName;
+			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
 			try
 			{
 				var filePath = CreateProductImageFile(webRootPath, "product-2", "image.jpg");
@@ -56,7 +56,7 @@ namespace VaultShop.Web.Tests
 		[Fact]
 		public async Task DeleteProductImageAsync_TraversalObjectKey_DoesNotDeleteOutsideProductImagesRoot()
 		{
-			var webRootPath = Directory.CreateTempSubdirectory("ukiyo-local-storage-tests-").FullName;
+			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
 			try
 			{
 				var protectedFilePath = Path.Combine(webRootPath, "protected.txt");

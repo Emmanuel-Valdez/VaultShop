@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,10 +121,10 @@
     <value>FAQs</value>
   </data>
   <data name="MetaDescription" xml:space="preserve">
-    <value>Frequently asked questions about Ukiyo: products, shipping, payments, wholesale orders, and contact channels.</value>
+    <value>Frequently asked questions about VaultShop: products, shipping, payments, wholesale orders, and contact channels.</value>
   </data>
   <data name="MetaKeywords" xml:space="preserve">
-    <value>frequently asked questions, FAQs, shipping, payment methods, wholesale, Ukiyo help</value>
+    <value>frequently asked questions, FAQs, shipping, payment methods, wholesale, VaultShop help</value>
   </data>
   <data name="Question1" xml:space="preserve">
     <value>1. What products do you offer?</value>
@@ -136,7 +136,7 @@
     <value>2. Do you make custom orders?</value>
   </data>
   <data name="Answer2" xml:space="preserve">
-    <value>At the moment, we do not take custom orders. Every Ukiyo product is designed and made by us, and we invite you to explore the catalog to find a piece that fits your style.</value>
+    <value>At the moment, we do not take custom orders. Every VaultShop product is designed and made by us, and we invite you to explore the catalog to find a piece that fits your style.</value>
   </data>
   <data name="Question3" xml:space="preserve">
     <value>3. Do you ship orders?</value>
