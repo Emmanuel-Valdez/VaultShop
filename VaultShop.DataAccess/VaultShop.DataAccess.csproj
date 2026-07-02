@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Ukiyo.Models\UkiyoDesigns.Models.csproj" />
-    <ProjectReference Include="..\Ukiyo.Utility\UkiyoDesigns.Utility.csproj" />
+    <ProjectReference Include="..\VaultShop.Models\VaultShop.Models.csproj" />
+    <ProjectReference Include="..\VaultShop.Utility\VaultShop.Utility.csproj" />
   </ItemGroup>
 
 </Project>

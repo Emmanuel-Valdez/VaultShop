@@ -5,17 +5,17 @@ ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
 
-COPY ["UkiyoMono/UkiyoDesignsWeb.csproj", "UkiyoMono/"]
-COPY ["Ukiyo.DataAccess/UkiyoDesigns.DataAccess.csproj", "Ukiyo.DataAccess/"]
-COPY ["Ukiyo.Models/UkiyoDesigns.Models.csproj", "Ukiyo.Models/"]
-COPY ["Ukiyo.Utility/UkiyoDesigns.Utility.csproj", "Ukiyo.Utility/"]
+COPY ["VaultShop.Web/VaultShop.Web.csproj", "VaultShop.Web/"]
+COPY ["VaultShop.DataAccess/VaultShop.DataAccess.csproj", "VaultShop.DataAccess/"]
+COPY ["VaultShop.Models/VaultShop.Models.csproj", "VaultShop.Models/"]
+COPY ["VaultShop.Utility/VaultShop.Utility.csproj", "VaultShop.Utility/"]
 
-RUN dotnet restore "UkiyoMono/UkiyoDesignsWeb.csproj"
+RUN dotnet restore "VaultShop.Web/VaultShop.Web.csproj"
 
 COPY . .
 
-WORKDIR "/src/UkiyoMono"
-RUN dotnet publish "UkiyoDesignsWeb.csproj" \
+WORKDIR "/src/VaultShop.Web"
+RUN dotnet publish "VaultShop.Web.csproj" \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
     /p:UseAppHost=false
@@ -34,4 +34,4 @@ COPY --from=build /app/publish .
 
 USER $APP_UID
 
-ENTRYPOINT ["dotnet", "UkiyoDesignsWeb.dll"]
+ENTRYPOINT ["dotnet", "VaultShop.Web.dll"]

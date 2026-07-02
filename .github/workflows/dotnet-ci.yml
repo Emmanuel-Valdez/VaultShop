@@ -19,8 +19,8 @@ jobs:
     env:
       DOTNET_NOLOGO: true
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-      SOLUTION_PATH: UkiyoDesigns.sln
-      TEST_PROJECT_PATH: UkiyoDesignsWeb.Tests/UkiyoDesignsWeb.Tests.csproj
+      SOLUTION_PATH: VaultShop.sln
+      TEST_PROJECT_PATH: VaultShop.Tests/VaultShop.Tests.csproj
       BUILD_CONFIGURATION: Release
 
     steps:

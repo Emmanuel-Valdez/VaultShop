@@ -1,25 +1,25 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UkiyoDesignsWeb", "UkiyoMono\UkiyoDesignsWeb.csproj", "{A1A4C729-800E-4FBA-BCF6-DE5F1A2E2254}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VaultShop.Web", "VaultShop.Web\VaultShop.Web.csproj", "{A1A4C729-800E-4FBA-BCF6-DE5F1A2E2254}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5445644B-2CAE-4ECF-9C21-2A6140CC77A3} = {5445644B-2CAE-4ECF-9C21-2A6140CC77A3}
 		{57B4E3D6-FEE1-46AE-BCB6-42753205D8D1} = {57B4E3D6-FEE1-46AE-BCB6-42753205D8D1}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UkiyoDesigns.DataAccess", "Ukiyo.DataAccess\UkiyoDesigns.DataAccess.csproj", "{57B4E3D6-FEE1-46AE-BCB6-42753205D8D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VaultShop.DataAccess", "VaultShop.DataAccess\VaultShop.DataAccess.csproj", "{57B4E3D6-FEE1-46AE-BCB6-42753205D8D1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5445644B-2CAE-4ECF-9C21-2A6140CC77A3} = {5445644B-2CAE-4ECF-9C21-2A6140CC77A3}
 		{AF91D6BF-0711-4064-8DF3-31301AE78EF6} = {AF91D6BF-0711-4064-8DF3-31301AE78EF6}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UkiyoDesigns.Models", "Ukiyo.Models\UkiyoDesigns.Models.csproj", "{5445644B-2CAE-4ECF-9C21-2A6140CC77A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VaultShop.Models", "VaultShop.Models\VaultShop.Models.csproj", "{5445644B-2CAE-4ECF-9C21-2A6140CC77A3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UkiyoDesigns.Utility", "Ukiyo.Utility\UkiyoDesigns.Utility.csproj", "{AF91D6BF-0711-4064-8DF3-31301AE78EF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VaultShop.Utility", "VaultShop.Utility\VaultShop.Utility.csproj", "{AF91D6BF-0711-4064-8DF3-31301AE78EF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UkiyoDesignsWeb.Tests", "UkiyoDesignsWeb.Tests\UkiyoDesignsWeb.Tests.csproj", "{D668EFA3-94B1-41E8-9F58-2567846CB786}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VaultShop.Tests", "VaultShop.Tests\VaultShop.Tests.csproj", "{D668EFA3-94B1-41E8-9F58-2567846CB786}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
