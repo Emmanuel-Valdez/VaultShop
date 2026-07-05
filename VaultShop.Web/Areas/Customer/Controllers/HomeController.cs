@@ -142,24 +142,32 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 		public IActionResult Search(string searchString)
 		{
-			if (!string.IsNullOrEmpty(searchString))
-			{
-				IEnumerable<Product> searchProductList = _unitOfWork.Product
-					.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true &&
-					(u.Name.Contains(searchString) || u.Category.Name.Contains(searchString)
-					|| u.Description.Contains(searchString)), includeProperties: "Category,ProductImages");
-				if (!searchProductList.Any())
-				{
-					TempData["error"] = _localizer["SearchNoMatches"].Value;
-					return RedirectToAction("Index");
-				}
-				return View(searchProductList);
-			}
-			else
+			if (string.IsNullOrWhiteSpace(searchString))
 			{
 				TempData["error"] = _localizer["SearchEmpty"].Value;
 				return RedirectToAction("Index");
 			}
+
+			var products = _unitOfWork.Product
+				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages")
+				.ToList();
+
+			var compareInfo = CultureInfo.CurrentCulture.CompareInfo;
+			var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+
+			var searchProductList = products
+				.Where(p => compareInfo.IndexOf(p.Name, searchString, compareOptions) >= 0
+						 || compareInfo.IndexOf(p.Category?.Name ?? string.Empty, searchString, compareOptions) >= 0
+						 || compareInfo.IndexOf(p.Description ?? string.Empty, searchString, compareOptions) >= 0)
+				.ToList();
+
+			if (searchProductList.Count == 0)
+			{
+				TempData["error"] = _localizer["SearchNoMatches"].Value;
+				return RedirectToAction("Index");
+			}
+
+			return View(searchProductList);
 		}
 
 		public IActionResult SetLanguage(string culture, string returnUrl)
