@@ -1,9 +1,11 @@
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -61,7 +63,10 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));
 builder.Services.Configure<ThemeOptions>(builder.Configuration.GetSection("Theme"));
 
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options =>
+{
+	options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
+});
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
@@ -73,6 +78,35 @@ builder.Services.ConfigureApplicationCookie(options =>
 	options.LoginPath = $"/Identity/Account/Login";
 	options.LogoutPath = $"/Identity/Account/Logout";
 	options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+	options.Events.OnValidatePrincipal = async context =>
+	{
+		if (context.Principal == null)
+		{
+			return;
+		}
+
+		var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+		var user = await userManager.GetUserAsync(context.Principal);
+		if (user != null)
+		{
+			return;
+		}
+
+		context.RejectPrincipal();
+		context.HttpContext.Items["SessionExpired"] = true;
+		await context.HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+	};
+	options.Events.OnRedirectToLogin = context =>
+	{
+		if (context.HttpContext.Items.ContainsKey("SessionExpired"))
+		{
+			var returnUrl = Uri.EscapeDataString(context.Request.PathBase + context.Request.Path + context.Request.QueryString);
+			context.RedirectUri = $"{options.LoginPath}?sessionExpired=true&returnUrl={returnUrl}";
+		}
+
+		context.Response.Redirect(context.RedirectUri);
+		return Task.CompletedTask;
+	};
 });
 
 builder.Services.AddDistributedMemoryCache();

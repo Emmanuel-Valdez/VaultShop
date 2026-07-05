@@ -14,6 +14,10 @@
 				<section>
 					<form id="account" method="post">
 						<h3 class="border-bottom pb-3 mb-4 text-center text">@Localizer["UseLocalAccount"]</h3>
+						@if (ViewContext.HttpContext.Request.Query["sessionExpired"] == "true")
+						{
+							<div class="alert alert-warning" role="alert">@Localizer["SessionExpired"]</div>
+						}
 
 						<div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 						<div class="form-floating shadow mb-3">

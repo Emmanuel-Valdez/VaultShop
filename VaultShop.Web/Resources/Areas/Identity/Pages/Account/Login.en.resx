@@ -138,6 +138,9 @@
   <data name="ResendEmailConfirmation" xml:space="preserve">
     <value>Resend Email Confirmation</value>
   </data>
+  <data name="SessionExpired" xml:space="preserve">
+    <value>Your session expired. Please log in again.</value>
+  </data>
   <data name="UseLocalAccount" xml:space="preserve">
     <value>Use a Local Account to Log In</value>
   </data>
