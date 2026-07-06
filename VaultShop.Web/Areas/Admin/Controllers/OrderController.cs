@@ -10,6 +10,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 
 namespace VaultShop.Web.Areas.Admin.Controllers
@@ -27,8 +28,11 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		private readonly IPaymentStatusService _paymentStatusService;
 		private readonly IWebHostEnvironment _environment;
 		private readonly IConfiguration _configuration;
+		private readonly ITransactionalEmailService _emailService;
 
-		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService, IWebHostEnvironment environment, IConfiguration configuration)
+		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, 
+			IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService, 
+			IWebHostEnvironment environment, IConfiguration configuration, ITransactionalEmailService emailService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
@@ -37,6 +41,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_paymentStatusService = paymentStatusService;
 			_environment = environment;
 			_configuration = configuration;
+			_emailService = emailService;
 		}
 
 		public IActionResult Index()
@@ -136,7 +141,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
 		[HttpPost]
-		public IActionResult ShipOrder()
+		public async Task<IActionResult> ShipOrder()
 		{
 			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
 			if (orderHeader == null)
@@ -157,6 +162,9 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_unitOfWork.OrderHeader.Update(orderHeader);
 			_unitOfWork.Save();
 			_logger.LogInformation("Marked order {OrderId} as shipped. DelayedPayment: {IsDelayedPayment}", orderHeader.Id, orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
+			
+			await _emailService.TrySendShippingConfirmationAsync(orderHeader.Id);
+			
 			TempData["Success"] = _localizer["OrderShippedSuccessfully"].Value;
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 		}

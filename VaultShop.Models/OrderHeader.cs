@@ -21,7 +21,7 @@ namespace VaultShop.Models
 		public DateTime OrderDate { get; set; }
 		public DateTime ShippingDate { get; set; }
 
-		[LocalizedRange(0, 100000000, "Please enter an order total between 0 and 100000000.", "Ingresá un total de orden entre 0 y 100000000.")]
+		[LocalizedRange(0, 100000000, "Please enter an order total between 0 and 100000000.", "Ingres� un total de orden entre 0 y 100000000.")]
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal OrderTotal { get; set; }
 
@@ -36,19 +36,24 @@ namespace VaultShop.Models
 		public string? SessionId { get; set; }
 		public string? PaymentIntentId { get; set; }
 
+		
+		public DateTime? OrderConfirmationEmailSentUtc { get; set; }
+		public DateTime? PaymentReceiptEmailSentUtc { get; set; }
+		public DateTime? ShippingConfirmationEmailSentUtc { get; set; }
+
 		[LocalizedRequired("Name is required.", "El nombre es obligatorio.")]
 		public string Name { get; set; } = string.Empty;
 		[Display(Name = "Street Address")]
-		[LocalizedRequired("Street address is required.", "La dirección es obligatoria.")]
+		[LocalizedRequired("Street address is required.", "La direcci�n es obligatoria.")]
 		public string StreetAddress { get; set; } = string.Empty;
 		[LocalizedRequired("City is required.", "La ciudad es obligatoria.")]
 		public string City { get; set; } = string.Empty;
 		[LocalizedRequired("State is required.", "La provincia es obligatoria.")]
 		public string State { get; set; } = string.Empty;
-		[LocalizedRequired("Postal code is required.", "El código postal es obligatorio.")]
+		[LocalizedRequired("Postal code is required.", "El c�digo postal es obligatorio.")]
 		[Display(Name = "Postal Code")]
 		public string PostalCode { get; set; } = string.Empty;
-		[LocalizedRequired("Phone number is required.", "El teléfono es obligatorio.")]
+		[LocalizedRequired("Phone number is required.", "El tel�fono es obligatorio.")]
 		[Display(Name = "Phone Number")]
 		public string PhoneNumber { get; set; } = string.Empty;
 

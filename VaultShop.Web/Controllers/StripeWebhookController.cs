@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 
 namespace VaultShop.Web.Controllers
@@ -15,15 +16,18 @@ namespace VaultShop.Web.Controllers
 		private readonly IPaymentStatusService _paymentStatusService;
 		private readonly StripeSettings _stripeSettings;
 		private readonly ILogger<StripeWebhookController> _logger;
+		private readonly ITransactionalEmailService _emailService;
 
 		public StripeWebhookController(
 			IPaymentStatusService paymentStatusService,
 			IOptions<StripeSettings> stripeSettings,
-			ILogger<StripeWebhookController> logger)
+			ILogger<StripeWebhookController> logger,
+			ITransactionalEmailService emailService)
 		{
 			_paymentStatusService = paymentStatusService;
 			_stripeSettings = stripeSettings.Value;
 			_logger = logger;
+			_emailService = emailService;
 		}
 
 		[HttpPost]
@@ -65,10 +69,18 @@ namespace VaultShop.Web.Controllers
 					if (string.Equals(session.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
 					{
 						_paymentStatusService.MarkCheckoutSessionPaid(update);
+						if (update.OrderId.HasValue)
+						{
+							await _emailService.TrySendPaymentReceiptAsync(update.OrderId.Value);
+						}
 					}
 					break;
 				case Events.CheckoutSessionAsyncPaymentFailed:
 					_paymentStatusService.MarkCheckoutSessionFailed(update);
+					if (update.OrderId.HasValue)
+					{
+						await _emailService.TrySendPaymentFailedAsync(update.OrderId.Value);
+					}
 					break;
 				default:
 					_logger.LogInformation("Ignored Stripe webhook event {EventType}.", stripeEvent.Type);

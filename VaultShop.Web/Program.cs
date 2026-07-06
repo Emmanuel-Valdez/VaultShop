@@ -20,6 +20,7 @@ using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Branding;
+using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.ImageStorage;
 using VaultShop.Web.Services.ProductImages;
 using VaultShop.Web.Services.Payments;
@@ -170,6 +171,7 @@ builder.Services.AddScoped<IPaymentSessionService, StripePaymentSessionService>(
 builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
 builder.Services.AddScoped<IPricingCalculatorService, PricingCalculatorService>();
 builder.Services.AddScoped<IRichTextSanitizer, RichTextSanitizer>();
+builder.Services.AddScoped<ITransactionalEmailService, TransactionalEmailService>();
 
 builder.Services.AddAuthentication().AddFacebook(option =>
 {
@@ -184,7 +186,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Home/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnet-hsts.
 	app.UseHsts();
 }
 
@@ -241,5 +243,3 @@ void SeedDatabase()
 		dbInitializer.Initialize();
 	}
 }
-
-

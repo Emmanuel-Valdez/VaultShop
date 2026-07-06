@@ -14,6 +14,7 @@ using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
 using VaultShop.Web.Areas.Admin.Controllers;
+using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 
 namespace VaultShop.Web.Tests
@@ -191,7 +192,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void ShipOrder_DoesNotShipUnpaidCompanyOrder()
+		public async Task ShipOrder_DoesNotShipUnpaidCompanyOrder()
 		{
 			var order = new OrderHeader
 			{
@@ -212,7 +213,7 @@ namespace VaultShop.Web.Tests
 				TrackingNumber = "TRACK-1"
 			};
 
-			var result = test.Controller.ShipOrder();
+			var result = await test.Controller.ShipOrder();
 
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal("Details", redirect.ActionName);
@@ -223,7 +224,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void ShipOrder_ShipsPaidProcessingOrder()
+		public async Task ShipOrder_ShipsPaidProcessingOrder()
 		{
 			var order = new OrderHeader
 			{
@@ -243,7 +244,7 @@ namespace VaultShop.Web.Tests
 				TrackingNumber = "TRACK-1"
 			};
 
-			var result = test.Controller.ShipOrder();
+			var result = await test.Controller.ShipOrder();
 
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal("Details", redirect.ActionName);
@@ -413,6 +414,7 @@ namespace VaultShop.Web.Tests
 
 			var paymentStatusMock = new Mock<IPaymentStatusService>();
 			var paymentSessionMock = new Mock<IPaymentSessionService>();
+			var emailServiceMock = new Mock<ITransactionalEmailService>();
 			var localizerMock = new Mock<IStringLocalizer<OrderController>>();
 			localizerMock
 				.Setup(x => x[It.IsAny<string>()])
@@ -440,14 +442,15 @@ namespace VaultShop.Web.Tests
 				paymentSessionMock.Object,
 				paymentStatusMock.Object,
 				environmentMock.Object,
-				configuration)
+				configuration,
+				emailServiceMock.Object)
 			{
 				OrderVM = new OrderVM { OrderHeader = new OrderHeader { Id = orderHeader?.Id ?? 42 } },
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
 			};
 
-			return new TestController(controller, paymentStatusMock, paymentSessionMock, unitOfWorkMock, orderHeaderMock);
+			return new TestController(controller, paymentStatusMock, paymentSessionMock, unitOfWorkMock, orderHeaderMock, emailServiceMock);
 		}
 
 		private static List<object> GetJsonOrders(IActionResult result)
@@ -485,6 +488,6 @@ namespace VaultShop.Web.Tests
 			return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
 		}
 
-		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock);
+		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock);
 	}
 }

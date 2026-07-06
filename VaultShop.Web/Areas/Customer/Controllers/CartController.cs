@@ -9,6 +9,7 @@ using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Checkout;
+using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 
 namespace VaultShop.Web.Areas.Customer.Controllers
@@ -26,8 +27,10 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly ICheckoutService _checkoutService;
 		private readonly IPaymentSessionService _paymentSessionService;
 		private readonly IPaymentStatusService _paymentStatusService;
+		private readonly ITransactionalEmailService _emailService;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
-			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService)
+			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService, 
+			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -36,6 +39,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_checkoutService = checkoutService;
 			_paymentSessionService = paymentSessionService;
 			_paymentStatusService = paymentStatusService;
+			_emailService = emailService;
 		}
 		public IActionResult Index()
 		{
@@ -146,9 +150,14 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				throw new InvalidOperationException("Checkout order creation succeeded without returning order details.");
 			}
 
+			var orderId = result.OrderId.Value;
+
+			// ponytail: fire emails after order creation — failure is logged, doesn't block the flow
+			await _emailService.TrySendOrderConfirmationAsync(orderId);
+			await _emailService.TrySendAdminNewOrderAlertAsync(orderId);
+
 			if (result.RequiresOnlinePayment)
 			{
-				var orderId = result.OrderId.Value;
 				var culture = CultureInfo.CurrentCulture.Name;
 				var domain = Request.Scheme + "://" + Request.Host.Value + "/" + culture + "/";
 				PaymentSessionResult session;
@@ -171,7 +180,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				Response.Headers["Location"] = session.Url;
 				return new StatusCodeResult(303);
 			}
-			return RedirectToAction(nameof(OrderConfirmation), new { id = result.OrderId.Value });
+			return RedirectToAction(nameof(OrderConfirmation), new { id = orderId });
 		}
 
 		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId)
