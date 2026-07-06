@@ -1,4 +1,4 @@
-# VaultShop Operations Runbook
+﻿# VaultShop Operations Runbook
 
 This runbook documents the current lightweight operations process for the VaultShop VPS deployment. It is intentionally simple: the goal is to keep the public demo recoverable and explainable without over-engineering.
 
@@ -19,7 +19,7 @@ Do not expose PostgreSQL, MinIO API, or the MinIO console directly to the public
 
 Run on the VPS:
 
-```bash
+```
 cd /opt/vaultshop
 docker compose --env-file .env.compose ps
 curl -I https://vaultshop.evaldez.ar
@@ -38,7 +38,7 @@ Containers should use `restart: unless-stopped`.
 
 Verify from the VPS repo root:
 
-```bash
+```
 cd /opt/vaultshop
 docker compose --env-file .env.compose ps web postgres minio
 docker compose --env-file .env.compose ps -q web postgres minio | xargs -r docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}}'
@@ -52,7 +52,7 @@ Expected:
 
 After a VPS reboot:
 
-```bash
+```
 cd /opt/vaultshop
 docker compose --env-file .env.compose ps
 curl -I https://vaultshop.evaldez.ar
@@ -64,7 +64,7 @@ Then verify manually in the browser that product pages and uploaded images still
 
 Create a compressed custom-format PostgreSQL dump on the VPS:
 
-```bash
+```
 mkdir -p ~/vaultshop-backups/postgres
 cd /opt/vaultshop
 docker compose --env-file .env.compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > ~/vaultshop-backups/postgres/vaultshop_$(date +%F_%H%M).dump
@@ -128,13 +128,13 @@ Keep `COMPOSE_PROJECT_NAME=vaultshop` stable after first deployment. With that p
 
 Verify volumes:
 
-```bash
+```
 docker volume ls | grep minio-data
 ```
 
 Create a read-only archive of the MinIO data volume:
 
-```bash
+```
 mkdir -p ~/vaultshop-backups/minio
 docker run --rm -v vaultshop_minio-data:/data:ro -v ~/vaultshop-backups/minio:/backup alpine tar czf /backup/minio_$(date +%F_%H%M).tar.gz -C /data .
 ls -lh ~/vaultshop-backups/minio
@@ -209,7 +209,7 @@ Two scripts live in `~/vaultshop-backups/` on the VPS and should run daily via c
 
 Verifies the latest PostgreSQL dump and MinIO archive exist and are newer than a threshold (default: 48 hours).
 
-```bash
+```
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -274,19 +274,18 @@ exit $EXIT_CODE
 Expected output (healthy):
 ```
 === Backup Freshness Check ===
-Max age: 48h
+Max age: 168h
 
-OK:   PostgreSQL dump is 12h old (vaultshop_2026-07-04_0800.dump)
-OK:   MinIO archive is 12h old (minio_2026-07-04_0800.tar.gz)
+OK:   PostgreSQL dump is 0h old (vaultshop_2026-07-06_0432.dump)
+OK:   MinIO archive is 0h old (minio_2026-07-06_0432.tar.gz)
 
 Exit code: 0
 ```
-
 ### check-disk.sh
 
 Reports disk usage and warns above configurable thresholds.
 
-```bash
+```
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -299,7 +298,7 @@ echo "Warning:  ${WARN_PCT}%"
 echo "Critical: ${CRIT_PCT}%"
 echo ""
 
-df -h --output=source,pcent,target | tail -n +2 | while IFS='' read -r line; do
+while IFS='' read -r line; do
     PCT=$(echo "$line" | awk '{print $2}' | tr -d '%')
     SOURCE=$(echo "$line" | awk '{print $1}')
     MOUNT=$(echo "$line" | awk '{print $3}')
@@ -312,7 +311,7 @@ df -h --output=source,pcent,target | tail -n +2 | while IFS='' read -r line; do
     else
         echo "OK:       $SOURCE ($MOUNT) at ${PCT}%"
     fi
-done
+done < <(df -h --output=source,pcent,target | tail -n +2)
 
 echo ""
 echo "Exit code: $EXIT_CODE"
@@ -333,8 +332,7 @@ Exit code: 0
 
 ### Cron Setup
 
-Run both checks daily and append to a log file:
-
+Run the backup weekly (Sunday 6:00) and both checks daily:
 ```bash
 crontab -e
 ```
@@ -342,12 +340,13 @@ crontab -e
 Add:
 
 ```cron
-0 6 * * * $HOME/vaultshop-backups/check-backup-freshness.sh >> $HOME/vaultshop-backups/checks.log 2>&1
-30 6 * * * $HOME/vaultshop-backups/check-disk.sh >> $HOME/vaultshop-backups/checks.log 2>&1
+# Weekly backup (Sunday 6:00)
+0 6 * * 0 $HOME/vaultshop-backups/do-backup.sh >> $HOME/vaultshop-backups/checks.log 2>&1
+# Daily freshness check (uses 168h threshold for weekly backups)
+5 6 * * * $HOME/vaultshop-backups/check-backup-freshness.sh 168 >> $HOME/vaultshop-backups/checks.log 2>&1
+# Daily disk check
+10 6 * * * $HOME/vaultshop-backups/check-disk.sh >> $HOME/vaultshop-backups/checks.log 2>&1
 ```
-
-Review the log:
-
 ```bash
 tail -20 ~/vaultshop-backups/checks.log
 ```
@@ -363,7 +362,7 @@ Success criteria:
 
 Quick check for unexpected container restarts:
 
-```bash
+```
 cd /opt/vaultshop
 docker compose --env-file .env.compose ps -a
 docker compose --env-file .env.compose logs --tail=20 --timestamps web postgres minio | grep -i "restart\|error\|warn\|killed\|oom"
@@ -375,7 +374,7 @@ Look for containers with unexpected exit codes or recent restart timestamps. Thi
 
 Stripe webhook errors appear in the app logs:
 
-```bash
+```
 cd /opt/vaultshop
 docker compose --env-file .env.compose logs --tail=100 web | grep -i "webhook\|stripe.*fail\|signature\|400\|401\|403"
 ```
@@ -402,26 +401,26 @@ This detects basic availability problems. It does not replace backup/restore or 
 
 App logs:
 
-```bash
+```
 cd /opt/vaultshop
 docker compose --env-file .env.compose logs --tail=100 web
 ```
 
 PostgreSQL logs:
 
-```bash
+```
 docker compose --env-file .env.compose logs --tail=100 postgres
 ```
 
 MinIO logs:
 
-```bash
+```
 docker compose --env-file .env.compose logs --tail=100 minio
 ```
 
 Nginx status and recent logs:
 
-```bash
+```
 sudo systemctl status nginx --no-pager
 sudo journalctl -u nginx --since "1 hour ago" --no-pager
 ```
@@ -430,7 +429,7 @@ sudo journalctl -u nginx --since "1 hour ago" --no-pager
 
 Do not run this on the VPS unless intentionally deleting persisted data:
 
-```bash
+```
 docker compose down -v
 ```
 
@@ -438,7 +437,7 @@ The `-v` flag deletes Docker volumes, including PostgreSQL and MinIO data.
 
 Use this to stop containers without deleting data:
 
-```bash
+```
 docker compose --env-file .env.compose down
 ```
 
@@ -456,3 +455,7 @@ VaultShop is the public portfolio/demo deployment. A future private/client deplo
 - No demo seed data in the real client deployment.
 - Private branding assets configured through `Branding__...` and stored outside git.
 - Separate `Theme__...` hex color values for the deployment.
+
+
+
+
