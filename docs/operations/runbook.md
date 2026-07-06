@@ -74,9 +74,9 @@ ls -lh ~/vaultshop-backups/postgres
 Copy it to the local PC from PowerShell:
 
 ```powershell
-mkdir C:\Users\evald\Backups\VaultShop\Postgres
-scp ubuntu@100.91.22.124:/home/ubuntu/vaultshop-backups/postgres/*.dump C:\Users\evald\Backups\VaultShop\Postgres\
-dir C:\Users\evald\Backups\VaultShop\Postgres
+mkdir ~/Backups/VaultShop/Postgres
+scp ubuntu@<vps-tailscale-ip>:/home/ubuntu/vaultshop-backups/postgres/*.dump ~/Backups/VaultShop/Postgres/
+dir ~/Backups/VaultShop/Postgres
 ```
 
 Success criteria:
@@ -97,7 +97,7 @@ docker run --name vaultshop-restore-postgres -e POSTGRES_USER=vaultshop_app -e P
 Copy the dump into the container:
 
 ```powershell
-docker cp C:\Users\evald\Backups\VaultShop\Postgres\vaultshop_YYYY-MM-DD_HHMM.dump vaultshop-restore-postgres:/backup.dump
+docker cp ~/Backups/VaultShop/Postgres/vaultshop_YYYY-MM-DD_HHMM.dump vaultshop-restore-postgres:/backup.dump
 ```
 
 Restore:
@@ -144,9 +144,9 @@ tar tzf ~/vaultshop-backups/minio/*.tar.gz | head
 Copy it to the local PC from PowerShell:
 
 ```powershell
-mkdir C:\Users\evald\Backups\VaultShop\MinIO
-scp ubuntu@100.91.22.124:/home/ubuntu/vaultshop-backups/minio/*.tar.gz C:\Users\evald\Backups\VaultShop\MinIO\
-dir C:\Users\evald\Backups\VaultShop\MinIO
+mkdir ~/Backups/VaultShop/MinIO
+scp ubuntu@<vps-tailscale-ip>:/home/ubuntu/vaultshop-backups/minio/*.tar.gz ~/Backups/VaultShop/MinIO/
+dir ~/Backups/VaultShop/MinIO
 ```
 
 Success criteria:
@@ -166,7 +166,7 @@ docker volume create vaultshop-restore-minio-data
 Restore the archive into the clean volume:
 
 ```powershell
-docker run --rm -v vaultshop-restore-minio-data:/data -v C:\Users\evald\Backups\VaultShop\MinIO:/backup alpine sh -c "tar xzf /backup/minio_YYYY-MM-DD_HHMM.tar.gz -C /data"
+docker run --rm -v vaultshop-restore-minio-data:/data -v ~/Backups/VaultShop/MinIO:/backup alpine sh -c "tar xzf /backup/minio_YYYY-MM-DD_HHMM.tar.gz -C /data"
 ```
 
 Start a temporary local MinIO instance:
@@ -200,6 +200,187 @@ Clean up when finished:
 docker rm -f vaultshop-restore-minio
 docker volume rm vaultshop-restore-minio-data
 ```
+
+## Automated Backup Freshness And Disk Checks
+
+Two scripts live in `~/vaultshop-backups/` on the VPS and should run daily via cron.
+
+### check-backup-freshness.sh
+
+Verifies the latest PostgreSQL dump and MinIO archive exist and are newer than a threshold (default: 48 hours).
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+BACKUP_DIR="$HOME/vaultshop-backups"
+MAX_AGE_HOURS="${1:-48}"
+THRESHOLD_SECONDS=$((MAX_AGE_HOURS * 3600))
+EXIT_CODE=0
+
+echo "=== Backup Freshness Check ==="
+echo "Max age: ${MAX_AGE_HOURS}h"
+echo ""
+
+# --- PostgreSQL ---
+PG_DIR="$BACKUP_DIR/postgres"
+if [ ! -d "$PG_DIR" ]; then
+    echo "FAIL: PostgreSQL backup dir '$PG_DIR' not found"
+    EXIT_CODE=1
+else
+    LATEST_PG=$(ls -t "$PG_DIR"/*.dump 2>/dev/null | head -1)
+    if [ -z "$LATEST_PG" ]; then
+        echo "FAIL: No PostgreSQL dump found in $PG_DIR"
+        EXIT_CODE=1
+    else
+        AGE=$(($(date +%s) - $(stat -c %Y "$LATEST_PG")))
+        AGE_HOURS=$((AGE / 3600))
+        if [ "$AGE" -le "$THRESHOLD_SECONDS" ]; then
+            echo "OK:   PostgreSQL dump is ${AGE_HOURS}h old ($(basename "$LATEST_PG"))"
+        else
+            echo "FAIL: PostgreSQL dump is ${AGE_HOURS}h old (max ${MAX_AGE_HOURS}h) ($(basename "$LATEST_PG"))"
+            EXIT_CODE=1
+        fi
+    fi
+fi
+
+# --- MinIO ---
+MINIO_DIR="$BACKUP_DIR/minio"
+if [ ! -d "$MINIO_DIR" ]; then
+    echo "FAIL: MinIO backup dir '$MINIO_DIR' not found"
+    EXIT_CODE=1
+else
+    LATEST_MINIO=$(ls -t "$MINIO_DIR"/*.tar.gz 2>/dev/null | head -1)
+    if [ -z "$LATEST_MINIO" ]; then
+        echo "FAIL: No MinIO archive found in $MINIO_DIR"
+        EXIT_CODE=1
+    else
+        AGE=$(($(date +%s) - $(stat -c %Y "$LATEST_MINIO")))
+        AGE_HOURS=$((AGE / 3600))
+        if [ "$AGE" -le "$THRESHOLD_SECONDS" ]; then
+            echo "OK:   MinIO archive is ${AGE_HOURS}h old ($(basename "$LATEST_MINIO"))"
+        else
+            echo "FAIL: MinIO archive is ${AGE_HOURS}h old (max ${MAX_AGE_HOURS}h) ($(basename "$LATEST_MINIO"))"
+            EXIT_CODE=1
+        fi
+    fi
+fi
+
+echo ""
+echo "Exit code: $EXIT_CODE"
+exit $EXIT_CODE
+```
+
+Expected output (healthy):
+```
+=== Backup Freshness Check ===
+Max age: 48h
+
+OK:   PostgreSQL dump is 12h old (vaultshop_2026-07-04_0800.dump)
+OK:   MinIO archive is 12h old (minio_2026-07-04_0800.tar.gz)
+
+Exit code: 0
+```
+
+### check-disk.sh
+
+Reports disk usage and warns above configurable thresholds.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+WARN_PCT="${1:-80}"
+CRIT_PCT="${2:-90}"
+EXIT_CODE=0
+
+echo "=== Disk Usage Check ==="
+echo "Warning:  ${WARN_PCT}%"
+echo "Critical: ${CRIT_PCT}%"
+echo ""
+
+df -h --output=source,pcent,target | tail -n +2 | while IFS='' read -r line; do
+    PCT=$(echo "$line" | awk '{print $2}' | tr -d '%')
+    SOURCE=$(echo "$line" | awk '{print $1}')
+    MOUNT=$(echo "$line" | awk '{print $3}')
+    if [ "$PCT" -ge "$CRIT_PCT" ] 2>/dev/null; then
+        echo "CRITICAL: $SOURCE ($MOUNT) at ${PCT}% (threshold: ${CRIT_PCT}%)"
+        EXIT_CODE=2
+    elif [ "$PCT" -ge "$WARN_PCT" ] 2>/dev/null; then
+        echo "WARNING:  $SOURCE ($MOUNT) at ${PCT}% (threshold: ${WARN_PCT}%)"
+        [ "$EXIT_CODE" -lt 1 ] && EXIT_CODE=1
+    else
+        echo "OK:       $SOURCE ($MOUNT) at ${PCT}%"
+    fi
+done
+
+echo ""
+echo "Exit code: $EXIT_CODE"
+exit $EXIT_CODE
+```
+
+Expected output (healthy):
+```
+=== Disk Usage Check ===
+Warning:  80%
+Critical: 90%
+
+OK:       /dev/sda2 (/) at 45%
+OK:       /dev/sda1 (/boot) at 30%
+
+Exit code: 0
+```
+
+### Cron Setup
+
+Run both checks daily and append to a log file:
+
+```bash
+crontab -e
+```
+
+Add:
+
+```cron
+0 6 * * * $HOME/vaultshop-backups/check-backup-freshness.sh >> $HOME/vaultshop-backups/checks.log 2>&1
+30 6 * * * $HOME/vaultshop-backups/check-disk.sh >> $HOME/vaultshop-backups/checks.log 2>&1
+```
+
+Review the log:
+
+```bash
+tail -20 ~/vaultshop-backups/checks.log
+```
+
+Success criteria:
+
+- Each script exits `0` when checks pass.
+- Non-zero exit codes appear in the log and indicate what failed.
+- The cron job runs daily without manual intervention.
+- Check the log after the first cron execution to confirm output is correct.
+
+### Container Restart Detection
+
+Quick check for unexpected container restarts:
+
+```bash
+cd /opt/vaultshop
+docker compose --env-file .env.compose ps -a
+docker compose --env-file .env.compose logs --tail=20 --timestamps web postgres minio | grep -i "restart\|error\|warn\|killed\|oom"
+```
+
+Look for containers with unexpected exit codes or recent restart timestamps. This is a manual check for now; automated alerting can be added if restarts become frequent.
+
+### Webhook Error Visibility
+
+Stripe webhook errors appear in the app logs:
+
+```bash
+cd /opt/vaultshop
+docker compose --env-file .env.compose logs --tail=100 web | grep -i "webhook\|stripe.*fail\|signature\|400\|401\|403"
+```
+
+Expected: no matching lines on a healthy system. If errors appear, check the Stripe Dashboard webhook logs for recent attempts.
 
 ## Monitoring
 
