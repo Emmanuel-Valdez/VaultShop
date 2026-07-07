@@ -12,7 +12,7 @@ public class SearchHttpTests
     [InlineData("sauron")]
     [InlineData("Sauron")]
     [InlineData("SAURON")]
-    [InlineData("Saurón")]
+    [InlineData("SaurÃ³n")]
     public async Task SearchHttp_MatchesAreCaseAndAccentInsensitive(string searchString)
     {
         using var factory = new CustomWebApplicationFactory();
@@ -55,7 +55,7 @@ public class SearchHttpTests
         var product = new Product
         {
             Name = "Sauron Amulet Bag",
-            Description = "Ojo de Saurón",
+            Description = "Ojo de SaurÃ³n",
             Category = category,
             ListPrice = 100m,
             FinalRetailPrice = 100m,
