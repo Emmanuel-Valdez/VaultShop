@@ -21,6 +21,10 @@ namespace VaultShop.Utility
 		public const string PaymentStatusDelayedPayment = "ApprovedForDelayedPayment";
 		public const string PaymentStatusRejected = "Rejected";
 
+		public const string PaymentMethodStripe = "Stripe";
+		public const string PaymentMethodBankTransfer = "BankTransfer";
+		public const string PaymentMethodMercadoPago = "MercadoPago"; // reserved, not implemented yet
+
 		public const string SessionCart = "SessionShoppingCart";
 
 		public const int CompanyPaymentDueDays = 5;

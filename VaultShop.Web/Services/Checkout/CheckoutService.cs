@@ -153,11 +153,15 @@ namespace VaultShop.Web.Services.Checkout
 				};
 			}
 
-			bool requiresOnlinePayment = applicationUser.CompanyId.GetValueOrDefault() == 0;
-			if (requiresOnlinePayment)
+			bool isCompanyOrder = applicationUser.CompanyId.GetValueOrDefault() > 0;
+			bool payingByStripe = !isCompanyOrder && shoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodStripe;
+			bool requiresOnlinePayment = payingByStripe;
+
+			if (!isCompanyOrder)
 			{
 				shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
 				shoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+				// PaymentMethod is already validated by the caller against enabled methods; keep it as posted.
 			}
 			else
 			{

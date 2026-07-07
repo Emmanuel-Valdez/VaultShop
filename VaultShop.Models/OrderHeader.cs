@@ -27,6 +27,7 @@ namespace VaultShop.Models
 
 		public string? OrderStatus { get; set; }
 		public string? PaymentStatus { get; set; }
+		public string? PaymentMethod { get; set; }
 		public string? TrackingNumber { get; set; }
 		public string? Carrier { get; set; }
 
