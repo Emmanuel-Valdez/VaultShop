@@ -70,6 +70,41 @@ namespace VaultShop.Web.Services.Payments
 			return true;
 		}
 
+		public bool ApproveManualBankTransfer(int orderId)
+		{
+			var orderHeader = _unitOfWork.OrderHeader.Get(o => o.Id == orderId, tracked: true);
+			if (orderHeader == null)
+			{
+				_logger.LogWarning("Could not find order {OrderId} for manual bank transfer approval.", orderId);
+				return false;
+			}
+			if (orderHeader.PaymentMethod != SD.PaymentMethodBankTransfer)
+			{
+				_logger.LogWarning("Rejected manual bank transfer approval for order {OrderId} because its payment method is {PaymentMethod}.", orderId, orderHeader.PaymentMethod);
+				return false;
+			}
+			if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
+			{
+				_logger.LogInformation("Ignored duplicate bank transfer approval for already-paid order {OrderId}.", orderId);
+				return true;
+			}
+			if (IsTerminal(orderHeader))
+			{
+				_logger.LogError("Rejected manual bank transfer approval for terminal order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderId, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return false;
+			}
+			if (!IsPayable(orderHeader))
+			{
+				_logger.LogWarning("Rejected manual bank transfer approval for order {OrderId} in non-payable state. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderId, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return false;
+			}
+
+			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
+			_unitOfWork.Save();
+			_logger.LogInformation("Approved manual bank transfer for order {OrderId}.", orderId);
+			return true;
+		}
+
 		private OrderHeader? FindOrder(PaymentSessionStatusUpdate update)
 		{
 			if (update.OrderId is not null)

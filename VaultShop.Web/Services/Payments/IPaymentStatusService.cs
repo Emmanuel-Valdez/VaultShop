@@ -4,6 +4,7 @@ namespace VaultShop.Web.Services.Payments
 	{
 		bool MarkCheckoutSessionPaid(PaymentSessionStatusUpdate update);
 		bool MarkCheckoutSessionFailed(PaymentSessionStatusUpdate update);
+		bool ApproveManualBankTransfer(int orderId);
 	}
 
 	public sealed record PaymentSessionStatusUpdate(

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using System.Security.Claims;
@@ -28,9 +29,10 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly IPaymentSessionService _paymentSessionService;
 		private readonly IPaymentStatusService _paymentStatusService;
 		private readonly ITransactionalEmailService _emailService;
+		private readonly IConfiguration _configuration;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
-			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService, 
-			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService)
+			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService,
+			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -40,6 +42,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_paymentSessionService = paymentSessionService;
 			_paymentStatusService = paymentStatusService;
 			_emailService = emailService;
+			_configuration = configuration;
 		}
 		public IActionResult Index()
 		{
@@ -104,6 +107,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
 				return RedirectToAction(nameof(Index));
 			}
+			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
+			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
+			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
 			return View(result.ShoppingCartVM);
 		}
 
@@ -121,6 +127,16 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				var summaryResult = _checkoutService.BuildSummary(userId, User.IsInRole(SD.Role_Company));
 				return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
+			}
+
+			var allowedPaymentMethods = new List<string>();
+			if (_configuration.GetValue("Payments:StripeEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodStripe);
+			if (_configuration.GetValue("Payments:BankTransferEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodBankTransfer);
+
+			if (ShoppingCartVM.OrderHeader.PaymentMethod is not string paymentMethod || !allowedPaymentMethods.Contains(paymentMethod))
+			{
+				TempData["error"] = _localizer["InvalidPaymentMethodError"].Value;
+				return RedirectToAction(nameof(Index));
 			}
 
 			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, User.IsInRole(SD.Role_Company));
@@ -152,7 +168,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			var orderId = result.OrderId.Value;
 
-			// ponytail: fire emails after order creation — failure is logged, doesn't block the flow
+			// ponytail: fire emails after order creation ï¿½ failure is logged, doesn't block the flow
 			await _emailService.TrySendOrderConfirmationAsync(orderId);
 			await _emailService.TrySendAdminNewOrderAlertAsync(orderId);
 
