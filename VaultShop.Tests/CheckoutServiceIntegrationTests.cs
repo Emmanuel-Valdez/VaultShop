@@ -142,6 +142,7 @@ namespace VaultShop.Web.Tests
 				State = "Buenos Aires",
 				PostalCode = "1000",
 				PhoneNumber = "555-0100",
+				PaymentMethod = SD.PaymentMethodStripe,
 			};
 		}
 

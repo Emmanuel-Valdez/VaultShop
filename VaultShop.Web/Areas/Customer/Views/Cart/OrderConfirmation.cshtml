@@ -4,10 +4,11 @@
 		Model.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
 	var isPending = Model.PaymentStatus == SD.PaymentStatusPending;
 	var isDelayed = Model.PaymentStatus == SD.PaymentStatusDelayedPayment;
-	var titleKey = isTerminal ? "OrderNotAvailableTitle" : isPending ? "PaymentNotCompletedTitle" : "OrderPlaced";
-	var messageKey = isTerminal ? "OrderNotAvailableMessage" : isPending ? "PaymentNotCompletedMessage" : isDelayed ? "DelayedPaymentMessage" : "Success";
-	var titleClass = isTerminal ? "text-danger" : isPending ? "text-warning" : "text-primary";
-	var alertClass = isTerminal ? "alert-danger" : isPending ? "alert-warning" : "alert-success";
+	var isBankTransferPending = isPending && Model.PaymentMethod == SD.PaymentMethodBankTransfer;
+	var titleKey = isTerminal ? "OrderNotAvailableTitle" : isBankTransferPending ? "BankTransferPendingTitle" : isPending ? "PaymentNotCompletedTitle" : "OrderPlaced";
+	var messageKey = isTerminal ? "OrderNotAvailableMessage" : isBankTransferPending ? "BankTransferPendingMessage" : isPending ? "PaymentNotCompletedMessage" : isDelayed ? "DelayedPaymentMessage" : "Success";
+	var titleClass = isTerminal ? "text-danger" : isBankTransferPending ? "text-primary" : isPending ? "text-warning" : "text-primary";
+	var alertClass = isTerminal ? "alert-danger" : isBankTransferPending ? "alert-info" : isPending ? "alert-warning" : "alert-success";
 }
 
 <div class="container row pt-4">

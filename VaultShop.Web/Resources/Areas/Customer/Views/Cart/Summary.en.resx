@@ -126,6 +126,18 @@
   <data name="OrderSummary" xml:space="preserve">
     <value>Order Summary</value>
   </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Payment method</value>
+  </data>
+  <data name="PayWithStripe" xml:space="preserve">
+    <value>Pay with card (Stripe)</value>
+  </data>
+  <data name="PayByBankTransfer" xml:space="preserve">
+    <value>Pay by bank transfer</value>
+  </data>
+  <data name="BankTransferCbuLabel" xml:space="preserve">
+    <value>Transfer to</value>
+  </data>
   <data name="PlaceOrder" xml:space="preserve">
     <value>Place Order</value>
   </data>

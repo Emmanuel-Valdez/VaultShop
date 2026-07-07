@@ -34,7 +34,7 @@ namespace VaultShop.Web.Tests
 			var unitOfWork = CreateUnitOfWork(carts, [CreateUser("user-1")]);
 			var service = CreateService(unitOfWork.Mock.Object);
 
-			var result = service.CreateOrder("user-1", new OrderHeader(), useWholesalePrice: false);
+			var result = service.CreateOrder("user-1", new OrderHeader { PaymentMethod = SD.PaymentMethodStripe }, useWholesalePrice: false);
 
 			Assert.False(result.IsCartEmpty);
 			Assert.True(result.RequiresOnlinePayment);

@@ -144,4 +144,10 @@
   <data name="DelayedPaymentMessage" xml:space="preserve">
     <value>Tu orden fue generada. El pago sigue pendiente según las condiciones de pago de tu empresa.</value>
   </data>
+  <data name="BankTransferPendingTitle" xml:space="preserve">
+    <value>Pedido generado - Esperando transferencia</value>
+  </data>
+  <data name="BankTransferPendingMessage" xml:space="preserve">
+    <value>Recibimos tu pedido. Realizá la transferencia; confirmaremos la recepción y actualizaremos el estado de tu pedido.</value>
+  </data>
 </root>

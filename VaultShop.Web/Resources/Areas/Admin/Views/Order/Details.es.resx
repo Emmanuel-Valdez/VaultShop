@@ -156,6 +156,9 @@
   <data name="City" xml:space="preserve">
     <value>Ciudad</value>
   </data>
+  <data name="ConfirmBankTransferReceived" xml:space="preserve">
+    <value>Confirmar transferencia recibida</value>
+  </data>
   <data name="Email" xml:space="preserve">
     <value>Correo Electrónico</value>
   </data>

@@ -134,6 +134,86 @@ namespace VaultShop.Web.Tests
 			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
 		}
 
+		[Fact]
+		public void ApproveManualBankTransfer_ApprovesPendingOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.ApproveManualBankTransfer(42);
+
+			Assert.True(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusApproved, SD.PaymentStatusApproved), Times.Once);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void ApproveManualBankTransfer_IsIdempotentOnAlreadyApprovedOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusApproved
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.ApproveManualBankTransfer(42);
+
+			Assert.True(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void ApproveManualBankTransfer_RejectsTerminalOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.StatusCancelled,
+				OrderStatus = SD.StatusCancelled
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.ApproveManualBankTransfer(42);
+
+			Assert.False(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void ApproveManualBankTransfer_RejectsNonBankTransferOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodStripe,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.ApproveManualBankTransfer(42);
+
+			Assert.False(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+		}
+
 		private static TestUnitOfWork CreateUnitOfWork(OrderHeader orderHeader)
 		{
 			var testUnitOfWork = new TestUnitOfWork();

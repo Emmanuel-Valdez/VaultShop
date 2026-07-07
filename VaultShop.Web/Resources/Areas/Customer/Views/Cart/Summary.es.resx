@@ -126,6 +126,18 @@
   <data name="OrderSummary" xml:space="preserve">
     <value>Resumen de Órden</value>
   </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Método de pago</value>
+  </data>
+  <data name="PayWithStripe" xml:space="preserve">
+    <value>Pagar con tarjeta (Stripe)</value>
+  </data>
+  <data name="PayByBankTransfer" xml:space="preserve">
+    <value>Pagar por transferencia bancaria</value>
+  </data>
+  <data name="BankTransferCbuLabel" xml:space="preserve">
+    <value>Transferir a</value>
+  </data>
   <data name="PlaceOrder" xml:space="preserve">
     <value>Generar Órden</value>
   </data>

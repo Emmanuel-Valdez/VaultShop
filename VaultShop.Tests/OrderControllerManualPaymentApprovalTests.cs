@@ -89,6 +89,51 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void ConfirmBankTransfer_ApprovesOrder_AndRedirectsToDetails()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var test = CreateController(Environments.Development, allowManualApproval: false, order);
+			test.PaymentStatusMock
+				.Setup(x => x.ApproveManualBankTransfer(42))
+				.Returns(true);
+
+			var result = test.Controller.ConfirmBankTransfer();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			test.PaymentStatusMock.Verify(x => x.ApproveManualBankTransfer(42), Times.Once);
+		}
+
+		[Fact]
+		public void ConfirmBankTransfer_DoesNotSetSuccessMessage_WhenApprovalFails()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var test = CreateController(Environments.Development, allowManualApproval: false, order);
+			test.PaymentStatusMock
+				.Setup(x => x.ApproveManualBankTransfer(42))
+				.Returns(false);
+
+			var result = test.Controller.ConfirmBankTransfer();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.False(test.Controller.TempData.ContainsKey("Success"));
+		}
+
+		[Fact]
 		public void StartProcessing_DoesNotProcessUnpaidCustomerOrder()
 		{
 			var order = new OrderHeader

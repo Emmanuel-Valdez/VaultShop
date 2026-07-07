@@ -123,4 +123,7 @@
   <data name="CartEmptyOrInvalidError" xml:space="preserve">
     <value>Your cart is empty or the selected products are no longer available.</value>
   </data>
+  <data name="InvalidPaymentMethodError" xml:space="preserve">
+    <value>Please choose a valid payment method.</value>
+  </data>
 </root>

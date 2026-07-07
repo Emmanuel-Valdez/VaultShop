@@ -144,4 +144,10 @@
   <data name="DelayedPaymentMessage" xml:space="preserve">
     <value>Your order has been placed. Payment is still pending under your company payment terms.</value>
   </data>
+  <data name="BankTransferPendingTitle" xml:space="preserve">
+    <value>Order Placed - Awaiting Transfer</value>
+  </data>
+  <data name="BankTransferPendingMessage" xml:space="preserve">
+    <value>We received your order. Please make the transfer; we'll confirm receipt and update your order status.</value>
+  </data>
 </root>

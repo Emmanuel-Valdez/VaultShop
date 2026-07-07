@@ -66,6 +66,33 @@ public class CartCheckoutHttpTests
     }
 
     [Fact]
+    public async Task SummaryPost_AsCustomer_WithBankTransfer_CreatesPendingOrderWithoutStripeSession()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 2, retailPrice: 100m, wholesalePrice: 70m);
+
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("/Cart/OrderConfirmation", response.Headers.Location!.ToString());
+        Assert.DoesNotContain("stripe", response.Headers.Location!.ToString());
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
+        Assert.Equal(SD.PaymentMethodBankTransfer, orderHeader.PaymentMethod);
+        Assert.Equal(SD.PaymentStatusPending, orderHeader.PaymentStatus);
+        Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
+        Assert.Null(orderHeader.SessionId);
+    }
+
+    [Fact]
     public async Task SummaryPost_WithEmptyCart_RedirectsToIndexWithoutCreatingOrder()
     {
         using var factory = new CustomWebApplicationFactory();
@@ -93,7 +120,7 @@ public class CartCheckoutHttpTests
         using var factory = new CustomWebApplicationFactory();
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        // No login — empty POST, no token needed (auth challenge fires before antiforgery)
+        // No login ï¿½ empty POST, no token needed (auth challenge fires before antiforgery)
         var response = await client.PostAsync(
             "/en-US/Customer/Cart/Summary",
             new FormUrlEncodedContent(new Dictionary<string, string>()));
@@ -104,7 +131,7 @@ public class CartCheckoutHttpTests
         Assert.Contains("?ReturnUrl=", location.Query);
     }
 
-    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token)
+    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe)
     {
         var form = new Dictionary<string, string>
         {
@@ -115,6 +142,7 @@ public class CartCheckoutHttpTests
             ["OrderHeader.City"] = "Buenos Aires",
             ["OrderHeader.State"] = "Buenos Aires",
             ["OrderHeader.PostalCode"] = "1000",
+            ["OrderHeader.PaymentMethod"] = paymentMethod,
         };
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
     }
