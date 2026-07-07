@@ -28,6 +28,9 @@
 		Model.OrderHeader.CompanyId.GetValueOrDefault() > 0 &&
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment &&
 		!orderIsTerminal;
+	var canConfirmBankTransfer = canEditShippingDetails && !orderIsTerminal &&
+		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
+		Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending;
 
 	string StatusBadgeClass(string? status) => status switch
 	{
@@ -305,6 +308,12 @@
 							}
 							@if (canManageOrder)
 							{
+								if (canConfirmBankTransfer)
+								{
+									<button type="submit" asp-action="ConfirmBankTransfer" class="btn btn-success form-control my-1">
+										@Localizer["ConfirmBankTransferReceived"]
+									</button>
+								}
 								if (canManuallyApprovePayment)
 								{
 									<div class="alert alert-warning my-2">

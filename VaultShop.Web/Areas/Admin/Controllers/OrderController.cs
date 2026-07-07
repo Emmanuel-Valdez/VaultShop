@@ -313,6 +313,24 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
 		}
 
+		[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+		[HttpPost]
+		public IActionResult ConfirmBankTransfer()
+		{
+			if (OrderVM == null || OrderVM.OrderHeader.Id <= 0)
+			{
+				return NotFound();
+			}
+
+			var approved = _paymentStatusService.ApproveManualBankTransfer(OrderVM.OrderHeader.Id);
+			if (approved)
+			{
+				TempData["Success"] = _localizer["BankTransferConfirmedSuccessfully"].Value;
+			}
+
+			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
+		}
+
 		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)
 		{
 			return !string.IsNullOrWhiteSpace(orderHeader.SessionId) &&
