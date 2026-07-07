@@ -91,7 +91,7 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(7, orderHeader.CompanyId);
 			Assert.Equal(SD.PaymentStatusDelayedPayment, orderHeader.PaymentStatus);
 			Assert.Equal(SD.StatusApproved, orderHeader.OrderStatus);
-			Assert.Equal(DateOnly.FromDateTime(orderHeader.OrderDate.AddDays(5)), orderHeader.PaymentDueDate);
+			Assert.Equal(DateOnly.FromDateTime(orderHeader.OrderDate.AddDays(SD.CompanyPaymentDueDays)), orderHeader.PaymentDueDate);
 		}
 
 		[Fact]

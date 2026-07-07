@@ -23,6 +23,8 @@ namespace VaultShop.Utility
 
 		public const string SessionCart = "SessionShoppingCart";
 
+		public const int CompanyPaymentDueDays = 5;
+
         public static string TikTokLink => GetEnvOrDefault("Social__TikTok", "");
         public static string WhatsAppLink => GetEnvOrDefault("Social__WhatsApp", "");
         public static string InstagramLink => GetEnvOrDefault("Social__Instagram", "");
