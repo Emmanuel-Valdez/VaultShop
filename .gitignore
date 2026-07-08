@@ -6,6 +6,9 @@
 # Local codebase-memory graph artifacts
 .codebase-memory/
 
+# Local tokensave graph artifacts
+.tokensave/
+
 # User-specific files
 *.rsuser
 *.suo
@@ -384,7 +387,7 @@ PROJECT_CONTEXT.local.md
 plans/
 docs/portfolio-copy.md
 CLAUDE.md
-
+AGENTS.md
 # Local deployment notes and server-specific deployment context
 docs/deployment/
 
