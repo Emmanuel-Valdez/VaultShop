@@ -84,13 +84,14 @@ namespace VaultShop.Web.Tests
 				[CreateCompany(7)]);
 			var service = CreateService(unitOfWork.Mock.Object);
 
-			var result = service.CreateOrder("user-1", new OrderHeader(), useWholesalePrice: false);
+			var result = service.CreateOrder("user-1", new OrderHeader { PaymentMethod = SD.PaymentMethodBankTransfer }, useWholesalePrice: false);
 
 			Assert.False(result.RequiresOnlinePayment);
 			var orderHeader = Assert.Single(unitOfWork.AddedOrderHeaders);
 			Assert.Equal(7, orderHeader.CompanyId);
 			Assert.Equal(SD.PaymentStatusDelayedPayment, orderHeader.PaymentStatus);
 			Assert.Equal(SD.StatusApproved, orderHeader.OrderStatus);
+			Assert.Null(orderHeader.PaymentMethod);
 			Assert.Equal(DateOnly.FromDateTime(orderHeader.OrderDate.AddDays(SD.CompanyPaymentDueDays)), orderHeader.PaymentDueDate);
 		}
 

@@ -99,7 +99,11 @@ namespace VaultShop.Web.Services.Payments
 				return false;
 			}
 
-			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusApproved, SD.PaymentStatusApproved);
+			var nextOrderStatus = orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment
+				? orderHeader.OrderStatus ?? SD.StatusApproved
+				: SD.StatusApproved;
+			orderHeader.PaymentDate = DateTime.UtcNow;
+			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, nextOrderStatus, SD.PaymentStatusApproved);
 			_unitOfWork.Save();
 			_logger.LogInformation("Approved manual bank transfer for order {OrderId}.", orderId);
 			return true;

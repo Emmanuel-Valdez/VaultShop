@@ -110,6 +110,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
 			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
 			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
+			ViewData["BankTransferAlias"] = _configuration.GetValue<string>("Payments:BankTransferAlias") ?? string.Empty;
+			ViewData["BankTransferRecipientName"] = _configuration.GetValue<string>("Payments:BankTransferRecipientName") ?? string.Empty;
+			ViewData["BankTransferBankName"] = _configuration.GetValue<string>("Payments:BankTransferBankName") ?? string.Empty;
 			return View(result.ShoppingCartVM);
 		}
 
@@ -129,17 +132,25 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
 			}
 
-			var allowedPaymentMethods = new List<string>();
-			if (_configuration.GetValue("Payments:StripeEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodStripe);
-			if (_configuration.GetValue("Payments:BankTransferEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodBankTransfer);
-
-			if (ShoppingCartVM.OrderHeader.PaymentMethod is not string paymentMethod || !allowedPaymentMethods.Contains(paymentMethod))
+			var isCompanyCheckout = User.IsInRole(SD.Role_Company);
+			if (isCompanyCheckout)
 			{
-				TempData["error"] = _localizer["InvalidPaymentMethodError"].Value;
-				return RedirectToAction(nameof(Index));
+				ShoppingCartVM.OrderHeader.PaymentMethod = null;
+			}
+			else
+			{
+				var allowedPaymentMethods = new List<string>();
+				if (_configuration.GetValue("Payments:StripeEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodStripe);
+				if (_configuration.GetValue("Payments:BankTransferEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodBankTransfer);
+
+				if (ShoppingCartVM.OrderHeader.PaymentMethod is not string paymentMethod || !allowedPaymentMethods.Contains(paymentMethod))
+				{
+					TempData["error"] = _localizer["InvalidPaymentMethodError"].Value;
+					return RedirectToAction(nameof(Index));
+				}
 			}
 
-			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, User.IsInRole(SD.Role_Company));
+			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, isCompanyCheckout);
 
 			if (!result.IsAuthorized)
 			{
@@ -196,6 +207,8 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				Response.Headers["Location"] = session.Url;
 				return new StatusCodeResult(303);
 			}
+
+			ClearShoppingCart(userId);
 			return RedirectToAction(nameof(OrderConfirmation), new { id = orderId });
 		}
 
@@ -364,6 +377,17 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		{
 			int companyId = applicationUser.CompanyId.GetValueOrDefault();
 			return companyId > 0 && _unitOfWork.Company.Get(u => u.Id == companyId && u.IsDeleted == false) == null;
+		}
+
+		private void ClearShoppingCart(string userId)
+		{
+			var shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId).ToList();
+			if (shoppingCarts.Any())
+			{
+				_unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
+				_unitOfWork.Save();
+			}
+			HttpContext.Session.SetInt32(SD.SessionCart, 0);
 		}
 
 		private async Task<IActionResult> ClearCartAndBlockUser(ApplicationUser applicationUser)

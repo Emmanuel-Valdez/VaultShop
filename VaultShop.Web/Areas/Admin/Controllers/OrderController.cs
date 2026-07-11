@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
-using Stripe;
 using System.Security.Claims;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
@@ -25,19 +24,21 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		private readonly IStringLocalizer<OrderController> _localizer;
 		private readonly ILogger<OrderController> _logger;
 		private readonly IPaymentSessionService _paymentSessionService;
+		private readonly IPaymentRefundService _paymentRefundService;
 		private readonly IPaymentStatusService _paymentStatusService;
 		private readonly IWebHostEnvironment _environment;
 		private readonly IConfiguration _configuration;
 		private readonly ITransactionalEmailService _emailService;
 
 		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, 
-			IPaymentSessionService paymentSessionService, IPaymentStatusService paymentStatusService, 
+			IPaymentSessionService paymentSessionService, IPaymentRefundService paymentRefundService, IPaymentStatusService paymentStatusService,
 			IWebHostEnvironment environment, IConfiguration configuration, ITransactionalEmailService emailService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
 			_paymentSessionService = paymentSessionService;
+			_paymentRefundService = paymentRefundService;
 			_paymentStatusService = paymentStatusService;
 			_environment = environment;
 			_configuration = configuration;
@@ -181,22 +182,24 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
 			{
-				var options = new RefundCreateOptions
+				if (orderHeader.PaymentMethod == SD.PaymentMethodStripe && !string.IsNullOrWhiteSpace(orderHeader.PaymentIntentId))
 				{
-					Reason = RefundReasons.RequestedByCustomer,
-					PaymentIntent = orderHeader.PaymentIntentId
-				};
-				var service = new RefundService();
-				try
-				{
-					Refund refund = service.Create(options);
+					try
+					{
+						_paymentRefundService.RefundPaymentIntent(orderHeader.PaymentIntentId);
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex, "Failed to create Stripe refund while cancelling order {OrderId}.", orderHeader.Id);
+						throw;
+					}
+					_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusRefunded);
 				}
-				catch (Exception ex)
+				else
 				{
-					_logger.LogError(ex, "Failed to create Stripe refund while cancelling order {OrderId}.", orderHeader.Id);
-					throw;
+					_logger.LogWarning("Cancelled paid order {OrderId} without automated Stripe refund. PaymentMethod: {PaymentMethod}, HasPaymentIntent: {HasPaymentIntent}. Manual refund review required.", orderHeader.Id, orderHeader.PaymentMethod, !string.IsNullOrWhiteSpace(orderHeader.PaymentIntentId));
+					_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled);
 				}
-				_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusRefunded);
 			}
 			else
 			{

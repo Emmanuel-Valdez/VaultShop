@@ -167,6 +167,7 @@ switch (imageStorageProvider.Trim().ToUpperInvariant())
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionClient>();
+builder.Services.AddScoped<IPaymentRefundService, StripePaymentRefundService>();
 builder.Services.AddScoped<IPaymentSessionService, StripePaymentSessionService>();
 builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
 builder.Services.AddScoped<IPricingCalculatorService, PricingCalculatorService>();

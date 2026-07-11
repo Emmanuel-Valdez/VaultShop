@@ -41,6 +41,8 @@ namespace VaultShop.Models
 		public DateTime? OrderConfirmationEmailSentUtc { get; set; }
 		public DateTime? PaymentReceiptEmailSentUtc { get; set; }
 		public DateTime? ShippingConfirmationEmailSentUtc { get; set; }
+		public DateTime? TransferConfirmedByCustomerAt { get; set; }
+		public DateTime? AdminBankTransferAlertEmailSentUtc { get; set; }
 
 		[LocalizedRequired("Name is required.", "El nombre es obligatorio.")]
 		public string Name { get; set; } = string.Empty;

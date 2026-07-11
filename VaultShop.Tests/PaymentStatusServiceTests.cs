@@ -155,6 +155,46 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void ApproveManualBankTransfer_PreservesDelayedPaymentOrderStatus()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusInProcess
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = service.ApproveManualBankTransfer(42);
+
+			Assert.True(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusInProcess, SD.PaymentStatusApproved), Times.Once);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void ApproveManualBankTransfer_SetsPaymentDate()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, NullLogger<PaymentStatusService>.Instance);
+			var before = DateTime.UtcNow.AddSeconds(-1);
+
+			var result = service.ApproveManualBankTransfer(42);
+
+			Assert.True(result);
+			Assert.InRange(order.PaymentDate, before, DateTime.UtcNow.AddSeconds(1));
+		}
+
+		[Fact]
 		public void ApproveManualBankTransfer_IsIdempotentOnAlreadyApprovedOrder()
 		{
 			var order = new OrderHeader

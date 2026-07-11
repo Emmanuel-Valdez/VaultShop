@@ -90,6 +90,9 @@
 						var stripeEnabled = ViewData["StripeEnabled"] is true;
 						var bankTransferEnabled = ViewData["BankTransferEnabled"] is true;
 						var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
+						var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
+						var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
+						var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
 					}
 					<div class="row g-4 mt-2">
 						<div class="col-12">
@@ -105,14 +108,38 @@
 									<label class="form-check-label" for="paymentMethodBankTransfer">@Localizer["PayByBankTransfer"]</label>
 								</div>
 								<div id="bankTransferDetails" class="alert alert-info mt-2 d-none">
-									<strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu
+									<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
+									@if (!string.IsNullOrWhiteSpace(bankTransferAlias))
+									{
+										<div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div>
+									}
+									@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName))
+									{
+										<div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div>
+									}
+									@if (!string.IsNullOrWhiteSpace(bankTransferBankName))
+									{
+										<div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div>
+									}
 								</div>
 							}
 							else if (bankTransferEnabled)
 							{
 								<input type="hidden" name="OrderHeader.PaymentMethod" value="BankTransfer" />
 								<div class="alert alert-info">
-									<strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu
+									<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
+									@if (!string.IsNullOrWhiteSpace(bankTransferAlias))
+									{
+										<div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div>
+									}
+									@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName))
+									{
+										<div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div>
+									}
+									@if (!string.IsNullOrWhiteSpace(bankTransferBankName))
+									{
+										<div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div>
+									}
 								</div>
 							}
 							else

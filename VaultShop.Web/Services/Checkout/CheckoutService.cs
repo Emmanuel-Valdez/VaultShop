@@ -165,6 +165,7 @@ namespace VaultShop.Web.Services.Checkout
 			}
 			else
 			{
+				shoppingCartVM.OrderHeader.PaymentMethod = null;
 				shoppingCartVM.OrderHeader.CompanyId = applicationUser.CompanyId;
 				shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
 				shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;

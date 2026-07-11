@@ -193,6 +193,50 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void CancelOrder_ApprovedBankTransfer_CancelsWithoutStripeRefund()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentIntentId = "pi_manual",
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusApproved
+			};
+			var test = CreateController(Environments.Development, allowManualApproval: false, orderHeader: order, user: CreateUser("admin-user", SD.Role_Admin));
+
+			var result = test.Controller.CancelOrder();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			test.PaymentRefundMock.Verify(x => x.RefundPaymentIntent(It.IsAny<string>()), Times.Never);
+			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, null), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void CancelOrder_ApprovedStripeOrder_RefundsPaymentIntent()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodStripe,
+				PaymentIntentId = "pi_stripe",
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusApproved
+			};
+			var test = CreateController(Environments.Development, allowManualApproval: false, orderHeader: order, user: CreateUser("admin-user", SD.Role_Admin));
+
+			var result = test.Controller.CancelOrder();
+
+			Assert.IsType<RedirectToActionResult>(result);
+			test.PaymentRefundMock.Verify(x => x.RefundPaymentIntent("pi_stripe"), Times.Once);
+			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, SD.StatusRefunded), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
 		public void DetailsPayNow_CreatesSession_ForCompanyDelayedPaymentBeforeShipping()
 		{
 			var order = new OrderHeader
@@ -459,6 +503,7 @@ namespace VaultShop.Web.Tests
 
 			var paymentStatusMock = new Mock<IPaymentStatusService>();
 			var paymentSessionMock = new Mock<IPaymentSessionService>();
+			var paymentRefundMock = new Mock<IPaymentRefundService>();
 			var emailServiceMock = new Mock<ITransactionalEmailService>();
 			var localizerMock = new Mock<IStringLocalizer<OrderController>>();
 			localizerMock
@@ -485,6 +530,7 @@ namespace VaultShop.Web.Tests
 				localizerMock.Object,
 				NullLogger<OrderController>.Instance,
 				paymentSessionMock.Object,
+				paymentRefundMock.Object,
 				paymentStatusMock.Object,
 				environmentMock.Object,
 				configuration,
@@ -495,7 +541,7 @@ namespace VaultShop.Web.Tests
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
 			};
 
-			return new TestController(controller, paymentStatusMock, paymentSessionMock, unitOfWorkMock, orderHeaderMock, emailServiceMock);
+			return new TestController(controller, paymentStatusMock, paymentSessionMock, paymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock);
 		}
 
 		private static List<object> GetJsonOrders(IActionResult result)
@@ -533,6 +579,6 @@ namespace VaultShop.Web.Tests
 			return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
 		}
 
-		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock);
+		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock);
 	}
 }

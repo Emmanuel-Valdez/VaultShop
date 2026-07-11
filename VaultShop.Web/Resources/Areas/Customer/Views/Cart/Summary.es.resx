@@ -138,6 +138,15 @@
   <data name="BankTransferCbuLabel" xml:space="preserve">
     <value>Transferir a</value>
   </data>
+  <data name="BankTransferAliasLabel" xml:space="preserve">
+    <value>Alias</value>
+  </data>
+  <data name="BankTransferRecipientNameLabel" xml:space="preserve">
+    <value>Titular</value>
+  </data>
+  <data name="BankTransferBankNameLabel" xml:space="preserve">
+    <value>Banco</value>
+  </data>
   <data name="PlaceOrder" xml:space="preserve">
     <value>Generar Órden</value>
   </data>

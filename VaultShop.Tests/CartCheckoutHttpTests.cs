@@ -49,7 +49,7 @@ public class CartCheckoutHttpTests
 
         var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
-        var response = await PostSummary(client, token);
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer);
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Contains("/Cart/OrderConfirmation", response.Headers.Location!.ToString());
@@ -61,6 +61,7 @@ public class CartCheckoutHttpTests
         Assert.Equal(SD.PaymentStatusDelayedPayment, orderHeader.PaymentStatus);
         Assert.Equal(SD.StatusApproved, orderHeader.OrderStatus);
         Assert.Equal(factory.TestCompanyId, orderHeader.CompanyId);
+        Assert.Null(orderHeader.PaymentMethod);
         Assert.Equal(210m, orderHeader.OrderTotal);
         Assert.Equal(DateOnly.FromDateTime(orderHeader.OrderDate.AddDays(SD.CompanyPaymentDueDays)), orderHeader.PaymentDueDate);
     }
@@ -90,6 +91,9 @@ public class CartCheckoutHttpTests
         Assert.Equal(SD.PaymentStatusPending, orderHeader.PaymentStatus);
         Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
         Assert.Null(orderHeader.SessionId);
+
+        var user = db.ApplicationUsers.Single(u => u.Email == factory.CustomerEmail);
+        Assert.Empty(db.ShoppingCarts.AsNoTracking().Where(cart => cart.ApplicationUserId == user.Id));
     }
 
     [Fact]
