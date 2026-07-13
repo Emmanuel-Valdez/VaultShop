@@ -1,4 +1,4 @@
-﻿var dataTable;
+var dataTable;
 const translations = window.orderTableTranslations ?? {};
 
 function statusBadgeClass(status) {
@@ -12,6 +12,11 @@ function statusBadgeClass(status) {
 function renderStatusBadge(data, type, statusTranslations) {
     const text = statusTranslations?.[data] ?? data ?? "";
     return type === 'display' ? `<span class="badge ${statusBadgeClass(data)}">${text}</span>` : text;
+}
+
+function renderPaymentMethodBadge(data, type) {
+    const text = window.paymentMethodTranslations?.[data] ?? data ?? "";
+    return type === 'display' ? `<span class="badge bg-secondary">${text}</span>` : text;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -37,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadDataTable(status) {
     dataTable = $('#tblData').DataTable({
-        "ajax": { url: `/${culture}/admin/order/getall?status=`+ status },
+        "ajax": { url: `/${culture}/admin/order/getall?status=` + status },
         "columns": [
             { data: 'id', "width": "5%" },
             { data: 'name', "width": "20%" },
@@ -62,6 +67,13 @@ function loadDataTable(status) {
                 "width": "10%",
                 render: function (data, type) {
                     return renderStatusBadge(data, type, window.paymentStatusTranslations);
+                }
+            },
+            {
+                data: 'paymentMethod',
+                "width": "10%",
+                render: function (data, type) {
+                    return renderPaymentMethodBadge(data, type);
                 }
             },
             { data: 'orderTotal', "width": "10%", render: window.SpanishNumberTables(culture) },
@@ -104,8 +116,8 @@ function loadDataTable(status) {
             ],
         },
         columnDefs: [
-            { responsivePriority: 1, targets: 8 },
-            { responsivePriority: 2, targets: 7 },
+            { responsivePriority: 1, targets: 9 },
+            { responsivePriority: 2, targets: 8 },
             { targets: 2, visible: false },
             { targets: 6, visible: false },
         ],

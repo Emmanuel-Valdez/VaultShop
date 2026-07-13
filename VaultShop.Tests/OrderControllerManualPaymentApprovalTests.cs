@@ -405,7 +405,7 @@ namespace VaultShop.Web.Tests
 				.Setup(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()))
 				.Returns(new PaymentSessionResult("cs_test_pay_now", "pi_test_pay_now", "https://stripe.test/pay"));
 
-			var result = test.Controller.Details_PAY_NOW(42);
+			var result = test.Controller.Details_PAY_NOW(42, SD.PaymentMethodStripe);
 
 			var status = Assert.IsType<StatusCodeResult>(result);
 			Assert.Equal(303, status.StatusCode);
@@ -417,6 +417,42 @@ namespace VaultShop.Web.Tests
 					request.LineItems.Single().UnitPrice == 100m &&
 					request.LineItems.Single().Quantity == 2)), Times.Once);
 			test.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(42, "cs_test_pay_now", "pi_test_pay_now"), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void DetailsPayNow_BankTransfer_SetsMethodAndKeepsDelayedPayment()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved,
+				SessionId = "cs_old",
+				PaymentIntentId = "pi_old"
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company));
+
+			var result = test.Controller.Details_PAY_NOW(42, SD.PaymentMethodBankTransfer);
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			Assert.Equal(SD.PaymentMethodBankTransfer, order.PaymentMethod);
+			Assert.Equal(SD.PaymentStatusDelayedPayment, order.PaymentStatus);
+			Assert.Equal(SD.StatusApproved, order.OrderStatus);
+			Assert.Equal(string.Empty, order.SessionId);
+			Assert.Equal(string.Empty, order.PaymentIntentId);
+			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Never);
+			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
+			test.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
 		}
 
@@ -561,6 +597,39 @@ namespace VaultShop.Web.Tests
 			var resultOrders = GetJsonOrders(result);
 			Assert.Equal(new[] { 2, 1 }, resultOrders.Select(GetJsonOrderId));
 			Assert.Equal("Acme Corp", GetNestedJsonString(resultOrders[0], "company", "name"));
+		}
+
+		[Fact]
+		public void GetAll_IncludesPaymentMethod()
+		{
+			var orders = new[]
+			{
+				new OrderHeader
+				{
+					Id = 1,
+					PaymentMethod = SD.PaymentMethodBankTransfer,
+					PaymentStatus = SD.PaymentStatusPending,
+					OrderDate = new DateTime(2026, 1, 2, 10, 0, 0, DateTimeKind.Utc)
+				},
+				new OrderHeader
+				{
+					Id = 2,
+					PaymentMethod = SD.PaymentMethodStripe,
+					PaymentStatus = SD.PaymentStatusApproved,
+					OrderDate = new DateTime(2026, 1, 3, 10, 0, 0, DateTimeKind.Utc)
+				}
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeaders: orders,
+				user: CreateUser("admin-user", SD.Role_Admin));
+
+			var result = test.Controller.GetAll("all");
+
+			var resultOrders = GetJsonOrders(result);
+			Assert.Equal("Stripe", GetJsonString(resultOrders[0], "paymentMethod"));
+			Assert.Equal("BankTransfer", GetJsonString(resultOrders[1], "paymentMethod"));
 		}
 
 		[Fact]
@@ -710,6 +779,13 @@ namespace VaultShop.Web.Tests
 			var nestedProperty = nestedValue!.GetType().GetProperty(nestedPropertyName);
 			Assert.NotNull(nestedProperty);
 			return nestedProperty!.GetValue(nestedValue) as string;
+		}
+
+		private static string? GetJsonString(object value, string propertyName)
+		{
+			var property = value.GetType().GetProperty(propertyName);
+			Assert.NotNull(property);
+			return property!.GetValue(value) as string;
 		}
 
 		private static ClaimsPrincipal CreateUser(string userId, params string[] roles)

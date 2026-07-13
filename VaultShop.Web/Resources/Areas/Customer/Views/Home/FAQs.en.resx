@@ -207,4 +207,10 @@
   <data name="Answer8Item2" xml:space="preserve">
     <value>Our social media profiles, available in the page footer.</value>
   </data>
+  <data name="Question9" xml:space="preserve">
+    <value>9. How are refunds returned?</value>
+  </data>
+  <data name="Answer9" xml:space="preserve">
+    <value>Refunds are returned to the same original payment account or card used for the purchase. Bank transfer refunds go back to the source account, and card payments are refunded to the same card.</value>
+  </data>
 </root>

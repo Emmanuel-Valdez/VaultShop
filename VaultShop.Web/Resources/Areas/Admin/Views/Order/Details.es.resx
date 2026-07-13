@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -212,6 +212,30 @@
   </data>
   <data name="PaymentStatus" xml:space="preserve">
     <value>Estado de Pago</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Método de Pago</value>
+  </data>
+  <data name="Unspecified" xml:space="preserve">
+    <value>Sin definir</value>
+  </data>
+  <data name="Stripe" xml:space="preserve">
+    <value>Stripe</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>Transferencia bancaria</value>
+  </data>
+  <data name="ChoosePaymentMethod" xml:space="preserve">
+    <value>Elegí cómo pagar esta orden</value>
+  </data>
+  <data name="CompanyPaymentMethodChoiceHelp" xml:space="preserve">
+    <value>El pago con tarjeta abre Stripe. La transferencia mantiene la orden como pago diferido y muestra acá los datos bancarios.</value>
+  </data>
+  <data name="PayWithStripe" xml:space="preserve">
+    <value>Pagar con tarjeta (Stripe)</value>
+  </data>
+  <data name="PayByBankTransfer" xml:space="preserve">
+    <value>Pagar por transferencia bancaria</value>
   </data>
   <data name="PayNow" xml:space="preserve">
     <value>Pagar Ahora</value>

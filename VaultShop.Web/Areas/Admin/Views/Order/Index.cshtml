@@ -1,4 +1,4 @@
-﻿@{
+@{
 	var status = Context.Request.Query["Status"];
 	var pending = "text-primary";
 	var inprocess = "text-primary";
@@ -70,6 +70,7 @@
 					}
 					<th>@Localizer["OrderStatus"]</th>
 					<th>@Localizer["PaymentStatus"]</th>
+					<th>@Localizer["PaymentMethod"]</th>
 					<th>@Localizer["Total"]</th>
 				</tr>
 			</thead>
@@ -95,6 +96,11 @@
 			Rejected: @Json.Serialize(Localizer["Rejected"].Value),
 			Refunded: @Json.Serialize(Localizer["Refunded"].Value),
 			Cancelled: @Json.Serialize(Localizer["Cancelled"].Value)
+		};
+		window.paymentMethodTranslations = {
+			Unspecified: @Json.Serialize(Localizer["Unspecified"].Value),
+			Stripe: @Json.Serialize(Localizer["Stripe"].Value),
+			BankTransfer: @Json.Serialize(Localizer["BankTransfer"].Value)
 		};
 		window.orderTableTranslations = {
 			exportToPDF: @Json.Serialize(Localizer["ExportToPDF"].Value),

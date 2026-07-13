@@ -214,7 +214,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		}
 		[ActionName("Details")]
 		[HttpPost]
-		public IActionResult Details_PAY_NOW(int orderId)
+		public IActionResult Details_PAY_NOW(int orderId, string? paymentMethod)
 		{
 			var orderHeader = _unitOfWork.OrderHeader
 				.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
@@ -236,6 +236,28 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			OrderVM.OrderHeader = orderHeader;
 			OrderVM.OrderDetail = _unitOfWork.OrderDetail
 				.GetAll(u => u.OrderHeaderId == OrderVM.OrderHeader.Id, includeProperties: "Product");
+
+			paymentMethod = string.IsNullOrWhiteSpace(paymentMethod)
+				? SD.PaymentMethodStripe
+				: paymentMethod.Trim();
+			if (paymentMethod != SD.PaymentMethodStripe && paymentMethod != SD.PaymentMethodBankTransfer)
+			{
+				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
+			}
+
+			if (paymentMethod == SD.PaymentMethodBankTransfer)
+			{
+				orderHeader.PaymentMethod = SD.PaymentMethodBankTransfer;
+				orderHeader.SessionId = string.Empty;
+				orderHeader.PaymentIntentId = string.Empty;
+				_unitOfWork.OrderHeader.Update(orderHeader);
+				_unitOfWork.Save();
+				_logger.LogInformation("Company delayed-payment order {OrderId} switched to bank transfer.", orderHeader.Id);
+				return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
+			}
+
+			orderHeader.PaymentMethod = SD.PaymentMethodStripe;
+			_unitOfWork.OrderHeader.Update(orderHeader);
 
 			string currentCulture = Thread.CurrentThread.CurrentUICulture.Name;
 			var domain = Request.Scheme + "://" + Request.Host.Value + "/";
@@ -405,6 +427,16 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				!IsTerminal(orderHeader);
 		}
 
+		private static string PaymentMethodLabel(string? paymentMethod)
+		{
+			return paymentMethod switch
+			{
+				SD.PaymentMethodStripe => SD.PaymentMethodStripe,
+				SD.PaymentMethodBankTransfer => SD.PaymentMethodBankTransfer,
+				_ => "Unspecified"
+			};
+		}
+
 		private bool ManualPaymentApprovalEnabled()
 		{
 			return _environment.IsDevelopment() &&
@@ -511,6 +543,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 					company = u.Company == null ? null : new { name = u.Company.Name },
 					orderStatus = u.OrderStatus,
 					paymentStatus = u.PaymentStatus,
+					paymentMethod = PaymentMethodLabel(u.PaymentMethod),
 					orderTotal = u.OrderTotal
 				});
 			return Json(new { data });

@@ -207,4 +207,10 @@
   <data name="Answer8Item2" xml:space="preserve">
     <value>Nuestras redes sociales, disponibles al pie de página.</value>
   </data>
+  <data name="Question9" xml:space="preserve">
+    <value>9. ¿Cómo se devuelven los reembolsos?</value>
+  </data>
+  <data name="Answer9" xml:space="preserve">
+    <value>Los reembolsos vuelven a la misma cuenta o tarjeta original usada en la compra. Las devoluciones de transferencias regresan a la cuenta de origen y los pagos con tarjeta se reintegran a la misma tarjeta.</value>
+  </data>
 </root>

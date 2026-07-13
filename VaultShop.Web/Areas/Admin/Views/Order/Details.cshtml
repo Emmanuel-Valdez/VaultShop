@@ -1,4 +1,4 @@
-﻿@model OrderVM
+@model OrderVM
 @{
 	var canManageOrder = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
 	var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -31,12 +31,13 @@
 		!orderIsTerminal;
 	var canConfirmBankTransfer = canManageOrder && !orderIsTerminal &&
 		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
-		Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending;
+		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
 	var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
 	var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
 	var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
 	var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
 	var transferAlreadyConfirmed = Model.OrderHeader.TransferConfirmedByCustomerAt.HasValue;
+	canPayNow = canPayNow && !transferAlreadyConfirmed && Model.OrderHeader.PaymentMethod != SD.PaymentMethodBankTransfer;
 	var showBankTransferInstructions = Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
 		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment) &&
 		!transferAlreadyConfirmed;
@@ -276,6 +277,10 @@
 									<span>@Localizer["PaymentStatus"]</span>
 									<span class="badge @StatusBadgeClass(Model.OrderHeader.PaymentStatus)">@Localizer[Model.OrderHeader.PaymentStatus ?? string.Empty]</span>
 								</div>
+								<div class="d-flex justify-content-between gap-2 mt-1">
+									<span>@Localizer["PaymentMethod"]</span>
+									<span class="badge bg-secondary">@Localizer[Model.OrderHeader.PaymentMethod ?? "Unspecified"]</span>
+								</div>
 								@if (canManageOrder && transferAlreadyConfirmed)
 								{
 									<div class="d-flex justify-content-between gap-2 mt-1">
@@ -349,7 +354,12 @@
 							</ul>
 							@if (canPayNow)
 							{
-								<button type="submit" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
+								<div class="alert alert-info my-2" role="alert">
+									<div class="fw-semibold">@Localizer["ChoosePaymentMethod"]</div>
+									<div>@Localizer["CompanyPaymentMethodChoiceHelp"]</div>
+								</div>
+								<button type="submit" name="paymentMethod" value="Stripe" class="btn btn-success form-control my-1">@Localizer["PayWithStripe"]</button>
+								<button type="submit" name="paymentMethod" value="BankTransfer" class="btn btn-outline-primary form-control my-1">@Localizer["PayByBankTransfer"]</button>
 							}
 							@if (canCustomerConfirmTransfer)
 							{

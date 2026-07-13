@@ -15,6 +15,10 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
     private readonly BrandingOptions _branding;
     private readonly ILogger<TransactionalEmailService> _logger;
     private readonly string? _adminEmail;
+    private readonly string _bankTransferCbu;
+    private readonly string _bankTransferAlias;
+    private readonly string _bankTransferRecipientName;
+    private readonly string _bankTransferBankName;
 
     public TransactionalEmailService(
         IUnitOfWork unitOfWork,
@@ -28,6 +32,10 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
         _branding = branding.Value;
         _logger = logger;
         _adminEmail = configuration["Email:AdminEmail"];
+        _bankTransferCbu = configuration["Payments:BankTransferCbu"] ?? string.Empty;
+        _bankTransferAlias = configuration["Payments:BankTransferAlias"] ?? string.Empty;
+        _bankTransferRecipientName = configuration["Payments:BankTransferRecipientName"] ?? string.Empty;
+        _bankTransferBankName = configuration["Payments:BankTransferBankName"] ?? string.Empty;
     }
 
     public async Task TrySendOrderConfirmationAsync(int orderId)
@@ -56,6 +64,9 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
         var userEmail = order.ApplicationUser?.Email;
         if (string.IsNullOrWhiteSpace(userEmail)) return;
 
+        var includeBankTransferInstructions = order.PaymentMethod == SD.PaymentMethodBankTransfer &&
+            (order.PaymentStatus == SD.PaymentStatusPending || order.PaymentStatus == SD.PaymentStatusDelayedPayment);
+
         var content = EmailTemplates.OrderConfirmation(
             _branding.PublicName,
             order.Name,
@@ -63,7 +74,13 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             items,
             total,
             SD.SiteUrl,
-            Thread.CurrentThread.CurrentUICulture);
+            Thread.CurrentThread.CurrentUICulture,
+            order.PaymentMethod,
+            includeBankTransferInstructions,
+            _bankTransferCbu,
+            _bankTransferAlias,
+            _bankTransferRecipientName,
+            _bankTransferBankName);
 
         await TrySendEmailAsync(orderId, userEmail, content,
             () => order.OrderConfirmationEmailSentUtc = DateTime.UtcNow,
@@ -117,7 +134,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             Thread.CurrentThread.CurrentUICulture);
 
         await TrySendEmailAsync(orderId, userEmail, content,
-            () => { /* no idempotency timestamp for failure � can always retry */ },
+            () => { },
             "payment failed");
     }
 
@@ -170,10 +187,12 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.Name,
             order.OrderTotal.ToString("C"),
             $"{SD.SiteUrl}es-AR/admin/order/details?orderId={order.Id}",
-            Thread.CurrentThread.CurrentUICulture);
+            Thread.CurrentThread.CurrentUICulture,
+            order.PaymentMethod,
+            order.CompanyId.GetValueOrDefault() > 0 && order.PaymentStatus == SD.PaymentStatusDelayedPayment);
 
         await TrySendEmailAsync(orderId, _adminEmail, content,
-            () => { /* no idempotency tracking for admin alerts */ },
+            () => { },
             "admin new order alert");
     }
 
@@ -226,7 +245,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send {EmailType} email for order {OrderId} to {Recipient}. Order state preserved.", emailType, orderId, recipient);
-            // ponytail: email failure never rolls back the order � log and move on
+            // ponytail: email failure never rolls back the order; log and move on
         }
     }
 }

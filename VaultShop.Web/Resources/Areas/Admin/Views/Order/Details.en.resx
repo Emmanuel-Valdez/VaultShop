@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -212,6 +212,30 @@
   </data>
   <data name="PaymentStatus" xml:space="preserve">
     <value>Payment Status</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Payment Method</value>
+  </data>
+  <data name="Unspecified" xml:space="preserve">
+    <value>Unspecified</value>
+  </data>
+  <data name="Stripe" xml:space="preserve">
+    <value>Stripe</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>Bank Transfer</value>
+  </data>
+  <data name="ChoosePaymentMethod" xml:space="preserve">
+    <value>Choose how to pay this order</value>
+  </data>
+  <data name="CompanyPaymentMethodChoiceHelp" xml:space="preserve">
+    <value>Card payment opens Stripe. Bank transfer keeps the order on delayed payment and shows the transfer instructions here.</value>
+  </data>
+  <data name="PayWithStripe" xml:space="preserve">
+    <value>Pay with card (Stripe)</value>
+  </data>
+  <data name="PayByBankTransfer" xml:space="preserve">
+    <value>Pay by bank transfer</value>
   </data>
   <data name="PayNow" xml:space="preserve">
     <value>Pay Now</value>

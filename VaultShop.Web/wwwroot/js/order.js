@@ -1,4 +1,9 @@
-﻿var dataTable;
+var dataTable;
+
+function renderPaymentMethodBadge(data, type) {
+    const text = window.paymentMethodTranslations?.[data] ?? data ?? "";
+    return type === 'display' ? `<span class="badge bg-secondary">${text}</span>` : text;
+}
 
 $(document).ready(function () {
     var url = window.location.search;
@@ -37,6 +42,13 @@ function loadDataTable(status) {
                 }
             },
             { data: 'paymentStatus', "width": "10%" }, 
+            {
+                data: 'paymentMethod',
+                "width": "10%",
+                render: function (data, type) {
+                    return renderPaymentMethodBadge(data, type);
+                }
+            },
             { data: 'orderTotal', "width": "10%", render: window.SpanishNumberTables(culture) },
             {
                 data: 'id',
@@ -58,8 +70,8 @@ function loadDataTable(status) {
         },
         
         columnDefs: [
-            { responsivePriority: 1, targets: 7 },
-            { responsivePriority: 2, targets: 6 },
+            { responsivePriority: 1, targets: 8 },
+            { responsivePriority: 2, targets: 7 },
             { targets: 2, visible: false },
             { targets: 5, visible: false },
         ],

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -165,8 +165,17 @@
   <data name="PaymentPending" xml:space="preserve">
     <value>Pago Pendiente</value>
   </data>
-  <data name="PaymentStatus" xml:space="preserve">
-    <value>Estado de Pago</value>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Método de Pago</value>
+  </data>
+  <data name="Unspecified" xml:space="preserve">
+    <value>Sin definir</value>
+  </data>
+  <data name="Stripe" xml:space="preserve">
+    <value>Stripe</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>Transferencia bancaria</value>
   </data>
   <data name="PhoneNumber" xml:space="preserve">
     <value>Teléfono</value>
