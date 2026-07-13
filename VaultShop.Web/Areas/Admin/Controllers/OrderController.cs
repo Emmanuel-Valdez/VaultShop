@@ -216,8 +216,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Details_PAY_NOW(int orderId, string? paymentMethod)
 		{
-			var orderHeader = _unitOfWork.OrderHeader
-				.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
+			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId);
 			if (orderHeader == null)
 			{
 				return NotFound();
@@ -362,7 +361,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> ConfirmTransferSent(int orderId)
 		{
-			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
+			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId);
 			if (orderHeader == null)
 			{
 				return NotFound();

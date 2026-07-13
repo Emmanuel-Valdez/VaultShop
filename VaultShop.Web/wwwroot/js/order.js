@@ -2,7 +2,7 @@ var dataTable;
 
 function renderPaymentMethodBadge(data, type) {
     const text = window.paymentMethodTranslations?.[data] ?? data ?? "";
-    return type === 'display' ? `<span class="badge bg-secondary">${text}</span>` : text;
+    return type === 'display' ? `<span class="badge text-bg-dark">${text}</span>` : text;
 }
 
 $(document).ready(function () {

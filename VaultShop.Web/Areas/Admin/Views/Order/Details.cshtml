@@ -37,13 +37,12 @@
 	var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
 	var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
 	var transferAlreadyConfirmed = Model.OrderHeader.TransferConfirmedByCustomerAt.HasValue;
+	var bankTransferAwaitingApproval = Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
+		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
 	canPayNow = canPayNow && !transferAlreadyConfirmed && Model.OrderHeader.PaymentMethod != SD.PaymentMethodBankTransfer;
-	var showBankTransferInstructions = Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
-		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment) &&
-		!transferAlreadyConfirmed;
+	var showBankTransferInstructions = bankTransferAwaitingApproval && !transferAlreadyConfirmed;
 	var canCustomerConfirmTransfer = !canManageOrder &&
-		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
-		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment) &&
+		bankTransferAwaitingApproval &&
 		!transferAlreadyConfirmed &&
 		!string.IsNullOrEmpty(currentUserId) &&
 		Model.OrderHeader.ApplicationUserId == currentUserId &&
@@ -279,7 +278,7 @@
 								</div>
 								<div class="d-flex justify-content-between gap-2 mt-1">
 									<span>@Localizer["PaymentMethod"]</span>
-									<span class="badge bg-secondary">@Localizer[Model.OrderHeader.PaymentMethod ?? "Unspecified"]</span>
+									<span class="badge text-bg-dark">@Localizer[Model.OrderHeader.PaymentMethod ?? "Unspecified"]</span>
 								</div>
 								@if (canManageOrder && transferAlreadyConfirmed)
 								{
@@ -319,9 +318,9 @@
 									}
 								</div>
 							}
-							else if (Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer && transferAlreadyConfirmed)
+							else if (bankTransferAwaitingApproval && transferAlreadyConfirmed)
 							{
-								<div class="alert alert-secondary my-2" role="alert">@Localizer["BankTransferAlreadyReportedMessage"]</div>
+								<div class="alert alert-info my-2 text-dark" role="alert">@Localizer["BankTransferAlreadyReportedMessage"]</div>
 							}
 
 							<ul class="list-group mb-3">
