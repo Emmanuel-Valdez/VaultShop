@@ -68,6 +68,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				OrderDetail = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderId, includeProperties: "Product")
 			};
 			ViewData["AllowDevelopmentManualPaymentApproval"] = ManualPaymentApprovalEnabled();
+			PopulateBankTransferViewData();
 			return View(OrderVM);
 		}
 
@@ -332,6 +333,46 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public IActionResult ConfirmTransferSent(int orderId)
+		{
+			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
+			if (orderHeader == null)
+			{
+				return NotFound();
+			}
+			if (!UserCanAccessOrder(orderHeader))
+			{
+				return NotFound();
+			}
+
+			if (orderHeader.PaymentMethod != SD.PaymentMethodBankTransfer)
+			{
+				return RedirectToAction(nameof(Details), new { orderId });
+			}
+			if (orderHeader.PaymentStatus != SD.PaymentStatusPending && orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+			{
+				return RedirectToAction(nameof(Details), new { orderId });
+			}
+			if (!orderHeader.TransferConfirmedByCustomerAt.HasValue)
+			{
+				orderHeader.TransferConfirmedByCustomerAt = DateTime.UtcNow;
+				_unitOfWork.OrderHeader.Update(orderHeader);
+				_unitOfWork.Save();
+			}
+
+			return RedirectToAction(nameof(Details), new { orderId });
+		}
+
+		private void PopulateBankTransferViewData()
+		{
+			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
+			ViewData["BankTransferAlias"] = _configuration.GetValue<string>("Payments:BankTransferAlias") ?? string.Empty;
+			ViewData["BankTransferRecipientName"] = _configuration.GetValue<string>("Payments:BankTransferRecipientName") ?? string.Empty;
+			ViewData["BankTransferBankName"] = _configuration.GetValue<string>("Payments:BankTransferBankName") ?? string.Empty;
 		}
 
 		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)

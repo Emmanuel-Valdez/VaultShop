@@ -134,6 +134,139 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void ConfirmTransferSent_SetsTimestampOnce_ForOwnerBankTransferPendingOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "customer-user",
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("customer-user"));
+			var before = DateTime.UtcNow;
+
+			var result = test.Controller.ConfirmTransferSent(42);
+
+			var after = DateTime.UtcNow;
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(42, redirect.RouteValues?["orderId"]);
+			Assert.NotNull(order.TransferConfirmedByCustomerAt);
+			Assert.InRange(order.TransferConfirmedByCustomerAt!.Value, before, after);
+			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void ConfirmTransferSent_IsIdempotent_WhenAlreadyConfirmed()
+		{
+			var confirmedAt = new DateTime(2026, 7, 12, 12, 0, 0, DateTimeKind.Utc);
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "customer-user",
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending,
+				TransferConfirmedByCustomerAt = confirmedAt
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("customer-user"));
+
+			var result = test.Controller.ConfirmTransferSent(42);
+
+			Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal(confirmedAt, order.TransferConfirmedByCustomerAt);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void ConfirmTransferSent_ReturnsNotFound_ForNonOwner()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "customer-user",
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("another-user"));
+
+			var result = test.Controller.ConfirmTransferSent(42);
+
+			Assert.IsType<NotFoundResult>(result);
+			Assert.Null(order.TransferConfirmedByCustomerAt);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void ConfirmTransferSent_AllowsAdminAccessPattern()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "customer-user",
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin));
+
+			var result = test.Controller.ConfirmTransferSent(42);
+
+			Assert.IsType<RedirectToActionResult>(result);
+			Assert.NotNull(order.TransferConfirmedByCustomerAt);
+			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public void ConfirmTransferSent_DoesNothing_ForNonBankTransferOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "customer-user",
+				PaymentMethod = SD.PaymentMethodStripe,
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("customer-user"));
+
+			var result = test.Controller.ConfirmTransferSent(42);
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Null(order.TransferConfirmedByCustomerAt);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
 		public void StartProcessing_DoesNotProcessUnpaidCustomerOrder()
 		{
 			var order = new OrderHeader

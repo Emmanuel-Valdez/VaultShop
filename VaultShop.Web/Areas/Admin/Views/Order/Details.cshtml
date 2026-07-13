@@ -1,6 +1,7 @@
 ﻿@model OrderVM
 @{
 	var canManageOrder = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
+	var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 	var orderIsTerminal = Model.OrderHeader.OrderStatus == SD.StatusCancelled ||
 		Model.OrderHeader.OrderStatus == SD.StatusRefunded ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusRejected;
@@ -31,6 +32,21 @@
 	var canConfirmBankTransfer = canEditShippingDetails && !orderIsTerminal &&
 		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending;
+	var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
+	var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
+	var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
+	var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
+	var transferAlreadyConfirmed = Model.OrderHeader.TransferConfirmedByCustomerAt.HasValue;
+	var showBankTransferInstructions = Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
+		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment) &&
+		!transferAlreadyConfirmed;
+	var canCustomerConfirmTransfer = !canManageOrder &&
+		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
+		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment) &&
+		!transferAlreadyConfirmed &&
+		!string.IsNullOrEmpty(currentUserId) &&
+		Model.OrderHeader.ApplicationUserId == currentUserId &&
+		Model.OrderHeader.CompanyId.GetValueOrDefault() == 0;
 
 	string StatusBadgeClass(string? status) => status switch
 	{
@@ -273,6 +289,28 @@
 							{
 								<div class="alert alert-warning my-2" role="alert">@Localizer["ShippingBlockedUntilPaymentApprovedMessage"]</div>
 							}
+							@if (showBankTransferInstructions)
+							{
+								<div class="alert alert-info my-2" role="alert">
+									<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
+									@if (!string.IsNullOrWhiteSpace(bankTransferAlias))
+									{
+										<div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div>
+									}
+									@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName))
+									{
+										<div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div>
+									}
+									@if (!string.IsNullOrWhiteSpace(bankTransferBankName))
+									{
+										<div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div>
+									}
+								</div>
+							}
+							else if (Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer && transferAlreadyConfirmed)
+							{
+								<div class="alert alert-secondary my-2" role="alert">@Localizer["BankTransferAlreadyReportedMessage"]</div>
+							}
 
 							<ul class="list-group mb-3">
 								@foreach (var detail in Model.OrderDetail)
@@ -305,6 +343,12 @@
 							@if (canPayNow)
 							{
 								<button type="submit" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
+							}
+							@if (canCustomerConfirmTransfer)
+							{
+								<button type="submit" asp-action="ConfirmTransferSent" asp-route-orderId="@Model.OrderHeader.Id" class="btn btn-outline-primary form-control my-1">
+									@Localizer["ConfirmTransferSent"]
+								</button>
 							}
 							@if (canManageOrder)
 							{

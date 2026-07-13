@@ -108,11 +108,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return RedirectToAction(nameof(Index));
 			}
 			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
-			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
-			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
-			ViewData["BankTransferAlias"] = _configuration.GetValue<string>("Payments:BankTransferAlias") ?? string.Empty;
-			ViewData["BankTransferRecipientName"] = _configuration.GetValue<string>("Payments:BankTransferRecipientName") ?? string.Empty;
-			ViewData["BankTransferBankName"] = _configuration.GetValue<string>("Payments:BankTransferBankName") ?? string.Empty;
+			PopulateBankTransferViewData();
 			return View(result.ShoppingCartVM);
 		}
 
@@ -247,7 +243,17 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 					_unitOfWork.Save();
 				}
 			}
+			PopulateBankTransferViewData();
 			return View(orderHeader);
+		}
+
+		private void PopulateBankTransferViewData()
+		{
+			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
+			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
+			ViewData["BankTransferAlias"] = _configuration.GetValue<string>("Payments:BankTransferAlias") ?? string.Empty;
+			ViewData["BankTransferRecipientName"] = _configuration.GetValue<string>("Payments:BankTransferRecipientName") ?? string.Empty;
+			ViewData["BankTransferBankName"] = _configuration.GetValue<string>("Payments:BankTransferBankName") ?? string.Empty;
 		}
 
 		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)

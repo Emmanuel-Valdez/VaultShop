@@ -5,6 +5,11 @@
 	var isPending = Model.PaymentStatus == SD.PaymentStatusPending;
 	var isDelayed = Model.PaymentStatus == SD.PaymentStatusDelayedPayment;
 	var isBankTransferPending = isPending && Model.PaymentMethod == SD.PaymentMethodBankTransfer;
+	var transferAlreadyConfirmed = Model.TransferConfirmedByCustomerAt.HasValue;
+	var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
+	var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
+	var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
+	var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
 	var titleKey = isTerminal ? "OrderNotAvailableTitle" : isBankTransferPending ? "BankTransferPendingTitle" : isPending ? "PaymentNotCompletedTitle" : "OrderPlaced";
 	var messageKey = isTerminal ? "OrderNotAvailableMessage" : isBankTransferPending ? "BankTransferPendingMessage" : isPending ? "PaymentNotCompletedMessage" : isDelayed ? "DelayedPaymentMessage" : "Success";
 	var titleClass = isTerminal ? "text-danger" : isBankTransferPending ? "text-primary" : isPending ? "text-warning" : "text-primary";
@@ -20,7 +25,36 @@
 	<div class="col-12 text-center pb-3">
 		<br />
 		<div class="alert @alertClass" role="alert">@Localizer[messageKey]</div>
+		@if (isBankTransferPending)
+		{
+			if (transferAlreadyConfirmed)
+			{
+				<div class="alert alert-secondary text-start" role="alert">@Localizer["BankTransferAlreadyReportedMessage"]</div>
+			}
+			else
+			{
+				<div class="alert alert-info text-start d-inline-block" role="alert">
+					<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
+					@if (!string.IsNullOrWhiteSpace(bankTransferAlias))
+					{
+						<div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div>
+					}
+					@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName))
+					{
+						<div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div>
+					}
+					@if (!string.IsNullOrWhiteSpace(bankTransferBankName))
+					{
+						<div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div>
+					}
+				</div>
+			}
+		}
 		<br />
+
+		<a asp-area="Admin" asp-controller="Order" asp-action="Details" asp-route-orderId="@Model.Id" class="btn btn-outline-primary mt-3 me-2">
+			@Localizer["ViewMyOrder"]
+		</a>
 
 		<a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-primary  mt-3">
 		@Localizer["BackToHome"]

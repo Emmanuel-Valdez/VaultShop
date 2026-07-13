@@ -150,4 +150,22 @@
   <data name="BankTransferPendingMessage" xml:space="preserve">
     <value>Recibimos tu pedido. Realizá la transferencia; confirmaremos la recepción y actualizaremos el estado de tu pedido.</value>
   </data>
+  <data name="BankTransferAlreadyReportedMessage" xml:space="preserve">
+    <value>Ya recibimos tu aviso de transferencia. Vamos a revisar el pago y actualizar tu pedido apenas quede confirmado.</value>
+  </data>
+  <data name="BankTransferAliasLabel" xml:space="preserve">
+    <value>Alias</value>
+  </data>
+  <data name="BankTransferBankNameLabel" xml:space="preserve">
+    <value>Banco</value>
+  </data>
+  <data name="BankTransferCbuLabel" xml:space="preserve">
+    <value>Transferir a</value>
+  </data>
+  <data name="BankTransferRecipientNameLabel" xml:space="preserve">
+    <value>Titular</value>
+  </data>
+  <data name="ViewMyOrder" xml:space="preserve">
+    <value>Ver mi pedido</value>
+  </data>
 </root>

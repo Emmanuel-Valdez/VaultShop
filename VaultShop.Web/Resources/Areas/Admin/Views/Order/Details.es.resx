@@ -156,8 +156,26 @@
   <data name="City" xml:space="preserve">
     <value>Ciudad</value>
   </data>
+  <data name="ConfirmTransferSent" xml:space="preserve">
+    <value>Ya transferí</value>
+  </data>
   <data name="ConfirmBankTransferReceived" xml:space="preserve">
     <value>Confirmar transferencia recibida</value>
+  </data>
+  <data name="BankTransferAlreadyReportedMessage" xml:space="preserve">
+    <value>Gracias. Ya tenemos tu aviso de transferencia y confirmaremos el pago apenas impacte.</value>
+  </data>
+  <data name="BankTransferAliasLabel" xml:space="preserve">
+    <value>Alias</value>
+  </data>
+  <data name="BankTransferBankNameLabel" xml:space="preserve">
+    <value>Banco</value>
+  </data>
+  <data name="BankTransferCbuLabel" xml:space="preserve">
+    <value>Transferir a</value>
+  </data>
+  <data name="BankTransferRecipientNameLabel" xml:space="preserve">
+    <value>Titular</value>
   </data>
   <data name="Email" xml:space="preserve">
     <value>Correo Electrónico</value>
