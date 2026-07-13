@@ -89,7 +89,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void ConfirmBankTransfer_ApprovesOrder_AndRedirectsToDetails()
+		public async Task ConfirmBankTransfer_ApprovesOrder_AndRedirectsToDetails()
 		{
 			var order = new OrderHeader
 			{
@@ -103,16 +103,17 @@ namespace VaultShop.Web.Tests
 				.Setup(x => x.ApproveManualBankTransfer(42))
 				.Returns(true);
 
-			var result = test.Controller.ConfirmBankTransfer();
+			var result = await test.Controller.ConfirmBankTransfer();
 
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal("Details", redirect.ActionName);
 			Assert.Equal(42, redirect.RouteValues?["orderId"]);
 			test.PaymentStatusMock.Verify(x => x.ApproveManualBankTransfer(42), Times.Once);
+			test.EmailServiceMock.Verify(x => x.TrySendPaymentReceiptAsync(42), Times.Once);
 		}
 
 		[Fact]
-		public void ConfirmBankTransfer_DoesNotSetSuccessMessage_WhenApprovalFails()
+		public async Task ConfirmBankTransfer_DoesNotSetSuccessMessage_WhenApprovalFails()
 		{
 			var order = new OrderHeader
 			{
@@ -126,15 +127,16 @@ namespace VaultShop.Web.Tests
 				.Setup(x => x.ApproveManualBankTransfer(42))
 				.Returns(false);
 
-			var result = test.Controller.ConfirmBankTransfer();
+			var result = await test.Controller.ConfirmBankTransfer();
 
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal("Details", redirect.ActionName);
 			Assert.False(test.Controller.TempData.ContainsKey("Success"));
+			test.EmailServiceMock.Verify(x => x.TrySendPaymentReceiptAsync(It.IsAny<int>()), Times.Never);
 		}
 
 		[Fact]
-		public void ConfirmTransferSent_SetsTimestampOnce_ForOwnerBankTransferPendingOrder()
+		public async Task ConfirmTransferSent_SetsTimestampOnce_ForOwnerBankTransferPendingOrder()
 		{
 			var order = new OrderHeader
 			{
@@ -151,7 +153,7 @@ namespace VaultShop.Web.Tests
 				user: CreateUser("customer-user"));
 			var before = DateTime.UtcNow;
 
-			var result = test.Controller.ConfirmTransferSent(42);
+			var result = await test.Controller.ConfirmTransferSent(42);
 
 			var after = DateTime.UtcNow;
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
@@ -161,10 +163,11 @@ namespace VaultShop.Web.Tests
 			Assert.InRange(order.TransferConfirmedByCustomerAt!.Value, before, after);
 			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Once);
 		}
 
 		[Fact]
-		public void ConfirmTransferSent_IsIdempotent_WhenAlreadyConfirmed()
+		public async Task ConfirmTransferSent_IsIdempotent_WhenAlreadyConfirmed()
 		{
 			var confirmedAt = new DateTime(2026, 7, 12, 12, 0, 0, DateTimeKind.Utc);
 			var order = new OrderHeader
@@ -182,16 +185,17 @@ namespace VaultShop.Web.Tests
 				orderHeader: order,
 				user: CreateUser("customer-user"));
 
-			var result = test.Controller.ConfirmTransferSent(42);
+			var result = await test.Controller.ConfirmTransferSent(42);
 
 			Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal(confirmedAt, order.TransferConfirmedByCustomerAt);
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Once);
 		}
 
 		[Fact]
-		public void ConfirmTransferSent_ReturnsNotFound_ForNonOwner()
+		public async Task ConfirmTransferSent_ReturnsNotFound_ForNonOwner()
 		{
 			var order = new OrderHeader
 			{
@@ -207,16 +211,17 @@ namespace VaultShop.Web.Tests
 				orderHeader: order,
 				user: CreateUser("another-user"));
 
-			var result = test.Controller.ConfirmTransferSent(42);
+			var result = await test.Controller.ConfirmTransferSent(42);
 
 			Assert.IsType<NotFoundResult>(result);
 			Assert.Null(order.TransferConfirmedByCustomerAt);
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(It.IsAny<int>()), Times.Never);
 		}
 
 		[Fact]
-		public void ConfirmTransferSent_AllowsAdminAccessPattern()
+		public async Task ConfirmTransferSent_AllowsAdminAccessPattern()
 		{
 			var order = new OrderHeader
 			{
@@ -232,16 +237,17 @@ namespace VaultShop.Web.Tests
 				orderHeader: order,
 				user: CreateUser("admin-user", SD.Role_Admin));
 
-			var result = test.Controller.ConfirmTransferSent(42);
+			var result = await test.Controller.ConfirmTransferSent(42);
 
 			Assert.IsType<RedirectToActionResult>(result);
 			Assert.NotNull(order.TransferConfirmedByCustomerAt);
 			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Once);
 		}
 
 		[Fact]
-		public void ConfirmTransferSent_DoesNothing_ForNonBankTransferOrder()
+		public async Task ConfirmTransferSent_DoesNothing_ForNonBankTransferOrder()
 		{
 			var order = new OrderHeader
 			{
@@ -257,13 +263,14 @@ namespace VaultShop.Web.Tests
 				orderHeader: order,
 				user: CreateUser("customer-user"));
 
-			var result = test.Controller.ConfirmTransferSent(42);
+			var result = await test.Controller.ConfirmTransferSent(42);
 
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal("Details", redirect.ActionName);
 			Assert.Null(order.TransferConfirmedByCustomerAt);
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(It.IsAny<int>()), Times.Never);
 		}
 
 		[Fact]

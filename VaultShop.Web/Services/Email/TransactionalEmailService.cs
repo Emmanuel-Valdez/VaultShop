@@ -117,7 +117,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             Thread.CurrentThread.CurrentUICulture);
 
         await TrySendEmailAsync(orderId, userEmail, content,
-            () => { /* no idempotency timestamp for failure — can always retry */ },
+            () => { /* no idempotency timestamp for failure ï¿½ can always retry */ },
             "payment failed");
     }
 
@@ -177,6 +177,41 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             "admin new order alert");
     }
 
+    public async Task TrySendAdminBankTransferConfirmationRequestAsync(int orderId)
+    {
+        if (string.IsNullOrWhiteSpace(_adminEmail))
+        {
+            _logger.LogInformation("Admin email not configured, skipping bank transfer confirmation alert for order {OrderId}.", orderId);
+            return;
+        }
+
+        var order = _unitOfWork.OrderHeader.Get(
+            o => o.Id == orderId,
+            includeProperties: "ApplicationUser");
+        if (order is null || !order.TransferConfirmedByCustomerAt.HasValue)
+        {
+            return;
+        }
+
+        if (order.AdminBankTransferAlertEmailSentUtc.HasValue)
+        {
+            _logger.LogInformation("Admin bank transfer confirmation alert already sent for order {OrderId} at {SentAt}, skipping.", orderId, order.AdminBankTransferAlertEmailSentUtc);
+            return;
+        }
+
+        var content = EmailTemplates.AdminBankTransferConfirmationRequest(
+            _branding.PublicName,
+            order.Id,
+            order.Name,
+            order.OrderTotal.ToString("C"),
+            $"{SD.SiteUrl}es-AR/admin/order/details?orderId={order.Id}",
+            Thread.CurrentThread.CurrentUICulture);
+
+        await TrySendEmailAsync(orderId, _adminEmail, content,
+            () => order.AdminBankTransferAlertEmailSentUtc = DateTime.UtcNow,
+            "admin bank transfer confirmation alert");
+    }
+
     private async Task TrySendEmailAsync(
         int orderId, string recipient, EmailContent content,
         Action onSuccess, string emailType)
@@ -191,7 +226,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send {EmailType} email for order {OrderId} to {Recipient}. Order state preserved.", emailType, orderId, recipient);
-            // ponytail: email failure never rolls back the order — log and move on
+            // ponytail: email failure never rolls back the order ï¿½ log and move on
         }
     }
 }

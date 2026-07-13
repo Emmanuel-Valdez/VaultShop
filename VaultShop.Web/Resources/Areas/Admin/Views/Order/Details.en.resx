@@ -165,6 +165,12 @@
   <data name="BankTransferAlreadyReportedMessage" xml:space="preserve">
     <value>Thanks. We already have your transfer notice and will confirm the payment as soon as it appears.</value>
   </data>
+  <data name="BankTransferReportedByCustomerLabel" xml:space="preserve">
+    <value>Customer transfer notice</value>
+  </data>
+  <data name="BankTransferReportedByCustomerBadge" xml:space="preserve">
+    <value>Reported</value>
+  </data>
   <data name="BankTransferAliasLabel" xml:space="preserve">
     <value>Alias</value>
   </data>

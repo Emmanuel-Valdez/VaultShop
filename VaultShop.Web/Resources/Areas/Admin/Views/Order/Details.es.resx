@@ -165,6 +165,12 @@
   <data name="BankTransferAlreadyReportedMessage" xml:space="preserve">
     <value>Gracias. Ya tenemos tu aviso de transferencia y confirmaremos el pago apenas impacte.</value>
   </data>
+  <data name="BankTransferReportedByCustomerLabel" xml:space="preserve">
+    <value>Aviso de transferencia</value>
+  </data>
+  <data name="BankTransferReportedByCustomerBadge" xml:space="preserve">
+    <value>Reportada</value>
+  </data>
   <data name="BankTransferAliasLabel" xml:space="preserve">
     <value>Alias</value>
   </data>

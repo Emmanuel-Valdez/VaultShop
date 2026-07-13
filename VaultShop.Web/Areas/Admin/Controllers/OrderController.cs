@@ -319,7 +319,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
 		[HttpPost]
-		public IActionResult ConfirmBankTransfer()
+		public async Task<IActionResult> ConfirmBankTransfer()
 		{
 			if (OrderVM == null || OrderVM.OrderHeader.Id <= 0)
 			{
@@ -329,6 +329,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			var approved = _paymentStatusService.ApproveManualBankTransfer(OrderVM.OrderHeader.Id);
 			if (approved)
 			{
+				await _emailService.TrySendPaymentReceiptAsync(OrderVM.OrderHeader.Id);
 				TempData["Success"] = _localizer["BankTransferConfirmedSuccessfully"].Value;
 			}
 
@@ -337,7 +338,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public IActionResult ConfirmTransferSent(int orderId)
+		public async Task<IActionResult> ConfirmTransferSent(int orderId)
 		{
 			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderId, includeProperties: "ApplicationUser");
 			if (orderHeader == null)
@@ -363,6 +364,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				_unitOfWork.OrderHeader.Update(orderHeader);
 				_unitOfWork.Save();
 			}
+
+			await _emailService.TrySendAdminBankTransferConfirmationRequestAsync(orderId);
 
 			return RedirectToAction(nameof(Details), new { orderId });
 		}

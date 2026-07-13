@@ -11,16 +11,16 @@ public static class EmailTemplates
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
-            ? $"Pedido #{orderId} confirmado — {storeName}"
-            : $"Order #{orderId} confirmed — {storeName}";
+            ? $"Pedido #{orderId} confirmado ï¿½ {storeName}"
+            : $"Order #{orderId} confirmed ï¿½ {storeName}";
 
         var itemsHtml = string.Join("", items.Select(i =>
             $"<tr><td style='padding:8px;border-bottom:1px solid #eee;'>{i.ProductName}</td>" +
             $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:center;'>{i.Quantity}</td>" +
             $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:right;'>{i.Price}</td></tr>"));
 
-        var greeting = isSpanish ? $"¡Gracias, {customerName}!" : $"Thanks, {customerName}!";
-        var orderNumberText = isSpanish ? $"Pedido N° {orderId}" : $"Order #{orderId}";
+        var greeting = isSpanish ? $"ï¿½Gracias, {customerName}!" : $"Thanks, {customerName}!";
+        var orderNumberText = isSpanish ? $"Pedido Nï¿½ {orderId}" : $"Order #{orderId}";
         var totalLabel = isSpanish ? "Total" : "Total";
         var viewOrderText = isSpanish ? "Ver pedido" : "View order";
 
@@ -55,11 +55,11 @@ public static class EmailTemplates
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
-            ? $"Pago recibido para el pedido #{orderId} — {storeName}"
-            : $"Payment received for order #{orderId} — {storeName}";
-        var heading = isSpanish ? "¡Pago confirmado!" : "Payment confirmed!";
+            ? $"Pago recibido para el pedido #{orderId} ï¿½ {storeName}"
+            : $"Payment received for order #{orderId} ï¿½ {storeName}";
+        var heading = isSpanish ? "ï¿½Pago confirmado!" : "Payment confirmed!";
         var message = isSpanish
-            ? $"Hemos recibido tu pago de {orderTotal} para el pedido N° {orderId}."
+            ? $"Hemos recibido tu pago de {orderTotal} para el pedido Nï¿½ {orderId}."
             : $"We've received your payment of {orderTotal} for order #{orderId}.";
         var dashboardText = isSpanish ? "Ver mis pedidos" : "My orders";
 
@@ -73,11 +73,11 @@ public static class EmailTemplates
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
-            ? $"Pago fallido para el pedido #{orderId} — {storeName}"
-            : $"Payment failed for order #{orderId} — {storeName}";
+            ? $"Pago fallido para el pedido #{orderId} ï¿½ {storeName}"
+            : $"Payment failed for order #{orderId} ï¿½ {storeName}";
         var heading = isSpanish ? "Pago no procesado" : "Payment not processed";
         var message = isSpanish
-            ? $"El pago del pedido N° {orderId} no pudo procesarse. Podés intentar nuevamente desde tu panel."
+            ? $"El pago del pedido Nï¿½ {orderId} no pudo procesarse. Podï¿½s intentar nuevamente desde tu panel."
             : $"The payment for order #{orderId} could not be processed. You can try again from your dashboard.";
         var dashboardText = isSpanish ? "Intentar de nuevo" : "Try again";
 
@@ -92,16 +92,16 @@ public static class EmailTemplates
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
-            ? $"Pedido #{orderId} enviado — {storeName}"
-            : $"Order #{orderId} shipped — {storeName}";
-        var heading = isSpanish ? "¡Tu pedido está en camino!" : "Your order is on its way!";
+            ? $"Pedido #{orderId} enviado ï¿½ {storeName}"
+            : $"Order #{orderId} shipped ï¿½ {storeName}";
+        var heading = isSpanish ? "ï¿½Tu pedido estï¿½ en camino!" : "Your order is on its way!";
         var message = isSpanish
-            ? $"El pedido N° {orderId} ha sido despachado."
+            ? $"El pedido Nï¿½ {orderId} ha sido despachado."
             : $"Order #{orderId} has been shipped.";
         if (!string.IsNullOrEmpty(trackingNumber))
         {
             message += isSpanish
-                ? $" Código de seguimiento: {trackingNumber}"
+                ? $" Cï¿½digo de seguimiento: {trackingNumber}"
                 : $" Tracking number: {trackingNumber}";
         }
         if (!string.IsNullOrEmpty(carrier))
@@ -121,13 +121,30 @@ public static class EmailTemplates
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
-            ? $"[Admin] Nuevo pedido #{orderId} — {storeName}"
-            : $"[Admin] New order #{orderId} — {storeName}";
+            ? $"[Admin] Nuevo pedido #{orderId} ï¿½ {storeName}"
+            : $"[Admin] New order #{orderId} ï¿½ {storeName}";
         var heading = isSpanish ? "Nuevo pedido recibido" : "New order received";
         var message = isSpanish
-            ? $"El cliente {customerName} realizó el pedido N° {orderId} por {orderTotal}."
+            ? $"El cliente {customerName} realizï¿½ el pedido Nï¿½ {orderId} por {orderTotal}."
             : $"Customer {customerName} placed order #{orderId} for {orderTotal}.";
         var dashboardText = isSpanish ? "Ver pedido" : "View order";
+        var body = HtmlTemplate(storeName, heading, message, adminUrl, dashboardText, culture);
+        return new EmailContent(subject, body);
+    }
+
+    public static EmailContent AdminBankTransferConfirmationRequest(
+        string storeName, int orderId, string customerName, string orderTotal, string adminUrl,
+        CultureInfo culture)
+    {
+        var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
+        var subject = isSpanish
+            ? $"[Admin] Cliente reportÃ³ transferencia para pedido #{orderId} - {storeName}"
+            : $"[Admin] Customer reported bank transfer for order #{orderId} - {storeName}";
+        var heading = isSpanish ? "Transferencia reportada por el cliente" : "Customer reported bank transfer";
+        var message = isSpanish
+            ? $"{customerName} informÃ³ que ya transfiriÃ³ el pago del pedido NÂ° {orderId} por {orderTotal}. RevisÃ¡ el ingreso y aprobÃ¡ el pago cuando impacte."
+            : $"{customerName} reported sending the bank transfer for order #{orderId} totaling {orderTotal}. Review the incoming payment and approve it once it arrives.";
+        var dashboardText = isSpanish ? "Revisar pedido" : "Review order";
         var body = HtmlTemplate(storeName, heading, message, adminUrl, dashboardText, culture);
         return new EmailContent(subject, body);
     }
@@ -152,7 +169,7 @@ public static class EmailTemplates
 
     private static string Translate(string key, CultureInfo culture)
     {
-        // ponytail: inline translation for template table headers — 3 keys, not worth full resx
+        // ponytail: inline translation for template table headers ï¿½ 3 keys, not worth full resx
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         return key switch
         {

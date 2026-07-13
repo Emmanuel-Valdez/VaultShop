@@ -7,4 +7,5 @@ public interface ITransactionalEmailService
     Task TrySendPaymentFailedAsync(int orderId);
     Task TrySendShippingConfirmationAsync(int orderId);
     Task TrySendAdminNewOrderAlertAsync(int orderId);
+    Task TrySendAdminBankTransferConfirmationRequestAsync(int orderId);
 }
