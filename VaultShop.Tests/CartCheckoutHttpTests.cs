@@ -130,7 +130,7 @@ public class CartCheckoutHttpTests
         Assert.Equal(SD.PaymentMethodMercadoPago, orderHeader.PaymentMethod);
         Assert.Equal("pref_test_123", orderHeader.SessionId);
         Assert.DoesNotContain("{CHECKOUT_SESSION_ID}", FakeMercadoPagoPaymentSessionService.LastRequest!.SuccessUrl);
-        Assert.Contains("/Cart/OrderConfirmation", FakeMercadoPagoPaymentSessionService.LastRequest.SuccessUrl);
+        Assert.Contains("/customer/cart/OrderConfirmation", FakeMercadoPagoPaymentSessionService.LastRequest.SuccessUrl, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

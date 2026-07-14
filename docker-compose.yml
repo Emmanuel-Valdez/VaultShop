@@ -17,10 +17,14 @@ services:
       Stripe__WebhookSecret: ${Stripe__WebhookSecret:?Stripe__WebhookSecret is required}
       Payments__BankTransferEnabled: ${Payments__BankTransferEnabled:-true}
       Payments__StripeEnabled: ${Payments__StripeEnabled:-true}
+      Payments__MercadoPagoEnabled: ${Payments__MercadoPagoEnabled:-false}
+      Payments__MercadoPagoAccessToken: ${Payments__MercadoPagoAccessToken:-}
       Payments__BankTransferCbu: ${Payments__BankTransferCbu:-}
       Payments__BankTransferAlias: ${Payments__BankTransferAlias:-}
       Payments__BankTransferRecipientName: ${Payments__BankTransferRecipientName:-}
       Payments__BankTransferBankName: ${Payments__BankTransferBankName:-}
+      Payments__MercadoPagoEnabled: ${Payments__MercadoPagoEnabled:-false}
+      Payments__MercadoPagoAccessToken: ${Payments__MercadoPagoAccessToken:-}
       Facebook__AppId: ${Facebook__AppId:?Facebook__AppId is required}
       Facebook__AppSecret: ${Facebook__AppSecret:?Facebook__AppSecret is required}
       Email__Provider: ${Email__Provider:-Fake}
