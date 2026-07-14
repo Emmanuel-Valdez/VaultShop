@@ -2,24 +2,45 @@
 @{
     var fieldName = string.IsNullOrWhiteSpace(Model.FieldName) ? "paymentMethod" : Model.FieldName;
     var idPrefix = string.IsNullOrWhiteSpace(Model.IdPrefix) ? "paymentMethod" : Model.IdPrefix;
-    var selectedPaymentMethod = string.IsNullOrWhiteSpace(Model.SelectedPaymentMethod)
-        ? (Model.StripeEnabled ? SD.PaymentMethodStripe : SD.PaymentMethodBankTransfer)
-        : Model.SelectedPaymentMethod;
-    var stripeInputId = $"{idPrefix}Stripe";
-    var bankTransferInputId = $"{idPrefix}BankTransfer";
+    var enabledMethods = new List<(string Value, string Label)>();
+
+    if (Model.StripeEnabled)
+    {
+        enabledMethods.Add((SD.PaymentMethodStripe, Model.PayWithStripeLabel));
+    }
+    if (Model.BankTransferEnabled)
+    {
+        enabledMethods.Add((SD.PaymentMethodBankTransfer, Model.PayByBankTransferLabel));
+    }
+    if (Model.MercadoPagoEnabled)
+    {
+        enabledMethods.Add((SD.PaymentMethodMercadoPago, Model.PayWithMercadoPagoLabel));
+    }
+
+    var selectedPaymentMethod = enabledMethods.Any(m => m.Value == Model.SelectedPaymentMethod)
+        ? Model.SelectedPaymentMethod
+        : enabledMethods.FirstOrDefault().Value;
     var bankTransferDetailsId = $"{idPrefix}BankTransferDetails";
 }
 
-@if (Model.StripeEnabled && Model.BankTransferEnabled)
+@if (enabledMethods.Count > 1)
 {
-    <div class="form-check">
-        <input class="form-check-input" type="radio" name="@fieldName" id="@stripeInputId" value="@SD.PaymentMethodStripe" checked="@(selectedPaymentMethod == SD.PaymentMethodStripe)" />
-        <label class="form-check-label" for="@stripeInputId">@Model.PayWithStripeLabel</label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input" type="radio" name="@fieldName" id="@bankTransferInputId" value="@SD.PaymentMethodBankTransfer" checked="@(selectedPaymentMethod == SD.PaymentMethodBankTransfer)" />
-        <label class="form-check-label" for="@bankTransferInputId">@Model.PayByBankTransferLabel</label>
-    </div>
+    @foreach (var method in enabledMethods)
+    {
+        var inputId = $"{idPrefix}{method.Value}";
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="@fieldName" id="@inputId" value="@method.Value" checked="@(selectedPaymentMethod == method.Value)" />
+            <label class="form-check-label" for="@inputId">@method.Label</label>
+        </div>
+    }
+}
+else if (enabledMethods.Count == 1)
+{
+    <input type="hidden" name="@fieldName" value="@enabledMethods[0].Value" />
+}
+
+@if (Model.BankTransferEnabled)
+{
     <div id="@bankTransferDetailsId" class="alert alert-info mt-2 @(selectedPaymentMethod == SD.PaymentMethodBankTransfer ? "" : "d-none")">
         <div><strong>@Model.BankTransferCbuLabel:</strong> @Model.BankTransferCbu</div>
         @if (!string.IsNullOrWhiteSpace(Model.BankTransferAlias))
@@ -35,39 +56,19 @@
             <div><strong>@Model.BankTransferBankNameLabel:</strong> @Model.BankTransferBankName</div>
         }
     </div>
-    <script>
-        (function () {
-            var bankTransferRadio = document.getElementById('@bankTransferInputId');
-            var stripeRadio = document.getElementById('@stripeInputId');
-            var details = document.getElementById('@bankTransferDetailsId');
-            if (!bankTransferRadio || !details) { return; }
-            function toggle() { details.classList.toggle('d-none', !bankTransferRadio.checked); }
-            bankTransferRadio.addEventListener('change', toggle);
-            if (stripeRadio) { stripeRadio.addEventListener('change', toggle); }
-            toggle();
-        })();
-    </script>
-}
-else if (Model.BankTransferEnabled)
-{
-    <input type="hidden" name="@fieldName" value="@SD.PaymentMethodBankTransfer" />
-    <div class="alert alert-info">
-        <div><strong>@Model.BankTransferCbuLabel:</strong> @Model.BankTransferCbu</div>
-        @if (!string.IsNullOrWhiteSpace(Model.BankTransferAlias))
-        {
-            <div><strong>@Model.BankTransferAliasLabel:</strong> @Model.BankTransferAlias</div>
-        }
-        @if (!string.IsNullOrWhiteSpace(Model.BankTransferRecipientName))
-        {
-            <div><strong>@Model.BankTransferRecipientNameLabel:</strong> @Model.BankTransferRecipientName</div>
-        }
-        @if (!string.IsNullOrWhiteSpace(Model.BankTransferBankName))
-        {
-            <div><strong>@Model.BankTransferBankNameLabel:</strong> @Model.BankTransferBankName</div>
-        }
-    </div>
-}
-else if (Model.StripeEnabled)
-{
-    <input type="hidden" name="@fieldName" value="@SD.PaymentMethodStripe" />
+
+    @if (enabledMethods.Count > 1)
+    {
+        <script>
+            (function () {
+                var bankTransferRadio = document.querySelector('input[name="@fieldName"][value="@SD.PaymentMethodBankTransfer"]');
+                var methodRadios = document.querySelectorAll('input[name="@fieldName"]');
+                var details = document.getElementById('@bankTransferDetailsId');
+                if (!bankTransferRadio || !details) { return; }
+                function toggle() { details.classList.toggle('d-none', !bankTransferRadio.checked); }
+                methodRadios.forEach(function (radio) { radio.addEventListener('change', toggle); });
+                toggle();
+            })();
+        </script>
+    }
 }

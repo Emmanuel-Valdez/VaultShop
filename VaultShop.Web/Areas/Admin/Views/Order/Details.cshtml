@@ -39,8 +39,10 @@
 		IdPrefix = "companyPaymentMethod",
 		StripeEnabled = ViewData["StripeEnabled"] is true,
 		BankTransferEnabled = ViewData["BankTransferEnabled"] is true,
+		MercadoPagoEnabled = ViewData["MercadoPagoEnabled"] is true,
 		PayWithStripeLabel = Localizer["PayWithStripe"].Value,
 		PayByBankTransferLabel = Localizer["PayByBankTransfer"].Value,
+		PayWithMercadoPagoLabel = Localizer["PayWithMercadoPago"].Value,
 		BankTransferCbuLabel = Localizer["BankTransferCbuLabel"].Value,
 		BankTransferAliasLabel = Localizer["BankTransferAliasLabel"].Value,
 		BankTransferRecipientNameLabel = Localizer["BankTransferRecipientNameLabel"].Value,
@@ -50,7 +52,7 @@
 		BankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty,
 		BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty
 	};
-	var paymentMethodAvailable = paymentMethodPicker.StripeEnabled || paymentMethodPicker.BankTransferEnabled;
+	var paymentMethodAvailable = paymentMethodPicker.StripeEnabled || paymentMethodPicker.BankTransferEnabled || paymentMethodPicker.MercadoPagoEnabled;
 	var bankTransferCbu = paymentMethodPicker.BankTransferCbu;
 	var bankTransferAlias = paymentMethodPicker.BankTransferAlias;
 	var bankTransferRecipientName = paymentMethodPicker.BankTransferRecipientName;

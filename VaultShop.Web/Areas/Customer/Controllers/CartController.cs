@@ -108,6 +108,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return RedirectToAction(nameof(Index));
 			}
 			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
+			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
 			PopulateBankTransferViewData();
 			return View(result.ShoppingCartVM);
 		}

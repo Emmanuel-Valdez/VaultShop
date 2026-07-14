@@ -8,9 +8,11 @@ namespace VaultShop.Models.ViewModels
 
         public bool StripeEnabled { get; set; }
         public bool BankTransferEnabled { get; set; }
+        public bool MercadoPagoEnabled { get; set; }
 
         public string PayWithStripeLabel { get; set; } = "Stripe";
         public string PayByBankTransferLabel { get; set; } = "Bank transfer";
+        public string PayWithMercadoPagoLabel { get; set; } = "Mercado Pago";
         public string BankTransferCbuLabel { get; set; } = "CBU";
         public string BankTransferAliasLabel { get; set; } = "Alias";
         public string BankTransferRecipientNameLabel { get; set; } = "Recipient";

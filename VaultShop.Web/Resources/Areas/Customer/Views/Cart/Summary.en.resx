@@ -135,6 +135,9 @@
   <data name="PayByBankTransfer" xml:space="preserve">
     <value>Pay by bank transfer</value>
   </data>
+  <data name="PayWithMercadoPago" xml:space="preserve">
+    <value>Pay with Mercado Pago</value>
+  </data>
   <data name="BankTransferCbuLabel" xml:space="preserve">
     <value>Transfer to</value>
   </data>
