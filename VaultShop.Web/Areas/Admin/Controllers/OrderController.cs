@@ -398,6 +398,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		private void PopulateBankTransferViewData()
 		{
+			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
+			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
 			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
 			ViewData["BankTransferAlias"] = _configuration.GetValue<string>("Payments:BankTransferAlias") ?? string.Empty;
 			ViewData["BankTransferRecipientName"] = _configuration.GetValue<string>("Payments:BankTransferRecipientName") ?? string.Empty;

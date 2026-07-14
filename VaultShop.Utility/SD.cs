@@ -23,7 +23,7 @@ namespace VaultShop.Utility
 
 		public const string PaymentMethodStripe = "Stripe";
 		public const string PaymentMethodBankTransfer = "BankTransfer";
-		public const string PaymentMethodMercadoPago = "MercadoPago"; // reserved, not implemented yet
+		public const string PaymentMethodMercadoPago = "MercadoPago";
 
 		public const string SessionCart = "SessionShoppingCart";
 

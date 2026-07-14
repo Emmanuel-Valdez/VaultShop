@@ -87,65 +87,29 @@
 						</div>
 					</div>
 					@{
-						var stripeEnabled = ViewData["StripeEnabled"] is true;
-						var bankTransferEnabled = ViewData["BankTransferEnabled"] is true;
-						var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
-						var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
-						var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
-						var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
+						var paymentMethodPicker = new PaymentMethodPickerVM
+						{
+							FieldName = "OrderHeader.PaymentMethod",
+							IdPrefix = "checkoutPaymentMethod",
+							StripeEnabled = ViewData["StripeEnabled"] is true,
+							BankTransferEnabled = ViewData["BankTransferEnabled"] is true,
+							SelectedPaymentMethod = Model.OrderHeader.PaymentMethod ?? string.Empty,
+							PayWithStripeLabel = Localizer["PayWithStripe"].Value,
+							PayByBankTransferLabel = Localizer["PayByBankTransfer"].Value,
+							BankTransferCbuLabel = Localizer["BankTransferCbuLabel"].Value,
+							BankTransferAliasLabel = Localizer["BankTransferAliasLabel"].Value,
+							BankTransferRecipientNameLabel = Localizer["BankTransferRecipientNameLabel"].Value,
+							BankTransferBankNameLabel = Localizer["BankTransferBankNameLabel"].Value,
+							BankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty,
+							BankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty,
+							BankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty,
+							BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty
+						};
 					}
 					<div class="row g-4 mt-2">
 						<div class="col-12">
 							<h2 class="h5 mb-3 text-primary">@Localizer["PaymentMethod"]</h2>
-							@if (stripeEnabled && bankTransferEnabled)
-							{
-								<div class="form-check">
-									<input class="form-check-input" type="radio" name="OrderHeader.PaymentMethod" id="paymentMethodStripe" value="Stripe" checked="checked" />
-									<label class="form-check-label" for="paymentMethodStripe">@Localizer["PayWithStripe"]</label>
-								</div>
-								<div class="form-check">
-									<input class="form-check-input" type="radio" name="OrderHeader.PaymentMethod" id="paymentMethodBankTransfer" value="BankTransfer" />
-									<label class="form-check-label" for="paymentMethodBankTransfer">@Localizer["PayByBankTransfer"]</label>
-								</div>
-								<div id="bankTransferDetails" class="alert alert-info mt-2 d-none">
-									<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
-									@if (!string.IsNullOrWhiteSpace(bankTransferAlias))
-									{
-										<div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div>
-									}
-									@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName))
-									{
-										<div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div>
-									}
-									@if (!string.IsNullOrWhiteSpace(bankTransferBankName))
-									{
-										<div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div>
-									}
-								</div>
-							}
-							else if (bankTransferEnabled)
-							{
-								<input type="hidden" name="OrderHeader.PaymentMethod" value="BankTransfer" />
-								<div class="alert alert-info">
-									<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
-									@if (!string.IsNullOrWhiteSpace(bankTransferAlias))
-									{
-										<div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div>
-									}
-									@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName))
-									{
-										<div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div>
-									}
-									@if (!string.IsNullOrWhiteSpace(bankTransferBankName))
-									{
-										<div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div>
-									}
-								</div>
-							}
-							else
-							{
-								<input type="hidden" name="OrderHeader.PaymentMethod" value="Stripe" />
-							}
+							<partial name="_PaymentMethodPicker" model="paymentMethodPicker" />
 						</div>
 					</div>
 				</div>
@@ -185,18 +149,6 @@
 	@{
 		<partial name="_ValidationScriptsPartial" />
 	}
-	<script>
-		(function () {
-			var bankTransferRadio = document.getElementById('paymentMethodBankTransfer');
-			var stripeRadio = document.getElementById('paymentMethodStripe');
-			var details = document.getElementById('bankTransferDetails');
-			if (!bankTransferRadio || !details) { return; }
-			function toggle() { details.classList.toggle('d-none', !bankTransferRadio.checked); }
-			bankTransferRadio.addEventListener('change', toggle);
-			if (stripeRadio) { stripeRadio.addEventListener('change', toggle); }
-			toggle();
-		})();
-	</script>
 }
 
 

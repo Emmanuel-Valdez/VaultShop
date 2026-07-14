@@ -33,14 +33,32 @@
 	var canConfirmBankTransfer = canManageOrder && !orderIsTerminal &&
 		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
 		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
-	var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
-	var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
-	var bankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty;
-	var bankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty;
+	var paymentMethodPicker = new PaymentMethodPickerVM
+	{
+		FieldName = "paymentMethod",
+		IdPrefix = "companyPaymentMethod",
+		StripeEnabled = ViewData["StripeEnabled"] is true,
+		BankTransferEnabled = ViewData["BankTransferEnabled"] is true,
+		PayWithStripeLabel = Localizer["PayWithStripe"].Value,
+		PayByBankTransferLabel = Localizer["PayByBankTransfer"].Value,
+		BankTransferCbuLabel = Localizer["BankTransferCbuLabel"].Value,
+		BankTransferAliasLabel = Localizer["BankTransferAliasLabel"].Value,
+		BankTransferRecipientNameLabel = Localizer["BankTransferRecipientNameLabel"].Value,
+		BankTransferBankNameLabel = Localizer["BankTransferBankNameLabel"].Value,
+		BankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty,
+		BankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty,
+		BankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty,
+		BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty
+	};
+	var paymentMethodAvailable = paymentMethodPicker.StripeEnabled || paymentMethodPicker.BankTransferEnabled;
+	var bankTransferCbu = paymentMethodPicker.BankTransferCbu;
+	var bankTransferAlias = paymentMethodPicker.BankTransferAlias;
+	var bankTransferRecipientName = paymentMethodPicker.BankTransferRecipientName;
+	var bankTransferBankName = paymentMethodPicker.BankTransferBankName;
 	var transferAlreadyConfirmed = Model.OrderHeader.TransferConfirmedByCustomerAt.HasValue;
 	var bankTransferAwaitingApproval = Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
 		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
-	canPayNow = canPayNow && !transferAlreadyConfirmed && Model.OrderHeader.PaymentMethod != SD.PaymentMethodBankTransfer;
+	canPayNow = canPayNow && paymentMethodAvailable && !transferAlreadyConfirmed && Model.OrderHeader.PaymentMethod != SD.PaymentMethodBankTransfer;
 	var showBankTransferInstructions = bankTransferAwaitingApproval && !transferAlreadyConfirmed;
 	var canCustomerConfirmTransfer = !canManageOrder &&
 		bankTransferAwaitingApproval &&
@@ -358,8 +376,8 @@
 									<div class="fw-semibold">@Localizer["ChoosePaymentMethod"]</div>
 									<div>@Localizer["CompanyPaymentMethodChoiceHelp"]</div>
 								</div>
-								<button type="submit" name="paymentMethod" value="Stripe" class="btn btn-success form-control my-1">@Localizer["PayWithStripe"]</button>
-								<button type="submit" name="paymentMethod" value="BankTransfer" onclick="return confirmCompanyBankTransferChoice(event)" class="btn btn-outline-primary form-control my-1">@Localizer["PayByBankTransfer"]</button>
+								<partial name="_PaymentMethodPicker" model="paymentMethodPicker" />
+								<button type="submit" onclick="return confirmCompanyPaymentMethodChoice(event)" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
 							}
 							@if (canCustomerConfirmTransfer)
 							{
@@ -464,9 +482,15 @@
 			return false;
 		}
 
-		function confirmCompanyBankTransferChoice(event) {
+		function confirmCompanyPaymentMethodChoice(event) {
 			const button = event.currentTarget;
 			if (button.dataset.confirmed === "true") {
+				return true;
+			}
+
+			const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value
+				|| document.querySelector('input[name="paymentMethod"]')?.value;
+			if (selectedPaymentMethod !== @Json.Serialize(SD.PaymentMethodBankTransfer)) {
 				return true;
 			}
 
