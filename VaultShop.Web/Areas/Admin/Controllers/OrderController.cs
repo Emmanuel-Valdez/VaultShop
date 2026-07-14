@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using System.Security.Claims;
@@ -23,7 +24,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		public OrderVM OrderVM { get; set; } = null!;
 		private readonly IStringLocalizer<OrderController> _localizer;
 		private readonly ILogger<OrderController> _logger;
-		private readonly IPaymentSessionService _paymentSessionService;
+		private readonly IServiceProvider _paymentSessionServiceProvider;
 		private readonly IPaymentRefundService _paymentRefundService;
 		private readonly IPaymentStatusService _paymentStatusService;
 		private readonly IWebHostEnvironment _environment;
@@ -31,13 +32,13 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		private readonly ITransactionalEmailService _emailService;
 
 		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger, 
-			IPaymentSessionService paymentSessionService, IPaymentRefundService paymentRefundService, IPaymentStatusService paymentStatusService,
+			IServiceProvider paymentSessionServiceProvider, IPaymentRefundService paymentRefundService, IPaymentStatusService paymentStatusService,
 			IWebHostEnvironment environment, IConfiguration configuration, ITransactionalEmailService emailService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
 			_logger = logger;
-			_paymentSessionService = paymentSessionService;
+			_paymentSessionServiceProvider = paymentSessionServiceProvider;
 			_paymentRefundService = paymentRefundService;
 			_paymentStatusService = paymentStatusService;
 			_environment = environment;
@@ -244,7 +245,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			paymentMethod = string.IsNullOrWhiteSpace(paymentMethod)
 				? SD.PaymentMethodStripe
 				: paymentMethod.Trim();
-			if (paymentMethod != SD.PaymentMethodStripe && paymentMethod != SD.PaymentMethodBankTransfer)
+			if (!IsPaymentMethodEnabled(paymentMethod))
 			{
 				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 			}
@@ -260,7 +261,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
 			}
 
-			orderHeader.PaymentMethod = SD.PaymentMethodStripe;
+			orderHeader.PaymentMethod = paymentMethod;
 			_unitOfWork.OrderHeader.Update(orderHeader);
 
 			string currentCulture = Thread.CurrentThread.CurrentUICulture.Name;
@@ -268,7 +269,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			PaymentSessionResult session;
 			try
 			{
-				session = _paymentSessionService.CreateCheckoutSession(new PaymentSessionRequest(
+				session = GetPaymentSessionService(orderHeader).CreateCheckoutSession(new PaymentSessionRequest(
 					OrderVM.OrderHeader.Id,
 					OrderVM.OrderDetail.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
 					domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}&session_id={{CHECKOUT_SESSION_ID}}",
@@ -434,6 +435,28 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				!IsTerminal(orderHeader);
 		}
 
+		private bool IsPaymentMethodEnabled(string paymentMethod)
+		{
+			return paymentMethod switch
+			{
+				SD.PaymentMethodStripe => _configuration.GetValue("Payments:StripeEnabled", true),
+				SD.PaymentMethodBankTransfer => _configuration.GetValue("Payments:BankTransferEnabled", true),
+				SD.PaymentMethodMercadoPago => _configuration.GetValue("Payments:MercadoPagoEnabled", false),
+				_ => false
+			};
+		}
+
+		private IPaymentSessionService GetPaymentSessionService(OrderHeader orderHeader)
+		{
+			var paymentMethod = orderHeader.PaymentMethod ?? SD.PaymentMethodStripe;
+			if (paymentMethod is not (SD.PaymentMethodStripe or SD.PaymentMethodMercadoPago))
+			{
+				throw new InvalidOperationException($"Order {orderHeader.Id} does not use an online payment provider.");
+			}
+
+			return _paymentSessionServiceProvider.GetRequiredKeyedService<IPaymentSessionService>(paymentMethod);
+		}
+
 		private static string PaymentMethodLabel(string? paymentMethod)
 		{
 			return paymentMethod switch
@@ -459,7 +482,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			try
 			{
-				_paymentSessionService.ExpireCheckoutSession(orderHeader.SessionId);
+				GetPaymentSessionService(orderHeader).ExpireCheckoutSession(orderHeader.SessionId);
 			}
 			catch (Exception ex)
 			{
@@ -476,7 +499,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			try
 			{
-				var session = _paymentSessionService.GetCheckoutSessionStatus(orderHeader.SessionId);
+				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId);
 				if (session.IsPaid)
 				{
 					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));

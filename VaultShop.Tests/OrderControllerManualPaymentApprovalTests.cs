@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -421,6 +422,46 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void DetailsPayNow_UsesMercadoPagoKeyedService()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved
+			};
+			var detail = new OrderDetail
+			{
+				OrderHeaderId = 42,
+				Product = new Product { Name = "Test Product" },
+				Price = 100m,
+				Count = 2
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				orderDetails: [detail],
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company),
+				mercadoPagoEnabled: true);
+			test.MercadoPagoPaymentSessionMock
+				.Setup(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()))
+				.Returns(new PaymentSessionResult("pref_test_pay_now", null, "https://mercadopago.test/pay"));
+
+			var result = test.Controller.Details_PAY_NOW(42, SD.PaymentMethodMercadoPago);
+
+			var status = Assert.IsType<StatusCodeResult>(result);
+			Assert.Equal(303, status.StatusCode);
+			Assert.Equal("https://mercadopago.test/pay", test.Controller.Response.Headers["Location"].ToString());
+			test.MercadoPagoPaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Once);
+			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Never);
+			Assert.Equal(SD.PaymentMethodMercadoPago, order.PaymentMethod);
+		}
+
+		[Fact]
 		public void DetailsPayNow_BankTransfer_SetsMethodAndKeepsDelayedPayment()
 		{
 			var order = new OrderHeader
@@ -729,7 +770,8 @@ namespace VaultShop.Web.Tests
 			IEnumerable<OrderHeader>? orderHeaders = null,
 			IEnumerable<OrderDetail>? orderDetails = null,
 			ApplicationUser? currentUser = null,
-			ClaimsPrincipal? user = null)
+			ClaimsPrincipal? user = null,
+			bool mercadoPagoEnabled = false)
 		{
 			var unitOfWorkMock = new Mock<IUnitOfWork>();
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();
@@ -779,6 +821,7 @@ namespace VaultShop.Web.Tests
 
 			var paymentStatusMock = new Mock<IPaymentStatusService>();
 			var paymentSessionMock = new Mock<IPaymentSessionService>();
+			var mercadoPagoPaymentSessionMock = new Mock<IPaymentSessionService>();
 			var paymentRefundMock = new Mock<IPaymentRefundService>();
 			var emailServiceMock = new Mock<ITransactionalEmailService>();
 			var localizerMock = new Mock<IStringLocalizer<OrderController>>();
@@ -790,10 +833,15 @@ namespace VaultShop.Web.Tests
 			var configuration = new ConfigurationBuilder()
 				.AddInMemoryCollection(new Dictionary<string, string?>
 				{
-					["Payments:AllowDevelopmentManualApproval"] = allowManualApproval.ToString()
+					["Payments:AllowDevelopmentManualApproval"] = allowManualApproval.ToString(),
+					["Payments:MercadoPagoEnabled"] = mercadoPagoEnabled.ToString()
 				})
 				.Build();
 
+			var requestServices = new ServiceCollection();
+			requestServices.AddKeyedScoped<IPaymentSessionService>(SD.PaymentMethodStripe, (_, _) => paymentSessionMock.Object);
+			requestServices.AddKeyedScoped<IPaymentSessionService>(SD.PaymentMethodMercadoPago, (_, _) => mercadoPagoPaymentSessionMock.Object);
+			var paymentSessionServiceProvider = requestServices.BuildServiceProvider();
 			var httpContext = new DefaultHttpContext
 			{
 				User = user ?? new ClaimsPrincipal(new ClaimsIdentity())
@@ -805,7 +853,7 @@ namespace VaultShop.Web.Tests
 				unitOfWorkMock.Object,
 				localizerMock.Object,
 				NullLogger<OrderController>.Instance,
-				paymentSessionMock.Object,
+				paymentSessionServiceProvider,
 				paymentRefundMock.Object,
 				paymentStatusMock.Object,
 				environmentMock.Object,
@@ -817,7 +865,7 @@ namespace VaultShop.Web.Tests
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
 			};
 
-			return new TestController(controller, paymentStatusMock, paymentSessionMock, paymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock);
+			return new TestController(controller, paymentStatusMock, paymentSessionMock, mercadoPagoPaymentSessionMock, paymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock);
 		}
 
 		private static List<object> GetJsonOrders(IActionResult result)
@@ -862,6 +910,6 @@ namespace VaultShop.Web.Tests
 			return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
 		}
 
-		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock);
+		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentSessionService> MercadoPagoPaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock);
 	}
 }

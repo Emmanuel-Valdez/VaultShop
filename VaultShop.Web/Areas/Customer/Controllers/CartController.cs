@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using System.Security.Claims;
@@ -26,12 +27,12 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly SignInManager<ApplicationUser> _signInManager;
 		private readonly ILogger<CartController> _logger;
 		private readonly ICheckoutService _checkoutService;
-		private readonly IPaymentSessionService _paymentSessionService;
+		private readonly IServiceProvider _paymentSessionServiceProvider;
 		private readonly IPaymentStatusService _paymentStatusService;
 		private readonly ITransactionalEmailService _emailService;
 		private readonly IConfiguration _configuration;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
-			ILogger<CartController> logger, ICheckoutService checkoutService, IPaymentSessionService paymentSessionService,
+			ILogger<CartController> logger, ICheckoutService checkoutService, IServiceProvider paymentSessionServiceProvider,
 			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration)
 		{
 			_localizer = localizer;
@@ -39,7 +40,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_signInManager = signInManager;
 			_logger = logger;
 			_checkoutService = checkoutService;
-			_paymentSessionService = paymentSessionService;
+			_paymentSessionServiceProvider = paymentSessionServiceProvider;
 			_paymentStatusService = paymentStatusService;
 			_emailService = emailService;
 			_configuration = configuration;
@@ -107,9 +108,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
 				return RedirectToAction(nameof(Index));
 			}
-			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
-			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
-			PopulateBankTransferViewData();
+			PopulatePaymentMethodViewData();
 			return View(result.ShoppingCartVM);
 		}
 
@@ -126,6 +125,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			if (!ModelState.IsValid)
 			{
 				var summaryResult = _checkoutService.BuildSummary(userId, User.IsInRole(SD.Role_Company));
+				PopulatePaymentMethodViewData();
 				return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
 			}
 
@@ -139,6 +139,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				var allowedPaymentMethods = new List<string>();
 				if (_configuration.GetValue("Payments:StripeEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodStripe);
 				if (_configuration.GetValue("Payments:BankTransferEnabled", true)) allowedPaymentMethods.Add(SD.PaymentMethodBankTransfer);
+				if (_configuration.GetValue("Payments:MercadoPagoEnabled", false)) allowedPaymentMethods.Add(SD.PaymentMethodMercadoPago);
 
 				if (ShoppingCartVM.OrderHeader.PaymentMethod is not string paymentMethod || !allowedPaymentMethods.Contains(paymentMethod))
 				{
@@ -187,7 +188,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				PaymentSessionResult session;
 				try
 				{
-					session = _paymentSessionService.CreateCheckoutSession(new PaymentSessionRequest(
+					session = GetPaymentSessionService(result.ShoppingCartVM.OrderHeader).CreateCheckoutSession(new PaymentSessionRequest(
 						orderId,
 						result.ShoppingCartVM.ShoppingCartList.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
 						domain + $"customer/cart/OrderConfirmation?id={orderId}&session_id={{CHECKOUT_SESSION_ID}}",
@@ -248,6 +249,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			return View(orderHeader);
 		}
 
+		private void PopulatePaymentMethodViewData()
+		{
+			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
+			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
+			PopulateBankTransferViewData();
+		}
+
 		private void PopulateBankTransferViewData()
 		{
 			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
@@ -272,7 +280,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			try
 			{
-				var session = _paymentSessionService.GetCheckoutSessionStatus(orderHeader.SessionId);
+				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId);
 				if (session.IsPaid)
 				{
 					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
@@ -282,6 +290,17 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				_logger.LogWarning(ex, "Could not sync payment status for order {OrderId} from checkout session {SessionId}.", orderHeader.Id, orderHeader.SessionId);
 			}
+		}
+
+		private IPaymentSessionService GetPaymentSessionService(OrderHeader orderHeader)
+		{
+			var paymentMethod = orderHeader.PaymentMethod ?? SD.PaymentMethodStripe;
+			if (paymentMethod is not (SD.PaymentMethodStripe or SD.PaymentMethodMercadoPago))
+			{
+				throw new InvalidOperationException($"Order {orderHeader.Id} does not use an online payment provider.");
+			}
+
+			return _paymentSessionServiceProvider.GetRequiredKeyedService<IPaymentSessionService>(paymentMethod);
 		}
 
 		private bool UserCanAccessOrder(OrderHeader orderHeader)

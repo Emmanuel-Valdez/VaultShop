@@ -2,6 +2,8 @@
 @{
     var fieldName = string.IsNullOrWhiteSpace(Model.FieldName) ? "paymentMethod" : Model.FieldName;
     var idPrefix = string.IsNullOrWhiteSpace(Model.IdPrefix) ? "paymentMethod" : Model.IdPrefix;
+    var choiceFieldName = $"{idPrefix}Choice";
+    var hiddenInputId = $"{idPrefix}Value";
     var enabledMethods = new List<(string Value, string Label)>();
 
     if (Model.StripeEnabled)
@@ -23,20 +25,18 @@
     var bankTransferDetailsId = $"{idPrefix}BankTransferDetails";
 }
 
+<input type="hidden" name="@fieldName" id="@hiddenInputId" value="@selectedPaymentMethod" />
+
 @if (enabledMethods.Count > 1)
 {
     @foreach (var method in enabledMethods)
     {
         var inputId = $"{idPrefix}{method.Value}";
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="@fieldName" id="@inputId" value="@method.Value" checked="@(selectedPaymentMethod == method.Value)" />
+            <input class="form-check-input" type="radio" name="@choiceFieldName" id="@inputId" value="@method.Value" checked="@(selectedPaymentMethod == method.Value)" />
             <label class="form-check-label" for="@inputId">@method.Label</label>
         </div>
     }
-}
-else if (enabledMethods.Count == 1)
-{
-    <input type="hidden" name="@fieldName" value="@enabledMethods[0].Value" />
 }
 
 @if (Model.BankTransferEnabled)
@@ -56,19 +56,25 @@ else if (enabledMethods.Count == 1)
             <div><strong>@Model.BankTransferBankNameLabel:</strong> @Model.BankTransferBankName</div>
         }
     </div>
+}
 
-    @if (enabledMethods.Count > 1)
-    {
-        <script>
-            (function () {
-                var bankTransferRadio = document.querySelector('input[name="@fieldName"][value="@SD.PaymentMethodBankTransfer"]');
-                var methodRadios = document.querySelectorAll('input[name="@fieldName"]');
-                var details = document.getElementById('@bankTransferDetailsId');
-                if (!bankTransferRadio || !details) { return; }
-                function toggle() { details.classList.toggle('d-none', !bankTransferRadio.checked); }
-                methodRadios.forEach(function (radio) { radio.addEventListener('change', toggle); });
-                toggle();
-            })();
-        </script>
-    }
+@if (enabledMethods.Count > 1)
+{
+    <script>
+        (function () {
+            var hiddenInput = document.getElementById('@hiddenInputId');
+            var methodRadios = document.querySelectorAll('input[name="@choiceFieldName"]');
+            var bankTransferRadio = document.querySelector('input[name="@choiceFieldName"][value="@SD.PaymentMethodBankTransfer"]');
+            var details = document.getElementById('@bankTransferDetailsId');
+
+            function updateSelection() {
+                var selected = document.querySelector('input[name="@choiceFieldName"]:checked');
+                if (hiddenInput && selected) { hiddenInput.value = selected.value; }
+                if (details && bankTransferRadio) { details.classList.toggle('d-none', !bankTransferRadio.checked); }
+            }
+
+            methodRadios.forEach(function (radio) { radio.addEventListener('change', updateSelection); });
+            updateSelection();
+        })();
+    </script>
 }

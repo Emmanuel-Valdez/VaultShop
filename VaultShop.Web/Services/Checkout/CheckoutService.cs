@@ -154,8 +154,8 @@ namespace VaultShop.Web.Services.Checkout
 			}
 
 			bool isCompanyOrder = applicationUser.CompanyId.GetValueOrDefault() > 0;
-			bool payingByStripe = !isCompanyOrder && shoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodStripe;
-			bool requiresOnlinePayment = payingByStripe;
+			bool requiresOnlinePayment = !isCompanyOrder && shoppingCartVM.OrderHeader.PaymentMethod is
+				SD.PaymentMethodStripe or SD.PaymentMethodMercadoPago;
 
 			if (!isCompanyOrder)
 			{

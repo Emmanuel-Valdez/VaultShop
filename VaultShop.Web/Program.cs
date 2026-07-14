@@ -180,6 +180,8 @@ builder.Services.AddHttpClient("MercadoPago", client =>
 builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionClient>();
 builder.Services.AddScoped<IPaymentRefundService, StripePaymentRefundService>();
 builder.Services.AddScoped<IPaymentSessionService, StripePaymentSessionService>();
+builder.Services.AddKeyedScoped<IPaymentSessionService, StripePaymentSessionService>(SD.PaymentMethodStripe);
+builder.Services.AddKeyedScoped<IPaymentSessionService, MercadoPagoPaymentSessionService>(SD.PaymentMethodMercadoPago);
 builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
 builder.Services.AddScoped<IPricingCalculatorService, PricingCalculatorService>();
 builder.Services.AddScoped<IRichTextSanitizer, RichTextSanitizer>();

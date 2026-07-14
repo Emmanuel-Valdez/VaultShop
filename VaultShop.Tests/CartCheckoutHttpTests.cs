@@ -1,10 +1,13 @@
 using System.Net;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VaultShop.DataAccess.Data;
 using VaultShop.Models;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Payments;
 
 namespace VaultShop.Web.Tests;
 
@@ -97,6 +100,37 @@ public class CartCheckoutHttpTests
     }
 
     [Fact]
+    public async Task SummaryPost_AsCustomer_WithMercadoPago_UsesMercadoPagoKeyedService()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Payments:MercadoPagoEnabled"] = "true",
+            }));
+            builder.ConfigureServices(services =>
+                services.AddKeyedScoped<IPaymentSessionService, FakeMercadoPagoPaymentSessionService>(SD.PaymentMethodMercadoPago));
+        });
+        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 2, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodMercadoPago);
+
+        Assert.Equal((HttpStatusCode)303, response.StatusCode);
+        Assert.Equal("https://mercadopago.test/checkout", response.Headers.Location!.ToString());
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
+        Assert.Equal(SD.PaymentMethodMercadoPago, orderHeader.PaymentMethod);
+        Assert.Equal("pref_test_123", orderHeader.SessionId);
+    }
+
+    [Fact]
     public async Task SummaryPost_WithEmptyCart_RedirectsToIndexWithoutCreatingOrder()
     {
         using var factory = new CustomWebApplicationFactory();
@@ -151,7 +185,7 @@ public class CartCheckoutHttpTests
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
     }
 
-    private static void SeedProductAndCart(CustomWebApplicationFactory factory, string email, int count, decimal retailPrice, decimal wholesalePrice)
+    private static void SeedProductAndCart(WebApplicationFactory<Program> factory, string email, int count, decimal retailPrice, decimal wholesalePrice)
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -183,5 +217,18 @@ public class CartCheckoutHttpTests
             Count = count,
         });
         db.SaveChanges();
+    }
+
+    private sealed class FakeMercadoPagoPaymentSessionService : IPaymentSessionService
+    {
+        public PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request) =>
+            new("pref_test_123", null, "https://mercadopago.test/checkout");
+
+        public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId) =>
+            new(sessionId, null, null);
+
+        public void ExpireCheckoutSession(string sessionId)
+        {
+        }
     }
 }
