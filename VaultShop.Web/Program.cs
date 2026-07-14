@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Minio;
 using Stripe;
 using System.Globalization;
+using System.Net.Http.Headers;
 using VaultShop.DataAccess.Data;
 using VaultShop.DataAccess.DbInitializer;
 using VaultShop.DataAccess.Repository;
@@ -166,6 +167,16 @@ switch (imageStorageProvider.Trim().ToUpperInvariant())
 
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddHttpClient("MercadoPago", client =>
+{
+	client.BaseAddress = new Uri("https://api.mercadopago.com");
+	client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+	var mercadoPagoAccessToken = builder.Configuration["Payments:MercadoPagoAccessToken"];
+	if (!string.IsNullOrWhiteSpace(mercadoPagoAccessToken))
+	{
+		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", mercadoPagoAccessToken);
+	}
+});
 builder.Services.AddScoped<IStripeCheckoutSessionClient, StripeCheckoutSessionClient>();
 builder.Services.AddScoped<IPaymentRefundService, StripePaymentRefundService>();
 builder.Services.AddScoped<IPaymentSessionService, StripePaymentSessionService>();
