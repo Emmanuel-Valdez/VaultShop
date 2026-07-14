@@ -266,13 +266,16 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			string currentCulture = Thread.CurrentThread.CurrentUICulture.Name;
 			var domain = Request.Scheme + "://" + Request.Host.Value + "/";
+			var successUrl = paymentMethod == SD.PaymentMethodMercadoPago
+				? domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}"
+				: domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}&session_id={{CHECKOUT_SESSION_ID}}";
 			PaymentSessionResult session;
 			try
 			{
 				session = GetPaymentSessionService(orderHeader).CreateCheckoutSession(new PaymentSessionRequest(
 					OrderVM.OrderHeader.Id,
 					OrderVM.OrderDetail.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
-					domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}&session_id={{CHECKOUT_SESSION_ID}}",
+					successUrl,
 					domain + $"{currentCulture}/admin/order/details?orderId={OrderVM.OrderHeader.Id}"));
 			}
 			catch (Exception ex)
@@ -288,7 +291,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		}
 
-		public IActionResult PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId)
+		public IActionResult PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
 			if (orderHeader == null)
@@ -299,9 +302,10 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			{
 				return NotFound();
 			}
-			if (!ConfirmationSessionMatches(orderHeader, sessionId))
+			var confirmationSessionId = sessionId ?? (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago ? preferenceId : null);
+			if (!ConfirmationSessionMatches(orderHeader, confirmationSessionId))
 			{
-				_logger.LogWarning("Rejected payment confirmation for order {OrderId} with session {SessionId}. Stored session: {StoredSessionId}.", orderHeader.Id, sessionId, orderHeader.SessionId);
+				_logger.LogWarning("Rejected payment confirmation for order {OrderId} with session {SessionId}. Stored session: {StoredSessionId}.", orderHeader.Id, confirmationSessionId, orderHeader.SessionId);
 				return NotFound();
 			}
 
@@ -463,6 +467,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			{
 				SD.PaymentMethodStripe => SD.PaymentMethodStripe,
 				SD.PaymentMethodBankTransfer => SD.PaymentMethodBankTransfer,
+				SD.PaymentMethodMercadoPago => SD.PaymentMethodMercadoPago,
 				_ => "Unspecified"
 			};
 		}

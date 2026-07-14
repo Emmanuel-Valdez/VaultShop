@@ -88,7 +88,7 @@ function loadDataTable(status) {
                 "width": "10%"
             }
         ],
-        "order": [],
+        "order": [[0, "desc"]],
         "language": window.SpanishCultureTables(culture),
         responsive: {
             details: {

@@ -185,13 +185,16 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				var culture = CultureInfo.CurrentCulture.Name;
 				var domain = Request.Scheme + "://" + Request.Host.Value + "/" + culture + "/";
+				var successUrl = result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodMercadoPago
+					? domain + $"customer/cart/OrderConfirmation?id={orderId}"
+					: domain + $"customer/cart/OrderConfirmation?id={orderId}&session_id={{CHECKOUT_SESSION_ID}}";
 				PaymentSessionResult session;
 				try
 				{
 					session = GetPaymentSessionService(result.ShoppingCartVM.OrderHeader).CreateCheckoutSession(new PaymentSessionRequest(
 						orderId,
 						result.ShoppingCartVM.ShoppingCartList.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
-						domain + $"customer/cart/OrderConfirmation?id={orderId}&session_id={{CHECKOUT_SESSION_ID}}",
+						successUrl,
 						domain + "customer/cart/index"));
 				}
 				catch (Exception ex)
@@ -210,7 +213,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			return RedirectToAction(nameof(OrderConfirmation), new { id = orderId });
 		}
 
-		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId)
+		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
 			if (orderHeader == null)
@@ -221,9 +224,10 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				return NotFound();
 			}
-			if (!ConfirmationSessionMatches(orderHeader, sessionId))
+			var confirmationSessionId = sessionId ?? (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago ? preferenceId : null);
+			if (!ConfirmationSessionMatches(orderHeader, confirmationSessionId))
 			{
-				_logger.LogWarning("Rejected order confirmation for order {OrderId} with session {SessionId}. Stored session: {StoredSessionId}.", orderHeader.Id, sessionId, orderHeader.SessionId);
+				_logger.LogWarning("Rejected order confirmation for order {OrderId} with session {SessionId}. Stored session: {StoredSessionId}.", orderHeader.Id, confirmationSessionId, orderHeader.SessionId);
 				return NotFound();
 			}
 
