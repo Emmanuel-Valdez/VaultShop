@@ -208,7 +208,10 @@
     <value>Id Intento de Pago</value>
   </data>
   <data name="PaymentNotApprovedMessage" xml:space="preserve">
-    <value>El pago aun no fue aprobado. La orden sigue impaga hasta que Stripe confirme el pago.</value>
+    <value>El pago aún no fue aprobado. La orden sigue impaga hasta que se confirme el pago.</value>
+  </data>
+  <data name="BankTransferPaymentNotApprovedMessage" xml:space="preserve">
+    <value>El pago aún no fue aprobado. La orden sigue impaga hasta que confirmemos la transferencia recibida.</value>
   </data>
   <data name="PaymentStatus" xml:space="preserve">
     <value>Estado de Pago</value>
@@ -302,6 +305,24 @@
   </data>
   <data name="UpdateOrderDetails" xml:space="preserve">
     <value>Actualizar Detalles de Órden</value>
+  </data>
+  <data name="UpdateShippedOrderConfirmTitle" xml:space="preserve">
+    <value>¿Actualizar una orden enviada?</value>
+  </data>
+  <data name="UpdateShippedOrderConfirmText" xml:space="preserve">
+    <value>Esta orden ya fue enviada. Los cambios en datos del cliente o envío se guardarán permanentemente.</value>
+  </data>
+  <data name="UpdateShippedOrderConfirmButton" xml:space="preserve">
+    <value>Sí, actualizar</value>
+  </data>
+  <data name="CompanyBankTransferConfirmTitle" xml:space="preserve">
+    <value>¿Elegir transferencia bancaria?</value>
+  </data>
+  <data name="CompanyBankTransferConfirmText" xml:space="preserve">
+    <value>Esto mantendrá la orden como pago diferido y mostrará los datos para transferir. No se abrirá Stripe.</value>
+  </data>
+  <data name="CompanyBankTransferConfirmButton" xml:space="preserve">
+    <value>Sí, elegir transferencia</value>
   </data>
   <data name="ZipCode" xml:space="preserve">
     <value>Código Postal</value>

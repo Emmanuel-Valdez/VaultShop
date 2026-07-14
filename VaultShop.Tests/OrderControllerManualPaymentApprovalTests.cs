@@ -558,6 +558,73 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void UpdateOrderDetail_DoesNotEditShippedOrder_ForEmployee()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				OrderStatus = SD.StatusShipped,
+				Carrier = "Original Carrier",
+				TrackingNumber = "ORIGINAL"
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("employee-user", SD.Role_Employee));
+			test.Controller.OrderVM.OrderHeader = new OrderHeader
+			{
+				Id = 42,
+				Carrier = "Changed Carrier",
+				TrackingNumber = "CHANGED"
+			};
+
+			var result = test.Controller.UpdateOrderDetail();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal("Original Carrier", order.Carrier);
+			Assert.Equal("ORIGINAL", order.TrackingNumber);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void UpdateOrderDetail_AllowsShippedOrderEdit_ForAdmin()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Original Name",
+				OrderStatus = SD.StatusShipped,
+				Carrier = "Original Carrier",
+				TrackingNumber = "ORIGINAL"
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin));
+			test.Controller.OrderVM.OrderHeader = new OrderHeader
+			{
+				Id = 42,
+				Name = "Changed Name",
+				Carrier = "Changed Carrier",
+				TrackingNumber = "CHANGED"
+			};
+
+			var result = test.Controller.UpdateOrderDetail();
+
+			Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Changed Name", order.Name);
+			Assert.Equal("Changed Carrier", order.Carrier);
+			Assert.Equal("CHANGED", order.TrackingNumber);
+			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+
+		[Fact]
 		public void GetAll_PendingIncludesCustomerPendingAndCompanyDelayedPaymentOrders()
 		{
 			var orders = new[]

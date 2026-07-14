@@ -89,7 +89,7 @@ namespace VaultShop.Web.Tests
 			Assert.Contains("vault.alias", body);
 			Assert.Contains("Vault Shop", body);
 			Assert.Contains("Galicia", body);
-			Assert.Contains("customer/order", body);
+			Assert.Contains("admin/order/details?orderId=42", body);
 			Assert.NotNull(subject);
 			Assert.NotNull(order.OrderConfirmationEmailSentUtc);
 		}

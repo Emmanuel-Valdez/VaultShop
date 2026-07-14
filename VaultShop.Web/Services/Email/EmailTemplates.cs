@@ -26,7 +26,7 @@ public static class EmailTemplates
         var orderNumberText = isSpanish ? $"Pedido N° {orderId}" : $"Order #{orderId}";
         var totalLabel = isSpanish ? "Total" : "Total";
         var viewOrderText = isSpanish ? "Ver pedido" : "View order";
-        var orderLink = $"{siteUrl.TrimEnd('/')}/customer/order";
+        var orderLink = OrderDetailsUrl(siteUrl, culture, orderId);
 
         var bankTransferHtml = string.Empty;
         if (includeBankTransferInstructions)
@@ -92,7 +92,7 @@ public static class EmailTemplates
             : $"We've received your payment of {orderTotal} for order #{orderId}.";
         var dashboardText = isSpanish ? "Ver mis pedidos" : "My orders";
 
-        var body = HtmlTemplate(storeName, heading, message, $"{siteUrl.TrimEnd('/')}/customer/order", dashboardText, culture);
+        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
         return new EmailContent(subject, body);
     }
 
@@ -110,7 +110,7 @@ public static class EmailTemplates
             : $"The payment for order #{orderId} could not be processed. You can try again from your dashboard.";
         var dashboardText = isSpanish ? "Intentar de nuevo" : "Try again";
 
-        var body = HtmlTemplate(storeName, heading, message, $"{siteUrl.TrimEnd('/')}/customer/order", dashboardText, culture);
+        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
         return new EmailContent(subject, body);
     }
 
@@ -140,7 +140,7 @@ public static class EmailTemplates
                 : $" Carrier: {carrier}";
         }
         var dashboardText = isSpanish ? "Seguir pedido" : "Track order";
-        var body = HtmlTemplate(storeName, heading, message, $"{siteUrl.TrimEnd('/')}/customer/order", dashboardText, culture);
+        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
         return new EmailContent(subject, body);
     }
 
@@ -185,6 +185,12 @@ public static class EmailTemplates
         return new EmailContent(subject, body);
     }
 
+    public static string OrderDetailsUrl(string siteUrl, CultureInfo culture, int orderId)
+    {
+        var baseUrl = siteUrl.TrimEnd('/');
+        var cultureSegment = string.IsNullOrWhiteSpace(culture.Name) ? string.Empty : $"/{culture.Name}";
+        return $"{baseUrl}{cultureSegment}/admin/order/details?orderId={orderId}";
+    }
     private static string HtmlTemplate(
         string storeName, string heading, string message,
         string actionUrl, string actionText, CultureInfo culture)

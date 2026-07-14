@@ -208,7 +208,10 @@
     <value>Payment Intent Id</value>
   </data>
   <data name="PaymentNotApprovedMessage" xml:space="preserve">
-    <value>Payment has not been approved yet. The order remains unpaid until Stripe confirms payment.</value>
+    <value>Payment has not been approved yet. The order remains unpaid until the payment is confirmed.</value>
+  </data>
+  <data name="BankTransferPaymentNotApprovedMessage" xml:space="preserve">
+    <value>Payment has not been approved yet. The order remains unpaid until the bank transfer is confirmed.</value>
   </data>
   <data name="PaymentStatus" xml:space="preserve">
     <value>Payment Status</value>
@@ -302,6 +305,24 @@
   </data>
   <data name="UpdateOrderDetails" xml:space="preserve">
     <value>Update Order Details</value>
+  </data>
+  <data name="UpdateShippedOrderConfirmTitle" xml:space="preserve">
+    <value>Update a shipped order?</value>
+  </data>
+  <data name="UpdateShippedOrderConfirmText" xml:space="preserve">
+    <value>This order was already shipped. Changes to customer or shipping data will be saved permanently.</value>
+  </data>
+  <data name="UpdateShippedOrderConfirmButton" xml:space="preserve">
+    <value>Yes, update it</value>
+  </data>
+  <data name="CompanyBankTransferConfirmTitle" xml:space="preserve">
+    <value>Choose bank transfer?</value>
+  </data>
+  <data name="CompanyBankTransferConfirmText" xml:space="preserve">
+    <value>This will keep the order as delayed payment and show the bank transfer details. You will not be redirected to Stripe.</value>
+  </data>
+  <data name="CompanyBankTransferConfirmButton" xml:space="preserve">
+    <value>Yes, choose bank transfer</value>
   </data>
   <data name="ZipCode" xml:space="preserve">
     <value>Zip Code</value>

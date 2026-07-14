@@ -5,8 +5,9 @@
 	var orderIsTerminal = Model.OrderHeader.OrderStatus == SD.StatusCancelled ||
 		Model.OrderHeader.OrderStatus == SD.StatusRefunded ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusRejected;
+	var orderIsShipped = Model.OrderHeader.OrderStatus == SD.StatusShipped;
 	var canEditShippingDetails = User.IsInRole(SD.Role_Admin) && !orderIsTerminal;
-	var canEditFulfillmentDetails = canManageOrder && !orderIsTerminal;
+	var canEditFulfillmentDetails = canManageOrder && !orderIsTerminal && (!orderIsShipped || User.IsInRole(SD.Role_Admin));
 	var allowDevelopmentManualApproval = ViewData["AllowDevelopmentManualPaymentApproval"] is true;
 	var paymentCanBeManuallyApproved = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
@@ -257,7 +258,7 @@
 							</div>
 							@if (canEditFulfillmentDetails)
 							{
-								<Button type="submit" asp-action="UpdateOrderDetail" class="btn btn-warning form-control my-1">
+								<Button type="submit" asp-action="UpdateOrderDetail" onclick="return confirmShippedOrderUpdate(event)" class="btn btn-warning form-control my-1">
 									@Localizer["UpdateOrderDetails"]
 								</Button>
 							}
@@ -294,7 +295,7 @@
 							}
 							@if (paymentNeedsApproval)
 							{
-								<div class="alert alert-warning my-2" role="alert">@Localizer["PaymentNotApprovedMessage"]</div>
+								<div class="alert alert-warning my-2" role="alert">@Localizer[bankTransferAwaitingApproval ? "BankTransferPaymentNotApprovedMessage" : "PaymentNotApprovedMessage"]</div>
 							}
 							@if (shippingBlockedUntilPaymentApproved)
 							{
@@ -358,7 +359,7 @@
 									<div>@Localizer["CompanyPaymentMethodChoiceHelp"]</div>
 								</div>
 								<button type="submit" name="paymentMethod" value="Stripe" class="btn btn-success form-control my-1">@Localizer["PayWithStripe"]</button>
-								<button type="submit" name="paymentMethod" value="BankTransfer" class="btn btn-outline-primary form-control my-1">@Localizer["PayByBankTransfer"]</button>
+								<button type="submit" name="paymentMethod" value="BankTransfer" onclick="return confirmCompanyBankTransferChoice(event)" class="btn btn-outline-primary form-control my-1">@Localizer["PayByBankTransfer"]</button>
 							}
 							@if (canCustomerConfirmTransfer)
 							{
@@ -435,6 +436,59 @@
 			return true;
 		}
 
+		function confirmShippedOrderUpdate(event) {
+			const button = event.currentTarget;
+			const isShippedOrder = @Json.Serialize(Model.OrderHeader.OrderStatus == SD.StatusShipped);
+			const isAdmin = @Json.Serialize(User.IsInRole(SD.Role_Admin));
+			if (!isShippedOrder || !isAdmin || button.dataset.confirmed === "true") {
+				return true;
+			}
+
+			event.preventDefault();
+			Swal.fire({
+				icon: 'warning',
+				title: @Json.Serialize(Localizer["UpdateShippedOrderConfirmTitle"].Value),
+				text: @Json.Serialize(Localizer["UpdateShippedOrderConfirmText"].Value),
+				showCancelButton: true,
+				confirmButtonText: @Json.Serialize(Localizer["UpdateShippedOrderConfirmButton"].Value),
+				cancelButtonText: @Json.Serialize(Localizer["CancelOrderKeepButton"].Value),
+				confirmButtonColor: '#ffc107',
+				focusCancel: true
+			}).then((result) => {
+				if (result.isConfirmed) {
+					button.dataset.confirmed = "true";
+					button.click();
+				}
+			});
+
+			return false;
+		}
+
+		function confirmCompanyBankTransferChoice(event) {
+			const button = event.currentTarget;
+			if (button.dataset.confirmed === "true") {
+				return true;
+			}
+
+			event.preventDefault();
+			Swal.fire({
+				icon: 'warning',
+				title: @Json.Serialize(Localizer["CompanyBankTransferConfirmTitle"].Value),
+				text: @Json.Serialize(Localizer["CompanyBankTransferConfirmText"].Value),
+				showCancelButton: true,
+				confirmButtonText: @Json.Serialize(Localizer["CompanyBankTransferConfirmButton"].Value),
+				cancelButtonText: @Json.Serialize(Localizer["CancelOrderKeepButton"].Value),
+				confirmButtonColor: '#0d6efd',
+				focusCancel: true
+			}).then((result) => {
+				if (result.isConfirmed) {
+					button.dataset.confirmed = "true";
+					button.click();
+				}
+			});
+
+			return false;
+		}
 		function confirmCancelOrder(event) {
 			const button = event.currentTarget;
 			if (button.dataset.confirmed === "true") {

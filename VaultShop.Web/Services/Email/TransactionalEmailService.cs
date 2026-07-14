@@ -186,7 +186,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.Id,
             order.Name,
             order.OrderTotal.ToString("C"),
-            $"{SD.SiteUrl}es-AR/admin/order/details?orderId={order.Id}",
+            EmailTemplates.OrderDetailsUrl(SD.SiteUrl, Thread.CurrentThread.CurrentUICulture, order.Id),
             Thread.CurrentThread.CurrentUICulture,
             order.PaymentMethod,
             order.CompanyId.GetValueOrDefault() > 0 && order.PaymentStatus == SD.PaymentStatusDelayedPayment);
@@ -223,7 +223,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.Id,
             order.Name,
             order.OrderTotal.ToString("C"),
-            $"{SD.SiteUrl}es-AR/admin/order/details?orderId={order.Id}",
+            EmailTemplates.OrderDetailsUrl(SD.SiteUrl, Thread.CurrentThread.CurrentUICulture, order.Id),
             Thread.CurrentThread.CurrentUICulture);
 
         await TrySendEmailAsync(orderId, _adminEmail, content,

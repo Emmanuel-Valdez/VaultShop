@@ -90,6 +90,11 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
 			}
 
+			if (orderHeaderFromDb.OrderStatus == SD.StatusShipped && !User.IsInRole(SD.Role_Admin))
+			{
+				_logger.LogWarning("Rejected shipped order-detail update by non-admin for order {OrderId}.", orderHeaderFromDb.Id);
+				return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
+			}
 			if (User.IsInRole(SD.Role_Admin))
 			{
 				orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
