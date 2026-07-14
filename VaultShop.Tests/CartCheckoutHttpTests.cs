@@ -102,6 +102,7 @@ public class CartCheckoutHttpTests
     [Fact]
     public async Task SummaryPost_AsCustomer_WithMercadoPago_UsesMercadoPagoKeyedService()
     {
+        FakeMercadoPagoPaymentSessionService.Reset();
         using var factory = new CustomWebApplicationFactory();
         using var configuredFactory = factory.WithWebHostBuilder(builder =>
         {
@@ -128,6 +129,28 @@ public class CartCheckoutHttpTests
         var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
         Assert.Equal(SD.PaymentMethodMercadoPago, orderHeader.PaymentMethod);
         Assert.Equal("pref_test_123", orderHeader.SessionId);
+        Assert.DoesNotContain("{CHECKOUT_SESSION_ID}", FakeMercadoPagoPaymentSessionService.LastRequest!.SuccessUrl);
+        Assert.Contains("/Cart/OrderConfirmation", FakeMercadoPagoPaymentSessionService.LastRequest.SuccessUrl);
+    }
+
+    [Fact]
+    public async Task SummaryPost_AsCustomer_WithDisabledMercadoPago_DoesNotCreateOrder()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 2, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodMercadoPago);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("/Customer/Cart", response.Headers.Location!.ToString());
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Empty(db.OrderHeaders.AsNoTracking());
     }
 
     [Fact]
@@ -221,8 +244,15 @@ public class CartCheckoutHttpTests
 
     private sealed class FakeMercadoPagoPaymentSessionService : IPaymentSessionService
     {
-        public PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request) =>
-            new("pref_test_123", null, "https://mercadopago.test/checkout");
+        public static PaymentSessionRequest? LastRequest { get; private set; }
+
+        public static void Reset() => LastRequest = null;
+
+        public PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request)
+        {
+            LastRequest = request;
+            return new("pref_test_123", null, "https://mercadopago.test/checkout");
+        }
 
         public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId) =>
             new(sessionId, null, null);

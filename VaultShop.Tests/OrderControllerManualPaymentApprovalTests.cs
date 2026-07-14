@@ -456,9 +456,73 @@ namespace VaultShop.Web.Tests
 			var status = Assert.IsType<StatusCodeResult>(result);
 			Assert.Equal(303, status.StatusCode);
 			Assert.Equal("https://mercadopago.test/pay", test.Controller.Response.Headers["Location"].ToString());
-			test.MercadoPagoPaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Once);
+			test.MercadoPagoPaymentSessionMock.Verify(x => x.CreateCheckoutSession(
+				It.Is<PaymentSessionRequest>(request =>
+					request.SuccessUrl.Contains("/PaymentConfirmation", StringComparison.Ordinal) &&
+					!request.SuccessUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.Ordinal))), Times.Once);
 			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Never);
 			Assert.Equal(SD.PaymentMethodMercadoPago, order.PaymentMethod);
+		}
+
+		[Fact]
+		public void PaymentConfirmation_MercadoPagoPreferenceId_SyncsApprovedPayment()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentMethod = SD.PaymentMethodMercadoPago,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved,
+				SessionId = "pref_test_pay_now"
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company),
+				mercadoPagoEnabled: true);
+			test.MercadoPagoPaymentSessionMock
+				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now"))
+				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid"));
+
+			var result = test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now");
+
+			Assert.IsType<ViewResult>(result);
+			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(
+				It.Is<PaymentSessionStatusUpdate>(update =>
+					update.OrderId == 42 &&
+					update.SessionId == "pref_test_pay_now" &&
+					update.PaymentIntentId == "payment_test_123")), Times.Once);
+		}
+
+		[Fact]
+		public void PaymentConfirmation_MercadoPagoWrongPreferenceId_ReturnsNotFound()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentMethod = SD.PaymentMethodMercadoPago,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved,
+				SessionId = "pref_test_pay_now"
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company),
+				mercadoPagoEnabled: true);
+
+			var result = test.Controller.PaymentConfirmation(42, null, "pref_wrong");
+
+			Assert.IsType<NotFoundResult>(result);
+			test.MercadoPagoPaymentSessionMock.Verify(x => x.GetCheckoutSessionStatus(It.IsAny<string>()), Times.Never);
 		}
 
 		[Fact]
