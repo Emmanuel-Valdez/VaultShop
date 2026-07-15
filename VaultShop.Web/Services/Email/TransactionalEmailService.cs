@@ -42,7 +42,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
     {
         var order = _unitOfWork.OrderHeader.Get(
             o => o.Id == orderId,
-            includeProperties: "ApplicationUser");
+            includeProperties: "ApplicationUser",
+            tracked: true);
         if (order is null) return;
 
         if (order.OrderConfirmationEmailSentUtc.HasValue)
@@ -91,7 +92,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
     {
         var order = _unitOfWork.OrderHeader.Get(
             o => o.Id == orderId,
-            includeProperties: "ApplicationUser");
+            includeProperties: "ApplicationUser",
+            tracked: true);
         if (order is null) return;
 
         if (order.PaymentReceiptEmailSentUtc.HasValue)
@@ -142,7 +144,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
     {
         var order = _unitOfWork.OrderHeader.Get(
             o => o.Id == orderId,
-            includeProperties: "ApplicationUser");
+            includeProperties: "ApplicationUser",
+            tracked: true);
         if (order is null) return;
 
         if (order.ShippingConfirmationEmailSentUtc.HasValue)
@@ -206,7 +209,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
 
         var order = _unitOfWork.OrderHeader.Get(
             o => o.Id == orderId,
-            includeProperties: "ApplicationUser");
+            includeProperties: "ApplicationUser",
+            tracked: true);
         if (order is null || !order.TransferConfirmedByCustomerAt.HasValue)
         {
             return;

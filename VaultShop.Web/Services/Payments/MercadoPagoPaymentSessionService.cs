@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace VaultShop.Web.Services.Payments
 {
@@ -32,6 +33,8 @@ namespace VaultShop.Web.Services.Payments
 					failure = request.CancelUrl,
 					pending = request.CancelUrl
 				},
+				auto_return = "approved",
+				notification_url = request.NotificationUrl,
 				items = request.LineItems.Select(item => new
 				{
 					title = item.ProductName,
@@ -42,7 +45,10 @@ namespace VaultShop.Web.Services.Payments
 
 			using var response = client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/checkout/preferences")
 			{
-				Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+				Content = new StringContent(JsonSerializer.Serialize(payload, new JsonSerializerOptions
+				{
+					DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+				}), Encoding.UTF8, "application/json")
 			}).GetAwaiter().GetResult();
 
 			var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
@@ -56,21 +62,33 @@ namespace VaultShop.Web.Services.Payments
 			return new PaymentSessionResult(preferenceId, null, initPoint);
 		}
 
-		public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId)
+		public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId, string? providerPaymentId = null)
 		{
 			using var client = CreateConfiguredClient();
-			using var response = client.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"/v1/payments/search?sort=date_created&criteria=desc&limit=1&preference_id={Uri.EscapeDataString(sessionId)}")).GetAwaiter().GetResult();
+			var requestUrl = string.IsNullOrWhiteSpace(providerPaymentId)
+				? $"/v1/payments/search?sort=date_created&criteria=desc&limit=1&preference_id={Uri.EscapeDataString(sessionId)}"
+				: $"/v1/payments/{Uri.EscapeDataString(providerPaymentId)}";
+			using var response = client.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUrl)).GetAwaiter().GetResult();
 
 			var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-			EnsureSuccess(response, body, "search payments");
+			EnsureSuccess(response, body, string.IsNullOrWhiteSpace(providerPaymentId) ? "search payments" : "get payment");
 
 			using var json = JsonDocument.Parse(body);
+			if (!string.IsNullOrWhiteSpace(providerPaymentId))
+			{
+				return ParsePayment(sessionId, json.RootElement);
+			}
+
 			if (!json.RootElement.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array || results.GetArrayLength() == 0)
 			{
 				return new PaymentSessionStatusResult(sessionId, null, null);
 			}
 
-			var payment = results[0];
+			return ParsePayment(sessionId, results[0]);
+		}
+
+		private static PaymentSessionStatusResult ParsePayment(string sessionId, JsonElement payment)
+		{
 			var mercadoPagoStatus = GetOptionalString(payment, "status");
 			var paymentStatus = string.Equals(mercadoPagoStatus, "approved", StringComparison.OrdinalIgnoreCase)
 				? "paid"
@@ -79,7 +97,9 @@ namespace VaultShop.Web.Services.Payments
 			return new PaymentSessionStatusResult(
 				sessionId,
 				GetOptionalString(payment, "id"),
-				paymentStatus);
+				paymentStatus,
+				GetOptionalString(payment, "external_reference"),
+				GetOptionalDecimal(payment, "transaction_amount"));
 		}
 
 		public void ExpireCheckoutSession(string sessionId)
@@ -130,6 +150,21 @@ namespace VaultShop.Web.Services.Payments
 				JsonValueKind.True => bool.TrueString,
 				JsonValueKind.False => bool.FalseString,
 				_ => property.GetRawText()
+			};
+		}
+
+		private static decimal? GetOptionalDecimal(JsonElement element, string propertyName)
+		{
+			if (!element.TryGetProperty(propertyName, out var property))
+			{
+				return null;
+			}
+
+			return property.ValueKind switch
+			{
+				JsonValueKind.Number when property.TryGetDecimal(out var value) => value,
+				JsonValueKind.String when decimal.TryParse(property.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value) => value,
+				_ => null
 			};
 		}
 	}

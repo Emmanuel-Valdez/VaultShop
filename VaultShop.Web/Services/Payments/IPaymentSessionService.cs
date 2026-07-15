@@ -3,7 +3,7 @@ namespace VaultShop.Web.Services.Payments
 	public interface IPaymentSessionService
 	{
 		PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request);
-		PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId);
+		PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId, string? providerPaymentId = null);
 		void ExpireCheckoutSession(string sessionId);
 	}
 
@@ -11,7 +11,8 @@ namespace VaultShop.Web.Services.Payments
 		int OrderId,
 		IEnumerable<PaymentSessionLineItem> LineItems,
 		string SuccessUrl,
-		string CancelUrl);
+		string CancelUrl,
+		string? NotificationUrl = null);
 
 	public sealed record PaymentSessionLineItem(
 		string ProductName,
@@ -26,7 +27,9 @@ namespace VaultShop.Web.Services.Payments
 	public sealed record PaymentSessionStatusResult(
 		string SessionId,
 		string? PaymentIntentId,
-		string? PaymentStatus)
+		string? PaymentStatus,
+		string? ExternalReference = null,
+		decimal? TransactionAmount = null)
 	{
 		public bool IsPaid => string.Equals(PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase);
 	}

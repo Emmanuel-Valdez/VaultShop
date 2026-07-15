@@ -15,6 +15,33 @@ namespace VaultShop.Web.Tests
 	public class TransactionalEmailServiceTests
 	{
 		[Fact]
+		public async Task TrySendPaymentReceiptAsync_UsesTrackedOrderAndSecondCallSkipsSending()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Ada",
+				OrderTotal = 1500m,
+				ApplicationUser = new ApplicationUser { Email = "ada@vaultshop.test" }
+			};
+			var test = CreateService(order);
+			test.EmailSenderMock
+				.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+				.Returns(Task.CompletedTask);
+
+			await test.Service.TrySendPaymentReceiptAsync(42);
+			var sentAt = order.PaymentReceiptEmailSentUtc;
+			await test.Service.TrySendPaymentReceiptAsync(42);
+
+			Assert.NotNull(sentAt);
+			Assert.Equal(sentAt, order.PaymentReceiptEmailSentUtc);
+			test.OrderHeaderMock.Verify(x => x.Get(
+				It.IsAny<Expression<Func<OrderHeader, bool>>>(), "ApplicationUser", true), Times.Exactly(2));
+			test.EmailSenderMock.Verify(x => x.SendEmailAsync("ada@vaultshop.test", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
 		public async Task TrySendAdminBankTransferConfirmationRequestAsync_SendsOnceAndStoresTimestamp()
 		{
 			var order = new OrderHeader
@@ -163,12 +190,13 @@ namespace VaultShop.Web.Tests
 				configuration,
 				NullLogger<TransactionalEmailService>.Instance);
 
-			return new TestContext(service, unitOfWorkMock, emailSenderMock);
+			return new TestContext(service, unitOfWorkMock, orderHeaderMock, emailSenderMock);
 		}
 
 		private sealed record TestContext(
 			TransactionalEmailService Service,
 			Mock<IUnitOfWork> UnitOfWorkMock,
+			Mock<IOrderHeaderRepository> OrderHeaderMock,
 			Mock<IEmailSender> EmailSenderMock);
 	}
 }

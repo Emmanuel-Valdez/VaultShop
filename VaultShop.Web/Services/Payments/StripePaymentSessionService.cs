@@ -41,7 +41,7 @@ namespace VaultShop.Web.Services.Payments
 			return new PaymentSessionResult(session.Id, session.PaymentIntentId, session.Url);
 		}
 
-		public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId)
+		public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId, string? providerPaymentId = null)
 		{
 			var session = _stripeCheckoutSessionClient.Get(sessionId);
 			return new PaymentSessionStatusResult(session.Id, session.PaymentIntentId, session.PaymentStatus);

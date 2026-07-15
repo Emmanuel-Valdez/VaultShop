@@ -184,7 +184,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			if (result.RequiresOnlinePayment)
 			{
 				var culture = CultureInfo.CurrentCulture.Name;
-				var domain = Request.Scheme + "://" + Request.Host.Value + "/" + culture + "/";
+				var configuredSiteUrl = _configuration["SiteUrl"];
+				var publicBaseUrl = string.IsNullOrWhiteSpace(configuredSiteUrl)
+					? Request.Scheme + "://" + Request.Host.Value
+					: configuredSiteUrl.TrimEnd('/');
+				var domain = publicBaseUrl + "/" + culture + "/";
 				var successUrl = result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodMercadoPago
 					? domain + $"customer/cart/OrderConfirmation?id={orderId}"
 					: domain + $"customer/cart/OrderConfirmation?id={orderId}&session_id={{CHECKOUT_SESSION_ID}}";
@@ -195,7 +199,10 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 						orderId,
 						result.ShoppingCartVM.ShoppingCartList.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
 						successUrl,
-						domain + "customer/cart/index"));
+						domain + "customer/cart/index",
+						result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodMercadoPago
+							? publicBaseUrl + "/api/mercadopago/webhook?source_news=webhooks"
+							: null));
 				}
 				catch (Exception ex)
 				{
@@ -213,7 +220,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			return RedirectToAction(nameof(OrderConfirmation), new { id = orderId });
 		}
 
-		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId)
+		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId, [FromQuery(Name = "payment_id")] string? paymentId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
 			if (orderHeader == null)
@@ -233,7 +240,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			if (orderHeader.OrderStatus == SD.StatusPending && orderHeader.PaymentStatus == SD.PaymentStatusPending)
 			{
-				SyncPaidCheckoutSession(orderHeader);
+				SyncPaidCheckoutSession(orderHeader, paymentId);
 				orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser") ?? orderHeader;
 			}
 
@@ -275,7 +282,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				string.Equals(orderHeader.SessionId, sessionId, StringComparison.Ordinal);
 		}
 
-		private void SyncPaidCheckoutSession(OrderHeader orderHeader)
+		private void SyncPaidCheckoutSession(OrderHeader orderHeader, string? paymentId)
 		{
 			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
 			{
@@ -284,7 +291,14 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			try
 			{
-				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId);
+				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId, paymentId);
+				if (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago && !string.IsNullOrWhiteSpace(paymentId) &&
+					(!int.TryParse(session.ExternalReference, NumberStyles.None, CultureInfo.InvariantCulture, out var externalOrderId) ||
+						externalOrderId != orderHeader.Id || session.TransactionAmount != orderHeader.OrderTotal))
+				{
+					_logger.LogWarning("Ignored Mercado Pago payment {PaymentId} for order {OrderId} because provider reference or amount did not match. ExternalReference: {ExternalReference}. TransactionAmount: {TransactionAmount}. OrderTotal: {OrderTotal}.", paymentId, orderHeader.Id, session.ExternalReference, session.TransactionAmount, orderHeader.OrderTotal);
+					return;
+				}
 				if (session.IsPaid)
 				{
 					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));

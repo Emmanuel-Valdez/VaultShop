@@ -23,6 +23,7 @@ services:
       Payments__BankTransferBankName: ${Payments__BankTransferBankName:-}
       Payments__MercadoPagoEnabled: ${Payments__MercadoPagoEnabled:-false}
       Payments__MercadoPagoAccessToken: ${Payments__MercadoPagoAccessToken:-}
+      Payments__MercadoPagoWebhookSecret: ${Payments__MercadoPagoWebhookSecret:-}
       Facebook__AppId: ${Facebook__AppId:?Facebook__AppId is required}
       Facebook__AppSecret: ${Facebook__AppSecret:?Facebook__AppSecret is required}
       Email__Provider: ${Email__Provider:-Fake}

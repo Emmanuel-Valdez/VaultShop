@@ -459,7 +459,8 @@ namespace VaultShop.Web.Tests
 			test.MercadoPagoPaymentSessionMock.Verify(x => x.CreateCheckoutSession(
 				It.Is<PaymentSessionRequest>(request =>
 					request.SuccessUrl.Contains("/PaymentConfirmation", StringComparison.Ordinal) &&
-					!request.SuccessUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.Ordinal))), Times.Once);
+					!request.SuccessUrl.Contains("{CHECKOUT_SESSION_ID}", StringComparison.Ordinal) &&
+					request.NotificationUrl == "https://vaultshop.test/api/mercadopago/webhook?source_news=webhooks")), Times.Once);
 			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Never);
 			Assert.Equal(SD.PaymentMethodMercadoPago, order.PaymentMethod);
 		}
@@ -475,7 +476,8 @@ namespace VaultShop.Web.Tests
 				PaymentMethod = SD.PaymentMethodMercadoPago,
 				PaymentStatus = SD.PaymentStatusDelayedPayment,
 				OrderStatus = SD.StatusApproved,
-				SessionId = "pref_test_pay_now"
+				SessionId = "pref_test_pay_now",
+				OrderTotal = 200m
 			};
 			var test = CreateController(
 				Environments.Development,
@@ -485,10 +487,10 @@ namespace VaultShop.Web.Tests
 				user: CreateUser("company-user", SD.Role_Company),
 				mercadoPagoEnabled: true);
 			test.MercadoPagoPaymentSessionMock
-				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now"))
-				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid"));
+				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now", "payment_test_123"))
+				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid", "42", 200m));
 
-			var result = test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now");
+			var result = test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", "payment_test_123");
 
 			Assert.IsType<ViewResult>(result);
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(
@@ -496,6 +498,37 @@ namespace VaultShop.Web.Tests
 					update.OrderId == 42 &&
 					update.SessionId == "pref_test_pay_now" &&
 					update.PaymentIntentId == "payment_test_123")), Times.Once);
+		}
+
+		[Fact]
+		public void PaymentConfirmation_MercadoPagoAmountMismatch_DoesNotApprovePayment()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentMethod = SD.PaymentMethodMercadoPago,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved,
+				SessionId = "pref_test_pay_now",
+				OrderTotal = 200m
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company),
+				mercadoPagoEnabled: true);
+			test.MercadoPagoPaymentSessionMock
+				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now", "payment_test_123"))
+				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid", "42", 199m));
+
+			var result = test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", "payment_test_123");
+
+			Assert.IsType<ViewResult>(result);
+			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
 		}
 
 		[Fact]
@@ -519,10 +552,10 @@ namespace VaultShop.Web.Tests
 				user: CreateUser("company-user", SD.Role_Company),
 				mercadoPagoEnabled: true);
 
-			var result = test.Controller.PaymentConfirmation(42, null, "pref_wrong");
+			var result = test.Controller.PaymentConfirmation(42, null, "pref_wrong", "payment_test_123");
 
 			Assert.IsType<NotFoundResult>(result);
-			test.MercadoPagoPaymentSessionMock.Verify(x => x.GetCheckoutSessionStatus(It.IsAny<string>()), Times.Never);
+			test.MercadoPagoPaymentSessionMock.Verify(x => x.GetCheckoutSessionStatus(It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
 		}
 
 		[Fact]

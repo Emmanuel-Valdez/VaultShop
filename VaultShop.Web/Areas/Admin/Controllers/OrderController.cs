@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
+using System.Globalization;
 using System.Security.Claims;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
@@ -265,7 +266,11 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_unitOfWork.OrderHeader.Update(orderHeader);
 
 			string currentCulture = Thread.CurrentThread.CurrentUICulture.Name;
-			var domain = Request.Scheme + "://" + Request.Host.Value + "/";
+			var configuredSiteUrl = _configuration["SiteUrl"];
+			var publicBaseUrl = string.IsNullOrWhiteSpace(configuredSiteUrl)
+				? Request.Scheme + "://" + Request.Host.Value
+				: configuredSiteUrl.TrimEnd('/');
+			var domain = publicBaseUrl + "/";
 			var successUrl = paymentMethod == SD.PaymentMethodMercadoPago
 				? domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}"
 				: domain + $"{currentCulture}/admin/order/PaymentConfirmation?orderHeaderId={OrderVM.OrderHeader.Id}&session_id={{CHECKOUT_SESSION_ID}}";
@@ -276,7 +281,10 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 					OrderVM.OrderHeader.Id,
 					OrderVM.OrderDetail.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
 					successUrl,
-					domain + $"{currentCulture}/admin/order/details?orderId={OrderVM.OrderHeader.Id}"));
+					domain + $"{currentCulture}/admin/order/details?orderId={OrderVM.OrderHeader.Id}",
+					paymentMethod == SD.PaymentMethodMercadoPago
+						? publicBaseUrl + "/api/mercadopago/webhook?source_news=webhooks"
+						: null));
 			}
 			catch (Exception ex)
 			{
@@ -291,7 +299,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		}
 
-		public IActionResult PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId)
+		public IActionResult PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId, [FromQuery(Name = "payment_id")] string? paymentId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
 			if (orderHeader == null)
@@ -311,7 +319,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
 			{
-				SyncPaidCheckoutSession(orderHeader);
+				SyncPaidCheckoutSession(orderHeader, paymentId);
 				orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId) ?? orderHeader;
 			}
 
@@ -495,7 +503,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 		}
 
-		private void SyncPaidCheckoutSession(OrderHeader orderHeader)
+		private void SyncPaidCheckoutSession(OrderHeader orderHeader, string? paymentId)
 		{
 			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
 			{
@@ -504,7 +512,14 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			try
 			{
-				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId);
+				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId, paymentId);
+				if (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago && !string.IsNullOrWhiteSpace(paymentId) &&
+					(!int.TryParse(session.ExternalReference, NumberStyles.None, CultureInfo.InvariantCulture, out var externalOrderId) ||
+						externalOrderId != orderHeader.Id || session.TransactionAmount != orderHeader.OrderTotal))
+				{
+					_logger.LogWarning("Ignored Mercado Pago payment {PaymentId} for order {OrderId} because provider reference or amount did not match. ExternalReference: {ExternalReference}. TransactionAmount: {TransactionAmount}. OrderTotal: {OrderTotal}.", paymentId, orderHeader.Id, session.ExternalReference, session.TransactionAmount, orderHeader.OrderTotal);
+					return;
+				}
 				if (session.IsPaid)
 				{
 					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));

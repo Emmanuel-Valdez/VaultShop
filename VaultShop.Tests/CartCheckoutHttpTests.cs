@@ -109,6 +109,7 @@ public class CartCheckoutHttpTests
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Payments:MercadoPagoEnabled"] = "true",
+                ["SiteUrl"] = "https://store.test/",
             }));
             builder.ConfigureServices(services =>
                 services.AddKeyedScoped<IPaymentSessionService, FakeMercadoPagoPaymentSessionService>(SD.PaymentMethodMercadoPago));
@@ -124,13 +125,29 @@ public class CartCheckoutHttpTests
         Assert.Equal((HttpStatusCode)303, response.StatusCode);
         Assert.Equal("https://mercadopago.test/checkout", response.Headers.Location!.ToString());
 
-        using var scope = configuredFactory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
+        int orderId;
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            orderId = Assert.Single(db.OrderHeaders.AsNoTracking()).Id;
+        }
+
+        FakeMercadoPagoPaymentSessionService.StatusToReturn = new(
+            "pref_test_123", "payment_test_123", "paid", orderId.ToString(), 200m);
+        var confirmation = await client.GetAsync($"/en-US/Customer/Cart/OrderConfirmation?id={orderId}&preference_id=pref_test_123&payment_id=payment_test_123");
+
+        Assert.Equal(HttpStatusCode.OK, confirmation.StatusCode);
+        using var verificationScope = configuredFactory.Services.CreateScope();
+        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var orderHeader = Assert.Single(verificationDb.OrderHeaders.AsNoTracking());
         Assert.Equal(SD.PaymentMethodMercadoPago, orderHeader.PaymentMethod);
         Assert.Equal("pref_test_123", orderHeader.SessionId);
+        Assert.Equal("payment_test_123", orderHeader.PaymentIntentId);
+        Assert.Equal(SD.PaymentStatusApproved, orderHeader.PaymentStatus);
         Assert.DoesNotContain("{CHECKOUT_SESSION_ID}", FakeMercadoPagoPaymentSessionService.LastRequest!.SuccessUrl);
         Assert.Contains("/customer/cart/OrderConfirmation", FakeMercadoPagoPaymentSessionService.LastRequest.SuccessUrl, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("https://store.test/api/mercadopago/webhook?source_news=webhooks", FakeMercadoPagoPaymentSessionService.LastRequest.NotificationUrl);
+        Assert.Equal("payment_test_123", FakeMercadoPagoPaymentSessionService.LastProviderPaymentId);
     }
 
     [Fact]
@@ -245,8 +262,15 @@ public class CartCheckoutHttpTests
     private sealed class FakeMercadoPagoPaymentSessionService : IPaymentSessionService
     {
         public static PaymentSessionRequest? LastRequest { get; private set; }
+        public static string? LastProviderPaymentId { get; private set; }
+        public static PaymentSessionStatusResult? StatusToReturn { get; set; }
 
-        public static void Reset() => LastRequest = null;
+        public static void Reset()
+        {
+            LastRequest = null;
+            LastProviderPaymentId = null;
+            StatusToReturn = null;
+        }
 
         public PaymentSessionResult CreateCheckoutSession(PaymentSessionRequest request)
         {
@@ -254,8 +278,11 @@ public class CartCheckoutHttpTests
             return new("pref_test_123", null, "https://mercadopago.test/checkout");
         }
 
-        public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId) =>
-            new(sessionId, null, null);
+        public PaymentSessionStatusResult GetCheckoutSessionStatus(string sessionId, string? providerPaymentId = null)
+        {
+            LastProviderPaymentId = providerPaymentId;
+            return StatusToReturn ?? new(sessionId, null, null);
+        }
 
         public void ExpireCheckoutSession(string sessionId)
         {
