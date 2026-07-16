@@ -86,46 +86,49 @@
 							</ul>
 						</div>
 					</div>
-					@{
-						var paymentMethodPicker = new PaymentMethodPickerVM
-						{
-							FieldName = "OrderHeader.PaymentMethod",
-							IdPrefix = "checkoutPaymentMethod",
-							StripeEnabled = ViewData["StripeEnabled"] is true,
-							BankTransferEnabled = ViewData["BankTransferEnabled"] is true,
-							MercadoPagoEnabled = ViewData["MercadoPagoEnabled"] is true,
-							SelectedPaymentMethod = Model.OrderHeader.PaymentMethod ?? string.Empty,
-							PayWithStripeLabel = Localizer["PayWithStripe"].Value,
-							PayByBankTransferLabel = Localizer["PayByBankTransfer"].Value,
-							PayWithMercadoPagoLabel = Localizer["PayWithMercadoPago"].Value,
-							BankTransferCbuLabel = Localizer["BankTransferCbuLabel"].Value,
-							BankTransferAliasLabel = Localizer["BankTransferAliasLabel"].Value,
-							BankTransferRecipientNameLabel = Localizer["BankTransferRecipientNameLabel"].Value,
-							BankTransferBankNameLabel = Localizer["BankTransferBankNameLabel"].Value,
-							BankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty,
-							BankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty,
-							BankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty,
-							BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty
-						};
-					}
-					<div class="row g-4 mt-2">
-						<div class="col-12">
-							<h2 class="h5 mb-3 text-primary">@Localizer["PaymentMethod"]</h2>
-							<partial name="_PaymentMethodPicker" model="paymentMethodPicker" />
-						</div>
-					</div>
+                    @if (!User.IsInRole(SD.Role_Company))
+                    {
+                        var paymentMethodPicker = new PaymentMethodPickerVM
+                        {
+                            FieldName = "OrderHeader.PaymentMethod",
+                            IdPrefix = "checkoutPaymentMethod",
+                            PaymentMethodLegend = Localizer["PaymentMethod"].Value,
+                            StripeEnabled = ViewData["StripeEnabled"] is true,
+                            BankTransferEnabled = ViewData["BankTransferEnabled"] is true,
+                            MercadoPagoEnabled = ViewData["MercadoPagoEnabled"] is true,
+                            SelectedPaymentMethod = Model.OrderHeader.PaymentMethod ?? string.Empty,
+                            PayWithStripeLabel = Localizer["PayWithStripe"].Value,
+                            PayByBankTransferLabel = Localizer["PayByBankTransfer"].Value,
+                            PayWithMercadoPagoLabel = Localizer["PayWithMercadoPago"].Value,
+                            BankTransferCbuLabel = Localizer["BankTransferCbuLabel"].Value,
+                            BankTransferAliasLabel = Localizer["BankTransferAliasLabel"].Value,
+                            BankTransferRecipientNameLabel = Localizer["BankTransferRecipientNameLabel"].Value,
+                            BankTransferBankNameLabel = Localizer["BankTransferBankNameLabel"].Value,
+                            BankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty,
+                            BankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty,
+                            BankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty,
+                            BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty
+                        };
+
+                        <div class="row g-4 mt-2">
+                            <div class="col-12">
+                                <h2 class="h5 mb-3 text-primary">@Localizer["PaymentMethod"]</h2>
+                                <partial name="_PaymentMethodPicker" model="paymentMethodPicker" />
+                            </div>
+                        </div>
+                    }
 				</div>
 			</div>
 			<div class="card-footer bg-white border-0 p-4 p-lg-5 pt-0">
 				<div class="row align-items-center g-3">
 					<div class="col-12 mb-3">
-						<div class="checkout-demo-notice" role="alert">
+						<div class="checkout-demo-notice">
 							<div class="checkout-demo-notice__icon" aria-hidden="true">
 								<i class="bi bi-shield-exclamation"></i>
 							</div>
 							<div>
-								<strong>@Localizer["StripeTestModeTitle"]</strong>
-								<div>@Localizer["StripeTestModeMessage"]</div>
+								<strong>@Localizer["DemoEnvironmentTitle"]</strong>
+								<div>@Localizer["DemoEnvironmentMessage"]</div>
 							</div>
 						</div>
 					</div>

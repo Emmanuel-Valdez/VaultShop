@@ -5,6 +5,7 @@ namespace VaultShop.Models.ViewModels
         public string FieldName { get; set; } = "paymentMethod";
         public string IdPrefix { get; set; } = "paymentMethod";
         public string SelectedPaymentMethod { get; set; } = string.Empty;
+        public string PaymentMethodLegend { get; set; } = "Payment method";
 
         public bool StripeEnabled { get; set; }
         public bool BankTransferEnabled { get; set; }

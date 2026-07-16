@@ -14,6 +14,24 @@ namespace VaultShop.Web.Tests;
 public class CartCheckoutHttpTests
 {
     [Fact]
+    public async Task Summary_AsCompany_DoesNotRenderPaymentMethodChoice()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CompanyEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+
+        await TestAuthHelper.LoginAsync(client, factory.CompanyEmail, factory.TestPassword);
+
+        var response = await client.GetAsync("/en-US/Customer/Cart/Summary");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("Payment method", html);
+        Assert.DoesNotContain("OrderHeader.PaymentMethod", html);
+    }
+
+    [Fact]
     public async Task SummaryPost_AsCustomer_CreatesPendingOrderAndRedirectsToStripeSession()
     {
         using var factory = new CustomWebApplicationFactory();

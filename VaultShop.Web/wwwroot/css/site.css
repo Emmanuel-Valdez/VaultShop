@@ -418,6 +418,88 @@ div.dt-button-collection .dt-button:hover {
     border-color: rgba(var(--theme-primary-rgb), 0.12) !important;
 }
 
+.payment-method-picker {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.payment-method-picker__options {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.payment-method-picker__input {
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+}
+
+.payment-method-picker__card {
+    align-items: center;
+    background-color: var(--theme-surface);
+    border: 1px solid rgba(var(--theme-primary-rgb), 0.2);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    gap: 0.75rem;
+    min-height: 4.5rem;
+    padding: 0.75rem 0.875rem;
+}
+
+.payment-method-picker__mark {
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 2.5rem;
+    width: 2.5rem;
+}
+
+.payment-method-picker__mark svg {
+    height: 100%;
+    width: 100%;
+}
+
+.payment-method-picker__label {
+    color: var(--theme-primary);
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.payment-method-picker__selected {
+    align-items: center;
+    background-color: var(--theme-primary);
+    border-radius: 50%;
+    color: #fff;
+    display: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    height: 1.25rem;
+    justify-content: center;
+    margin-left: auto;
+    width: 1.25rem;
+}
+
+.payment-method-picker__input:checked + .payment-method-picker__card {
+    background-color: rgba(var(--theme-accent-rgb), 0.1);
+    border: 2px solid var(--theme-primary);
+    padding: calc(0.75rem - 1px) calc(0.875rem - 1px);
+}
+
+.payment-method-picker__input:checked + .payment-method-picker__card .payment-method-picker__selected {
+    display: inline-flex;
+}
+
+.payment-method-picker__input:focus-visible + .payment-method-picker__card {
+    outline: 3px solid rgba(var(--theme-accent-rgb), 0.65);
+    outline-offset: 3px;
+}
+
 .product-image-card__image {
     width: 100%;
     aspect-ratio: 5 / 6;
@@ -434,6 +516,30 @@ div.dt-button-collection .dt-button:hover {
 
 [data-bs-theme=dark] .checkout-summary .card-footer.bg-white {
     background-color: var(--theme-surface-dark) !important;
+}
+
+[data-bs-theme=dark] .payment-method-picker__card {
+    background-color: var(--theme-surface-dark);
+    border-color: rgba(232, 234, 242, 0.22);
+}
+
+[data-bs-theme=dark] .payment-method-picker__label {
+    color: #e8eaf2;
+}
+
+[data-bs-theme=dark] .payment-method-picker__input:checked + .payment-method-picker__card {
+    background-color: rgba(var(--theme-accent-rgb), 0.18);
+    border-color: var(--theme-accent);
+}
+
+@media (forced-colors: active) {
+    .payment-method-picker__input:checked + .payment-method-picker__card {
+        border: 3px solid Highlight;
+    }
+
+    .payment-method-picker__input:focus-visible + .payment-method-picker__card {
+        outline-color: Highlight;
+    }
 }
 
 [data-bs-theme=dark] .checkout-summary__card,

@@ -159,10 +159,10 @@
   <data name="ShippingDetails" xml:space="preserve">
     <value>Shipping Details</value>
   </data>
-  <data name="StripeTestModeMessage" xml:space="preserve">
-    <value>Stripe Test Mode is enabled. Use Stripe test cards only; real cards will not be charged in this demo checkout.</value>
+  <data name="DemoEnvironmentMessage" xml:space="preserve">
+    <value>This storefront is for demonstration only. Use test payment details and do not send real funds.</value>
   </data>
-  <data name="StripeTestModeTitle" xml:space="preserve">
+  <data name="DemoEnvironmentTitle" xml:space="preserve">
     <value>Demo environment</value>
   </data>
   <data name="Title" xml:space="preserve">
