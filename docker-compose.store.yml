@@ -11,6 +11,7 @@ services:
 
   web:
     image: ${WEB_IMAGE:-vaultshop-web:compose}
+    container_name: ${COMPOSE_PROJECT_NAME}-web
     restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     build:
       context: .

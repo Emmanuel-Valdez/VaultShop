@@ -28,6 +28,7 @@ services:
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_USER: ${POSTGRES_USER:-vaultshop_app}
+      POSTGRES_DB: ${POSTGRES_DB:-vaultshop}
       UKIYO_POSTGRES_DATABASE: ${UKIYO_POSTGRES_DATABASE:-ukiyostudio}
       UKIYO_POSTGRES_USER: ${UKIYO_POSTGRES_USER:-ukiyostudio_app}
       UKIYO_POSTGRES_PASSWORD: ${UKIYO_POSTGRES_PASSWORD:?UKIYO_POSTGRES_PASSWORD is required}
@@ -36,6 +37,8 @@ services:
       - -ec
       - |
         psql --host postgres --username "$$POSTGRES_USER" --dbname postgres --set=ON_ERROR_STOP=1 \
+          --set=vaultshop_database="$$POSTGRES_DB" \
+          --set=vaultshop_user="$$POSTGRES_USER" \
           --set=ukiyo_database="$$UKIYO_POSTGRES_DATABASE" \
           --set=ukiyo_user="$$UKIYO_POSTGRES_USER" \
           --set=ukiyo_password="$$UKIYO_POSTGRES_PASSWORD" <<'SQL'
@@ -44,6 +47,16 @@ services:
         \gexec
         SELECT format('CREATE DATABASE %I OWNER %I', :'ukiyo_database', :'ukiyo_user')
         WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'ukiyo_database')
+        \gexec
+        -- Postgres grants CONNECT to PUBLIC by default; revoke it so each
+        -- store's role can only reach its own database.
+        SELECT format('REVOKE CONNECT ON DATABASE %I FROM PUBLIC', :'ukiyo_database')
+        \gexec
+        SELECT format('GRANT CONNECT ON DATABASE %I TO %I', :'ukiyo_database', :'ukiyo_user')
+        \gexec
+        SELECT format('REVOKE CONNECT ON DATABASE %I FROM PUBLIC', :'vaultshop_database')
+        \gexec
+        SELECT format('GRANT CONNECT ON DATABASE %I TO %I', :'vaultshop_database', :'vaultshop_user')
         \gexec
         SQL
     networks:
@@ -76,16 +89,38 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
-      MINIO_BUCKETS: ${MINIO_BUCKETS:-product-images,ukiyostudio-images}
+      VAULTSHOP_MINIO_BUCKET: ${VAULTSHOP_MINIO_BUCKET:-product-images}
+      VAULTSHOP_MINIO_USER: ${VAULTSHOP_MINIO_USER:-vaultshop_app}
+      VAULTSHOP_MINIO_PASSWORD: ${VAULTSHOP_MINIO_PASSWORD:?VAULTSHOP_MINIO_PASSWORD is required}
+      UKIYO_MINIO_BUCKET: ${UKIYO_MINIO_BUCKET:-ukiyostudio-images}
+      UKIYO_MINIO_USER: ${UKIYO_MINIO_USER:-ukiyostudio_app}
+      UKIYO_MINIO_PASSWORD: ${UKIYO_MINIO_PASSWORD:?UKIYO_MINIO_PASSWORD is required}
     entrypoint:
       - /bin/sh
       - -ec
       - |
         mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
-        for bucket in $$(printf '%s' "$$MINIO_BUCKETS" | tr ',' ' '); do
+
+        create_store() {
+          bucket="$$1"; user="$$2"; password="$$3"
           mc mb --ignore-existing "local/$$bucket"
           mc anonymous set download "local/$$bucket"
-        done
+          cat > "/tmp/$$bucket-policy.json" <<POLICY
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            { "Effect": "Allow", "Action": ["s3:GetBucketLocation", "s3:ListBucket"], "Resource": ["arn:aws:s3:::$$bucket"] },
+            { "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], "Resource": ["arn:aws:s3:::$$bucket/*"] }
+          ]
+        }
+        POLICY
+          mc admin policy create local "$$bucket-rw" "/tmp/$$bucket-policy.json"
+          mc admin user add local "$$user" "$$password"
+          mc admin policy attach local "$$bucket-rw" --user "$$user"
+        }
+
+        create_store "$$VAULTSHOP_MINIO_BUCKET" "$$VAULTSHOP_MINIO_USER" "$$VAULTSHOP_MINIO_PASSWORD"
+        create_store "$$UKIYO_MINIO_BUCKET" "$$UKIYO_MINIO_USER" "$$UKIYO_MINIO_PASSWORD"
     networks:
       - vaultshop-net
 
