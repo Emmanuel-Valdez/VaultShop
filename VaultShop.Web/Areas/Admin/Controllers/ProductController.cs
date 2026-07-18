@@ -19,17 +19,15 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 	{
 		public readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<ProductController> _localizer;
-		private readonly IDemoDataSeeder _demoDataSeeder;
 		private readonly IProductImageService _productImageService;
 		private readonly IImageStorageService _imageStorageService;
 		private readonly IRichTextSanitizer _richTextSanitizer;
 		private readonly ILogger<ProductController> _logger;
 
-		public ProductController(IUnitOfWork unitOfWork, IStringLocalizer<ProductController> localizer, IDemoDataSeeder demoDataSeeder, IProductImageService productImageService, IImageStorageService imageStorageService, IRichTextSanitizer richTextSanitizer, ILogger<ProductController> logger)
+		public ProductController(IUnitOfWork unitOfWork, IStringLocalizer<ProductController> localizer, IProductImageService productImageService, IImageStorageService imageStorageService, IRichTextSanitizer richTextSanitizer, ILogger<ProductController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
-			_demoDataSeeder = demoDataSeeder;
 			_productImageService = productImageService;
 			_imageStorageService = imageStorageService;
 			_richTextSanitizer = richTextSanitizer;
@@ -37,68 +35,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		}
 		public IActionResult Index()
 		{
-			ViewBag.ShowSeedDemoCatalogButton = User.IsInRole(SD.Role_Admin) && !_demoDataSeeder.HasProducts();
-			ViewBag.ShowSeedDemoActivityButton = User.IsInRole(SD.Role_Admin) && _demoDataSeeder.HasProducts() && !_demoDataSeeder.HasOrders();
 			return View();
-		}
-
-		[HttpPost]
-		[Authorize(Roles = SD.Role_Admin)]
-		[ValidateAntiForgeryToken]
-		public IActionResult SeedDemoCatalog()
-		{
-			if (_demoDataSeeder.HasProducts())
-			{
-				TempData["error"] = "Demo products were not created because products already exist.";
-				return RedirectToAction(nameof(Index));
-			}
-
-			try
-			{
-				_demoDataSeeder.SeedDemoCatalog();
-				_logger.LogInformation("Admin triggered demo catalog seeding successfully.");
-				TempData["success"] = "Demo products were created successfully.";
-			}
-			catch (Exception ex)
-			{
-				TempData["error"] = "Demo products could not be created.";
-				_logger.LogError(ex, "Failed to seed demo catalog from admin product page.");
-			}
-
-			return RedirectToAction(nameof(Index));
-		}
-
-		[HttpPost]
-		[Authorize(Roles = SD.Role_Admin)]
-		[ValidateAntiForgeryToken]
-		public IActionResult SeedDemoActivity()
-		{
-			if (!_demoDataSeeder.HasProducts())
-			{
-				TempData["error"] = "Create demo products before creating demo activity.";
-				return RedirectToAction(nameof(Index));
-			}
-
-			if (_demoDataSeeder.HasOrders())
-			{
-				TempData["error"] = "Demo activity was not created because orders already exist.";
-				return RedirectToAction(nameof(Index));
-			}
-
-			try
-			{
-				_demoDataSeeder.SeedDemoShoppingActivity();
-				_demoDataSeeder.SeedDemoOrders();
-				_logger.LogInformation("Admin triggered demo shopping activity and order seeding successfully.");
-				TempData["success"] = "Demo users, carts, favorites, and orders were created successfully.";
-			}
-			catch (Exception ex)
-			{
-				TempData["error"] = "Demo activity could not be created.";
-				_logger.LogError(ex, "Failed to seed demo shopping activity and orders from admin product page.");
-			}
-
-			return RedirectToAction(nameof(Index));
 		}
 		public IActionResult Upsert(int? id)
 		{
