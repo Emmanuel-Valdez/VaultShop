@@ -1,4 +1,4 @@
-name: ${COMPOSE_PROJECT_NAME:-vaultshop}
+name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required}
 
 services:
   data-protection-init:
@@ -10,7 +10,7 @@ services:
       - data-protection-keys:/keys
 
   web:
-    image: vaultshop-web:compose
+    image: ${WEB_IMAGE:-vaultshop-web:compose}
     restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
     build:
       context: .
@@ -63,8 +63,8 @@ services:
       ImageStorage__Minio__Endpoint: ${ImageStorage__Minio__Endpoint:-minio:9000}
       ImageStorage__Minio__UseSsl: ${ImageStorage__Minio__UseSsl:-false}
       ImageStorage__Minio__BucketName: ${ImageStorage__Minio__BucketName:-product-images}
-      ImageStorage__Minio__AccessKey: ${ImageStorage__Minio__AccessKey:-${MINIO_ROOT_USER:-minioadmin}}
-      ImageStorage__Minio__SecretKey: ${ImageStorage__Minio__SecretKey:-${MINIO_ROOT_PASSWORD:-change-this-local-password}}
+      ImageStorage__Minio__AccessKey: ${ImageStorage__Minio__AccessKey:-}
+      ImageStorage__Minio__SecretKey: ${ImageStorage__Minio__SecretKey:-}
       ImageStorage__Minio__PublicBaseUrl: ${ImageStorage__Minio__PublicBaseUrl:-http://localhost:9000/product-images}
       DataProtection__KeysPath: ${DataProtection__KeysPath:-/keys}
     ports:
@@ -72,66 +72,18 @@ services:
     depends_on:
       data-protection-init:
         condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
     volumes:
       - data-protection-keys:/keys
       - ${BrandAssetsPath:-./VaultShop.Web/wwwroot/images/brand/private}:/app/wwwroot/images/brand/private:ro
-
-  minio:
-    image: quay.io/minio/minio:latest
-    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
-    ports:
-      - "${MINIO_BIND_IP:-127.0.0.1}:${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_BIND_IP:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9001}:9001"
-    volumes:
-      - minio-data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 10s
-
-  minio-init:
-    image: minio/mc:latest
-    depends_on:
-      minio:
-        condition: service_healthy
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-product-images}
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD;
-      mc mb --ignore-existing local/$$MINIO_BUCKET_NAME;
-      mc anonymous set download local/$$MINIO_BUCKET_NAME;
-      "
-
-  postgres:
-    image: postgres:16-alpine
-    restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-vaultshop}
-      POSTGRES_USER: ${POSTGRES_USER:-vaultshop_app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-    ports:
-      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 10s
+    networks:
+      - vaultshop-net
 
 volumes:
-  postgres-data:
-  minio-data:
   data-protection-keys:
+    name: ${DATA_PROTECTION_VOLUME_NAME:?DATA_PROTECTION_VOLUME_NAME is required}
+    external: true
+
+networks:
+  vaultshop-net:
+    name: vaultshop-net
+    external: true

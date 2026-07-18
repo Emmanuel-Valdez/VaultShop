@@ -1,5 +1,6 @@
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Localization;
@@ -64,6 +65,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Branding"));
 builder.Services.Configure<ThemeOptions>(builder.Configuration.GetSection("Theme"));
+
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+	builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+}
 
 builder.Services.AddRazorPages(options =>
 {
@@ -187,13 +194,16 @@ builder.Services.AddScoped<IPricingCalculatorService, PricingCalculatorService>(
 builder.Services.AddScoped<IRichTextSanitizer, RichTextSanitizer>();
 builder.Services.AddScoped<ITransactionalEmailService, TransactionalEmailService>();
 
-builder.Services.AddAuthentication().AddFacebook(option =>
+var facebookAppId = builder.Configuration["Facebook:AppId"];
+var facebookAppSecret = builder.Configuration["Facebook:AppSecret"];
+if (!string.IsNullOrWhiteSpace(facebookAppId) && !string.IsNullOrWhiteSpace(facebookAppSecret))
 {
-	option.AppId = builder.Configuration["Facebook:AppId"]
-		?? throw new InvalidOperationException("Missing required Facebook:AppId configuration.");
-	option.AppSecret = builder.Configuration["Facebook:AppSecret"]
-		?? throw new InvalidOperationException("Missing required Facebook:AppSecret configuration.");
-});
+	builder.Services.AddAuthentication().AddFacebook(option =>
+	{
+		option.AppId = facebookAppId;
+		option.AppSecret = facebookAppSecret;
+	});
+}
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

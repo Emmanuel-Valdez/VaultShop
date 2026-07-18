@@ -127,7 +127,7 @@
     <value>Back to home</value>
   </data>
   <data name="InspiredBy" xml:space="preserve">
-    <value>Inspired by Anime &amp; Fantasy Culture</value>
+    <value>Made to stand out</value>
   </data>
   <data name="Count" xml:space="preserve">
     <value>Count</value>
@@ -145,9 +145,9 @@
     <value>Temporarily Unavailable</value>
   </data>
   <data name="ProductFallbackDescription" xml:space="preserve">
-    <value>Buy {0} at VaultShop - A unique product inspired by anime, comics, and fantasy.</value>
+    <value>Buy {0} - Made to stand out.</value>
   </data>
   <data name="MetaKeywordsSuffix" xml:space="preserve">
-    <value>VaultShop, anime, comics, fantasy, accessories</value>
+    <value>textile design, garment making, embroidery, printing, personalization</value>
   </data>
 </root>

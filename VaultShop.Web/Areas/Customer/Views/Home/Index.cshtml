@@ -1,5 +1,9 @@
 ﻿@model HomeIndexVM
+@using Microsoft.Extensions.Options
+@using VaultShop.Web.Services.Branding
+@inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
+	var branding = BrandingOptionsAccessor.Value;
     ViewData["Title"] = Localizer["Home"];
     ViewData["Description"] = Localizer["MetaDescription"];
     ViewData["Keywords"] = Localizer["MetaKeywords"];
@@ -18,7 +22,7 @@
 	<div class="row align-items-center g-3 mb-4">
 		<div class="col-lg-8">
 			<p class="product-card__meta mb-1">@Localizer["Home"]</p>
-			<h1 class="display-6 text-primary mb-2">VaultShop</h1>
+			<h1 class="storefront-display-heading display-6 text-primary mb-2">@branding.PublicName</h1>
 			<p class="lead text-muted mb-0">@Localizer["MetaDescription"]</p>
 		</div>
 		<div class="col-lg-4">

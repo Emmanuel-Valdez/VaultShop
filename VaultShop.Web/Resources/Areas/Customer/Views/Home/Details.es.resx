@@ -127,7 +127,7 @@
     <value>Volver al Inicio</value>
   </data>
   <data name="InspiredBy" xml:space="preserve">
-    <value>Inspirado en el universo del anime y la fantasía</value>
+    <value>Creado para destacar</value>
   </data>
   <data name="Count" xml:space="preserve">
     <value>Cantidad</value>
@@ -145,9 +145,9 @@
     <value>Termporalmente No Disponible</value>
   </data>
   <data name="ProductFallbackDescription" xml:space="preserve">
-    <value>Comprar {0} en VaultShop - Producto único inspirado en anime, cómics y fantasía.</value>
+    <value>Comprar {0} - Creado para destacar.</value>
   </data>
   <data name="MetaKeywordsSuffix" xml:space="preserve">
-    <value>VaultShop, anime, cómics, fantasía, accesorios</value>
+    <value>diseño textil, confección, bordado, estampado, personalización</value>
   </data>
 </root>

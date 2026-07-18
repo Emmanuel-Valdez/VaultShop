@@ -2,6 +2,11 @@ html {
     font-size: 14px;
 }
 
+.storefront-display-heading {
+    font-family: "Playfair Display", Georgia, serif;
+    font-weight: 700;
+}
+
 :root {
     --theme-primary: #1a2a4a;
     --theme-primary-rgb: 26, 42, 74;
@@ -233,7 +238,7 @@ html {
 }
 
 .product-card__meta {
-    color: #64748b;
+    color: #5a5a5a;
     font-size: 0.85rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;

@@ -1,5 +1,9 @@
 ﻿@model IEnumerable<Product>
+@using Microsoft.Extensions.Options
+@using VaultShop.Web.Services.Branding
+@inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
+	var branding = BrandingOptionsAccessor.Value;
     ViewData["Title"] = Localizer["Search"];
     ViewData["Description"] = Localizer["MetaDescription"];
     ViewData["Keywords"] = Localizer["MetaKeywords"];
@@ -10,7 +14,7 @@
 	<div class="col-12 storefront-section">
 		<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
 			<div>
-				<p class="product-card__meta mb-1">VaultShop</p>
+				<p class="product-card__meta mb-1">@branding.PublicName</p>
 				<h1 class="h3 text-primary mb-0">@Localizer["SearchResults"]</h1>
 				@if (!string.IsNullOrWhiteSpace(searchString))
 				{

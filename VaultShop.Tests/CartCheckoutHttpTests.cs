@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,55 @@ namespace VaultShop.Web.Tests;
 
 public class CartCheckoutHttpTests
 {
+    [Fact]
+    public async Task StartupWithoutFacebookConfiguration_DoesNotRegisterFacebook()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var schemeProvider = factory.Services.GetRequiredService<IAuthenticationSchemeProvider>();
+
+        Assert.Null(await schemeProvider.GetSchemeAsync("Facebook"));
+    }
+
+    [Fact]
+    public async Task Home_WithConfiguredPublicName_RendersConfiguredBrand()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Branding:PublicName"] = "UkiyoStudio",
+            })));
+        var client = configuredFactory.CreateClient();
+
+        var response = await client.GetAsync("/en-US/Customer/Home/Index");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("<h1 class=\"storefront-display-heading display-6 text-primary mb-2\">UkiyoStudio</h1>", html);
+        Assert.DoesNotContain("href=\"\"", html);
+    }
+
+    [Fact]
+    public async Task Summary_WithDemoNoticeDisabled_DoesNotRenderDemoNotice()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Storefront:ShowDemoNotice"] = "false",
+            })));
+        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync("/en-US/Customer/Cart/Summary");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("checkout-demo-notice", html);
+    }
+
     [Fact]
     public async Task Summary_AsCompany_DoesNotRenderPaymentMethodChoice()
     {

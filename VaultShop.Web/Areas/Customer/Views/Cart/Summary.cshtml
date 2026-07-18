@@ -121,17 +121,20 @@
 			</div>
 			<div class="card-footer bg-white border-0 p-4 p-lg-5 pt-0">
 				<div class="row align-items-center g-3">
-					<div class="col-12 mb-3">
-						<div class="checkout-demo-notice">
-							<div class="checkout-demo-notice__icon" aria-hidden="true">
-								<i class="bi bi-shield-exclamation"></i>
-							</div>
-							<div>
-								<strong>@Localizer["DemoEnvironmentTitle"]</strong>
-								<div>@Localizer["DemoEnvironmentMessage"]</div>
+					@if (ViewData["ShowDemoNotice"] is true)
+					{
+						<div class="col-12 mb-3">
+							<div class="checkout-demo-notice">
+								<div class="checkout-demo-notice__icon" aria-hidden="true">
+									<i class="bi bi-shield-exclamation"></i>
+								</div>
+								<div>
+									<strong>@Localizer["DemoEnvironmentTitle"]</strong>
+									<div>@Localizer["DemoEnvironmentMessage"]</div>
+								</div>
 							</div>
 						</div>
-					</div>
+					}
 					<div class="col-12 col-md-8 pt-2">
 						<p class="text-muted small mb-0">
 							@Localizer["EstimateArrivalDate"] :

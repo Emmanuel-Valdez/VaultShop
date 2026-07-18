@@ -215,6 +215,8 @@ ImageStorage__Minio__PublicBaseUrl=http://localhost:9000/product-images
 
 Do not expose PostgreSQL or the MinIO console directly on a public server.
 
+For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on shared private infrastructure, use [`docs/shared-platform-compose.md`](docs/shared-platform-compose.md). The local `docker-compose.yml` remains unchanged as the single-store development stack.
+
 ## Tests
 
 Run the automated tests:

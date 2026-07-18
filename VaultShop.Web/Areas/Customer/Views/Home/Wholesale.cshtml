@@ -1,4 +1,8 @@
+@using Microsoft.Extensions.Options
+@using VaultShop.Web.Services.Branding
+@inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
+	var branding = BrandingOptionsAccessor.Value;
     ViewData["Title"] = Localizer["Wholesale"];
     ViewData["Description"] = Localizer["MetaDescription"];
     ViewData["Keywords"] = Localizer["MetaKeywords"];
@@ -7,7 +11,7 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">@Localizer["Wholesale"]</h1>
     <div class="mt-4">
-        <p>@Localizer["IntroPrefix"] <strong>VaultShop</strong>, @Localizer["IntroSuffix"]</p>
+		<p>@Localizer["IntroPrefix"] <strong>@branding.PublicName</strong>, @Localizer["IntroSuffix"]</p>
         <ul>
             <li><strong>@Localizer["PaymentMethodLabel"]:</strong> @Localizer["PaymentMethodText"]</li>
             <li><strong>@Localizer["ClearPricesLabel"]:</strong> @Localizer["ClearPricesText"]</li>

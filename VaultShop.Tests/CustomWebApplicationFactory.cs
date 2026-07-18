@@ -32,8 +32,6 @@ namespace VaultShop.Web.Tests
             {
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["Facebook:AppId"] = "test-facebook-app-id",
-                    ["Facebook:AppSecret"] = "test-facebook-app-secret",
                     ["Stripe:SecretKey"] = "sk_test_dummy",
                     ["Database:RunMigrationsOnStartup"] = "false",
                 });

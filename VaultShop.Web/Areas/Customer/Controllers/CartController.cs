@@ -264,6 +264,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		{
 			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
 			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
+			ViewData["ShowDemoNotice"] = _configuration.GetValue("Storefront:ShowDemoNotice", true);
 			PopulateBankTransferViewData();
 		}
 
