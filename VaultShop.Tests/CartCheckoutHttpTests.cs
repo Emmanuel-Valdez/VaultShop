@@ -129,7 +129,7 @@ public class CartCheckoutHttpTests
     }
 
     [Fact]
-    public async Task SummaryPost_AsCompany_CreatesApprovedDelayedOrderAndSkipsStripe()
+    public async Task SummaryPost_AsCompany_CreatesPendingDelayedOrderAndSkipsStripe()
     {
         using var factory = new CustomWebApplicationFactory();
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -150,7 +150,7 @@ public class CartCheckoutHttpTests
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
         Assert.Equal(SD.PaymentStatusDelayedPayment, orderHeader.PaymentStatus);
-        Assert.Equal(SD.StatusApproved, orderHeader.OrderStatus);
+        Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
         Assert.Equal(factory.TestCompanyId, orderHeader.CompanyId);
         Assert.Null(orderHeader.PaymentMethod);
         Assert.Equal(210m, orderHeader.OrderTotal);

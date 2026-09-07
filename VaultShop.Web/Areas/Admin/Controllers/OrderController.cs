@@ -334,7 +334,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		}
 
-		public IActionResult PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId, [FromQuery(Name = "payment_id")] string? paymentId)
+		public async Task<IActionResult> PaymentConfirmation(int orderHeaderId, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId, [FromQuery(Name = "payment_id")] string? paymentId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId);
 			if (orderHeader == null)
@@ -354,7 +354,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
 			{
-				SyncPaidCheckoutSession(orderHeader, paymentId);
+				await SyncPaidCheckoutSession(orderHeader, paymentId);
 				orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == orderHeaderId) ?? orderHeader;
 			}
 
@@ -363,7 +363,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		[Authorize(Roles = SD.Role_Admin)]
 		[HttpPost]
-		public IActionResult ApprovePaymentDevelopment()
+		public async Task<IActionResult> ApprovePaymentDevelopment()
 		{
 			if (!ManualPaymentApprovalEnabled())
 			{
@@ -381,7 +381,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				return NotFound();
 			}
 
-			var approved = _paymentStatusService.MarkCheckoutSessionPaid(
+			var approved = await _paymentStatusService.MarkCheckoutSessionPaid(
 				new PaymentSessionStatusUpdate(orderHeader.Id, orderHeader.SessionId, orderHeader.PaymentIntentId));
 			if (approved)
 			{
@@ -400,7 +400,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				return NotFound();
 			}
 
-			var approved = _paymentStatusService.ApproveManualBankTransfer(OrderVM.OrderHeader.Id);
+			var approved = await _paymentStatusService.ApproveManualBankTransfer(OrderVM.OrderHeader.Id);
 			if (approved)
 			{
 				await _emailService.TrySendPaymentReceiptAsync(OrderVM.OrderHeader.Id);
@@ -551,7 +551,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 		}
 
-		private void SyncPaidCheckoutSession(OrderHeader orderHeader, string? paymentId)
+		private async Task SyncPaidCheckoutSession(OrderHeader orderHeader, string? paymentId)
 		{
 			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
 			{
@@ -570,7 +570,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				}
 				if (session.IsPaid)
 				{
-					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
+					await _paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
 				}
 			}
 			catch (Exception ex)

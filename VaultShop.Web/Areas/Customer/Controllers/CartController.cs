@@ -185,9 +185,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			var orderId = result.OrderId.Value;
 
-			// ponytail: fire emails after order creation � failure is logged, doesn't block the flow
-			await _emailService.TrySendOrderConfirmationAsync(orderId);
-			await _emailService.TrySendAdminNewOrderAlertAsync(orderId);
+			// ponytail: BankTransfer instructions email at creation only; Stripe/MP emails move to paid transition (order-email-timing section 1)
+			if (result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer)
+			{
+				await _emailService.TrySendOrderConfirmationAsync(orderId);
+			}
 
 			if (result.RequiresOnlinePayment)
 			{
@@ -228,7 +230,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			return RedirectToAction(nameof(OrderConfirmation), new { id = orderId });
 		}
 
-		public IActionResult OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId, [FromQuery(Name = "payment_id")] string? paymentId)
+		public async Task<IActionResult> OrderConfirmation(int id, [FromQuery(Name = "session_id")] string? sessionId, [FromQuery(Name = "preference_id")] string? preferenceId, [FromQuery(Name = "payment_id")] string? paymentId)
 		{
 			OrderHeader? orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
 			if (orderHeader == null)
@@ -248,7 +250,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			if (orderHeader.OrderStatus == SD.StatusPending && orderHeader.PaymentStatus == SD.PaymentStatusPending)
 			{
-				SyncPaidCheckoutSession(orderHeader, paymentId);
+				await SyncPaidCheckoutSession(orderHeader, paymentId);
 				orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser") ?? orderHeader;
 			}
 
@@ -291,7 +293,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				string.Equals(orderHeader.SessionId, sessionId, StringComparison.Ordinal);
 		}
 
-		private void SyncPaidCheckoutSession(OrderHeader orderHeader, string? paymentId)
+		private async Task SyncPaidCheckoutSession(OrderHeader orderHeader, string? paymentId)
 		{
 			if (string.IsNullOrWhiteSpace(orderHeader.SessionId))
 			{
@@ -310,7 +312,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				}
 				if (session.IsPaid)
 				{
-					_paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
+					await _paymentStatusService.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(orderHeader.Id, session.SessionId, session.PaymentIntentId));
 				}
 			}
 			catch (Exception ex)

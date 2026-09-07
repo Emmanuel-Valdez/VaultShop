@@ -23,7 +23,7 @@ namespace VaultShop.Web.Tests
 		public async Task Post_ValidSignatureAndApprovedPayment_MarksPaidAndSendsReceipt()
 		{
 			using var test = CreateController(MercadoPagoOrder(), new("", "PAYMENT123", "paid", "42", 100m));
-			test.PaymentStatus.Setup(service => service.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>())).Returns(true);
+			test.PaymentStatus.Setup(service => service.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>())).ReturnsAsync(true);
 			SignRequest(test.Controller, "PAYMENT123");
 
 			var result = await test.Controller.Post();
@@ -56,7 +56,7 @@ namespace VaultShop.Web.Tests
 			order.PaymentStatus = SD.PaymentStatusApproved;
 			order.PaymentIntentId = "PAYMENT_OLD";
 			using var test = CreateController(order, new("", "PAYMENT123", "paid", "42", 100m));
-			test.PaymentStatus.Setup(service => service.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>())).Returns(true);
+			test.PaymentStatus.Setup(service => service.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>())).ReturnsAsync(true);
 			SignRequest(test.Controller, "PAYMENT123");
 
 			var result = await test.Controller.Post();

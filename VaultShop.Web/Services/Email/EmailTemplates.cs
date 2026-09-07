@@ -10,7 +10,8 @@ public static class EmailTemplates
         IEnumerable<OrderItemLine> items, string orderTotal, string siteUrl,
         CultureInfo culture, string? paymentMethod = null, bool includeBankTransferInstructions = false,
         string? bankTransferCbu = null, string? bankTransferAlias = null,
-        string? bankTransferRecipientName = null, string? bankTransferBankName = null)
+        string? bankTransferRecipientName = null, string? bankTransferBankName = null,
+        string? whatsAppNumber = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -47,7 +48,18 @@ public static class EmailTemplates
             {
                 builder.Append($"<div><strong>{Translate("BankTransferBankNameLabel", culture)}:</strong> {bankTransferBankName}</div>");
             }
-            builder.Append($"<p style='margin:12px 0 0 0;'>{Translate("BankTransferInstructionsBody", culture)}</p>");
+            if (!string.IsNullOrWhiteSpace(whatsAppNumber))
+            {
+                builder.Append($"<div><strong>{Translate("WhatsAppLabel", culture)}:</strong> {whatsAppNumber}</div>");
+            }
+            var instructionsBody = isSpanish
+                ? (string.IsNullOrWhiteSpace(whatsAppNumber)
+                    ? "Realizá la transferencia al CBU/alias indicado y luego confirmá que la enviaste o enviá el comprobante al WhatsApp de la tienda. También podés avisarnos desde el botón de tu pedido."
+                    : $"Realizá la transferencia al CBU/alias indicado y luego confirmá que la enviaste o enviá el comprobante al WhatsApp de la tienda ({whatsAppNumber}). También podés avisarnos desde el botón de tu pedido.")
+                : (string.IsNullOrWhiteSpace(whatsAppNumber)
+                    ? "Send the transfer to the CBU/alias above and then confirm you sent it or send the receipt to the store's WhatsApp. You can also let us know from your order page."
+                    : $"Send the transfer to the CBU/alias above and then confirm you sent it or send the receipt to the store's WhatsApp ({whatsAppNumber}). You can also let us know from your order page.");
+            builder.Append($"<p style='margin:12px 0 0 0;'>{instructionsBody}</p>");
             builder.Append("</div>");
             bankTransferHtml = builder.ToString();
         }
@@ -224,6 +236,7 @@ public static class EmailTemplates
             "BankTransferAliasLabel" => isSpanish ? "Alias" : "Alias",
             "BankTransferRecipientNameLabel" => isSpanish ? "Titular" : "Recipient",
             "BankTransferBankNameLabel" => isSpanish ? "Banco" : "Bank",
+            "WhatsAppLabel" => "WhatsApp",
             _ => key,
         };
     }

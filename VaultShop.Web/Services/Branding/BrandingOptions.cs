@@ -15,4 +15,6 @@ public sealed class BrandingOptions
 	public string SocialPreviewImagePath { get; set; } = "/images/brand/vaultshop-og.svg";
 
 	public string TwitterSite { get; set; } = "@VaultShop";
+
+	public string WhatsAppNumber { get; set; } = string.Empty;
 }

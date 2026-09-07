@@ -105,7 +105,7 @@ namespace VaultShop.Web.Controllers
 				_logger.LogError("Approved Mercado Pago payment {PaymentId} arrived for already-approved order {OrderId} with stored payment {StoredPaymentId}. Possible duplicate charge; manual refund review required.", payment.PaymentIntentId, order.Id, order.PaymentIntentId);
 			}
 
-			var markedPaid = _paymentStatusService.MarkCheckoutSessionPaid(
+			var markedPaid = await _paymentStatusService.MarkCheckoutSessionPaid(
 				new PaymentSessionStatusUpdate(order.Id, order.SessionId, payment.PaymentIntentId));
 			if (markedPaid)
 			{

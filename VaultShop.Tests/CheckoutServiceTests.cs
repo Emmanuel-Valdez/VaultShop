@@ -72,7 +72,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void CreateOrder_ValidCompanyUser_CreatesApprovedDelayedPaymentOrder()
+		public void CreateOrder_ValidCompanyUser_CreatesPendingDelayedPaymentOrder()
 		{
 			var carts = new[]
 			{
@@ -90,7 +90,7 @@ namespace VaultShop.Web.Tests
 			var orderHeader = Assert.Single(unitOfWork.AddedOrderHeaders);
 			Assert.Equal(7, orderHeader.CompanyId);
 			Assert.Equal(SD.PaymentStatusDelayedPayment, orderHeader.PaymentStatus);
-			Assert.Equal(SD.StatusApproved, orderHeader.OrderStatus);
+			Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
 			Assert.Null(orderHeader.PaymentMethod);
 			Assert.Equal(DateOnly.FromDateTime(orderHeader.OrderDate.AddDays(SD.CompanyPaymentDueDays)), orderHeader.PaymentDueDate);
 		}

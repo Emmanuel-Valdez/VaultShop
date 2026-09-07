@@ -150,6 +150,9 @@ namespace VaultShop.Web.Tests
 		{
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();
 			orderHeaderMock
+				.Setup(x => x.TryClaimOrderConfirmationEmail(It.IsAny<int>()))
+				.Returns(true);
+			orderHeaderMock
 				.Setup(x => x.Get(
 					It.IsAny<Expression<Func<OrderHeader, bool>>>(),
 					It.IsAny<string?>(),

@@ -68,7 +68,7 @@ namespace VaultShop.Web.Controllers
 				case Events.CheckoutSessionCompleted:
 					if (string.Equals(session.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
 					{
-						_paymentStatusService.MarkCheckoutSessionPaid(update);
+						await _paymentStatusService.MarkCheckoutSessionPaid(update);
 						if (update.OrderId.HasValue)
 						{
 							await _emailService.TrySendPaymentReceiptAsync(update.OrderId.Value);

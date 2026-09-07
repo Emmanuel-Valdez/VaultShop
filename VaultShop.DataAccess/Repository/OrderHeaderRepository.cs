@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using VaultShop.DataAccess.Data;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
@@ -49,5 +50,36 @@ namespace VaultShop.DataAccess.Repository
 				orderFromDb.PaymentDate = DateTime.UtcNow;
             }
         }
+
+		public bool TryClaimOrderConfirmationEmail(int orderId)
+		{
+			// ponytail: atomic conditional UPDATE — only one concurrent caller wins; provider-agnostic via ExecuteUpdate
+			try
+			{
+				var rows = _db.OrderHeaders
+					.Where(o => o.Id == orderId && o.OrderConfirmationEmailSentUtc == null)
+					.ExecuteUpdate(s => s.SetProperty(o => o.OrderConfirmationEmailSentUtc, _ => DateTime.UtcNow));
+				if (rows == 1)
+				{
+					var tracked = _db.ChangeTracker.Entries<OrderHeader>().FirstOrDefault(e => e.Entity.Id == orderId);
+					if (tracked != null && tracked.Entity.OrderConfirmationEmailSentUtc == null)
+					{
+						tracked.Entity.OrderConfirmationEmailSentUtc = DateTime.UtcNow;
+					}
+				}
+				return rows == 1;
+			}
+			catch
+			{
+				// fallback for providers without ExecuteUpdate (e.g., InMemory in some tests)
+				var order = _db.OrderHeaders.FirstOrDefault(o => o.Id == orderId);
+				if (order == null || order.OrderConfirmationEmailSentUtc != null) return false;
+				order.OrderConfirmationEmailSentUtc = DateTime.UtcNow;
+				_db.SaveChanges();
+				var tracked = _db.ChangeTracker.Entries<OrderHeader>().FirstOrDefault(e => e.Entity.Id == orderId);
+				if (tracked != null) tracked.Entity.OrderConfirmationEmailSentUtc = order.OrderConfirmationEmailSentUtc;
+				return true;
+			}
+		}
     }
 }

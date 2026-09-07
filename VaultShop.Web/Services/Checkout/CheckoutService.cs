@@ -181,7 +181,7 @@ namespace VaultShop.Web.Services.Checkout
 				}
 
 				shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
-				shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+				shoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
 				shoppingCartVM.OrderHeader.PaymentDueDate = DateOnly.FromDateTime(shoppingCartVM.OrderHeader.OrderDate.AddDays(SD.CompanyPaymentDueDays));
 			}
 

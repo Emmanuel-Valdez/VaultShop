@@ -46,11 +46,23 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             tracked: true);
         if (order is null) return;
 
+        var userEmail = order.ApplicationUser?.Email;
+        if (string.IsNullOrWhiteSpace(userEmail)) return;
+
         if (order.OrderConfirmationEmailSentUtc.HasValue)
         {
             _logger.LogInformation("Order confirmation already sent for order {OrderId} at {SentAt}, skipping.", orderId, order.OrderConfirmationEmailSentUtc);
             return;
         }
+
+        // ponytail: atomic claim before sending — webhook vs browser sync race
+        if (!_unitOfWork.OrderHeader.TryClaimOrderConfirmationEmail(orderId))
+        {
+            _logger.LogInformation("Order confirmation claim lost for order {OrderId}, another sender already claimed.", orderId);
+            return;
+        }
+        // keep tracked entity in sync (repository already syncs if tracked)
+        order.OrderConfirmationEmailSentUtc = DateTime.UtcNow;
 
         var details = _unitOfWork.OrderDetail
             .GetAll(d => d.OrderHeaderId == orderId, includeProperties: "Product")
@@ -62,8 +74,6 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             d.Price.ToString("C")));
 
         var total = order.OrderTotal.ToString("C");
-        var userEmail = order.ApplicationUser?.Email;
-        if (string.IsNullOrWhiteSpace(userEmail)) return;
 
         var includeBankTransferInstructions = order.PaymentMethod == SD.PaymentMethodBankTransfer &&
             (order.PaymentStatus == SD.PaymentStatusPending || order.PaymentStatus == SD.PaymentStatusDelayedPayment);
@@ -81,10 +91,12 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             _bankTransferCbu,
             _bankTransferAlias,
             _bankTransferRecipientName,
-            _bankTransferBankName);
+            _bankTransferBankName,
+            _branding.WhatsAppNumber);
 
+        // already claimed, so onSuccess is no-op (timestamp persisted via conditional UPDATE)
         await TrySendEmailAsync(orderId, userEmail, content,
-            () => order.OrderConfirmationEmailSentUtc = DateTime.UtcNow,
+            () => { },
             "order confirmation");
     }
 

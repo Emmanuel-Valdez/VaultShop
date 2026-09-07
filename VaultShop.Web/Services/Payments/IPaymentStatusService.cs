@@ -2,9 +2,9 @@ namespace VaultShop.Web.Services.Payments
 {
 	public interface IPaymentStatusService
 	{
-		bool MarkCheckoutSessionPaid(PaymentSessionStatusUpdate update);
+		Task<bool> MarkCheckoutSessionPaid(PaymentSessionStatusUpdate update);
 		bool MarkCheckoutSessionFailed(PaymentSessionStatusUpdate update);
-		bool ApproveManualBankTransfer(int orderId);
+		Task<bool> ApproveManualBankTransfer(int orderId);
 	}
 
 	public sealed record PaymentSessionStatusUpdate(

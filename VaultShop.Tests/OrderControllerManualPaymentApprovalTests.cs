@@ -26,29 +26,29 @@ namespace VaultShop.Web.Tests
 	public class OrderControllerManualPaymentApprovalTests
 	{
 		[Fact]
-		public void ApprovePaymentDevelopment_ReturnsNotFound_WhenNotDevelopment()
+		public async Task ApprovePaymentDevelopment_ReturnsNotFound_WhenNotDevelopment()
 		{
 			var test = CreateController(Environments.Production, allowManualApproval: true);
 
-			var result = test.Controller.ApprovePaymentDevelopment();
+			var result = await test.Controller.ApprovePaymentDevelopment();
 
 			Assert.IsType<NotFoundResult>(result);
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
 		}
 
 		[Fact]
-		public void ApprovePaymentDevelopment_ReturnsNotFound_WhenConfigDisabled()
+		public async Task ApprovePaymentDevelopment_ReturnsNotFound_WhenConfigDisabled()
 		{
 			var test = CreateController(Environments.Development, allowManualApproval: false);
 
-			var result = test.Controller.ApprovePaymentDevelopment();
+			var result = await test.Controller.ApprovePaymentDevelopment();
 
 			Assert.IsType<NotFoundResult>(result);
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
 		}
 
 		[Fact]
-		public void ApprovePaymentDevelopment_UsesStoredCheckoutSession_WhenEnabled()
+		public async Task ApprovePaymentDevelopment_UsesStoredCheckoutSession_WhenEnabled()
 		{
 			var order = new OrderHeader
 			{
@@ -61,9 +61,9 @@ namespace VaultShop.Web.Tests
 			var test = CreateController(Environments.Development, allowManualApproval: true, order);
 			test.PaymentStatusMock
 				.Setup(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()))
-				.Returns(true);
+				.ReturnsAsync(true);
 
-			var result = test.Controller.ApprovePaymentDevelopment();
+			var result = await test.Controller.ApprovePaymentDevelopment();
 
 			var redirect = Assert.IsType<RedirectToActionResult>(result);
 			Assert.Equal("Details", redirect.ActionName);
@@ -76,7 +76,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void ApprovePaymentDevelopment_ReturnsNotFound_WhenOrderHasNoCheckoutSession()
+		public async Task ApprovePaymentDevelopment_ReturnsNotFound_WhenOrderHasNoCheckoutSession()
 		{
 			var order = new OrderHeader
 			{
@@ -86,7 +86,7 @@ namespace VaultShop.Web.Tests
 			};
 			var test = CreateController(Environments.Development, allowManualApproval: true, order);
 
-			var result = test.Controller.ApprovePaymentDevelopment();
+			var result = await test.Controller.ApprovePaymentDevelopment();
 
 			Assert.IsType<NotFoundResult>(result);
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
@@ -105,7 +105,7 @@ namespace VaultShop.Web.Tests
 			var test = CreateController(Environments.Development, allowManualApproval: false, order);
 			test.PaymentStatusMock
 				.Setup(x => x.ApproveManualBankTransfer(42))
-				.Returns(true);
+				.ReturnsAsync(true);
 
 			var result = await test.Controller.ConfirmBankTransfer();
 
@@ -129,7 +129,7 @@ namespace VaultShop.Web.Tests
 			var test = CreateController(Environments.Development, allowManualApproval: false, order);
 			test.PaymentStatusMock
 				.Setup(x => x.ApproveManualBankTransfer(42))
-				.Returns(false);
+				.ReturnsAsync(false);
 
 			var result = await test.Controller.ConfirmBankTransfer();
 
@@ -541,7 +541,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void PaymentConfirmation_MercadoPagoPreferenceId_SyncsApprovedPayment()
+		public async Task PaymentConfirmation_MercadoPagoPreferenceId_SyncsApprovedPayment()
 		{
 			var order = new OrderHeader
 			{
@@ -565,7 +565,7 @@ namespace VaultShop.Web.Tests
 				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now", "payment_test_123"))
 				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid", "42", 200m));
 
-			var result = test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", "payment_test_123");
+			var result = await test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", "payment_test_123");
 
 			Assert.IsType<ViewResult>(result);
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(
@@ -576,7 +576,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void PaymentConfirmation_MercadoPagoAmountMismatch_DoesNotApprovePayment()
+		public async Task PaymentConfirmation_MercadoPagoAmountMismatch_DoesNotApprovePayment()
 		{
 			var order = new OrderHeader
 			{
@@ -600,14 +600,14 @@ namespace VaultShop.Web.Tests
 				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now", "payment_test_123"))
 				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid", "42", 199m));
 
-			var result = test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", "payment_test_123");
+			var result = await test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", "payment_test_123");
 
 			Assert.IsType<ViewResult>(result);
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
 		}
 
 		[Fact]
-		public void PaymentConfirmation_MercadoPagoWrongPreferenceId_ReturnsNotFound()
+		public async Task PaymentConfirmation_MercadoPagoWrongPreferenceId_ReturnsNotFound()
 		{
 			var order = new OrderHeader
 			{
@@ -627,7 +627,7 @@ namespace VaultShop.Web.Tests
 				user: CreateUser("company-user", SD.Role_Company),
 				mercadoPagoEnabled: true);
 
-			var result = test.Controller.PaymentConfirmation(42, null, "pref_wrong", "payment_test_123");
+			var result = await test.Controller.PaymentConfirmation(42, null, "pref_wrong", "payment_test_123");
 
 			Assert.IsType<NotFoundResult>(result);
 			test.MercadoPagoPaymentSessionMock.Verify(x => x.GetCheckoutSessionStatus(It.IsAny<string>(), It.IsAny<string?>()), Times.Never);

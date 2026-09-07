@@ -49,6 +49,7 @@ services:
       Branding__AppleTouchIconPath: ${Branding__AppleTouchIconPath:-/images/brand/vaultshop-mark.svg}
       Branding__SocialPreviewImagePath: ${Branding__SocialPreviewImagePath:-/images/brand/vaultshop-og.svg}
       Branding__TwitterSite: ${Branding__TwitterSite:-@VaultShop}
+      Branding__WhatsAppNumber: ${Branding__WhatsAppNumber:-}
       Storefront__ShowDemoNotice: ${Storefront__ShowDemoNotice:-true}
       Theme__Primary: "${Theme__Primary:-#1a2a4a}"
       Theme__PrimaryDark: "${Theme__PrimaryDark:-#0d1625}"
