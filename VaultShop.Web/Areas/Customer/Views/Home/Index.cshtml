@@ -62,6 +62,10 @@ else
 								{
 									<img src="https://placehold.co/500x600/png" class="product-card__image" alt="@product.Name" />
 								}
+								@if (product.StockQuantity == 0)
+								{
+									<span class="product-card__stock-badge"><i class="bi bi-x-circle" aria-hidden="true"></i> @Localizer["OutOfStock"]</span>
+								}
 							</a>
 
 							<div class="card-body px-0 pb-0 d-flex flex-column flex-grow-1">
@@ -113,6 +117,10 @@ else
 							else
 							{
 								<img src="https://placehold.co/500x600/png" class="product-card__image" alt="@product.Name" />
+							}
+							@if (product.StockQuantity == 0)
+							{
+								<span class="product-card__stock-badge"><i class="bi bi-x-circle" aria-hidden="true"></i> @Localizer["OutOfStock"]</span>
 							}
 						</a>
 

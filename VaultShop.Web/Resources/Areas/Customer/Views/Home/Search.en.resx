@@ -141,4 +141,7 @@
   <data name="MetaKeywords" xml:space="preserve">
     <value>search textile design, garment making, embroidery, printing, personalization, accessories</value>
   </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>Out of stock</value>
+  </data>
 </root>

@@ -27,7 +27,7 @@
         "@( "@" )type": "Offer",
         "priceCurrency": "ARS",
         "price": "@Model.Product.FinalRetailPrice.ToString("F2")",
-        "availability": "https://schema.org/InStock"
+        "availability": "https://schema.org/@(Model.Product.StockQuantity == 0 ? "OutOfStock" : "InStock")"
     },
     "brand": {
         "@( "@" )type": "Brand",
@@ -116,6 +116,10 @@
 								<div class="product-detail__price text-success">@Model.Product.FinalRetailPrice.ToString("c")</div>
 							}
 						</div>
+						@if (Model.Product.StockQuantity > 0)
+						{
+							<p class="product-card__meta small text-muted mb-4">@string.Format(Localizer["StockAvailable"].Value, Model.Product.StockQuantity)</p>
+						}
 
 						<div class="product-detail__description mb-4">
 							@Html.Raw(Model.Product.Description)

@@ -159,4 +159,7 @@
   <data name="ValueBannerText" xml:space="preserve">
     <value>Los costos de envío y cualquier oferta de envío gratis se confirman en el checkout antes de pagar.</value>
   </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>Sin stock</value>
+  </data>
 </root>

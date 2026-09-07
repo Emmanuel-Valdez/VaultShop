@@ -159,4 +159,7 @@
   <data name="ValueBannerText" xml:space="preserve">
     <value>Shipping costs and any free-shipping offer are confirmed at checkout before payment.</value>
   </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>Out of stock</value>
+  </data>
 </root>

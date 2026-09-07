@@ -159,4 +159,7 @@
   <data name="OutOfStock" xml:space="preserve">
     <value>Out of stock</value>
   </data>
+  <data name="StockAvailable" xml:space="preserve">
+    <value>{0} available</value>
+  </data>
 </root>
