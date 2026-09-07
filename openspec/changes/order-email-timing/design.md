@@ -1,0 +1,40 @@
+## Context
+
+See `proposal.md` for motivation. Current flow: `CartController.SummaryPOST` calls `CheckoutService.CreateOrder` then immediately fires `TrySendOrderConfirmationAsync` + `TrySendAdminNewOrderAlertAsync` before payment. `CheckoutService.CreateOrder` sets Company orders to `Approved + DelayedPayment` at creation. Email already has idempotency guards (`OrderConfirmationEmailSentUtc`, `PaymentReceiptEmailSentUtc`).
+
+## Goals / Non-Goals
+
+**Goals:**
+- Customer and Company orders are `Pending` until payment confirmation; `Approved` only on paid transition.
+- Confirmation + admin alert emails fire only on transition to paid — except the BankTransfer instructions confirmation email, which fires at creation (it is the payment guide).
+
+**Non-Goals:**
+- Stock logic, fiscal snapshots, or new email types.
+- Changing `PaymentReceiptEmail` timing (already on paid).
+- New DB columns or new email template types (existing templates may be edited — the bank-transfer instructions copy changes).
+
+## Decisions
+
+- **Emails at creation, conditional on method:** `SummaryPOST` deletes the two `TrySend*` calls for Stripe/Mercado Pago orders, but keeps `TrySendOrderConfirmationAsync` for `BankTransfer` orders only — the confirmation email doubles as the transfer-instructions guide, so it must arrive while the customer still needs it. The admin alert NEVER fires at creation for any method (for bank transfer the admin already gets `ConfirmTransferSent` when the customer reports the transfer, and acts at approval). Alternative: one timing rule for all methods — rejected; a post-approval instructions email is useless, and a separate "how to pay" template is a new email type (non-goal). Alternative: keep both emails at creation with a flag — rejected; leaks Pending Stripe/MP orders to inboxes.
+- **Company initial status → `Pending + DelayedPayment`:** change in `CheckoutService.CreateOrder`. Keeps `CompanyId` + fiscal snapshots + `PaymentDueDate`. Alternative: new status — unnecessary, `Pending + DelayedPayment` already means "awaiting company payment" and `IsPayable` already treats it as payable. **Not a one-line change:** `PaymentStatusService.MarkCheckoutSessionPaid` and `ApproveManualBankTransfer` compute `nextOrderStatus` as "keep current OrderStatus when `DelayedPayment`" (so old `Approved + DelayedPayment` orders that are already `InProcess`/`Shipped` are not regressed). With Company now starting at `Pending`, that logic would leave a paid Company order at `Pending + Approved` — stuck, because `CanStartProcessing` requires `OrderStatus == Approved`. New rule: when `PaymentStatus == DelayedPayment`, promote `Pending → Approved` but preserve `InProcess`/`Shipped` (i.e. `OrderStatus is InProcess or Shipped ? keep : Approved`). `PaymentStatusServiceTests` has a test pinning the current preserve behavior — update it.
+- **Send moved emails inside `PaymentStatusService`:** `MarkCheckoutSessionPaid` and `ApproveManualBankTransfer` already are the single paid-transition sites (webhooks + browser sync + admin approve). Inject `ITransactionalEmailService` there and call `TrySendOrderConfirmationAsync` + `TrySendAdminNewOrderAlertAsync` after `UpdateStatus`+`Save`, **awaited**. Both methods become `async Task<bool>` and callers are updated to await: `StripeWebhookController`, `MercadoPagoWebhookController`, `CartController.SyncPaidCheckoutSession`, `OrderController` (both `MarkCheckoutSessionPaid` and `ApproveManualBankTransfer` call sites). Fire-and-forget is rejected: today the emails are awaited from `SummaryPOST`, and fire-and-forget from a request scope risks the scoped `IUnitOfWork` being disposed before the sent-timestamp `Save()` persists — email sent, guard not updated, duplicate on next delivery. Emails sit **after the real transition block only** — `ApproveManualBankTransfer` returns `true` on the duplicate-approval early return (line ~89), so sending on any `true` would resend emails on a duplicate approval that performed no transition; gate on the path that actually called `UpdateStatus`. Alternative: caller-side (webhook controllers) — scatters logic, misses browser-sync path (`CartController.SyncPaidCheckoutSession`).
+- **Idempotency:** the existing `OrderConfirmationEmailSentUtc` guard is check-then-act (read tracked entity → send → `Save`), which is NOT atomic. This was fine at creation (single thread in `SummaryPOST`) but breaks at the paid transition: Stripe fires `CheckoutSessionCompleted` almost simultaneously with the browser redirect to `OrderConfirmation` → `SyncPaidCheckoutSession` → `MarkCheckoutSessionPaid`, so two threads can both read a `NULL` timestamp and both send. Mitigation: claim the timestamp atomically before sending — `UPDATE OrderHeaders SET OrderConfirmationEmailSentUtc = now WHERE Id = @id AND OrderConfirmationEmailSentUtc IS NULL`, send only if 1 row was affected; log-and-skip otherwise. Admin alert stays best-effort (no column, intentionally re-sendable).
+- **Email language:** templates render with `Thread.CurrentThread.CurrentUICulture`. Today the confirmation inherits the shopper's culture from the `SummaryPOST` request; once sent from webhooks/system paths there is no user culture, so non-default-locale shoppers get the server default language. Accepted and documented: primary market is es-AR, and persisting culture per order would need a new column (rejected — non-goal). Revisit only if en-US volume justifies it.
+
+- **Store WhatsApp in `BrandingOptions`:** new `WhatsAppNumber` option (env `Branding__WhatsAppNumber`, added to `docker-compose.example`), injected via the existing `IOptions<BrandingOptions>` into `TransactionalEmailService`. The bank-transfer creation email passes it to `EmailTemplates.OrderConfirmation`, and that template's copy (es-AR/en-US) is updated to state explicitly: transfer to the given CBU/alias, then confirm the transfer was sent or send the receipt to the store's WhatsApp. Living in `BrandingOptions` makes the number available app-wide for the future features planned around it. Alternative: standalone config section — rejected; branding already carries the store's public identity and is already wired into the email service.
+
+## Risks / Trade-offs
+
+- [Missed paid path] → Mitigation: grep all callers of `UpdateStatus` to `Approved`; only the two methods above transition to paid for these payment methods.
+- [Race: webhook vs browser sync] both hit `MarkCheckoutSessionPaid` concurrently → duplicate email. Mitigation: atomic timestamp claim (see Idempotency decision).
+- [Email language regression] webhooks carry no user culture → email renders in server default culture. Accepted: es-AR primary market; documented in billing-invoicing delta.
+- [Admin alert delay] admin sees Stripe/MP orders only on the paid transition (was: immediately at creation); unpaid/abandoned checkouts appear only in the admin "pending" filter — accepted, abandoned orders are explicitly out of scope. Bank transfer is unaffected in practice — the admin already gets the `ConfirmTransferSent` alert when the customer reports the transfer.
+- [Company UX: Pending before admin review] → Order list/details already handle `Pending + DelayedPayment` (verified: `OrderConfirmation.cshtml` renders `DelayedPaymentMessage`); verify copy doesn't claim "approved" prematurely, including the admin Details view/actions since Company orders now live in the "pending" tab.
+
+## Migration Plan
+
+- No migration. Deploy: orders created after deploy follow new lifecycle; old `Approved` Company orders unchanged. Rollback: revert the touched files; pending Company orders created during the window need payment first (`Details_PAY_NOW`) before they can reach `Approved` — there is no direct admin approve for Company delayed payment.
+
+## Open Questions
+
+- None. Verified: `OrderConfirmation.cshtml` already renders Pending/DelayedPayment copy (`PaymentNotCompletedTitle/Message`, `DelayedPaymentMessage`), so no view change is required for Customer; only copy verification in tasks.
