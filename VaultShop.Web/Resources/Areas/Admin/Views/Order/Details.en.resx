@@ -204,6 +204,9 @@
   <data name="PaymentDueDate" xml:space="preserve">
     <value>Payment Due Date</value>
   </data>
+  <data name="PaymentOverdueWarning" xml:space="preserve">
+    <value>Overdue — after 5 days the price may have changed. You can still pay.</value>
+  </data>
   <data name="PaymentIntentId" xml:space="preserve">
     <value>Payment Intent Id</value>
   </data>

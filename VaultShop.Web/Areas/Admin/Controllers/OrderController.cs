@@ -81,7 +81,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				OrderDetail = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderId, includeProperties: "Product")
 			};
 			ViewData["AllowDevelopmentManualPaymentApproval"] = ManualPaymentApprovalEnabled();
-			PopulateBankTransferViewData();
+			var isCompanyDetails = orderHeader.CompanyId.GetValueOrDefault() > 0;
+			PopulateBankTransferViewData(isCompanyDetails);
 			return View(OrderVM);
 		}
 
@@ -281,6 +282,13 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			paymentMethod = string.IsNullOrWhiteSpace(paymentMethod)
 				? SD.PaymentMethodStripe
 				: paymentMethod.Trim();
+			// ponytail: wholesale transfer-only gate — Company card payments disabled unless explicitly enabled
+			if ((paymentMethod == SD.PaymentMethodStripe || paymentMethod == SD.PaymentMethodMercadoPago) &&
+				!IsCompanyCardPaymentsEnabled())
+			{
+				TempData["error"] = _localizer["InvalidPaymentMethodError"].Value;
+				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
+			}
 			if (!IsPaymentMethodEnabled(paymentMethod))
 			{
 				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
@@ -444,16 +452,20 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			return RedirectToAction(nameof(Details), new { orderId });
 		}
 
-		private void PopulateBankTransferViewData()
+		private void PopulateBankTransferViewData(bool? isCompanyOrder = null)
 		{
-			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
+			var companyCardEnabled = IsCompanyCardPaymentsEnabled();
+			var isCompany = isCompanyOrder == true;
+			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true) && (!isCompany || companyCardEnabled);
 			ViewData["BankTransferEnabled"] = _configuration.GetValue("Payments:BankTransferEnabled", true);
-			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
+			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false) && (!isCompany || companyCardEnabled);
 			ViewData["BankTransferCbu"] = _configuration.GetValue<string>("Payments:BankTransferCbu") ?? string.Empty;
 			ViewData["BankTransferAlias"] = _configuration.GetValue<string>("Payments:BankTransferAlias") ?? string.Empty;
 			ViewData["BankTransferRecipientName"] = _configuration.GetValue<string>("Payments:BankTransferRecipientName") ?? string.Empty;
 			ViewData["BankTransferBankName"] = _configuration.GetValue<string>("Payments:BankTransferBankName") ?? string.Empty;
 		}
+
+		private bool IsCompanyCardPaymentsEnabled() => _configuration.GetValue("Payments:CompanyCardPaymentsEnabled", false);
 
 		private static bool ConfirmationSessionMatches(OrderHeader orderHeader, string? sessionId)
 		{

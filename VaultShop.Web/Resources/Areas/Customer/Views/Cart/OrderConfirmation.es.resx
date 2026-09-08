@@ -170,5 +170,23 @@
   </data>
   <data name="ViewOrderSummary" xml:space="preserve">
     <value>Ver Resumen del Pedido</value>
+  </data>
+  <data name="WholesaleConditionsTitle" xml:space="preserve">
+    <value>Condiciones mayoristas</value>
+  </data>
+  <data name="WholesaleConditionsBody" xml:space="preserve">
+    <value>Para iniciar la fabricación o reserva necesitás abonar la seña del 50% de forma inmediata. El saldo y total deben abonarse antes del vencimiento (5 días).</value>
+  </data>
+  <data name="PaymentDueDateLabel" xml:space="preserve">
+    <value>Fecha de vencimiento</value>
+  </data>
+  <data name="PaymentOverdueBadge" xml:space="preserve">
+    <value>Vencido — precio puede actualizarse</value>
+  </data>
+  <data name="WholesalePriceUpdateDisclaimer" xml:space="preserve">
+    <value>Pasados los 5 días desde la creación, el precio puede actualizarse si hubo cambios.</value>
+  </data>
+  <data name="WholesaleShippingNotFree" xml:space="preserve">
+    <value>El envío es a cargo del comprador y se coordina por WhatsApp cuando el pedido esté listo.</value>
   </data></root>
 

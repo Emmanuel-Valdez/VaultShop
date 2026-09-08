@@ -129,4 +129,7 @@
   <data name="OrderShippedSuccessfully" xml:space="preserve">
     <value>Órden Despachada Correctamente</value>
   </data>
+  <data name="InvalidPaymentMethodError" xml:space="preserve">
+    <value>Método de pago no habilitado para mayoristas. Solo se permite transferencia bancaria.</value>
+  </data>
 </root>

@@ -204,6 +204,9 @@
   <data name="PaymentDueDate" xml:space="preserve">
     <value>Vencimiento Pago</value>
   </data>
+  <data name="PaymentOverdueWarning" xml:space="preserve">
+    <value>Vencido — pasados los 5 días el precio puede actualizarse. Aún podés pagar.</value>
+  </data>
   <data name="PaymentIntentId" xml:space="preserve">
     <value>Id Intento de Pago</value>
   </data>

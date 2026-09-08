@@ -943,7 +943,8 @@ namespace VaultShop.Web.Tests
 			IEnumerable<OrderDetail>? orderDetails = null,
 			ApplicationUser? currentUser = null,
 			ClaimsPrincipal? user = null,
-			bool mercadoPagoEnabled = false)
+			bool mercadoPagoEnabled = false,
+			bool companyCardPaymentsEnabled = true)
 		{
 			var unitOfWorkMock = new Mock<IUnitOfWork>();
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();
@@ -1009,7 +1010,8 @@ namespace VaultShop.Web.Tests
 				.AddInMemoryCollection(new Dictionary<string, string?>
 				{
 					["Payments:AllowDevelopmentManualApproval"] = allowManualApproval.ToString(),
-					["Payments:MercadoPagoEnabled"] = mercadoPagoEnabled.ToString()
+					["Payments:MercadoPagoEnabled"] = mercadoPagoEnabled.ToString(),
+					["Payments:CompanyCardPaymentsEnabled"] = companyCardPaymentsEnabled.ToString()
 				})
 				.Build();
 

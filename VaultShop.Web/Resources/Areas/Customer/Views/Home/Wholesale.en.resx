@@ -136,7 +136,7 @@
     <value>Payment method</value>
   </data>
   <data name="PaymentMethodText" xml:space="preserve">
-    <value>Wholesale orders are paid exclusively by bank transfer.</value>
+    <value>Wholesale orders are paid by bank transfer. A 50% deposit is required immediately to start fabrication or reservation.</value>
   </data>
   <data name="ClearPricesLabel" xml:space="preserve">
     <value>Clear prices</value>
@@ -154,13 +154,13 @@
     <value>Payment deadline</value>
   </data>
   <data name="PaymentDeadlineText" xml:space="preserve">
-    <value>After placing your order, you have up to 7 days to pay the full amount.</value>
+    <value>After placing your order, you have 5 days to pay the full amount. After that date the price may change if updated. The 50% deposit must be paid immediately to start fabrication.</value>
   </data>
   <data name="DispatchTimesLabel" xml:space="preserve">
     <value>Dispatch times</value>
   </data>
   <data name="DispatchTimesText" xml:space="preserve">
-    <value>We prepare and dispatch orders within 7 to 14 business days after payment is confirmed.</value>
+    <value>We prepare and dispatch orders within 7 to 14 business days after the deposit is confirmed. Shipping is always at the buyer's expense and is coordinated via WhatsApp when the order is ready.</value>
   </data>
   <data name="ContactText" xml:space="preserve">
     <value>If you would like to work with us, send us a message and we will explain how to access the wholesale area. We love building serious, simple, and sustainable business relationships.</value>

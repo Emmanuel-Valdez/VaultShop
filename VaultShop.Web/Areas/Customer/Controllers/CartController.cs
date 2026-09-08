@@ -185,8 +185,12 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			var orderId = result.OrderId.Value;
 
-			// ponytail: BankTransfer instructions email at creation only; Stripe/MP emails move to paid transition (order-email-timing section 1)
-			if (result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer)
+			// ponytail: company gets user confirmation at creation with 50%/5d wholesale copy; admin alert only at paid transition (avoids duplicate)
+			if (isCompanyCheckout)
+			{
+				await _emailService.TrySendOrderConfirmationAsync(orderId);
+			}
+			else if (result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer)
 			{
 				await _emailService.TrySendOrderConfirmationAsync(orderId);
 			}

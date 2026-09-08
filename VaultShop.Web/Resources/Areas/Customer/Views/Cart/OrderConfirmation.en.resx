@@ -170,6 +170,24 @@
   </data>
   <data name="ViewOrderSummary" xml:space="preserve">
     <value>View Order Summary</value>
+  </data>
+  <data name="WholesaleConditionsTitle" xml:space="preserve">
+    <value>Wholesale conditions</value>
+  </data>
+  <data name="WholesaleConditionsBody" xml:space="preserve">
+    <value>To start fabrication or reservation you must pay the 50% deposit immediately. The balance and total must be paid before the due date (5 days).</value>
+  </data>
+  <data name="PaymentDueDateLabel" xml:space="preserve">
+    <value>Payment due date</value>
+  </data>
+  <data name="PaymentOverdueBadge" xml:space="preserve">
+    <value>Overdue — price may have changed</value>
+  </data>
+  <data name="WholesalePriceUpdateDisclaimer" xml:space="preserve">
+    <value>After 5 days from creation, the price may change if costs were updated.</value>
+  </data>
+  <data name="WholesaleShippingNotFree" xml:space="preserve">
+    <value>Shipping is at the buyer's expense and will be coordinated via WhatsApp when the order is ready.</value>
   </data></root>
 
 

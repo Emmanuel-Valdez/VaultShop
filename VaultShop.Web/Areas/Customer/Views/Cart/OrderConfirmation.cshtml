@@ -5,6 +5,8 @@
 	var isPending = Model.PaymentStatus == SD.PaymentStatusPending;
 	var isDelayed = Model.PaymentStatus == SD.PaymentStatusDelayedPayment;
 	var isBankTransferPending = isPending && Model.PaymentMethod == SD.PaymentMethodBankTransfer;
+	var isCompanyWholesale = Model.CompanyId.GetValueOrDefault() > 0 && isDelayed;
+	var isOverdue = isCompanyWholesale && Model.PaymentDueDate != default && DateOnly.FromDateTime(DateTime.UtcNow) > Model.PaymentDueDate;
 	var transferAlreadyConfirmed = Model.TransferConfirmedByCustomerAt.HasValue;
 	var bankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty;
 	var bankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty;
@@ -25,7 +27,25 @@
 	<div class="col-12 text-center pb-3">
 		<br />
 		<div class="alert @alertClass" role="alert">@Localizer[messageKey]</div>
-		@if (isBankTransferPending)
+		@if (isCompanyWholesale)
+		{
+			<div class="alert @(isOverdue ? "alert-danger" : "alert-warning") text-start d-inline-block" role="alert">
+				<div class="fw-semibold">@Localizer["WholesaleConditionsTitle"]</div>
+				<div>@Localizer["WholesaleConditionsBody"]</div>
+				<div class="mt-2"><strong>@Localizer["PaymentDueDateLabel"]:</strong> @(Model.PaymentDueDate == default ? "" : Model.PaymentDueDate.ToShortDateString()) @if (isOverdue) { <span class="badge bg-danger ms-2">@Localizer["PaymentOverdueBadge"]</span> }</div>
+				<div class="mt-2 small">@Localizer["WholesalePriceUpdateDisclaimer"]</div>
+				<div class="mt-2 small">@Localizer["WholesaleShippingNotFree"]</div>
+				@if (!string.IsNullOrWhiteSpace(bankTransferCbu) || !string.IsNullOrWhiteSpace(bankTransferAlias))
+				{
+					<hr />
+					<div><strong>@Localizer["BankTransferCbuLabel"]:</strong> @bankTransferCbu</div>
+					@if (!string.IsNullOrWhiteSpace(bankTransferAlias)) { <div><strong>@Localizer["BankTransferAliasLabel"]:</strong> @bankTransferAlias</div> }
+					@if (!string.IsNullOrWhiteSpace(bankTransferRecipientName)) { <div><strong>@Localizer["BankTransferRecipientNameLabel"]:</strong> @bankTransferRecipientName</div> }
+					@if (!string.IsNullOrWhiteSpace(bankTransferBankName)) { <div><strong>@Localizer["BankTransferBankNameLabel"]:</strong> @bankTransferBankName</div> }
+				}
+			</div>
+		}
+		else if (isBankTransferPending)
 		{
 			if (transferAlreadyConfirmed)
 			{

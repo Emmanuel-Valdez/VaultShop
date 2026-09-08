@@ -136,7 +136,7 @@
     <value>Método de pago</value>
   </data>
   <data name="PaymentMethodText" xml:space="preserve">
-    <value>Las compras mayoristas se abonan únicamente por transferencia bancaria.</value>
+    <value>Las compras mayoristas se abonan por transferencia bancaria. Para iniciar la fabricación o reserva necesitás abonar la seña del 50% de forma inmediata.</value>
   </data>
   <data name="ClearPricesLabel" xml:space="preserve">
     <value>Precios claros</value>
@@ -154,13 +154,13 @@
     <value>Plazo de pago</value>
   </data>
   <data name="PaymentDeadlineText" xml:space="preserve">
-    <value>Una vez realizado el pedido, tenés hasta 7 días para abonar el total.</value>
+    <value>Una vez realizado el pedido, tenés 5 días para abonar el total. Pasada esa fecha el precio puede actualizarse si hubo cambios. La seña del 50% debe abonarse de forma inmediata para iniciar la fabricación.</value>
   </data>
   <data name="DispatchTimesLabel" xml:space="preserve">
     <value>Tiempos de despacho</value>
   </data>
   <data name="DispatchTimesText" xml:space="preserve">
-    <value>Preparamos y despachamos los pedidos dentro de 7 a 14 días hábiles desde la acreditación del pago.</value>
+    <value>Preparamos y despachamos los pedidos dentro de 7 a 14 días hábiles desde la acreditación de la seña. El envío es siempre a cargo del comprador y se coordina por WhatsApp cuando el pedido esté listo.</value>
   </data>
   <data name="ContactText" xml:space="preserve">
     <value>Si querés trabajar con nosotros, escribinos y te contamos cómo acceder al área mayorista. Nos encanta construir vínculos comerciales serios, simples y sostenibles.</value>

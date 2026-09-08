@@ -129,4 +129,7 @@
   <data name="OrderShippedSuccessfully" xml:space="preserve">
     <value>Order Shipped Successfully</value>
   </data>
+  <data name="InvalidPaymentMethodError" xml:space="preserve">
+    <value>Payment method not available for wholesale. Only bank transfer is allowed.</value>
+  </data>
 </root>

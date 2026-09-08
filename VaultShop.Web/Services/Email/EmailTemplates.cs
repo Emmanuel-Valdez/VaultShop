@@ -11,7 +11,7 @@ public static class EmailTemplates
         CultureInfo culture, string? paymentMethod = null, bool includeBankTransferInstructions = false,
         string? bankTransferCbu = null, string? bankTransferAlias = null,
         string? bankTransferRecipientName = null, string? bankTransferBankName = null,
-        string? whatsAppNumber = null)
+        string? whatsAppNumber = null, DateOnly? paymentDueDate = null, bool isCompanyWholesale = false)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -64,6 +64,43 @@ public static class EmailTemplates
             bankTransferHtml = builder.ToString();
         }
 
+        var wholesaleHtml = string.Empty;
+        if (isCompanyWholesale)
+        {
+            var wb = new StringBuilder();
+            wb.Append("<div style='margin:16px 0;padding:16px;border-radius:8px;background:#fffbe6;border:1px solid #ffe58f;'>");
+            wb.Append($"<p style='margin:0 0 12px 0;'><strong>{(isSpanish ? "Condiciones mayoristas" : "Wholesale conditions")}</strong></p>");
+            var dueDateText = paymentDueDate.HasValue ? paymentDueDate.Value.ToString("d", culture) : string.Empty;
+            var depositInstructions = isSpanish
+                ? (string.IsNullOrWhiteSpace(whatsAppNumber)
+                    ? $"Para iniciar la fabricación/reserva necesitás abonar la seña del 50% de forma inmediata. El saldo y total deben abonarse antes del {dueDateText} (5 días desde la creación). Pasada esa fecha el precio puede actualizarse."
+                    : $"Para iniciar la fabricación/reserva necesitás abonar la seña del 50% de forma inmediata. El saldo y total deben abonarse antes del {dueDateText} (5 días desde la creación). Pasada esa fecha el precio puede actualizarse. Coordiná el envío (a cargo del comprador) por WhatsApp ({whatsAppNumber}) cuando el pedido esté listo.")
+                : (string.IsNullOrWhiteSpace(whatsAppNumber)
+                    ? $"To start fabrication/reservation you must pay the 50% deposit immediately. The remaining balance and total must be paid before {dueDateText} (5 days from creation). After that date the price may change."
+                    : $"To start fabrication/reservation you must pay the 50% deposit immediately. The remaining balance and total must be paid before {dueDateText} (5 days from creation). After that date the price may change. Coordinate shipping (at buyer's expense) via WhatsApp ({whatsAppNumber}) when the order is ready.");
+            wb.Append($"<p style='margin:0 0 8px 0;'>{depositInstructions}</p>");
+            var transferNote = isSpanish
+                ? "Realizá la transferencia al CBU/alias indicado. Luego confirmá desde el botón de tu pedido si enviaste la seña o el pago total, y enviá el comprobante por WhatsApp."
+                : "Send the transfer to the CBU/alias shown. Then confirm from your order page whether you sent the deposit or the full payment, and send the receipt via WhatsApp.";
+            wb.Append($"<p style='margin:0;'>{transferNote}</p>");
+            wb.Append("</div>");
+            // include bank details for wholesale (if not already showing bankTransferHtml, show them here)
+            if (!includeBankTransferInstructions && (!string.IsNullOrWhiteSpace(bankTransferCbu) || !string.IsNullOrWhiteSpace(bankTransferAlias)))
+            {
+                var bb = new StringBuilder();
+                bb.Append("<div style='margin:12px 0;padding:12px;border-radius:8px;background:#f4f8ff;border:1px solid #d7e3ff;'>");
+                bb.Append($"<p style='margin:0 0 8px 0;'><strong>{Translate("BankTransferInstructionsTitle", culture)}</strong></p>");
+                bb.Append($"<div><strong>{Translate("BankTransferCbuLabel", culture)}:</strong> {bankTransferCbu}</div>");
+                if (!string.IsNullOrWhiteSpace(bankTransferAlias)) bb.Append($"<div><strong>{Translate("BankTransferAliasLabel", culture)}:</strong> {bankTransferAlias}</div>");
+                if (!string.IsNullOrWhiteSpace(bankTransferRecipientName)) bb.Append($"<div><strong>{Translate("BankTransferRecipientNameLabel", culture)}:</strong> {bankTransferRecipientName}</div>");
+                if (!string.IsNullOrWhiteSpace(bankTransferBankName)) bb.Append($"<div><strong>{Translate("BankTransferBankNameLabel", culture)}:</strong> {bankTransferBankName}</div>");
+                if (!string.IsNullOrWhiteSpace(whatsAppNumber)) bb.Append($"<div><strong>{Translate("WhatsAppLabel", culture)}:</strong> {whatsAppNumber}</div>");
+                bb.Append("</div>");
+                wb.Append(bb.ToString());
+            }
+            wholesaleHtml = wb.ToString();
+        }
+
         var body = $@"
 <!DOCTYPE html>
 <html><body style='font-family:sans-serif;margin:0;padding:0;background:#f4f4f4;'>
@@ -84,6 +121,7 @@ public static class EmailTemplates
 </table>
 <hr style='border:none;border-top:1px solid #eee;'>
 <p style='font-size:18px;'><strong>{totalLabel}:</strong> {orderTotal}</p>
+{wholesaleHtml}
 {bankTransferHtml}
 <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{viewOrderText}</a></p>
 </div></div></body></html>";

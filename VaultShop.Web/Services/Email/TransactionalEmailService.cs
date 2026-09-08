@@ -77,6 +77,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
 
         var includeBankTransferInstructions = order.PaymentMethod == SD.PaymentMethodBankTransfer &&
             (order.PaymentStatus == SD.PaymentStatusPending || order.PaymentStatus == SD.PaymentStatusDelayedPayment);
+        var isCompanyWholesale = order.CompanyId.GetValueOrDefault() > 0 &&
+            order.PaymentStatus == SD.PaymentStatusDelayedPayment;
 
         var content = EmailTemplates.OrderConfirmation(
             _branding.PublicName,
@@ -92,7 +94,9 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             _bankTransferAlias,
             _bankTransferRecipientName,
             _bankTransferBankName,
-            _branding.WhatsAppNumber);
+            _branding.WhatsAppNumber,
+            order.PaymentDueDate == default ? null : order.PaymentDueDate,
+            isCompanyWholesale);
 
         // already claimed, so onSuccess is no-op (timestamp persisted via conditional UPDATE)
         await TrySendEmailAsync(orderId, userEmail, content,
@@ -261,7 +265,19 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send {EmailType} email for order {OrderId} to {Recipient}. Order state preserved.", emailType, orderId, recipient);
-            // ponytail: email failure never rolls back the order; log and move on
+            // ponytail: order confirmation claim must roll back on SMTP failure — otherwise customer never gets email and webhook re-delivery can't retry
+            if (emailType == "order confirmation")
+            {
+                try
+                {
+                    _unitOfWork.OrderHeader.ResetOrderConfirmationEmailClaim(orderId);
+                    _logger.LogInformation("Reset order confirmation claim for order {OrderId} after email failure, will retry on next webhook.", orderId);
+                }
+                catch (Exception resetEx)
+                {
+                    _logger.LogError(resetEx, "Failed to reset order confirmation claim for order {OrderId} after email failure.", orderId);
+                }
+            }
         }
     }
 }

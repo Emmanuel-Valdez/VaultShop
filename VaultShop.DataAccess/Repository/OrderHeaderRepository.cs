@@ -81,5 +81,25 @@ namespace VaultShop.DataAccess.Repository
 				return true;
 			}
 		}
+
+		public void ResetOrderConfirmationEmailClaim(int orderId)
+		{
+			// ponytail: compensating reset — transient SMTP failure must not leave claim stuck forever
+			try
+			{
+				_db.OrderHeaders.Where(o => o.Id == orderId).ExecuteUpdate(s => s.SetProperty(o => o.OrderConfirmationEmailSentUtc, _ => (DateTime?)null));
+				var tracked = _db.ChangeTracker.Entries<OrderHeader>().FirstOrDefault(e => e.Entity.Id == orderId);
+				if (tracked != null) tracked.Entity.OrderConfirmationEmailSentUtc = null;
+			}
+			catch
+			{
+				var order = _db.OrderHeaders.FirstOrDefault(o => o.Id == orderId);
+				if (order == null) return;
+				order.OrderConfirmationEmailSentUtc = null;
+				_db.SaveChanges();
+				var tracked = _db.ChangeTracker.Entries<OrderHeader>().FirstOrDefault(e => e.Entity.Id == orderId);
+				if (tracked != null) tracked.Entity.OrderConfirmationEmailSentUtc = null;
+			}
+		}
     }
 }

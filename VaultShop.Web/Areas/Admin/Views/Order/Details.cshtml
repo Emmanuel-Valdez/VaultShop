@@ -67,8 +67,10 @@
 		bankTransferAwaitingApproval &&
 		!transferAlreadyConfirmed &&
 		!string.IsNullOrEmpty(currentUserId) &&
-		Model.OrderHeader.ApplicationUserId == currentUserId &&
-		Model.OrderHeader.CompanyId.GetValueOrDefault() == 0;
+		Model.OrderHeader.ApplicationUserId == currentUserId;
+	var isOverdue = Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment &&
+		Model.OrderHeader.PaymentDueDate != default &&
+		DateOnly.FromDateTime(DateTime.UtcNow) > Model.OrderHeader.PaymentDueDate;
 
 	string StatusBadgeClass(string? status) => status switch
 	{
@@ -273,7 +275,11 @@
 								<div class="row my-1">
 									<div class="col-3">@Localizer["PaymentDueDate"]</div>
 									<div class="col-9">
-										<input value="@(Model.OrderHeader.PaymentDueDate == default ? string.Empty : Model.OrderHeader.PaymentDueDate.ToShortDateString())" readonly type="text" class="form-control shadow" />
+										<input value="@(Model.OrderHeader.PaymentDueDate == default ? string.Empty : Model.OrderHeader.PaymentDueDate.ToShortDateString())" readonly type="text" class="form-control shadow @(isOverdue ? "border-danger text-danger fw-bold" : "")" />
+										@if (isOverdue)
+										{
+											<small class="text-danger">@Localizer["PaymentOverdueWarning"]</small>
+										}
 									</div>
 								</div>
 							}
@@ -384,7 +390,6 @@
 							{
 								<div class="alert alert-info my-2" role="alert">
 									<div class="fw-semibold">@Localizer["ChoosePaymentMethod"]</div>
-									<div>@Localizer["CompanyPaymentMethodChoiceHelp"]</div>
 								</div>
 								<partial name="_PaymentMethodPicker" model="paymentMethodPicker" />
 								<button type="submit" onclick="return confirmCompanyPaymentMethodChoice(event)" class="btn btn-success form-control my-1">@Localizer["PayNow"]</button>
