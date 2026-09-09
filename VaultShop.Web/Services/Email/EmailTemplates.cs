@@ -196,7 +196,11 @@ public static class EmailTemplates
 
     public static EmailContent AdminNewOrderAlert(
         string storeName, int orderId, string customerName, string orderTotal, string adminUrl,
-        CultureInfo culture, string? paymentMethod = null, bool isCompanyDelayedPayment = false)
+        CultureInfo culture, string? paymentMethod = null, bool isCompanyDelayedPayment = false,
+        DateOnly? paymentDueDate = null, decimal? orderTotalValue = null,
+        string? bankTransferCbu = null, string? bankTransferAlias = null,
+        string? bankTransferRecipientName = null, string? bankTransferBankName = null,
+        string? whatsAppNumber = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -214,7 +218,48 @@ public static class EmailTemplates
                 : " Wholesale/company order with delayed payment still pending to collect.";
         }
         var dashboardText = isSpanish ? "Ver pedido" : "View order";
-        var body = HtmlTemplate(storeName, heading, message, adminUrl, dashboardText, culture);
+
+        // ponytail: reuse template, add wholesale block when delayed payment so admin has CBU/seña/due date without new template
+        var wholesaleAdminHtml = string.Empty;
+        if (isCompanyDelayedPayment)
+        {
+            var wb = new StringBuilder();
+            wb.Append("<div style='margin:16px 0;padding:16px;border-radius:8px;background:#fffbe6;border:1px solid #ffe58f;'>");
+            wb.Append($"<p style='margin:0 0 8px 0;'><strong>{(isSpanish ? "Mayorista — acción requerida" : "Wholesale — action required")}</strong></p>");
+            var dueText = paymentDueDate.HasValue ? paymentDueDate.Value.ToString("d", culture) : (isSpanish ? "a 5 días" : "in 5 days");
+            var senaText = orderTotalValue.HasValue ? orderTotalValue.Value * 0.5m : (decimal?)null;
+            var senaFormatted = senaText.HasValue ? senaText.Value.ToString("C", culture) : (isSpanish ? "50% del total" : "50% of total");
+            var senaLine = isSpanish
+                ? $"Seña 50% inmediata: <strong>{senaFormatted}</strong>. Vencimiento del total/saldo: <strong>{dueText}</strong> (5 días desde creación). Pasado el vencimiento el precio puede actualizarse."
+                : $"50% deposit due now: <strong>{senaFormatted}</strong>. Total/balance due: <strong>{dueText}</strong> (5 days from creation). Price may change after due date.";
+            wb.Append($"<p style='margin:0 0 8px 0;'>{senaLine}</p>");
+            // bank details
+            if (!string.IsNullOrWhiteSpace(bankTransferCbu) || !string.IsNullOrWhiteSpace(bankTransferAlias))
+            {
+                wb.Append("<div style='margin:8px 0;padding:12px;border-radius:8px;background:#f4f8ff;border:1px solid #d7e3ff;'>");
+                wb.Append($"<p style='margin:0 0 6px 0;'><strong>{Translate("BankTransferInstructionsTitle", culture)}</strong></p>");
+                if (!string.IsNullOrWhiteSpace(bankTransferCbu)) wb.Append($"<div><strong>{Translate("BankTransferCbuLabel", culture)}:</strong> {bankTransferCbu}</div>");
+                if (!string.IsNullOrWhiteSpace(bankTransferAlias)) wb.Append($"<div><strong>{Translate("BankTransferAliasLabel", culture)}:</strong> {bankTransferAlias}</div>");
+                if (!string.IsNullOrWhiteSpace(bankTransferRecipientName)) wb.Append($"<div><strong>{Translate("BankTransferRecipientNameLabel", culture)}:</strong> {bankTransferRecipientName}</div>");
+                if (!string.IsNullOrWhiteSpace(bankTransferBankName)) wb.Append($"<div><strong>{Translate("BankTransferBankNameLabel", culture)}:</strong> {bankTransferBankName}</div>");
+                if (!string.IsNullOrWhiteSpace(whatsAppNumber)) wb.Append($"<div><strong>{Translate("WhatsAppLabel", culture)}:</strong> {whatsAppNumber}</div>");
+                wb.Append("</div>");
+                var note = isSpanish
+                    ? (string.IsNullOrWhiteSpace(whatsAppNumber) ? "El cliente debe confirmar seña/pago total desde su pedido y enviar comprobante." : $"El cliente debe confirmar seña/pago total desde su pedido y enviar comprobante por WhatsApp ({whatsAppNumber}).")
+                    : (string.IsNullOrWhiteSpace(whatsAppNumber) ? "Customer should confirm deposit/full payment from their order and send receipt." : $"Customer should confirm deposit/full payment from their order and send receipt via WhatsApp ({whatsAppNumber}).");
+                wb.Append($"<p style='margin:8px 0 0 0;font-size:12px;color:#555;'>{note}</p>");
+            }
+            else if (!string.IsNullOrWhiteSpace(whatsAppNumber))
+            {
+                wb.Append($"<p style='margin:8px 0 0 0;'><strong>{Translate("WhatsAppLabel", culture)}:</strong> {whatsAppNumber}</p>");
+            }
+            wb.Append("</div>");
+            wholesaleAdminHtml = wb.ToString();
+        }
+
+        var body = wholesaleAdminHtml.Length == 0
+            ? HtmlTemplate(storeName, heading, message, adminUrl, dashboardText, culture)
+            : HtmlTemplateWithExtra(storeName, heading, message, wholesaleAdminHtml, adminUrl, dashboardText, culture);
         return new EmailContent(subject, body);
     }
 
@@ -255,6 +300,25 @@ public static class EmailTemplates
 <div style='padding:24px;'>
 <h2>{heading}</h2>
 <p>{message}</p>
+<p><a href='{actionUrl}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{actionText}</a></p>
+</div></div></body></html>";
+    }
+
+    private static string HtmlTemplateWithExtra(
+        string storeName, string heading, string message, string extraHtml,
+        string actionUrl, string actionText, CultureInfo culture)
+    {
+        return $@"
+<!DOCTYPE html>
+<html><body style='font-family:sans-serif;margin:0;padding:0;background:#f4f4f4;'>
+<div style='max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden;'>
+<div style='background:#1a1a2e;color:#fff;padding:20px;text-align:center;'>
+<h1 style='margin:0;'>{storeName}</h1>
+</div>
+<div style='padding:24px;'>
+<h2>{heading}</h2>
+<p>{message}</p>
+{extraHtml}
 <p><a href='{actionUrl}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{actionText}</a></p>
 </div></div></body></html>";
     }

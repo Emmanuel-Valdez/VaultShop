@@ -185,10 +185,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			var orderId = result.OrderId.Value;
 
-			// ponytail: company gets user confirmation at creation with 50%/5d wholesale copy; admin alert only at paid transition (avoids duplicate)
+			// ponytail: wholesale admin already notified at creation; paid transition skips duplicate
 			if (isCompanyCheckout)
 			{
 				await _emailService.TrySendOrderConfirmationAsync(orderId);
+				await _emailService.TrySendAdminNewOrderAlertAsync(orderId);
 			}
 			else if (result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer)
 			{

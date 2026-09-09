@@ -200,6 +200,7 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             includeProperties: "ApplicationUser");
         if (order is null) return;
 
+        var isCompanyDelayed = order.CompanyId.GetValueOrDefault() > 0 && order.PaymentStatus == SD.PaymentStatusDelayedPayment;
         var content = EmailTemplates.AdminNewOrderAlert(
             _branding.PublicName,
             order.Id,
@@ -208,7 +209,14 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             EmailTemplates.OrderDetailsUrl(SD.SiteUrl, Thread.CurrentThread.CurrentUICulture, order.Id),
             Thread.CurrentThread.CurrentUICulture,
             order.PaymentMethod,
-            order.CompanyId.GetValueOrDefault() > 0 && order.PaymentStatus == SD.PaymentStatusDelayedPayment);
+            isCompanyDelayed,
+            order.PaymentDueDate == default ? null : order.PaymentDueDate,
+            order.OrderTotal,
+            _bankTransferCbu,
+            _bankTransferAlias,
+            _bankTransferRecipientName,
+            _bankTransferBankName,
+            _branding.WhatsAppNumber);
 
         await TrySendEmailAsync(orderId, _adminEmail, content,
             () => { },

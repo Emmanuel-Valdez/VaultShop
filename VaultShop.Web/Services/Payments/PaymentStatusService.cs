@@ -57,8 +57,12 @@ namespace VaultShop.Web.Services.Payments
 			// ponytail: emails after real transition only; duplicate early return above must not send
 			try { await _emailService.TrySendOrderConfirmationAsync(orderHeader.Id); }
 			catch (Exception ex) { _logger.LogError(ex, "Failed to send order confirmation for paid order {OrderId}.", orderHeader.Id); }
-			try { await _emailService.TrySendAdminNewOrderAlertAsync(orderHeader.Id); }
-			catch (Exception ex) { _logger.LogError(ex, "Failed to send admin alert for paid order {OrderId}.", orderHeader.Id); }
+			// ponytail: admin already notified at creation for wholesale — suppress duplicate
+			if (orderHeader.CompanyId.GetValueOrDefault() == 0)
+			{
+				try { await _emailService.TrySendAdminNewOrderAlertAsync(orderHeader.Id); }
+				catch (Exception ex) { _logger.LogError(ex, "Failed to send admin alert for paid order {OrderId}.", orderHeader.Id); }
+			}
 			return true;
 		}
 
@@ -117,8 +121,12 @@ namespace VaultShop.Web.Services.Payments
 			// ponytail: emails after real transition only; duplicate early return above must not send
 			try { await _emailService.TrySendOrderConfirmationAsync(orderId); }
 			catch (Exception ex) { _logger.LogError(ex, "Failed to send order confirmation for approved bank-transfer order {OrderId}.", orderId); }
-			try { await _emailService.TrySendAdminNewOrderAlertAsync(orderId); }
-			catch (Exception ex) { _logger.LogError(ex, "Failed to send admin alert for approved bank-transfer order {OrderId}.", orderId); }
+			// ponytail: admin already notified at creation for wholesale — suppress duplicate
+			if (orderHeader.CompanyId.GetValueOrDefault() == 0)
+			{
+				try { await _emailService.TrySendAdminNewOrderAlertAsync(orderId); }
+				catch (Exception ex) { _logger.LogError(ex, "Failed to send admin alert for approved bank-transfer order {OrderId}.", orderId); }
+			}
 			return true;
 		}
 
