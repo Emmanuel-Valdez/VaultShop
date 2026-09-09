@@ -34,6 +34,11 @@ services:
       Payments__MercadoPagoEnabled: ${Payments__MercadoPagoEnabled:-false}
       Payments__MercadoPagoAccessToken: ${Payments__MercadoPagoAccessToken:-}
       Payments__MercadoPagoWebhookSecret: ${Payments__MercadoPagoWebhookSecret:-}
+      Payments__Reconciliation__Enabled: ${Payments__Reconciliation__Enabled:-false}
+      Payments__Reconciliation__Interval: ${Payments__Reconciliation__Interval:-00:10:00}
+      Payments__Reconciliation__StaleAfter: ${Payments__Reconciliation__StaleAfter:-00:05:00}
+      Payments__Reconciliation__MaxAge: ${Payments__Reconciliation__MaxAge:-48:00:00}
+      Payments__Reconciliation__BatchSize: ${Payments__Reconciliation__BatchSize:-20}
       Email__Provider: ${Email__Provider:-Fake}
       Email__UseFakeEmailSender: ${Email__UseFakeEmailSender:-true}
       Email__AdminEmail: ${Email__AdminEmail:-}

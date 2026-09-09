@@ -81,6 +81,12 @@ builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection("Br
 builder.Services.Configure<ThemeOptions>(builder.Configuration.GetSection("Theme"));
 builder.Services.Configure<PaginationOptions>(builder.Configuration.GetSection("Pagination"));
 builder.Services.Configure<VaultShopRateLimiterOptions>(builder.Configuration.GetSection("RateLimiting"));
+builder.Services.AddOptions<PaymentReconciliationOptions>()
+    .Bind(builder.Configuration.GetSection(PaymentReconciliationOptions.SectionName))
+    .Validate(o => o.BatchSize >= 1, "Payments:Reconciliation:BatchSize must be >= 1.")
+    .Validate(o => o.Interval >= TimeSpan.FromMinutes(1), "Payments:Reconciliation:Interval must be >= 00:01:00.")
+    .Validate(o => o.StaleAfter < o.MaxAge, "Payments:Reconciliation:StaleAfter must be < MaxAge.")
+    .ValidateOnStart();
 
 var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
 if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
@@ -246,6 +252,7 @@ builder.Services.AddScoped<ITransactionalEmailService, TransactionalEmailService
 builder.Services.AddScoped<IOrderSummaryService, OrderSummaryService>();
 builder.Services.AddScoped<IOrderSummaryPdfGenerator, OrderSummaryPdfGenerator>();
 builder.Services.AddScoped<OrderAccessPolicy>();
+builder.Services.AddHostedService<PaymentReconciliationBackgroundService>();
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -287,6 +294,16 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+
+// Log reconciliation config without secrets — validates options on startup.
+var reconciliationOptions = app.Services.GetRequiredService<IOptions<PaymentReconciliationOptions>>().Value;
+app.Logger.LogInformation(
+    "Payment reconciliation config: Enabled={Enabled} Interval={Interval} StaleAfter={StaleAfter} MaxAge={MaxAge} BatchSize={BatchSize}",
+    reconciliationOptions.Enabled,
+    reconciliationOptions.Interval,
+    reconciliationOptions.StaleAfter,
+    reconciliationOptions.MaxAge,
+    reconciliationOptions.BatchSize);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
