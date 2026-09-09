@@ -2,7 +2,7 @@
 
 Prevents overselling by giving every product a tracked stock quantity, letting admins manage it, and enforcing it at add-to-cart and checkout with an atomic decrement.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Product stock quantity is persisted
 
@@ -97,5 +97,5 @@ The system SHALL validate the entire cart against current `StockQuantity` inside
 - **THEN** the outdated cart handling removes it before stock validation and checkout proceeds only with valid lines (or fails as empty-cart if none remain)
 
 #### Scenario: Company delayed-payment orders also decrement stock
-- **WHEN** a user in `Company` role checks out (order enters `DelayedPayment`/`Approved`)
-- **THEN** stock is still validated and decremented in the same transaction as order creation
+- **WHEN** a user in `Company` role checks out (order enters `Pending` + `DelayedPayment`, not `Approved`)
+- **THEN** stock is still validated and decremented in the same transaction as order creation and the order remains `Pending` until payment is approved
