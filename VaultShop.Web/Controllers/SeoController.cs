@@ -33,8 +33,9 @@ namespace VaultShop.Controllers
             var baseUrl = SD.SiteUrl;
             var culture = "es-AR";
 
-            var categories = await _context.Categories.ToListAsync();
-            var products = await _context.Products.Where(p => !p.IsDeleted).ToListAsync();
+            var products = await _context.Products
+                .Where(p => !p.IsDeleted && p.IsAvailableInStore)
+                .ToListAsync();
 
             var staticPages = new (string Url, string Priority, string Changefreq)[]
             {
@@ -51,11 +52,6 @@ namespace VaultShop.Controllers
             foreach (var page in staticPages)
             {
                 xml += $"<url>\n<loc>{page.Url}</loc>\n<changefreq>{page.Changefreq}</changefreq>\n<priority>{page.Priority}</priority>\n</url>\n";
-            }
-
-            foreach (var category in categories)
-            {
-                xml += $"<url>\n<loc>{baseUrl}/{culture}/Home/Search?category={category.Id}</loc>\n<changefreq>weekly</changefreq>\n<priority>0.8</priority>\n</url>\n";
             }
 
             foreach (var product in products)
