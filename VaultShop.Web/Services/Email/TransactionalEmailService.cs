@@ -268,11 +268,11 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             await _emailSender.SendEmailAsync(recipient, content.Subject, content.Body);
             onSuccess();
             _unitOfWork.Save();
-            _logger.LogInformation("Sent {EmailType} email for order {OrderId} to {Recipient}.", emailType, orderId, recipient);
+            _logger.LogInformation("Sent {EmailType} email for order {OrderId}.", emailType, orderId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send {EmailType} email for order {OrderId} to {Recipient}. Order state preserved.", emailType, orderId, recipient);
+            _logger.LogError(ex, "Failed to send {EmailType} email for order {OrderId}. Order state preserved.", emailType, orderId);
             // ponytail: order confirmation claim must roll back on SMTP failure — otherwise customer never gets email and webhook re-delivery can't retry
             if (emailType == "order confirmation")
             {
