@@ -35,7 +35,8 @@ Selected current flows for backend/portfolio review.
 - ASP.NET Core Identity with roles Customer/Company/Employee/Admin, Google OAuth, rate limiting + lockout, branded 404/500.
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer, provider-verified webhooks/browser returns, refunds on cancellation.
 - Product image upload validation, resizing, metadata persistence via `IImageStorageService` (Local/MinIO).
-- Localization es-AR/en-US; health endpoints (`/health/live`, `/health/ready`) for liveness/readiness probes.
+ - Localization es-AR/en-US; health endpoints (`/health/live`, `/health/ready`) for liveness/readiness probes.
+ - Deployment version stamped at build (`APP_VERSION`/`APP_BUILD_DATE`) with admin-only page (`/Admin/System/Version`) comparing deployed commit vs GitHub `main` (cached 5 min).
 
 ## Tech Stack
 
@@ -225,7 +226,7 @@ For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on 
 ## Tests
 
 ```powershell
-dotnet test VaultShop.sln   # 159 tests — dotnet build --no-restore clean
+dotnet test VaultShop.sln   # 207 tests — dotnet build --no-restore clean
 ```
 
 Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing formulas/publish, pagination, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks.
