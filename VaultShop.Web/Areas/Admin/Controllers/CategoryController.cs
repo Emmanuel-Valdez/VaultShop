@@ -92,6 +92,23 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			{
 				return Json(new { success = false, message = _localizer["ErrorWhileDeleting"].Value });
 			}
+
+			int activeProductCount = _unitOfWork.Product
+				.GetAll(p => p.CategoryId == id && !p.IsDeleted)
+				.Count();
+			if (activeProductCount > 0)
+			{
+				return Json(new { success = false, message = _localizer["DeleteBlockedHasProducts", activeProductCount].Value });
+			}
+
+			var packaging = _unitOfWork.PackagingByCategory
+				.Get(p => p.CategoryId == id, includeProperties: "UnitPackagingByCategoryList");
+			if (packaging != null)
+			{
+				_unitOfWork.UnitPackagingByCategory.RemoveRange(packaging.UnitPackagingByCategoryList);
+				_unitOfWork.PackagingByCategory.Remove(packaging);
+			}
+
 			categoryToBeDeleted.IsDeleted = true;
 			_unitOfWork.Category.Update(categoryToBeDeleted);
 			_unitOfWork.Save();

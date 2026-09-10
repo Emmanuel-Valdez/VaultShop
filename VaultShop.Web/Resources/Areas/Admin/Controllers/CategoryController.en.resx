@@ -129,6 +129,9 @@
   <data name="ErrorWhileDeleting" xml:space="preserve">
     <value>Error while deleting</value>
   </data>
+  <data name="DeleteBlockedHasProducts" xml:space="preserve">
+    <value>Cannot delete: category has {0} active product(s). Reassign them to another category first.</value>
+  </data>
   <data name="NameCantBeTest" xml:space="preserve">
     <value>The Category Name can't be test</value>
   </data>

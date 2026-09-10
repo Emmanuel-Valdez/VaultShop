@@ -129,6 +129,9 @@
   <data name="ErrorWhileDeleting" xml:space="preserve">
     <value>Error Durante el Borrado</value>
   </data>
+  <data name="DeleteBlockedHasProducts" xml:space="preserve">
+    <value>No se puede eliminar: la categoría tiene {0} producto(s) activo(s). Reasignalos a otra categoría primero.</value>
+  </data>
   <data name="NameCantBeTest" xml:space="preserve">
     <value>El nombre de la categoría no puede ser Test</value>
   </data>
