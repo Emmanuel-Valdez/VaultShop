@@ -16,6 +16,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        GIT_BUILD_DATE: ${GIT_BUILD_DATE:-unknown}
     environment:
       ASPNETCORE_ENVIRONMENT: ${APP_ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080

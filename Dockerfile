@@ -21,12 +21,16 @@ RUN dotnet publish "VaultShop.Web.csproj" \
     /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+ARG GIT_COMMIT=unknown
+ARG GIT_BUILD_DATE=unknown
 
 WORKDIR /app
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_URLS=http://+:8080 \
-    Database__RunMigrationsOnStartup=false
+    Database__RunMigrationsOnStartup=false \
+    APP_VERSION=${GIT_COMMIT} \
+    APP_BUILD_DATE=${GIT_BUILD_DATE}
 
 EXPOSE 8080
 

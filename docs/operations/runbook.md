@@ -477,6 +477,23 @@ docker compose --env-file /opt/vaultshop/.env.compose -f docker-compose.store.ym
 docker compose --env-file /opt/ukiyostudio/.env.compose -f docker-compose.store.yml down
 ```
 
+## Deployment Version Check
+
+The app embeds the deployed commit (`APP_VERSION`) and build date (`APP_BUILD_DATE`) at image build time via Docker build args, and exposes them at `Admin → Versión` (`/Admin/System/Version`, admin-only) with a GitHub `main` comparison (cached 5 min, never breaks the page on API failure).
+
+Build with stamping — run from the repo root before `up --build` so the image carries the right commit:
+
+```
+cd /opt/vaultshop
+git pull
+export GIT_COMMIT=$(git rev-parse --short HEAD)
+export GIT_BUILD_DATE=$(date -u +%Y-%m-%dT%H:%MZ)
+docker compose --env-file /opt/vaultshop/.env.compose -f docker-compose.store.yml up -d --build
+docker compose --env-file /opt/ukiyostudio/.env.compose -f docker-compose.store.yml up -d --build
+```
+
+If built without `GIT_COMMIT`, the page shows `unknown` — rebuild with the exports above.
+
 ## Future Private Deployment Notes
 
 UkiyoStudio already follows the two-store pattern above: shared platform (PostgreSQL + MinIO), separate store stacks (web + env + compose project + domain), separate database/bucket/scoped credentials, separate backups. A future private/client deployment should do the same, plus:

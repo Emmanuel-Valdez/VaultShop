@@ -201,6 +201,12 @@
 							<li class="nav-item p-sm-3 py-md-1">
 								<a class="nav-link text-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">@Localizer["ManageOrder"]</a>
 							</li>
+							@if (User.IsInRole(SD.Role_Admin))
+							{
+								<li class="nav-item p-sm-3 py-md-1">
+									<a class="nav-link text-secondary" asp-area="Admin" asp-controller="System" asp-action="Version">Versión</a>
+								</li>
+							}
 
 							@if (SignInManager.IsSignedIn(User))
 							{

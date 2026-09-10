@@ -1,0 +1,59 @@
+@using VaultShop.Web.Services.System
+@{
+    ViewData["Title"] = "Versión";
+    var deployed = (DeploymentVersion)ViewData["Deployed"]!;
+    var latest = ViewData["LatestCommit"] as string;
+    var error = ViewData["LatestError"] as string;
+    var upToDate = (bool)(ViewData["UpToDate"] ?? false);
+    string Short(string s) => s.Length <= 12 ? s : s[..12];
+}
+<div class="container py-4" style="max-width:720px">
+    <h2 class="mb-3">Versión del sistema</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Desplegado</h5>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Commit</dt>
+                <dd class="col-sm-8"><code>@deployed.Commit</code></dd>
+                <dt class="col-sm-4">Fecha de build</dt>
+                <dd class="col-sm-8"><code>@deployed.BuildDate</code></dd>
+            </dl>
+            @if (deployed.IsUnknown)
+            {
+                <div class="alert alert-warning mt-3 mb-0 py-2">Commit desconocido — la imagen se construyó sin <code>GIT_COMMIT</code>. Ver runbook.</div>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">GitHub (main)</h5>
+            @if (latest is not null)
+            {
+                <p class="mb-2">Último commit en <code>main</code>: <code>@Short(latest)</code> <small class="text-muted">@latest</small></p>
+                @if (deployed.IsUnknown)
+                {
+                    <span class="badge bg-warning text-dark">Sin verificar</span>
+                }
+                else if (upToDate)
+                {
+                    <span class="badge bg-success">Actualizado</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Desactualizado</span>
+                    <span class="ms-2 text-muted">Hay commits nuevos en GitHub.</span>
+                }
+            }
+            else
+            {
+                <p class="text-muted mb-2">No se pudo consultar GitHub.</p>
+                @if (error is not null) { <small class="text-muted">@error</small> }
+                <div class="mt-2"><span class="badge bg-secondary">Sin verificar</span></div>
+            }
+        </div>
+    </div>
+
+    <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">Volver</a>
+</div>

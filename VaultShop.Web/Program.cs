@@ -229,6 +229,13 @@ builder.Services.AddHealthChecks()
 	.AddDbContextCheck<ApplicationDbContext>(name: "database")
 	.AddCheck<StorageHealthCheck>("storage");
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddHttpClient("GitHub", client =>
+{
+	client.BaseAddress = new Uri("https://api.github.com/");
+	client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+});
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<VaultShop.Web.Services.System.DeploymentVersionService>();
 builder.Services.AddHttpClient("MercadoPago", client =>
 {
 	client.BaseAddress = new Uri("https://api.mercadopago.com");
