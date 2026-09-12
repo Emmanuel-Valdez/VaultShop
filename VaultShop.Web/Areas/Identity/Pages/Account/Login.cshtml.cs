@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Globalization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -95,7 +96,7 @@ namespace VaultShop.Web.Areas.Identity.Pages.Account
         {
             if (_signInManager.IsSignedIn(User))
             {
-                return LocalRedirect(Url.Content("~/"));
+                return LocalRedirect(GetCultureAwareDefaultUrl());
             }
 
             if (!string.IsNullOrEmpty(ErrorMessage))
@@ -103,7 +104,7 @@ namespace VaultShop.Web.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            returnUrl ??= Url.Content("~/");
+            returnUrl = NormalizeReturnUrl(returnUrl);
 
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -116,7 +117,7 @@ namespace VaultShop.Web.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            returnUrl ??= Url.Content("~/");
+            returnUrl = NormalizeReturnUrl(returnUrl);
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
@@ -148,6 +149,21 @@ namespace VaultShop.Web.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private string GetCultureAwareDefaultUrl()
+        {
+            var culture = CultureInfo.CurrentCulture.Name;
+            if (culture != "es-AR" && culture != "en-US")
+                culture = "es-AR";
+            return $"/{culture}/";
+        }
+
+        private string NormalizeReturnUrl(string returnUrl)
+        {
+            if (string.IsNullOrEmpty(returnUrl) || returnUrl == "/" || returnUrl == Url.Content("~/"))
+                return GetCultureAwareDefaultUrl();
+            return returnUrl;
         }
     }
 }
