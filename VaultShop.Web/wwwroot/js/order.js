@@ -72,7 +72,12 @@ function loadDataTable(status) {
         
         columnDefs: [
             { responsivePriority: 1, targets: 8 },
-            { responsivePriority: 2, targets: 7 },
+            { responsivePriority: 2, targets: 1 },
+            { responsivePriority: 3, targets: 4 },
+            { responsivePriority: 4, targets: 6 },
+            { responsivePriority: 5, targets: 7 },
+            { responsivePriority: 10, targets: 0 },
+            { responsivePriority: 11, targets: 3 },
             { targets: 2, visible: false },
             { targets: 5, visible: false },
         ],

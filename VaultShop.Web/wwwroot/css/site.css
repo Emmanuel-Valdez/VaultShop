@@ -943,3 +943,55 @@ div.dt-button-collection .dt-button:hover {
 .form-floating:has(.password-toggle) .form-control {
     padding-right: 2.5rem;
 }
+
+/*
+ * Mobile density for Admin DataTables.
+ * On phones the fixed per-column widths (percent) get recalculated by Responsive
+ * over the reduced set of visible columns and blow up in proportion. Neutralize
+ * them so re-layout sizes from content, and use small font + ellipsis to fit the
+ * 4-5 essential columns (responsivePriority in the table JS decides which).
+ * ponytail: one global block instead of per-column classes; add per-column cap only if a table needs it.
+ */
+@media (max-width: 575.98px) {
+    table.dataTable {
+        font-size: 11px !important;
+    }
+
+    table.dataTable > thead th {
+        white-space: normal;
+    }
+
+    table.dataTable > tbody td {
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    table.dataTable tr.dt-hasChild td {
+        max-width: none;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+    }
+
+    table.dataTable > thead th,
+    table.dataTable > tbody td {
+        padding: 0.2rem 0.3rem !important;
+        width: auto !important;
+    }
+
+    table.dataTable col {
+        width: auto !important;
+    }
+
+    table.dataTable .btn-group {
+        width: auto !important;
+    }
+
+    table.dataTable .btn {
+        padding: 0.15rem 0.4rem;
+        font-size: 0.85em;
+        line-height: 1.2;
+    }
+}

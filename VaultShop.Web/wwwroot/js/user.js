@@ -72,9 +72,12 @@ function loadDataTable() {
         },
         "columnDefs": [
             { responsivePriority: 1, targets: 7 },
-            { responsivePriority: 2, targets: 0},
-            { responsivePriority: 3, targets: 5 },
+            { responsivePriority: 2, targets: 0 },
+            { responsivePriority: 3, targets: 1 },
             { responsivePriority: 4, targets: 3 },
+            { responsivePriority: 5, targets: 5 },
+            { responsivePriority: 10, targets: 2 },
+            { responsivePriority: 11, targets: 4 },
             { target: 6, render: DataTable.render.date() }
         ]
 
