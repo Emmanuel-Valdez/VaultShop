@@ -15,10 +15,6 @@ namespace VaultShop.Models
         [DisplayName("Category Name")]
 		public string Name { get; set; } = string.Empty;
 
-        [LocalizedRequired("Monthly expectation is required.", "La expectativa mensual es obligatoria.")]
-        [DisplayName("Max Expectation Monthly")]
-        [LocalizedRange(1, 1000, "Please enter a monthly expectation between 1 and 1000.", "Ingresá una expectativa mensual entre 1 y 1000.")]
-        public int MaxExpectation { get; set; }
 		public bool IsDeleted { get; set; } = false;
 		[LocalizedRequired("Average shipping cost is required.", "El costo promedio de envío es obligatorio.")]
         [LocalizedRange(1, 100000, "Please enter an average shipping cost between 1 and 100000.", "Ingresá un costo promedio de envío entre 1 y 100000.")]

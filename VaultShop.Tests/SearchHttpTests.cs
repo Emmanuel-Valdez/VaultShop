@@ -49,13 +49,13 @@ public class SearchHttpTests
         var category = new Category
         {
             Name = "Test Category",
-            MaxExpectation = 10,
             AvgShippingCost = 100m,
         };
         var product = new Product
         {
             Name = "Sauron Amulet Bag",
             Description = "Ojo de Saurón",
+            MaxExpectation = 10,
             Category = category,
             ListPrice = 100m,
             FinalRetailPrice = 100m,

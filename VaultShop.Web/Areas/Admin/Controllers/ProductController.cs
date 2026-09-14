@@ -45,14 +45,15 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			ProductVM productVM = new()
 			{
-				CategoryList = _unitOfWork.Category.GetAll(u => u.IsDeleted == false).Select(u => new SelectListItem
+			CategoryList = _unitOfWork.Category.GetAll(u => u.IsDeleted == false).Select(u => new SelectListItem
 				{
 					Text = u.Name,
 					Value = u.Id.ToString()
 				}),
 				Product = new Product
 				{
-					IsAvailableInStore = true
+					IsAvailableInStore = true,
+					MaxExpectation = 30
 				}
 			};
 			if (id == 0 || id == null)
@@ -79,10 +80,6 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			productVM.Product.Description = _richTextSanitizer.Sanitize(productVM.Product.Description) ?? string.Empty;
 			ModelState.Remove("Product.Description");
 
-			if (productVM.Product.FinalWholesalePrice > productVM.Product.FinalRetailPrice && productVM.Product.Id != 0 && productVM.Product.FinalRetailPrice > 0)
-			{
-				ModelState.AddModelError("", _localizer["MinorLowerMajor"].Value);
-			}
 			if (!ModelState.IsValid)
 			{
 				PopulateProductFormData(productVM);

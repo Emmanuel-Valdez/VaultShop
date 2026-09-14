@@ -398,13 +398,13 @@ public class CartCheckoutHttpTests
         var category = new Category
         {
             Name = "Test Category",
-            MaxExpectation = 10,
             AvgShippingCost = 100m,
         };
         var product = new Product
         {
             Name = "Test Product",
             Description = "Product for HTTP checkout tests.",
+            MaxExpectation = 10,
             Category = category,
             ListPrice = retailPrice,
             FinalRetailPrice = retailPrice,

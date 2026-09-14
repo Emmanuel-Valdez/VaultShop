@@ -7,9 +7,8 @@ function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/${culture}/admin/category/getall` },
         "columns": [
-            { data: 'name', "width": "15%" },
-            { data: 'maxExpectation', "width": "15%"},
-            { data: 'avgShippingCost', "width": "15%", render: SpanishNumberTables(culture) },
+            { data: 'name', "width": "25%" },
+            { data: 'avgShippingCost', "width": "25%", render: SpanishNumberTables(culture) },
             {
                 data: 'id',
                 "render": function (data) {

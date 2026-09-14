@@ -141,8 +141,11 @@
   <data name="Description" xml:space="preserve">
     <value>Descripción</value>
   </data>
+  <data name="MaxExpMonthly" xml:space="preserve">
+    <value>Expectativa Mensual Máx</value>
+  </data>
   <data name="ListPrice" xml:space="preserve">
-    <value>Precio Calculado</value>
+    <value>Precio Calculado Sugerido</value>
   </data>
   <data name="Name" xml:space="preserve">
     <value>Nombre</value>
@@ -179,5 +182,8 @@
   </data>
   <data name="WholesalePrice" xml:space="preserve">
     <value>Precio Final Mayor</value>
+  </data>
+  <data name="MinorLowerMajor" xml:space="preserve">
+    <value>Precio por menor nunca puede ser menor que precio por mayor</value>
   </data>
 </root>

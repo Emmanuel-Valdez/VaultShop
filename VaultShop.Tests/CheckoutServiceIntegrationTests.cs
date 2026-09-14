@@ -222,7 +222,6 @@ namespace VaultShop.Web.Tests
 			var category = new Category
 			{
 				Name = "Test Category",
-				MaxExpectation = 10,
 				AvgShippingCost = 100m,
 			};
 
@@ -231,6 +230,7 @@ namespace VaultShop.Web.Tests
 				Id = productId,
 				Name = "Test Product",
 				Description = "Product used by checkout integration tests.",
+				MaxExpectation = 10,
 				Category = category,
 				ListPrice = 100m,
 				FinalRetailPrice = 100m,
@@ -266,7 +266,6 @@ namespace VaultShop.Web.Tests
 			var category = new Category
 			{
 				Name = "Test Category",
-				MaxExpectation = 10,
 				AvgShippingCost = 100m,
 			};
 
@@ -275,6 +274,7 @@ namespace VaultShop.Web.Tests
 				Id = productId,
 				Name = "Test Product",
 				Description = "Product used by concurrent stock integration tests.",
+				MaxExpectation = 10,
 				Category = category,
 				ListPrice = 100m,
 				FinalRetailPrice = 100m,
@@ -329,7 +329,6 @@ namespace VaultShop.Web.Tests
 			var category = new Category
 			{
 				Name = "Test Category",
-				MaxExpectation = 10,
 				AvgShippingCost = 100m,
 			};
 
@@ -338,6 +337,7 @@ namespace VaultShop.Web.Tests
 				Id = 10,
 				Name = "Test Product",
 				Description = "Product used by checkout integration tests.",
+				MaxExpectation = 10,
 				Category = category,
 				ListPrice = 100m,
 				FinalRetailPrice = 100m,

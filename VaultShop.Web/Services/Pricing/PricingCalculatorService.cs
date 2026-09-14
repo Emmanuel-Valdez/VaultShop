@@ -93,11 +93,14 @@ public class PricingCalculatorService : IPricingCalculatorService
 		return products
 			.Select(product =>
 			{
+				if (product.MaxExpectation <= 0)
+					throw new InvalidOperationException($"Product {product.Id} has invalid MaxExpectation {product.MaxExpectation}. Expected 1..10000.");
+
 				fabricTotals.TryGetValue(product.Id, out var fabricTotal);
 				garmentHardwareTotals.TryGetValue(product.Id, out var garmentHardwareTotal);
 				packagingTotals.TryGetValue(product.CategoryId, out var packagingTotal);
 
-				var fixedCostAddedByCategory = fixedCost / product.Category.MaxExpectation;
+				var fixedCostAddedByCategory = fixedCost / product.MaxExpectation;
 				var totalCostByProduct = garmentHardwareTotal + fabricTotal + packagingTotal + fixedCostAddedByCategory;
 
 				return new CostByProductView
@@ -105,7 +108,7 @@ public class PricingCalculatorService : IPricingCalculatorService
 					ProductId = product.Id,
 					Product = product,
 					CategoryName = product.Category.Name,
-					MaxExpectationMonthly = product.Category.MaxExpectation,
+					MaxExpectationMonthly = product.MaxExpectation,
 					FixedCostAddedByCategory = fixedCostAddedByCategory,
 					GarmentHardware = garmentHardwareTotal,
 					Fabric = fabricTotal,

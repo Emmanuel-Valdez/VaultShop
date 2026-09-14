@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VaultShop.Models.CalculatorModels;
@@ -41,6 +42,11 @@ namespace VaultShop.Models
 
         [LocalizedRange(0, int.MaxValue, "Stock quantity cannot be negative.", "La cantidad en stock no puede ser negativa.")]
         public int StockQuantity { get; set; } = 0;
+
+        [LocalizedRequired("Monthly expectation is required.", "La expectativa mensual es obligatoria.")]
+        [DisplayName("Max Expectation Monthly")]
+        [LocalizedRange(1, 10000, "Please enter a monthly expectation between 1 and 10000.", "Ingresá una expectativa mensual entre 1 y 10000.")]
+        public int MaxExpectation { get; set; }
 
 		[LocalizedRequired("Category is required.", "La categoría es obligatoria.")]
 		[LocalizedRange(1, int.MaxValue, "Category is required.", "La categoría es obligatoria.")]

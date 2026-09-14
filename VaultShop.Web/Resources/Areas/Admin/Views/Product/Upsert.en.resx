@@ -141,6 +141,9 @@
   <data name="Description" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="MaxExpMonthly" xml:space="preserve">
+    <value>Max Expectation Monthly</value>
+  </data>
   <data name="ListPrice" xml:space="preserve">
     <value>List Price</value>
   </data>
@@ -179,5 +182,8 @@
   </data>
   <data name="WholesalePrice" xml:space="preserve">
     <value>Final Wholesale Price</value>
+  </data>
+  <data name="MinorLowerMajor" xml:space="preserve">
+    <value>Minor Price never can be lower than Major Price</value>
   </data>
 </root>

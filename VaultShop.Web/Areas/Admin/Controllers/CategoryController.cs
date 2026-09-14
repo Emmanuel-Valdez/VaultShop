@@ -46,7 +46,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[HttpPost]
 		public IActionResult Upsert(Category obj)
 		{
-			if (obj.Name == obj.AvgShippingCost.ToString() || obj.Name == obj.MaxExpectation.ToString())
+			if (obj.Name == obj.AvgShippingCost.ToString())
 			{
 				ModelState.AddModelError("name", _localizer["NameError"].Value);
 			}

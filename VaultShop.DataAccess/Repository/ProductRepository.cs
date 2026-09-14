@@ -21,22 +21,22 @@ namespace VaultShop.DataAccess.Repository
 
         public void Update(Product obj)
         {
-
             var objFromDB = _db.Products.FirstOrDefault(u => u.Id == obj.Id);
-            if (objFromDB !=null)
+            if (objFromDB != null)
             {
-				objFromDB.Name = obj.Name;
-				objFromDB.Description = obj.Description;
-				objFromDB.ListPrice = obj.ListPrice;
+                objFromDB.Name = obj.Name;
+                objFromDB.Description = obj.Description;
+                objFromDB.ListPrice = obj.ListPrice;
                 objFromDB.FinalWholesalePrice = obj.FinalWholesalePrice;
-				objFromDB.FinalRetailPrice = obj.FinalRetailPrice;
-				objFromDB.CategoryId = obj.CategoryId;
+                objFromDB.FinalRetailPrice = obj.FinalRetailPrice;
+                objFromDB.CategoryId = obj.CategoryId;
+                objFromDB.MaxExpectation = obj.MaxExpectation;
                 objFromDB.ProductImages = obj.ProductImages;
                 objFromDB.IsDeleted = obj.IsDeleted;
-                objFromDB.IsAvailableInStore= obj.IsAvailableInStore;
-				objFromDB.IsFeatured = obj.IsFeatured;
-				objFromDB.FeaturedSortOrder = obj.FeaturedSortOrder;
-				objFromDB.StockQuantity = obj.StockQuantity;
+                objFromDB.IsAvailableInStore = obj.IsAvailableInStore;
+                objFromDB.IsFeatured = obj.IsFeatured;
+                objFromDB.FeaturedSortOrder = obj.FeaturedSortOrder;
+                objFromDB.StockQuantity = obj.StockQuantity;
                 //if(obj.ImageUrl!= null)
                 //{
                 //    objFromDB.ImageUrl = obj.ImageUrl;

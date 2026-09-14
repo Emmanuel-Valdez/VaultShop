@@ -152,6 +152,64 @@ namespace VaultShop.Web.Tests
 			Assert.Contains("less than 100", exception.Message);
 		}
 
+		[Fact]
+		public void GetCostByProducts_ProductsInSameCategoryWithDifferentExpectations_HaveDifferentFixedCostShares()
+		{
+			using var connection = CreateOpenConnection();
+			var options = CreateOptions(connection);
+			EnsureDatabaseCreated(options);
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var category = new Category
+				{
+					Name = "Test Category",
+					AvgShippingCost = 0m,
+				};
+
+				context.Categories.Add(category);
+				context.Products.AddRange(
+					new Product
+					{
+						Name = "Low Expectation",
+						Description = "Product used by pricing calculator service tests.",
+						MaxExpectation = 10,
+						Category = category,
+						ListPrice = 100m,
+						FinalRetailPrice = 100m,
+						FinalWholesalePrice = 100m,
+						IsDeleted = false,
+					},
+					new Product
+					{
+						Name = "High Expectation",
+						Description = "Product used by pricing calculator service tests.",
+						MaxExpectation = 20,
+						Category = category,
+						ListPrice = 200m,
+						FinalRetailPrice = 200m,
+						FinalWholesalePrice = 200m,
+						IsDeleted = false,
+					});
+				context.FixedCosts.Add(new FixedCost
+				{
+					Name = "Fixed Cost",
+					Cost = 1000m,
+				});
+				context.SaveChanges();
+			}
+
+			using var verificationContext = new ApplicationDbContext(options);
+			var service = new PricingCalculatorService(verificationContext);
+
+			var result = service.GetCostByProducts().ToDictionary(product => product.Product.Name);
+
+			Assert.Equal(100m, result["Low Expectation"].FixedCostAddedByCategory);
+			Assert.Equal(10, result["Low Expectation"].MaxExpectationMonthly);
+			Assert.Equal(50m, result["High Expectation"].FixedCostAddedByCategory);
+			Assert.Equal(20, result["High Expectation"].MaxExpectationMonthly);
+		}
+
 		private static SqliteConnection CreateOpenConnection()
 		{
 			var connection = new SqliteConnection("Data Source=:memory:");
@@ -186,7 +244,6 @@ namespace VaultShop.Web.Tests
 			var category = new Category
 			{
 				Name = "Test Category",
-				MaxExpectation = 10,
 				AvgShippingCost = 0m,
 			};
 
@@ -195,6 +252,7 @@ namespace VaultShop.Web.Tests
 			{
 				Name = "Test Product",
 				Description = "Product used by pricing calculator service tests.",
+				MaxExpectation = 10,
 				Category = category,
 				ListPrice = listPrice,
 				FinalRetailPrice = listPrice,

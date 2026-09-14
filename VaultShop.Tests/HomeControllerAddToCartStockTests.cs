@@ -112,8 +112,9 @@ namespace VaultShop.Web.Tests
 				ListPrice = 1000,
 				FinalRetailPrice = 1000,
 				FinalWholesalePrice = 800,
+				MaxExpectation = 10,
 				CategoryId = 1,
-				Category = new Category { Id = 1, Name = "Cat", MaxExpectation = 10, AvgShippingCost = 100m },
+				Category = new Category { Id = 1, Name = "Cat", AvgShippingCost = 100m },
 				StockQuantity = -1,
 				IsAvailableInStore = true,
 				IsDeleted = false
@@ -125,6 +126,40 @@ namespace VaultShop.Web.Tests
 
 			Assert.False(valid);
 			Assert.Contains(results, r => r.MemberNames.Contains(nameof(Product.StockQuantity)));
+		}
+
+		[Theory]
+		[InlineData(0, false)]
+		[InlineData(10001, false)]
+		[InlineData(1, true)]
+		[InlineData(10000, true)]
+		public void Product_MaxExpectation_Boundaries_Theory(int expectation, bool shouldBeValid)
+		{
+			var product = new Product
+			{
+				Id = 1,
+				Name = "Test",
+				Description = "Desc",
+				ListPrice = 1000,
+				FinalRetailPrice = 1000,
+				FinalWholesalePrice = 800,
+				MaxExpectation = expectation,
+				CategoryId = 1,
+				Category = new Category { Id = 1, Name = "Cat", AvgShippingCost = 100m },
+				StockQuantity = 10,
+				IsAvailableInStore = true,
+				IsDeleted = false
+			};
+
+			var ctx = new ValidationContext(product);
+			var results = new List<ValidationResult>();
+			var valid = Validator.TryValidateObject(product, ctx, results, validateAllProperties: true);
+
+			Assert.Equal(shouldBeValid, valid);
+			if (!shouldBeValid)
+			{
+				Assert.Contains(results, r => r.MemberNames.Contains(nameof(Product.MaxExpectation)));
+			}
 		}
 
 		private static (HomeController Controller, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IShoppingCartRepository> CartMock) CreateController()
