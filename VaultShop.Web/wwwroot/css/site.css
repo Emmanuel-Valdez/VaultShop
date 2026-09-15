@@ -194,6 +194,9 @@ html {
     --bs-btn-hover-color: var(--theme-primary-dark);
 }
 
+/* ponytail: shrink cart count pill without enlarging hit-area; keep anchor 44px */
+.cart-count-badge { --bs-badge-font-size: .62rem; padding: .28em .42em; min-width: 1.1rem; line-height: 1; }
+
 .dropdown-item.active,
 .dropdown-item:active {
     background-color: var(--theme-primary);

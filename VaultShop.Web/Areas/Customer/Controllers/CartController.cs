@@ -14,6 +14,7 @@ using VaultShop.Web.Services;
 using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
+using VaultShop.Web.Services.Pricing;
 
 namespace VaultShop.Web.Areas.Customer.Controllers
 {
@@ -61,9 +62,10 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				OrderHeader = new()
 			};
 			RemoveShoppingCartsOutdated(userId);
+			var useWholesale = PricingHelper.ShouldUseWholesale(User, HttpContext);
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
-				cart.Price = GetPriceBasedOnRole(cart);
+				cart.Price = useWholesale ? cart.Product.FinalWholesalePrice : cart.Product.FinalRetailPrice;
 				ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
 			}
 		
@@ -96,7 +98,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return Unauthorized();
 			}
 
-			var result = _checkoutService.BuildSummary(userId, User.IsInRole(SD.Role_Company));
+			var result = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
 
 			if (!result.IsAuthorized)
 			{
@@ -127,12 +129,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			if (!ModelState.IsValid)
 			{
-				var summaryResult = _checkoutService.BuildSummary(userId, User.IsInRole(SD.Role_Company));
+				var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
 				PopulatePaymentMethodViewData();
 				return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
 			}
 
 			var isCompanyCheckout = User.IsInRole(SD.Role_Company);
+			var useWholesalePrice = PricingHelper.ShouldUseWholesale(User, HttpContext);
 			if (isCompanyCheckout)
 			{
 				ShoppingCartVM.OrderHeader.PaymentMethod = null;
@@ -151,7 +154,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				}
 			}
 
-			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, isCompanyCheckout);
+			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, useWholesalePrice);
 
 			if (!result.IsAuthorized)
 			{
@@ -450,18 +453,6 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			await _signInManager.SignOutAsync();
 			HttpContext.Session.SetInt32(SD.SessionCart, 0);
 			return RedirectToAction("Index", "Home");
-		}
-
-		private decimal GetPriceBasedOnRole(ShoppingCart shoppingCart)
-		{
-			if (User.IsInRole(SD.Role_Company))
-			{
-				return shoppingCart.Product.FinalWholesalePrice;
-			}
-			else
-			{
-				return shoppingCart.Product.FinalRetailPrice;
-			}
 		}
 
 	}

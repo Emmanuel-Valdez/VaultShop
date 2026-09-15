@@ -222,4 +222,22 @@
   <data name="Wholesale" xml:space="preserve">
     <value>Mayorista</value>
   </data>
+  <data name="PreviewWholesaleLabel" xml:space="preserve">
+    <value>Vista previa: precios mayoristas</value>
+  </data>
+  <data name="ExitPreviewButton" xml:space="preserve">
+    <value>Salir de vista previa — mostrar minorista</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Versión</value>
+  </data>
+  <data name="PreviewMode" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="Retail" xml:space="preserve">
+    <value>Minorista</value>
+  </data>
 </root>

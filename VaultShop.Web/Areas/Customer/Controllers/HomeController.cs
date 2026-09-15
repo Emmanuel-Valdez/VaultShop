@@ -273,6 +273,19 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		{
 			return View();
 		}
+	[HttpPost]
+	[Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+	public IActionResult SetPreviewMode(string mode, string? returnUrl)
+	{
+		var normalized = mode?.Trim().ToLowerInvariant();
+			if (normalized is "wholesale" or "retail")
+			{
+				HttpContext.Session.SetString(SD.AdminPreviewMode, normalized);
+			}
+			if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return LocalRedirect(returnUrl);
+			return RedirectToAction(nameof(Index));
+		}
+
 		[HttpGet]
 		public IActionResult GetTranslations()
 		{

@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Options
 @using VaultShop.Web.Services.Branding
+@using VaultShop.Web.Services.Pricing
 @model ShoppingCart
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -102,9 +103,12 @@
 						<h1 id="product-title" class="storefront-display-heading display-6 text-primary fw-semibold mb-2">@Model.Product.Name</h1>
 						<p class="product-card__meta mb-4">@Localizer["InspiredBy"]</p>
 
+						@{
+							var useWholesalePrice = PricingHelper.ShouldUseWholesale(User, Context);
+						}
 						<div class="mb-4">
 							<div class="product-card__meta mb-1">@Localizer["Price"]</div>
-							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee) || User.IsInRole(SD.Role_Company))
+							@if (useWholesalePrice)
 							{
 								<div class="h4 text-warning mb-1">
 									<span class="text-decoration-line-through">@Model.Product.FinalRetailPrice.ToString("c")</span>
@@ -142,7 +146,7 @@
 										@Localizer["OutOfStock"]
 									</button>
 								}
-								else if ((User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee) || User.IsInRole(SD.Role_Company)) && Model.Product.FinalWholesalePrice == 0)
+								else if (useWholesalePrice && Model.Product.FinalWholesalePrice == 0)
 								{
 									<button class="btn btn-danger disabled bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
 										@Localizer["TemporarilyUnavailable"]

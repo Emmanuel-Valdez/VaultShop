@@ -1,6 +1,7 @@
 ﻿@model HomeIndexVM
 @using Microsoft.Extensions.Options
 @using VaultShop.Web.Services.Branding
+@using VaultShop.Web.Services.Pricing
 @inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
 	var branding = BrandingOptionsAccessor.Value;
@@ -74,7 +75,7 @@ else
 									<p class="product-card__meta mb-1">@product.Category.Name</p>
 								}
 								<h3 class="card-title h6 text-primary mb-2">@product.Name</h3>
-								<p class="product-price h5 mb-3"><span>@product.FinalRetailPrice.ToString("c")</span></p>
+								<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
 								<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 									@Localizer["Details"]
 								</a>
@@ -130,7 +131,7 @@ else
 								<p class="product-card__meta mb-1">@product.Category.Name</p>
 							}
 							<h3 class="card-title h6 text-primary mb-2">@product.Name</h3>
-							<p class="product-price h5 mb-3"><span>@product.FinalRetailPrice.ToString("c")</span></p>
+							<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
 							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 								@Localizer["Details"]
 							</a>

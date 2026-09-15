@@ -1,6 +1,7 @@
 ﻿@model VaultShop.Models.Pagination.PagedList<Product>
 @using Microsoft.Extensions.Options
 @using VaultShop.Web.Services.Branding
+@using VaultShop.Web.Services.Pricing
 @inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
 	var branding = BrandingOptionsAccessor.Value;
@@ -65,7 +66,7 @@
 								<p class="product-card__meta mb-1">@product.Category.Name</p>
 							}
 							<h2 class="card-title h5 text-primary mb-2">@product.Name</h2>
-							<p class="product-price h5 mb-3"><span>@product.FinalRetailPrice.ToString("c")</span></p>
+							<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
 							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 								@Localizer["Details"]
 							</a>

@@ -224,4 +224,22 @@
     <value>Wholesale</value>
     <comment>Title about Wholesale  sells</comment>
   </data>
+  <data name="PreviewWholesaleLabel" xml:space="preserve">
+    <value>Preview: wholesale pricing</value>
+  </data>
+  <data name="ExitPreviewButton" xml:space="preserve">
+    <value>Exit preview — show retail</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="PreviewMode" xml:space="preserve">
+    <value>Preview mode</value>
+  </data>
+  <data name="Retail" xml:space="preserve">
+    <value>Retail</value>
+  </data>
 </root>

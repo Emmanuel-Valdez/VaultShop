@@ -26,6 +26,7 @@ namespace VaultShop.Utility
 		public const string PaymentMethodMercadoPago = "MercadoPago";
 
 		public const string SessionCart = "SessionShoppingCart";
+		public const string AdminPreviewMode = "AdminPreviewMode";
 
 		public const int CompanyPaymentDueDays = 5;
 

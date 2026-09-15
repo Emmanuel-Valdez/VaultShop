@@ -124,7 +124,7 @@
     <value>Aprobada</value>
   </data>
   <data name="ApprovedForDelayedPayment" xml:space="preserve">
-    <value>Aprovado Para Pago Diferido</value>
+    <value>Aprobado Para Pago Diferido</value>
   </data>
   <data name="BackToOrders" xml:space="preserve">
     <value>Volver a Órdenes</value>
