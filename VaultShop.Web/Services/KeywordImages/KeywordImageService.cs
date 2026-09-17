@@ -203,35 +203,32 @@ public sealed class KeywordImageService : IKeywordImageService
 
 	private static void WriteResizedJpeg(SKBitmap original, Stream outputStream, int targetWidth, int targetHeight, bool squareCrop)
 	{
-		// chip: center-crop to square, then scale. cover: fit inside target with white padding.
+		// chip: draw the center square straight into the target. cover: fit inside, centered on white.
+		var source = new SKRect(0, 0, original.Width, original.Height);
+		var destination = new SKRect(0, 0, targetWidth, targetHeight);
+
 		if (squareCrop)
 		{
 			var crop = Math.Min(original.Width, original.Height);
 			var cropX = (original.Width - crop) / 2;
 			var cropY = (original.Height - crop) / 2;
-			using var cropped = new SKBitmap(crop, crop);
-			using (var canvas = new SKCanvas(cropped))
-			{
-				canvas.DrawBitmap(original,
-					new SKRect(cropX, cropY, cropX + crop, cropY + crop),
-					new SKRect(0, 0, crop, crop));
-			}
-
-			original = cropped;
+			source = new SKRect(cropX, cropY, cropX + crop, cropY + crop);
+		}
+		else
+		{
+			var scale = Math.Min((float)targetWidth / original.Width, (float)targetHeight / original.Height);
+			var drawWidth = (int)(original.Width * scale);
+			var drawHeight = (int)(original.Height * scale);
+			var offsetX = (targetWidth - drawWidth) / 2;
+			var offsetY = (targetHeight - drawHeight) / 2;
+			destination = new SKRect(offsetX, offsetY, offsetX + drawWidth, offsetY + drawHeight);
 		}
 
 		using var resized = new SKBitmap(targetWidth, targetHeight);
 		using (var canvas = new SKCanvas(resized))
 		{
 			canvas.Clear(SKColors.White);
-			var scale = squareCrop
-				? (float)targetWidth / original.Width
-				: Math.Min((float)targetWidth / original.Width, (float)targetHeight / original.Height);
-			var drawWidth = squareCrop ? targetWidth : (int)(original.Width * scale);
-			var drawHeight = squareCrop ? targetHeight : (int)(original.Height * scale);
-			var offsetX = (targetWidth - drawWidth) / 2;
-			var offsetY = (targetHeight - drawHeight) / 2;
-			canvas.DrawBitmap(original, new SKRect(offsetX, offsetY, offsetX + drawWidth, offsetY + drawHeight));
+			canvas.DrawBitmap(original, source, destination);
 		}
 
 		using var image = SKImage.FromBitmap(resized);
