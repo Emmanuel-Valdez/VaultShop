@@ -1,7 +1,7 @@
 namespace VaultShop.Web.Services.ImageStorage;
 
 public sealed record ImageStorageSaveRequest(
-	int ProductId,
+	string Prefix,
 	Stream Content,
 	string FileName,
 	string ContentType,

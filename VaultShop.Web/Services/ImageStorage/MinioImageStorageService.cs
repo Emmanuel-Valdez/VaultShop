@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
-using VaultShop.Models;
 
 namespace VaultShop.Web.Services.ImageStorage;
 
@@ -23,13 +22,14 @@ public sealed class MinioImageStorageService : IImageStorageService
 		_logger = logger;
 	}
 
-	public async Task<StoredImage> SaveProductImageAsync(ImageStorageSaveRequest request, CancellationToken cancellationToken = default)
+	public async Task<StoredImage> SaveObjectAsync(ImageStorageSaveRequest request, CancellationToken cancellationToken = default)
 	{
 		ValidateRequest(request);
 		ValidateOptions(_options);
 
 		var fileName = $"{Guid.NewGuid():N}.jpg";
-		var objectKey = $"products/product-{request.ProductId}/{fileName}";
+		var prefix = request.Prefix.Trim('/');
+		var objectKey = $"{prefix}/{fileName}";
 
 		if (request.Content.CanSeek)
 		{
@@ -56,16 +56,15 @@ public sealed class MinioImageStorageService : IImageStorageService
 			ProviderName);
 	}
 
-	public async Task DeleteProductImageAsync(ProductImage image, CancellationToken cancellationToken = default)
+	public async Task DeleteObjectAsync(DeleteObjectRequest request, CancellationToken cancellationToken = default)
 	{
-		if (!ShouldHandleImage(image))
+		if (!ShouldHandleObject(request))
 		{
 			_logger.LogWarning(
-				"Skipped MinIO product image deletion for product image {ProductImageId}, product {ProductId}. ObjectKey: {ObjectKey}, StorageProvider: {StorageProvider}",
-				image.Id,
-				image.ProductId,
-				image.ObjectKey,
-				image.StorageProvider);
+				"Skipped MinIO object deletion. ObjectKey: {ObjectKey}, StorageProvider: {StorageProvider}, ExpectedPrefix: {ExpectedPrefix}",
+				request.ObjectKey,
+				request.StorageProvider,
+				request.ExpectedPrefix);
 			return;
 		}
 
@@ -73,7 +72,7 @@ public sealed class MinioImageStorageService : IImageStorageService
 
 		var removeObjectArgs = new RemoveObjectArgs()
 			.WithBucket(_options.BucketName)
-			.WithObject(image.ObjectKey);
+			.WithObject(request.ObjectKey);
 
 		await _minioClient.RemoveObjectAsync(removeObjectArgs, cancellationToken);
 	}
@@ -117,22 +116,28 @@ public sealed class MinioImageStorageService : IImageStorageService
 		_logger.LogInformation("Created MinIO bucket {BucketName} because it did not exist.", _options.BucketName);
 	}
 
-	private static bool ShouldHandleImage(ProductImage image)
+	private static bool ShouldHandleObject(DeleteObjectRequest request)
 	{
-		if (!string.IsNullOrWhiteSpace(image.StorageProvider)
-			&& !string.Equals(image.StorageProvider, ProviderName, StringComparison.OrdinalIgnoreCase))
+		if (!string.IsNullOrWhiteSpace(request.StorageProvider)
+			&& !string.Equals(request.StorageProvider, ProviderName, StringComparison.OrdinalIgnoreCase))
 		{
 			return false;
 		}
 
-		if (string.IsNullOrWhiteSpace(image.ObjectKey)
-			|| Uri.TryCreate(image.ObjectKey, UriKind.Absolute, out _))
+		if (string.IsNullOrWhiteSpace(request.ObjectKey)
+			|| Uri.TryCreate(request.ObjectKey, UriKind.Absolute, out _))
 		{
 			return false;
 		}
 
-		var normalizedObjectKey = image.ObjectKey.Replace('\\', '/').TrimStart('/');
-		return normalizedObjectKey.StartsWith("products/", StringComparison.OrdinalIgnoreCase)
+		var prefix = request.ExpectedPrefix?.Trim('/');
+		if (string.IsNullOrWhiteSpace(prefix))
+		{
+			return false;
+		}
+
+		var normalizedObjectKey = request.ObjectKey.Replace('\\', '/').TrimStart('/');
+		return normalizedObjectKey.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)
 			&& !normalizedObjectKey.Split('/', StringSplitOptions.RemoveEmptyEntries).Contains("..");
 	}
 
@@ -140,9 +145,9 @@ public sealed class MinioImageStorageService : IImageStorageService
 	{
 		ArgumentNullException.ThrowIfNull(request.Content);
 
-		if (request.ProductId <= 0)
+		if (string.IsNullOrWhiteSpace(request.Prefix))
 		{
-			throw new ArgumentException("Product id must be greater than zero.", nameof(request));
+			throw new ArgumentException("Prefix is required.", nameof(request));
 		}
 
 		if (request.SizeBytes <= 0)

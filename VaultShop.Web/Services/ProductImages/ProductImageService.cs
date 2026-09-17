@@ -97,8 +97,8 @@ public sealed class ProductImageService : IProductImageService
 				await using var outputStream = new MemoryStream();
 				WriteResizedJpeg(original, outputStream);
 
-				var storedImage = await _imageStorageService.SaveProductImageAsync(new ImageStorageSaveRequest(
-					productId,
+				var storedImage = await _imageStorageService.SaveObjectAsync(new ImageStorageSaveRequest(
+					$"products/product-{productId}",
 					outputStream,
 					file.FileName,
 					"image/jpeg",

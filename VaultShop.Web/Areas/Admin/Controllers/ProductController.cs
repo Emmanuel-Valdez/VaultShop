@@ -219,7 +219,10 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			try
 			{
-				await _imageStorageService.DeleteProductImageAsync(imageToBeDeleted);
+				await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(
+					imageToBeDeleted.ObjectKey,
+					imageToBeDeleted.StorageProvider,
+					"products/"));
 				_logger.LogInformation("Deleted product image {ProductImageId} for product {ProductId}.", imageId, productId);
 			}
 			catch (Exception ex)

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using VaultShop.Models;
 using VaultShop.Web.Services.ImageStorage;
 
 namespace VaultShop.Web.Tests
@@ -9,7 +8,7 @@ namespace VaultShop.Web.Tests
 	public class LocalImageStorageServiceTests
 	{
 		[Fact]
-		public async Task DeleteProductImageAsync_ObjectKeyLocalImage_DeletesFile()
+		public async Task DeleteObjectAsync_ObjectKeyLocalImage_DeletesFile()
 		{
 			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
 			try
@@ -17,11 +16,10 @@ namespace VaultShop.Web.Tests
 				var filePath = CreateProductImageFile(webRootPath, "product-1", "image.jpg");
 				var service = CreateService(webRootPath);
 
-				await service.DeleteProductImageAsync(new ProductImage
-				{
-					ObjectKey = "images/products/product-1/image.jpg",
-					StorageProvider = LocalImageStorageService.ProviderName
-				});
+				await service.DeleteObjectAsync(new DeleteObjectRequest(
+					"images/products/product-1/image.jpg",
+					LocalImageStorageService.ProviderName,
+					"products/"));
 
 				Assert.False(File.Exists(filePath));
 			}
@@ -32,7 +30,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public async Task DeleteProductImageAsync_MissingObjectKey_DoesNotDeleteFile()
+		public async Task DeleteObjectAsync_MissingObjectKey_DoesNotDeleteFile()
 		{
 			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
 			try
@@ -40,10 +38,10 @@ namespace VaultShop.Web.Tests
 				var filePath = CreateProductImageFile(webRootPath, "product-2", "image.jpg");
 				var service = CreateService(webRootPath);
 
-				await service.DeleteProductImageAsync(new ProductImage
-				{
-					ImageUrl = "\\images\\products\\product-2\\image.jpg"
-				});
+				await service.DeleteObjectAsync(new DeleteObjectRequest(
+					string.Empty,
+					LocalImageStorageService.ProviderName,
+					"products/"));
 
 				Assert.True(File.Exists(filePath));
 			}
@@ -54,7 +52,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public async Task DeleteProductImageAsync_TraversalObjectKey_DoesNotDeleteOutsideProductImagesRoot()
+		public async Task DeleteObjectAsync_TraversalObjectKey_DoesNotDeleteOutsideExpectedRoot()
 		{
 			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
 			try
@@ -63,13 +61,34 @@ namespace VaultShop.Web.Tests
 				await File.WriteAllTextAsync(protectedFilePath, "do not delete");
 				var service = CreateService(webRootPath);
 
-				await service.DeleteProductImageAsync(new ProductImage
-				{
-					ObjectKey = "images/products/../../protected.txt",
-					StorageProvider = LocalImageStorageService.ProviderName
-				});
+				await service.DeleteObjectAsync(new DeleteObjectRequest(
+					"images/products/../../protected.txt",
+					LocalImageStorageService.ProviderName,
+					"products/"));
 
 				Assert.True(File.Exists(protectedFilePath));
+			}
+			finally
+			{
+				Directory.Delete(webRootPath, recursive: true);
+			}
+		}
+
+		[Fact]
+		public async Task DeleteObjectAsync_WrongExpectedPrefix_DoesNotDeleteFile()
+		{
+			var webRootPath = Directory.CreateTempSubdirectory("vaultshop-local-storage-tests-").FullName;
+			try
+			{
+				var filePath = CreateProductImageFile(webRootPath, "product-3", "image.jpg");
+				var service = CreateService(webRootPath);
+
+				await service.DeleteObjectAsync(new DeleteObjectRequest(
+					"images/products/product-3/image.jpg",
+					LocalImageStorageService.ProviderName,
+					"keywords/"));
+
+				Assert.True(File.Exists(filePath));
 			}
 			finally
 			{
