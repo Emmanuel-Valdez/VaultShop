@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="KeywordCreatedSuccess" xml:space="preserve">
+    <value>Keyword created succesfully</value>
+  </data>
+  <data name="KeywordEditedSuccess" xml:space="preserve">
+    <value>Keyword edited succesfully</value>
+  </data>
+  <data name="DeleteSuccesfully" xml:space="preserve">
+    <value>Delete Succesfully</value>
+  </data>
+  <data name="ErrorWhileDeleting" xml:space="preserve">
+    <value>Error while deleting</value>
+  </data>
+  <data name="DeleteBlockedHasProducts" xml:space="preserve">
+    <value>Cannot delete: the collection has {0} active product(s). Unassign them first.</value>
+  </data>
+  <data name="SlugAlreadyExists" xml:space="preserve">
+    <value>This slug is already in use by another active collection.</value>
+  </data>
+  <data name="DeletedSuccessfully" xml:space="preserve">
+    <value>Deleted Succesfully</value>
+  </data>
+</root>

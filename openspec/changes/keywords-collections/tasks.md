@@ -18,10 +18,10 @@
 
 ## 4. Admin CRUD (Keyword)
 
-- [ ] 4.1 Implement `KeywordController` in Admin area (`[Authorize(Roles = Admin,Employee)]`): `Index`, `GetAll` (JSON list with images + product count), `Upsert` GET/POST (auto-slug from `Name` when blank; localized unique-slug validation; save), `Delete` POST (block when active products reference it → `success=false` + count message; else soft-delete + remove `ProductKeyword` + `KeywordImage` rows), and image delete/replace endpoints. Verify: routes follow `CategoryController`; manual POST of duplicate active slug is rejected with a localized error.
-- [ ] 4.2 Add `Keyword/Index.cshtml` + `keyword.js` (DataTable, SweetAlert confirm, toastr, block message rendered as error toast without reload) and `Keyword/Upsert.cshtml` (Name, Slug, chip + cover uploads with previews) following `Category` and `Product` upsert visuals. Verify: admin can create/edit/list/soft-delete a keyword and sees image previews; deleting a referenced keyword shows the localized block message.
-- [ ] 4.3 Add localization resx for `KeywordController` and `Keyword` views in `Resources/Areas/Admin/…` es/en (including the delete-block message with count). Verify: admin pages render both es-AR and en-US without untranslated keys.
-- [ ] 4.4 Add admin nav entry for Keywords/Colecciones in the admin layout. Verify: link renders and routes to `/Admin/Keyword` under both cultures.
+- [x] 4.1 Implement `KeywordController` in Admin area (`[Authorize(Roles = Admin,Employee)]`): `Index`, `GetAll` (JSON list with images + product count), `Upsert` GET/POST (auto-slug from `Name` when blank; localized unique-slug validation; save), `Delete` POST (block when active products reference it → `success=false` + count message; else soft-delete + remove `ProductKeyword` + `KeywordImage` rows), and image delete/replace endpoints. Verify: routes follow `CategoryController`; manual POST of duplicate active slug is rejected with a localized error.
+- [x] 4.2 Add `Keyword/Index.cshtml` + `keyword.js` (DataTable, SweetAlert confirm, toastr, block message rendered as error toast without reload) and `Keyword/Upsert.cshtml` (Name, Slug, chip + cover uploads with previews) following `Category` and `Product` upsert visuals. Verify: admin can create/edit/list/soft-delete a keyword and sees image previews; deleting a referenced keyword shows the localized block message.
+- [x] 4.3 Add localization resx for `KeywordController` and `Keyword` views in `Resources/Areas/Admin/…` es/en (including the delete-block message with count). Verify: admin pages render both es-AR and en-US without untranslated keys.
+- [x] 4.4 Add admin nav entry for Keywords/Colecciones in the admin layout. Verify: link renders and routes to `/Admin/Keyword` under both cultures.
 
 ## 5. Keyword image handling via storage
 

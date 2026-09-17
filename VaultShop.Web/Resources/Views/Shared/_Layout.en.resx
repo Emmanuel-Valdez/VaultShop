@@ -157,6 +157,9 @@
   <data name="FinalPrice" xml:space="preserve">
     <value>Final Price</value>
   </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Collections</value>
+  </data>
   <data name="FixedCost" xml:space="preserve">
     <value>Fixed Cost</value>
   </data>

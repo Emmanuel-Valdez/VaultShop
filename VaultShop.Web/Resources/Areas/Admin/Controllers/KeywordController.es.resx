@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="KeywordCreatedSuccess" xml:space="preserve">
+    <value>Colección Creada Exitosamente</value>
+  </data>
+  <data name="KeywordEditedSuccess" xml:space="preserve">
+    <value>Colección Actualizada Exitosamente</value>
+  </data>
+  <data name="DeleteSuccesfully" xml:space="preserve">
+    <value>Borrado Correcto</value>
+  </data>
+  <data name="ErrorWhileDeleting" xml:space="preserve">
+    <value>Error Durante el Borrado</value>
+  </data>
+  <data name="DeleteBlockedHasProducts" xml:space="preserve">
+    <value>No se puede eliminar: la colección tiene {0} producto(s) activo(s). Desasignalos primero.</value>
+  </data>
+  <data name="SlugAlreadyExists" xml:space="preserve">
+    <value>Este slug ya está en uso por otra colección activa.</value>
+  </data>
+  <data name="DeletedSuccessfully" xml:space="preserve">
+    <value>Borrado Correcto</value>
+  </data>
+</root>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BackToList" xml:space="preserve">
+    <value>Volver a Lista</value>
+  </data>
+  <data name="ChipImage" xml:space="preserve">
+    <value>Imagen Chip</value>
+  </data>
+  <data name="ChipImageHelp" xml:space="preserve">
+    <value>Imagen cuadrada que se muestra circular en la navegación de la tienda.</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Imagen Portada</value>
+  </data>
+  <data name="CoverImageHelp" xml:space="preserve">
+    <value>Imagen ancha usada como portada de la colección.</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Keyword" xml:space="preserve">
+    <value>Colección</value>
+  </data>
+  <data name="KeywordImages" xml:space="preserve">
+    <value>Imágenes de la Colección</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="NoImages" xml:space="preserve">
+    <value>No hay imágenes subidas. La tienda mostrará un chip de respaldo.</value>
+  </data>
+  <data name="Slug" xml:space="preserve">
+    <value>Slug</value>
+  </data>
+  <data name="SlugHelp" xml:space="preserve">
+    <value>Dejalo vacío para generarlo automáticamente desde el nombre.</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+</root>

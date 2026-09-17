@@ -1,0 +1,36 @@
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary">@Localizer["Title"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row pb-3">
+			<div class="col-6">
+
+			</div>
+			<div class="col-6 text-end">
+				<a asp-area="Admin" asp-controller="Keyword" asp-action="Upsert" class="btn btn-outline-primary">
+					<i class="bi bi-plus-circle"></i> @Localizer["CreateKeyword"]
+				</a>
+			</div>
+		</div>
+
+		<table id="tblData" class="table table-bordered table-striped table-hover">
+			<thead>
+				<tr>
+					<th>@Localizer["KeywordName"]</th>
+					<th>@Localizer["Chip"]</th>
+					<th>@Localizer["Slug"]</th>
+					<th>@Localizer["ProductCount"]</th>
+					<th></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+@section Scripts {
+	<script src="~/js/keyword.js"></script>
+}

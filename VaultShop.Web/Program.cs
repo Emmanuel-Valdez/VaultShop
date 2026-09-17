@@ -31,6 +31,7 @@ using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Branding;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.ImageStorage;
+using VaultShop.Web.Services.KeywordImages;
 using VaultShop.Web.Services.ProductImages;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pagination;
@@ -225,6 +226,7 @@ switch (imageStorageProvider.Trim().ToUpperInvariant())
 }
 
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
+builder.Services.AddScoped<IKeywordImageService, KeywordImageService>();
 builder.Services.AddHealthChecks()
 	.AddDbContextCheck<ApplicationDbContext>(name: "database")
 	.AddCheck<StorageHealthCheck>("storage");

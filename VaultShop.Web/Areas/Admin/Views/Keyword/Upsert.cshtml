@@ -1,0 +1,104 @@
+@model Keyword
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary"> @(Model.Id != 0 ? Localizer["Update"] : Localizer["Create"]) @Localizer["Keyword"] </h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row g-4">
+			<div class="col-12 col-lg-8">
+				<form method="post" enctype="multipart/form-data">
+					@Html.AntiForgeryToken()
+					<input asp-for="Id" hidden />
+					<div class="border rounded-3 p-3 bg-body-tertiary">
+						<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Name" class="form-control" placeholder="Name" />
+								<label asp-for="Name" class="ms-2 text-muted">@Localizer["Name"]</label>
+							</div>
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Slug" class="form-control" placeholder="Slug" />
+								<label asp-for="Slug" class="ms-2 text-muted">@Localizer["Slug"]</label>
+							</div>
+							<div class="form-text">@Localizer["SlugHelp"]</div>
+							<span asp-validation-for="Slug" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<label class="form-label fw-semibold">@Localizer["ChipImage"]</label>
+							<input type="file" name="chipFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<div class="form-text">@Localizer["ChipImageHelp"]</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label fw-semibold">@Localizer["CoverImage"]</label>
+							<input type="file" name="coverFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<div class="form-text">@Localizer["CoverImageHelp"]</div>
+						</div>
+						<div class="row mt-3">
+							<div class="col-6 col-md-3">
+								@if (Model.Id != 0)
+								{
+									<button type="submit" class="btn btn-primary form-control">@Localizer["Update"]</button>
+								}
+								else
+								{
+									<button type="submit" class="btn btn-primary form-control">@Localizer["Create"]</button>
+								}
+							</div>
+							<div class="col-6 col-md-3">
+								<a asp-area="Admin" asp-controller="Keyword" asp-action="Index" class="btn btn-outline-primary border form-control">
+									@Localizer["BackToList"]
+								</a>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			@if (Model.Id != 0)
+			{
+				<div class="col-12 col-lg-4">
+					<div class="border rounded-3 p-3 h-100">
+						<h3 class="h5 mb-3 text-primary">@Localizer["KeywordImages"]</h3>
+						@if (Model.Images.Any())
+						{
+							@foreach (var image in Model.Images.OrderBy(i => i.Kind))
+							{
+								<div class="border rounded-3 p-2 mb-3 text-center">
+									<img src="@image.ImageUrl" class="w-100 rounded mb-2" style="max-height:160px; object-fit:cover" alt="@(image.Kind == KeywordImageKind.Chip ? "Chip" : "Cover")" />
+									<span class="badge bg-secondary d-block mb-2">
+										@(image.Kind == KeywordImageKind.Chip ? Localizer["ChipImage"] : Localizer["CoverImage"])
+									</span>
+									<a asp-action="DeleteImage" class="btn btn-outline-danger btn-sm w-100" asp-route-imageId="@image.Id">
+										<i class="bi bi-trash-fill"></i> @Localizer["Delete"]
+									</a>
+								</div>
+							}
+						}
+						else
+						{
+							<div class="empty-state rounded-3 p-4 text-center text-muted">
+								<i class="bi bi-image fs-2 d-block mb-2" aria-hidden="true"></i>
+								@Localizer["NoImages"]
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>
+
+
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+	<script src="~/js/keywordUpsert.js"></script>
+}
