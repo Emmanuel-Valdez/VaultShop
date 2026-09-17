@@ -25,13 +25,13 @@
 
 ## 5. Keyword image handling via storage
 
-- [ ] 5.1 Implement `IKeywordImageService` (SkiaSharp validation + resize, ~400×400 chip / ~1400×500 cover, prefix `keywords/keyword-{id}`) and register in DI (`Program.cs`). Verify: uploading a chip then a cover then replacing the chip persists each independently and stores bytes through `IImageStorageService` (metadata row only in DB); rejects oversized/undecodable/unsupported files with localized errors (mirrors `ProductImageService`).
+- [x] 5.1 Implement `IKeywordImageService` (SkiaSharp validation + resize, ~400×400 chip / ~1400×500 cover, prefix `keywords/keyword-{id}`) and register in DI (`Program.cs`). Verify: uploading a chip then a cover then replacing the chip persists each independently and stores bytes through `IImageStorageService` (metadata row only in DB); rejects oversized/undecodable/unsupported files with localized errors (mirrors `ProductImageService`).
 
 ## 6. Product/Upsert keyword selector
 
-- [ ] 6.1 Extend `ProductVM` with `KeywordList` (SelectListItems) + `SelectedKeywordIds`; populate in `ProductController.Upsert` GET and `PopulateProductFormData`. Verify: edit page lists active keywords as checkboxes and pre-checks the product's current selection.
-- [ ] 6.2 Add checkbox group ("Keywords / Colecciones", `form-check` + badges) to `Product/Upsert.cshtml` directly under the Category select. Verify: markup renders a native, keyboard/touch-accessible multi-select distinct from the Category dropdown.
-- [ ] 6.3 Sync `ProductKeyword` rows on POST from `SelectedKeywordIds` (add missing / remove extra) before `Save()` for both create and update. Verify: saving a product with multiple keywords persists all links; unchecking removes links; duplicate selection does not create duplicate rows (composite PK safe).
+- [x] 6.1 Extend `ProductVM` with `KeywordList` (SelectListItems) + `SelectedKeywordIds`; populate in `ProductController.Upsert` GET and `PopulateProductFormData`. Verify: edit page lists active keywords as checkboxes and pre-checks the product's current selection.
+- [x] 6.2 Add checkbox group ("Keywords / Colecciones", `form-check` + badges) to `Product/Upsert.cshtml` directly under the Category select. Verify: markup renders a native, keyboard/touch-accessible multi-select distinct from the Category dropdown.
+- [x] 6.3 Sync `ProductKeyword` rows on POST from `SelectedKeywordIds` (add missing / remove extra) before `Save()` for both create and update. Verify: saving a product with multiple keywords persists all links; unchecking removes links; duplicate selection does not create duplicate rows (composite PK safe).
 
 ## 7. Storefront — Home collections row + counter
 

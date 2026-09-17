@@ -56,6 +56,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 					MaxExpectation = 30
 				}
 			};
+			PopulateKeywordList(productVM);
 			if (id == 0 || id == null)
 			{
 				//create
@@ -64,12 +65,13 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			else
 			{
 				//update
-				var product = _unitOfWork.Product.Get(u => u.Id == id && u.IsDeleted == false, includeProperties: "ProductImages");
+				var product = _unitOfWork.Product.Get(u => u.Id == id && u.IsDeleted == false, includeProperties: "ProductImages,Keywords");
 				if (product == null)
 				{
 					return NotFound();
 				}
 
+				productVM.SelectedKeywordIds = product.Keywords.Select(k => k.KeywordId).ToList();
 				productVM.Product = product;
 				return View(productVM);
 			}
@@ -100,6 +102,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 					_unitOfWork.Product.Update(productVM.Product);
 				}
 				_unitOfWork.Save();
+				SyncProductKeywords(productVM.Product.Id, productVM.SelectedKeywordIds);
 
 				var imageUploadResult = await _productImageService.SaveProductImagesAsync(productVM.Product.Id, files);
 				if (imageUploadResult.HasErrors)
@@ -169,6 +172,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				Text = u.Name,
 				Value = u.Id.ToString()
 			});
+			PopulateKeywordList(productVM);
 
 			if (productVM.Product.Id == 0)
 			{
@@ -177,6 +181,42 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			var productWithImages = _unitOfWork.Product.Get(u => u.Id == productVM.Product.Id && u.IsDeleted == false, includeProperties: "ProductImages");
 			productVM.Product.ProductImages = productWithImages?.ProductImages.OrderedForDisplay().ToList() ?? new List<ProductImage>();
+		}
+
+		private void PopulateKeywordList(ProductVM productVM)
+		{
+			productVM.KeywordList = _unitOfWork.Keyword
+				.GetAll(k => k.IsDeleted == false)
+				.Select(k => new SelectListItem
+				{
+					Text = k.Name,
+					Value = k.Id.ToString()
+				})
+				.ToList();
+		}
+
+		private void SyncProductKeywords(int productId, List<int>? selectedKeywordIds)
+		{
+			var selected = (selectedKeywordIds ?? new List<int>()).Distinct().ToList();
+			var existing = _unitOfWork.ProductKeyword
+				.GetAll(pk => pk.ProductId == productId)
+				.Select(pk => pk.KeywordId)
+				.ToList();
+
+			foreach (var keywordId in selected.Except(existing))
+			{
+				_unitOfWork.ProductKeyword.Add(new ProductKeyword { ProductId = productId, KeywordId = keywordId });
+			}
+
+			var removed = _unitOfWork.ProductKeyword
+				.GetAll(pk => pk.ProductId == productId && !selected.Contains(pk.KeywordId))
+				.ToList();
+			if (removed.Count > 0)
+			{
+				_unitOfWork.ProductKeyword.RemoveRange(removed);
+			}
+
+			_unitOfWork.Save();
 		}
 
 		[HttpPost]

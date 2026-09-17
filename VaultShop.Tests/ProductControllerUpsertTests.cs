@@ -178,6 +178,99 @@ public class ProductControllerUpsertTests
         uow.Mock.Verify(u => u.Save(), Times.AtLeastOnce);
     }
 
+    // 6.1 — edit page lists active keywords and pre-checks the product's current selection
+    [Fact]
+    public void Upsert_Get_Edit_PopulatesSelectedKeywordIds()
+    {
+        var existing = new Product
+        {
+            Id = 42, Name = "Existing", Description = "Desc", MaxExpectation = 25, CategoryId = 1,
+            ListPrice = 100m, FinalRetailPrice = 100m, FinalWholesalePrice = 80m, IsDeleted = false,
+            Keywords = new List<ProductKeyword>
+            {
+                new() { ProductId = 42, KeywordId = 7 },
+                new() { ProductId = 42, KeywordId = 9 }
+            }
+        };
+        var uow = CreateUnitOfWork(existingProduct: existing);
+        var controller = CreateController(uow);
+
+        var result = controller.Upsert(42);
+
+        var vm = Assert.IsType<ProductVM>(Assert.IsType<ViewResult>(result).Model);
+        Assert.Equal(new[] { 7, 9 }, vm.SelectedKeywordIds);
+        Assert.Equal(3, vm.KeywordList.Count);
+    }
+
+    // 6.3 — saving a product with multiple keywords persists all new links
+    [Fact]
+    public async Task Upsert_Post_NewProduct_PersistsSelectedKeywords()
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int> { 7, 8 });
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<RedirectToActionResult>(result);
+        uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.ProductId == vm.Product.Id && pk.KeywordId == 7)), Times.Once);
+        uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.ProductId == vm.Product.Id && pk.KeywordId == 8)), Times.Once);
+        uow.ProductKeywordMock.Verify(p => p.RemoveRange(It.IsAny<IEnumerable<ProductKeyword>>()), Times.Never);
+    }
+
+    // 6.3 — unchecking a keyword removes only the extra link
+    [Fact]
+    public async Task Upsert_Post_UncheckedKeyword_RemovesOnlyThatLink()
+    {
+        var uow = CreateUnitOfWork(existingLinks: new List<ProductKeyword>
+        {
+            new() { ProductId = 42, KeywordId = 7 },
+            new() { ProductId = 42, KeywordId = 9 }
+        });
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 42, selectedKeywordIds: new List<int> { 7 });
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<RedirectToActionResult>(result);
+        uow.ProductKeywordMock.Verify(p => p.Add(It.IsAny<ProductKeyword>()), Times.Never);
+        uow.ProductKeywordMock.Verify(
+            p => p.RemoveRange(It.Is<IEnumerable<ProductKeyword>>(links => links.Single().KeywordId == 9)),
+            Times.Once);
+    }
+
+    // 6.3 — duplicate selection does not create duplicate rows
+    [Fact]
+    public async Task Upsert_Post_DuplicateSelection_AddsSingleLink()
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int> { 7, 7 });
+
+        await controller.Upsert(vm, new List<IFormFile>());
+
+        uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.KeywordId == 7)), Times.Once);
+    }
+
+    private static ProductVM BuildValidVm(int id, List<int> selectedKeywordIds) => new()
+    {
+        Product = new Product
+        {
+            Id = id,
+            Name = "Test",
+            Description = "Desc",
+            MaxExpectation = 10,
+            CategoryId = 1,
+            ListPrice = 100m,
+            FinalRetailPrice = 1200m,
+            FinalWholesalePrice = 1000m,
+            IsDeleted = false,
+            IsAvailableInStore = true
+        },
+        SelectedKeywordIds = selectedKeywordIds
+    };
+
     private static ProductController CreateController(TestUow uow)
     {
         var localizer = new Mock<IStringLocalizer<ProductController>>();
@@ -198,11 +291,23 @@ public class ProductControllerUpsertTests
         return controller;
     }
 
-    private static TestUow CreateUnitOfWork(Product? existingProduct = null)
+    private static TestUow CreateUnitOfWork(Product? existingProduct = null, List<ProductKeyword>? existingLinks = null)
     {
         var uow = new TestUow();
         uow.CategoryMock.Setup(c => c.GetAll(It.IsAny<Expression<Func<Category, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
             .Returns(new List<Category> { new() { Id = 1, Name = "Cat", AvgShippingCost = 100m } });
+        uow.KeywordMock.Setup(k => k.GetAll(It.IsAny<Expression<Func<Keyword, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns(new List<Keyword>
+            {
+                new() { Id = 7, Name = "Naruto" },
+                new() { Id = 8, Name = "Berserk" },
+                new() { Id = 9, Name = "One Piece" }
+            });
+        uow.ExistingLinks = existingLinks ?? new List<ProductKeyword>();
+        uow.ProductKeywordMock
+            .Setup(x => x.GetAll(It.IsAny<Expression<Func<ProductKeyword, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
+            .Returns((Expression<Func<ProductKeyword, bool>>? filter, string? _, bool __) =>
+                uow.ExistingLinks.Where(filter?.Compile() ?? (_ => true)).ToList());
         if (existingProduct != null)
         {
             uow.ProductMock.Setup(p => p.Get(It.IsAny<Expression<Func<Product, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
@@ -217,11 +322,16 @@ public class ProductControllerUpsertTests
         public Mock<ICategoryRepository> CategoryMock { get; } = new();
         public Mock<IProductRepository> ProductMock { get; } = new();
         public Mock<IProductImageRepository> ProductImageMock { get; } = new();
+        public Mock<IKeywordRepository> KeywordMock { get; } = new();
+        public Mock<IProductKeywordRepository> ProductKeywordMock { get; } = new();
+        public List<ProductKeyword> ExistingLinks { get; set; } = new();
         public TestUow()
         {
             Mock.Setup(u => u.Category).Returns(CategoryMock.Object);
             Mock.Setup(u => u.Product).Returns(ProductMock.Object);
             Mock.Setup(u => u.ProductImage).Returns(ProductImageMock.Object);
+            Mock.Setup(u => u.Keyword).Returns(KeywordMock.Object);
+            Mock.Setup(u => u.ProductKeyword).Returns(ProductKeywordMock.Object);
         }
     }
 }

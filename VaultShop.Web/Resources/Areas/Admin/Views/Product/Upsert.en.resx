@@ -186,4 +186,10 @@
   <data name="MinorLowerMajor" xml:space="preserve">
     <value>Minor Price never can be lower than Major Price</value>
   </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Collections</value>
+  </data>
+  <data name="NoKeywordsYet" xml:space="preserve">
+    <value>No collections yet. Create them in the Keywords section.</value>
+  </data>
 </root>

@@ -15,5 +15,9 @@ namespace VaultShop.Models.ViewModels
 		public Product Product { get; set; } = new();
 		[ValidateNever]
 		public IEnumerable<SelectListItem> CategoryList { get; set; } = [];
+		[ValidateNever]
+		public List<SelectListItem> KeywordList { get; set; } = new();
+		[ValidateNever]
+		public List<int> SelectedKeywordIds { get; set; } = new();
 	}
 }

@@ -74,6 +74,30 @@
 
 							<span asp-validation-for="Product.CategoryId" class="text-danger"></span>
 						</div>
+						<div class="py-2 col-12">
+							<label class="form-label fw-semibold">@Localizer["Keywords"]</label>
+							@if (Model.KeywordList.Any())
+							{
+								<div class="d-flex flex-wrap gap-2">
+									@for (var i = 0; i < Model.KeywordList.Count; i++)
+									{
+										var keywordId = Model.KeywordList[i].Value;
+										<div class="form-check m-0">
+											<input class="form-check-input" type="checkbox" id="kw_@keywordId"
+												name="SelectedKeywordIds" value="@keywordId"
+												@(Model.SelectedKeywordIds.Contains(int.Parse(keywordId)) ? "checked" : "") />
+											<label class="form-check-label rounded-pill border px-3 py-1" for="kw_@keywordId">
+												@Model.KeywordList[i].Text
+											</label>
+										</div>
+									}
+								</div>
+							}
+							else
+							{
+								<div class="form-text">@Localizer["NoKeywordsYet"]</div>
+							}
+						</div>
 						<div class="mb-3">
 							<div class="form-floating mb-3 col-md-12 shadow">
 								<input asp-for="Product.MaxExpectation" class="form-control" placeholder="MaxExpectation" type="number" min="1" max="10000" step="1"/>

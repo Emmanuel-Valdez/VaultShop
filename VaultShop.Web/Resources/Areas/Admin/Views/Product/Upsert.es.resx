@@ -186,4 +186,10 @@
   <data name="MinorLowerMajor" xml:space="preserve">
     <value>Precio por menor nunca puede ser menor que precio por mayor</value>
   </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Colecciones</value>
+  </data>
+  <data name="NoKeywordsYet" xml:space="preserve">
+    <value>No hay colecciones todavía. Creá colecciones en la sección Keywords.</value>
+  </data>
 </root>
