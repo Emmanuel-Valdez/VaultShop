@@ -53,13 +53,15 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Upsert(Keyword obj, IFormFile? chipFile, IFormFile? coverFile)
 		{
+			obj.Slug = SlugHelper.Slugify(string.IsNullOrWhiteSpace(obj.Slug) ? obj.Name : obj.Slug);
+
 			if (string.IsNullOrWhiteSpace(obj.Slug))
 			{
-				obj.Slug = SlugHelper.Slugify(obj.Name);
+				ModelState.AddModelError(nameof(obj.Slug), _localizer["SlugRequired"].Value);
 			}
-			obj.Slug = obj.Slug.Trim();
 
-			var existingWithSlug = _unitOfWork.Keyword.Get(u => u.IsDeleted == false && u.Id != obj.Id && u.Slug == obj.Slug);
+			var existingWithSlug = _unitOfWork.Keyword.Get(u => u.IsDeleted == false && u.Id != obj.Id
+				&& u.Slug == obj.Slug);
 			if (existingWithSlug != null)
 			{
 				ModelState.AddModelError(nameof(obj.Slug), _localizer["SlugAlreadyExists"].Value);
@@ -100,6 +102,11 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				var reloaded = _unitOfWork.Keyword.Get(u => u.Id == obj.Id && u.IsDeleted == false, includeProperties: "Images");
 				return View(reloaded ?? obj);
 			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Keyword {KeywordId} image upload failed.", obj.Id);
+				TempData["warning"] = _localizer["KeywordSavedImageFailed"].Value;
+			}
 
 			TempData["success"] = isNew
 				? _localizer["KeywordCreatedSuccess"].Value
@@ -107,6 +114,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			return RedirectToAction("Index");
 		}
 
+		[HttpPost]
+		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteImage(int imageId)
 		{
 			var image = _unitOfWork.KeywordImage.Get(u => u.Id == imageId);
@@ -200,25 +209,16 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		private async Task ReplaceImageAsync(int keywordId, KeywordImageKind kind, IFormFile file)
 		{
+			// Save new image first — only delete old after new succeeds to prevent data loss.
+			var stored = kind == KeywordImageKind.Chip
+				? await _keywordImageService.SaveChipAsync(keywordId, file)
+				: await _keywordImageService.SaveCoverAsync(keywordId, file);
+
 			var existing = _unitOfWork.KeywordImage.Get(i => i.KeywordId == keywordId && i.Kind == kind);
 			if (existing != null)
 			{
 				_unitOfWork.KeywordImage.Remove(existing);
-				_unitOfWork.Save();
-
-				try
-				{
-					await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(existing.ObjectKey, existing.StorageProvider, $"keywords/keyword-{keywordId}"));
-				}
-				catch (Exception ex)
-				{
-					_logger.LogWarning(ex, "Keyword {KeywordId} {Kind} image row {ImageId} was replaced, but old storage cleanup failed.", keywordId, kind, existing.Id);
-				}
 			}
-
-			var stored = kind == KeywordImageKind.Chip
-				? await _keywordImageService.SaveChipAsync(keywordId, file)
-				: await _keywordImageService.SaveCoverAsync(keywordId, file);
 
 			_unitOfWork.KeywordImage.Add(new KeywordImage
 			{
@@ -232,6 +232,19 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				StorageProvider = stored.StorageProvider
 			});
 			_unitOfWork.Save();
+
+			// Best-effort cleanup of old storage after DB is consistent.
+			if (existing != null)
+			{
+				try
+				{
+					await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(existing.ObjectKey, existing.StorageProvider, $"keywords/keyword-{keywordId}"));
+				}
+				catch (Exception ex)
+				{
+					_logger.LogWarning(ex, "Keyword {KeywordId} {Kind} image row {ImageId} was replaced, but old storage cleanup failed.", keywordId, kind, existing.Id);
+				}
+			}
 		}
 	}
 }

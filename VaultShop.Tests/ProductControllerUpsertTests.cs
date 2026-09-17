@@ -253,6 +253,23 @@ public class ProductControllerUpsertTests
         uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.KeywordId == 7)), Times.Once);
     }
 
+    // 3.1 — tampered keyword IDs (deleted or non-existent) are filtered out
+    [Fact]
+    public async Task Upsert_Post_TamperedKeywordId_IgnoresDeletedAndInvalid()
+    {
+        var uow = CreateUnitOfWork();
+        // KeywordMock returns only IDs 7, 8, 9 as active — 999 and 9999 don't exist
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int> { 7, 999, 9999 });
+
+        await controller.Upsert(vm, new List<IFormFile>());
+
+        // Only ID 7 should be added (valid active keyword)
+        uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.KeywordId == 7)), Times.Once);
+        uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.KeywordId == 999)), Times.Never);
+        uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.KeywordId == 9999)), Times.Never);
+    }
+
     private static ProductVM BuildValidVm(int id, List<int> selectedKeywordIds) => new()
     {
         Product = new Product

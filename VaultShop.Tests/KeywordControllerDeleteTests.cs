@@ -118,6 +118,85 @@ public class KeywordControllerDeleteTests
 		uow.Mock.Verify(x => x.Save(), Times.Once);
 	}
 
+	// 2.1 — manual slug is normalized via Slugify
+	[Theory]
+	[InlineData("  My Test  ", "my-test")]
+	[InlineData("Atelier Albums & Obras", "atelier-albums-obras")]
+	[InlineData("NARUTO", "naruto")]
+	public async Task Upsert_ManualSlug_IsNormalized(string inputSlug, string expectedSlug)
+	{
+		var keyword = CreateKeyword(id: 0);
+		keyword.Slug = inputSlug;
+		keyword.Name = "whatever";
+		var uow = CreateUnitOfWork(null, new List<ProductKeyword>(), new List<KeywordImage>());
+		uow.KeywordMock
+			.Setup(x => x.Get(It.IsAny<Expression<Func<Keyword, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
+			.Returns((Keyword?)null);
+
+		var controller = CreateController(uow);
+
+		await controller.Upsert(keyword, null, null);
+
+		Assert.Equal(expectedSlug, keyword.Slug);
+	}
+
+	// 2.1 — whitespace-only name produces empty slug → ModelState error from [Required] on Name
+	[Fact]
+	public async Task Upsert_WhitespaceName_ReturnsValidationError()
+	{
+		var keyword = CreateKeyword(id: 0);
+		keyword.Name = "   ";
+		keyword.Slug = "   ";
+		var uow = CreateUnitOfWork(null, new List<ProductKeyword>(), new List<KeywordImage>());
+
+		var controller = CreateController(uow);
+
+		var result = await controller.Upsert(keyword, null, null);
+
+		Assert.IsType<ViewResult>(result);
+		Assert.False(controller.ModelState.IsValid);
+		uow.KeywordMock.Verify(x => x.Add(It.IsAny<Keyword>()), Times.Never);
+		uow.Mock.Verify(x => x.Save(), Times.Never);
+	}
+
+	// DeleteImage — valid id removes row and attempts storage delete
+	[Fact]
+	public async Task DeleteImage_ValidId_RemovesRowAndRedirects()
+	{
+		var image = new KeywordImage { Id = 5, KeywordId = 1, Kind = KeywordImageKind.Chip, ObjectKey = "images/keywords/keyword-1/a.jpg", StorageProvider = "LocalFileSystem" };
+		var uow = new TestUnitOfWork();
+		uow.KeywordImageMock
+			.Setup(x => x.Get(It.IsAny<Expression<Func<KeywordImage, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
+			.Returns(image);
+
+		var controller = CreateController(uow);
+
+		var result = await controller.DeleteImage(5);
+
+		var redirect = Assert.IsType<RedirectToActionResult>(result);
+		Assert.Equal("Upsert", redirect.ActionName);
+		uow.KeywordImageMock.Verify(x => x.Remove(image), Times.Once);
+		uow.Mock.Verify(x => x.Save(), Times.Once);
+	}
+
+	// DeleteImage — missing id returns NotFound
+	[Fact]
+	public async Task DeleteImage_MissingId_ReturnsNotFound()
+	{
+		var uow = new TestUnitOfWork();
+		uow.KeywordImageMock
+			.Setup(x => x.Get(It.IsAny<Expression<Func<KeywordImage, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
+			.Returns((KeywordImage?)null);
+
+		var controller = CreateController(uow);
+
+		var result = await controller.DeleteImage(999);
+
+		Assert.IsType<NotFoundResult>(result);
+		uow.KeywordImageMock.Verify(x => x.Remove(It.IsAny<KeywordImage>()), Times.Never);
+		uow.Mock.Verify(x => x.Save(), Times.Never);
+	}
+
 	private static Keyword CreateKeyword(int id) => new() { Id = id, Name = "Naruto", Slug = "naruto", IsDeleted = false };
 
 	private static KeywordController CreateController(TestUnitOfWork uow)

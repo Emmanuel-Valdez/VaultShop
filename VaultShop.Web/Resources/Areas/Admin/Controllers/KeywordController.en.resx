@@ -33,4 +33,10 @@
   <data name="DeletedSuccessfully" xml:space="preserve">
     <value>Deleted Succesfully</value>
   </data>
+  <data name="SlugRequired" xml:space="preserve">
+    <value>A valid slug is required.</value>
+  </data>
+  <data name="KeywordSavedImageFailed" xml:space="preserve">
+    <value>Collection saved, but image upload failed. You can retry by editing it.</value>
+  </data>
 </root>

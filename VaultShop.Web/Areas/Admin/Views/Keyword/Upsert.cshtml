@@ -75,9 +75,13 @@
 									<span class="badge bg-secondary d-block mb-2">
 										@(image.Kind == KeywordImageKind.Chip ? Localizer["ChipImage"] : Localizer["CoverImage"])
 									</span>
-									<a asp-action="DeleteImage" class="btn btn-outline-danger btn-sm w-100" asp-route-imageId="@image.Id">
-										<i class="bi bi-trash-fill"></i> @Localizer["Delete"]
-									</a>
+									<form method="post" asp-action="DeleteImage" class="w-100">
+										@Html.AntiForgeryToken()
+										<input type="hidden" name="imageId" value="@image.Id" />
+										<button type="submit" class="btn btn-outline-danger btn-sm w-100">
+											<i class="bi bi-trash-fill"></i> @Localizer["Delete"]
+										</button>
+									</form>
 								</div>
 							}
 						}

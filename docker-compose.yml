@@ -85,6 +85,8 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     volumes:
       - data-protection-keys:/keys
       - ${BrandAssetsPath:-./VaultShop.Web/wwwroot/images/brand/private}:/app/wwwroot/images/brand/private:ro

@@ -197,11 +197,19 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		private void SyncProductKeywords(int productId, List<int>? selectedKeywordIds)
 		{
-			var selected = (selectedKeywordIds ?? new List<int>()).Distinct().ToList();
+			var validIds = _unitOfWork.Keyword
+				.GetAll(k => k.IsDeleted == false)
+				.Select(k => k.Id)
+				.ToHashSet();
+			var selected = (selectedKeywordIds ?? new List<int>())
+				.Where(id => validIds.Contains(id))
+				.Distinct()
+				.ToList();
+
 			var existing = _unitOfWork.ProductKeyword
 				.GetAll(pk => pk.ProductId == productId)
 				.Select(pk => pk.KeywordId)
-				.ToList();
+				.ToHashSet();
 
 			foreach (var keywordId in selected.Except(existing))
 			{

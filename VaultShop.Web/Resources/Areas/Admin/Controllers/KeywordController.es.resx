@@ -33,4 +33,10 @@
   <data name="DeletedSuccessfully" xml:space="preserve">
     <value>Borrado Correcto</value>
   </data>
+  <data name="SlugRequired" xml:space="preserve">
+    <value>Se requiere un slug válido.</value>
+  </data>
+  <data name="KeywordSavedImageFailed" xml:space="preserve">
+    <value>Colección guardada, pero falló la subida de imagen. Podés reintentar editándola.</value>
+  </data>
 </root>

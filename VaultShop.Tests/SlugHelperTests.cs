@@ -32,4 +32,14 @@ public class SlugHelperTests
         Assert.Equal(string.Empty, SlugHelper.Slugify(null));
         Assert.Equal(string.Empty, SlugHelper.Slugify("   "));
     }
+
+    // ponytail: ß doesn't decompose via FormD — current behavior drops it.
+    // Document ceiling: if German locale needed, map ß→ss before FormD.
+    [Theory]
+    [InlineData("Straße", "strae")]
+    [InlineData("Über cool", "uber-cool")]
+    public void Slugify_NonDecomposableChars_AreDropped(string input, string expected)
+    {
+        Assert.Equal(expected, SlugHelper.Slugify(input));
+    }
 }

@@ -10,8 +10,10 @@ namespace VaultShop.Models
 		public int Id { get; set; }
 
 		[LocalizedRequired("Keyword name is required.", "El nombre de la colección es obligatorio.")]
+		[MaxLength(100)]
 		public string Name { get; set; } = string.Empty;
 
+		[MaxLength(120)]
 		public string Slug { get; set; } = string.Empty;
 
 		public bool IsDeleted { get; set; } = false;

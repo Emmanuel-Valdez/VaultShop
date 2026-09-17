@@ -36,6 +36,9 @@ EXPOSE 8080
 
 COPY --from=build /app/publish .
 
+# Allow Local provider to write outside Docker (`dotnet run` uses it); inside Docker use MinIO.
+RUN mkdir -p /app/wwwroot/images && chown -R $APP_UID /app/wwwroot/images
+
 USER $APP_UID
 
 ENTRYPOINT ["dotnet", "VaultShop.Web.dll"]
