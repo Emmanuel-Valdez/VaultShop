@@ -19,6 +19,9 @@ namespace VaultShop.DataAccess.Repository.IRepository
 		IOrderDetailRepository OrderDetail { get; }
 		IApplicationUserRepository ApplicationUser { get; }
 		IProductImageRepository ProductImage { get; }
+		IKeywordRepository Keyword { get; }
+		IProductKeywordRepository ProductKeyword { get; }
+		IKeywordImageRepository KeywordImage { get; }
 
 		//Calculator Interfaces
 		IPackagingRepository Packaging { get; }

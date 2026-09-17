@@ -20,6 +20,9 @@ namespace VaultShop.DataAccess.Repository
 		public IOrderHeaderRepository OrderHeader { get; private set; }
 		public IOrderDetailRepository OrderDetail { get; private set; }
 		public IProductImageRepository ProductImage { get; private set; }
+		public IKeywordRepository Keyword { get; private set; }
+		public IProductKeywordRepository ProductKeyword { get; private set; }
+		public IKeywordImageRepository KeywordImage { get; private set; }
         public IPackagingRepository Packaging { get; private set; }
 		public IPackagingByCategoryRepository PackagingByCategory { get; private set; }
 		public IUnitPackagingByCategoryRepository UnitPackagingByCategory { get; private set; }
@@ -46,6 +49,9 @@ namespace VaultShop.DataAccess.Repository
             OrderHeader = new OrderHeaderRepository(_db);
             OrderDetail = new OrderDetailRepository(_db);
             ProductImage = new ProductImageRepository(_db);
+            Keyword = new KeywordRepository(_db);
+            ProductKeyword = new ProductKeywordRepository(_db);
+            KeywordImage = new KeywordImageRepository(_db);
             Packaging= new PackagingRepository(_db);
 			PackagingByCategory = new PackagingByCategoryRepository(_db);
 			UnitPackagingByCategory = new UnitPackagingByCategoryRepository(_db);

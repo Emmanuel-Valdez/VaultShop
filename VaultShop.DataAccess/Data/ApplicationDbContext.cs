@@ -37,6 +37,9 @@ namespace VaultShop.DataAccess.Data
 		public DbSet<PercentageCostWholesale> PercentageCostsWholesale { get; set; }
 		public DbSet<PercentageProfit> PercentageProfits { get; set; }
 		public DbSet<FavoriteProduct> FavoriteProducts { get; set; }
+		public DbSet<Keyword> Keywords { get; set; }
+		public DbSet<ProductKeyword> ProductKeywords { get; set; }
+		public DbSet<KeywordImage> KeywordImages { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -67,6 +70,22 @@ namespace VaultShop.DataAccess.Data
 			// SQL Server-specific UseSqlOutputClause configuration was removed for the PostgreSQL provider migration.
 			// Trigger/view behavior will be redesigned or rewritten in the PostgreSQL migration baseline step.
 
+			// Keyword collections: composite PK blocks duplicate (ProductId, KeywordId) at DB level.
+			modelBuilder.Entity<ProductKeyword>()
+				.HasKey(pk => new { pk.ProductId, pk.KeywordId });
+			modelBuilder.Entity<ProductKeyword>()
+				.HasIndex(pk => pk.KeywordId);
+
+			// A keyword can have at most one chip and one cover image.
+			modelBuilder.Entity<KeywordImage>()
+				.HasIndex(i => new { i.KeywordId, i.Kind })
+				.IsUnique();
+
+			// Slug uniqueness only among active keywords, so soft-deleted slugs can be reused.
+			modelBuilder.Entity<Keyword>()
+				.HasIndex(k => k.Slug)
+				.IsUnique()
+				.HasFilter("\"IsDeleted\" = false");
 		}
 	}
 }

@@ -6,15 +6,15 @@
 
 ## 2. Data model and repositories
 
-- [ ] 2.1 Add `Keyword`, `ProductKeyword`, `KeywordImage` (+ `KeywordImageKind` enum Chip/Cover) to `VaultShop.Models` following `Category`/`ProductImage` conventions, with `Keyword.CategoryId` as a bare nullable `int?` (no FK/nav, commented as future placeholder). Verify: project compiles; model review matches design D1.
-- [ ] 2.2 Add `Product.Keywords` navigation (`List<ProductKeyword>`) and register `DbSet<Keyword>`, `DbSet<ProductKeyword>`, `DbSet<KeywordImage>` in `ApplicationDbContext`. Verify: `dotnet build` passes.
-- [ ] 2.3 Configure `OnModelCreating`: composite PK `(ProductId, KeywordId)` for `ProductKeyword` (duplicates impossible), non-clustered index on `KeywordId`, unique composite index `(KeywordId, Kind)` for `KeywordImage`, and partial unique index on `Keyword.Slug` with `HasFilter("\"IsDeleted\" = false")`. Verify: model snapshot reflects all four constraints after migration scaffolding.
-- [ ] 2.4 Add `IKeywordRepository`, `IProductKeywordRepository`, `IKeywordImageRepository` + implementations following `ProductImageRepository`, registering them in `UnitOfWork` and `IUnitOfWork`. Verify: `UnitOfWork` exposes the three repos; existing consumers compile.
-- [ ] 2.5 Scaffold and review migration `AddKeywordCollections` (3 tables + indexes), then apply. Verify: `dotnet ef migrations add AddKeywordCollections` succeeds, generated SQL contains the composite PK and partial unique slug index, and `database update` applies cleanly on the dev Postgres.
+- [x] 2.1 Add `Keyword`, `ProductKeyword`, `KeywordImage` (+ `KeywordImageKind` enum Chip/Cover) to `VaultShop.Models` following `Category`/`ProductImage` conventions, with `Keyword.CategoryId` as a bare nullable `int?` (no FK/nav, commented as future placeholder). Verify: project compiles; model review matches design D1.
+- [x] 2.2 Add `Product.Keywords` navigation (`List<ProductKeyword>`) and register `DbSet<Keyword>`, `DbSet<ProductKeyword>`, `DbSet<KeywordImage>` in `ApplicationDbContext`. Verify: `dotnet build` passes.
+- [x] 2.3 Configure `OnModelCreating`: composite PK `(ProductId, KeywordId)` for `ProductKeyword` (duplicates impossible), non-clustered index on `KeywordId`, unique composite index `(KeywordId, Kind)` for `KeywordImage`, and partial unique index on `Keyword.Slug` with `HasFilter("\"IsDeleted\" = false")`. Verify: model snapshot reflects all four constraints after migration scaffolding.
+- [x] 2.4 Add `IKeywordRepository`, `IProductKeywordRepository`, `IKeywordImageRepository` + implementations following `ProductImageRepository`, registering them in `UnitOfWork` and `IUnitOfWork`. Verify: `UnitOfWork` exposes the three repos; existing consumers compile.
+- [x] 2.5 Scaffold and review migration `AddKeywordCollections` (3 tables + indexes), then apply. Verify: `dotnet ef migrations add AddKeywordCollections` succeeds, generated SQL contains the composite PK and partial unique slug index, and `database update` applies cleanly on the dev Postgres.
 
 ## 3. Slug helper
 
-- [ ] 3.1 Add static `SlugHelper.Slugify` in `VaultShop.Utility` (lowercase, ASCII-fold diacritics, non-alphanumeric → `-`, collapse/trim dashes; stdlib regex only). Verify: unit test covers `Naruto` → `naruto`, `Studio Ghibli` → `studio-ghibli`, `My Hero Academia` → `my-hero-academia`, accented input, duplicate runs of separators.
+- [x] 3.1 Add static `SlugHelper.Slugify` in `VaultShop.Utility` (lowercase, ASCII-fold diacritics, non-alphanumeric → `-`, collapse/trim dashes; stdlib regex only). Verify: unit test covers `Naruto` → `naruto`, `Studio Ghibli` → `studio-ghibli`, `My Hero Academia` → `my-hero-academia`, accented input, duplicate runs of separators.
 
 ## 4. Admin CRUD (Keyword)
 

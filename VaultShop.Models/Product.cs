@@ -56,6 +56,9 @@ namespace VaultShop.Models
 		public Category Category { get; set; } = null!;
 		[ValidateNever]
 		public List<ProductImage> ProductImages { get; set; } = new();
+
+		[ValidateNever]
+		public List<ProductKeyword> Keywords { get; set; } = new();
 		[ValidateNever]
 		public FabricByProduct FabricByProduct { get; set; } = null!;
 		[ValidateNever]
