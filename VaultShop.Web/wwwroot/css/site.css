@@ -959,7 +959,9 @@ div.dt-button-collection .dt-button:hover {
     overflow-x: auto;
     scroll-snap-type: x proximity;
     scroll-padding-left: 0.5rem;
+    padding-top: 0.35rem;
     padding-bottom: 0.5rem;
+    margin-top: 0.15rem;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -974,7 +976,9 @@ div.dt-button-collection .dt-button:hover {
     flex-direction: column;
     align-items: center;
     gap: 0.45rem;
+    width: 6.5rem;
     min-width: 6.5rem;
+    max-width: 6.5rem;
     padding: 0.75rem;
     color: var(--theme-primary);
     text-decoration: none;
@@ -1025,6 +1029,13 @@ div.dt-button-collection .dt-button:hover {
     font-size: 0.85rem;
     font-weight: 600;
     line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    max-width: 6.5rem;
 }
 
 .collection-chip__count {
@@ -1092,11 +1103,33 @@ div.dt-button-collection .dt-button:hover {
 }
 
 [data-bs-theme=dark] .collection-chip__link {
-    border-color: rgba(var(--theme-accent-rgb), 0.35);
+    background-color: var(--theme-surface-dark);
+    color: #e8eaf2;
+    border-color: rgba(232, 234, 242, 0.14);
 }
 
 [data-bs-theme=dark] .collection-chip__image {
     background-color: rgba(var(--theme-accent-rgb), 0.15);
+}
+
+[data-bs-theme=dark] .collection-chip__fallback {
+    color: #e8eaf2;
+}
+
+[data-bs-theme=dark] .collection-chip__count {
+    color: #c7cfdd;
+}
+
+[data-bs-theme=dark] .collection-chip__remove {
+    background-color: var(--theme-surface-dark);
+    color: #e8eaf2;
+    border-color: rgba(232, 234, 242, 0.22);
+}
+
+[data-bs-theme=dark] .active-filter-chip {
+    background-color: var(--theme-surface-dark);
+    color: #e8eaf2;
+    border-color: rgba(var(--theme-accent-rgb), 0.55);
 }
 
 /*

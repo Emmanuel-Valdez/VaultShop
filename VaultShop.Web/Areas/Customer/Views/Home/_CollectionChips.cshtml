@@ -12,7 +12,7 @@
 	{
 		var isActive = activeKeyword == collection.Id;
 		<div class="collection-chip@(isActive ? " active" : string.Empty)">
-			<a asp-action="Search" asp-route-keywordId="@collection.Id" class="collection-chip__link"
+			<a asp-action="Search" asp-route-keywordId="@collection.Id" asp-route-categoryId="@cleanedCategory" asp-route-searchString="@cleanedSearch" class="collection-chip__link"
 			   aria-current="@(isActive ? "true" : null)">
 				<span class="collection-chip__image" aria-hidden="true">
 					@if (!string.IsNullOrWhiteSpace(collection.ChipImageUrl))

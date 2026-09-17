@@ -53,6 +53,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Upsert(Keyword obj, IFormFile? chipFile, IFormFile? coverFile)
 		{
+			// ponytail: ValidateNever on Slug + clearing lets "Dejalo vacío…" work without the implicit NRT required error.
+			ModelState.Remove(nameof(obj.Slug));
 			obj.Slug = SlugHelper.Slugify(string.IsNullOrWhiteSpace(obj.Slug) ? obj.Name : obj.Slug);
 
 			if (string.IsNullOrWhiteSpace(obj.Slug))

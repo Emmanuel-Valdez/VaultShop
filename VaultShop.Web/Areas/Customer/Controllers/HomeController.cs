@@ -242,6 +242,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			}
 
 			ViewData["Collections"] = HomeIndexVM.ComputeCollections(products);
+			var allCategories = products
+				.Where(p => p.Category != null && !string.IsNullOrWhiteSpace(p.Category.Name))
+				.GroupBy(p => p.Category.Id)
+				.Select(g => g.First().Category)
+				.OrderBy(c => c.Name)
+				.ToList();
+			ViewData["Categories"] = allCategories;
 			if (categoryId.HasValue)
 			{
 				ViewData["ActiveCategory"] = products.Select(p => p.Category).FirstOrDefault(c => c != null && c.Id == categoryId.Value);

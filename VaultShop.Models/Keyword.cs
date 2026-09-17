@@ -14,6 +14,7 @@ namespace VaultShop.Models
 		public string Name { get; set; } = string.Empty;
 
 		[MaxLength(120)]
+		[ValidateNever]
 		public string Slug { get; set; } = string.Empty;
 
 		public bool IsDeleted { get; set; } = false;
