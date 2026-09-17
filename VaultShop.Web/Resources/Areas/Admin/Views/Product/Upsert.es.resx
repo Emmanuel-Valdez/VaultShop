@@ -184,7 +184,13 @@
     <value>Precio Final Mayor</value>
   </data>
   <data name="MinorLowerMajor" xml:space="preserve">
-    <value>Precio por menor nunca puede ser menor que precio por mayor</value>
+    <value>Precio minorista no debería ser menor que precio mayorista, ¿aún así deseas continuar?</value>
+  </data>
+  <data name="MinorLowerMajorYes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="MinorLowerMajorNo" xml:space="preserve">
+    <value>No</value>
   </data>
   <data name="Keywords" xml:space="preserve">
     <value>Colecciones</value>

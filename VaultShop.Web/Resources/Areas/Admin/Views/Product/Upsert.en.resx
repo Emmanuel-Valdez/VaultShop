@@ -184,7 +184,13 @@
     <value>Final Wholesale Price</value>
   </data>
   <data name="MinorLowerMajor" xml:space="preserve">
-    <value>Minor Price never can be lower than Major Price</value>
+    <value>Retail price shouldn't be lower than wholesale price, do you still want to continue?</value>
+  </data>
+  <data name="MinorLowerMajorYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="MinorLowerMajorNo" xml:space="preserve">
+    <value>No</value>
   </data>
   <data name="Keywords" xml:space="preserve">
     <value>Collections</value>

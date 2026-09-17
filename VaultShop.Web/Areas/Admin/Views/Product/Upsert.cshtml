@@ -212,7 +212,11 @@
 			var form = document.querySelector('.admin-product-upsert form');
 			if (!form || typeof Swal === 'undefined') return;
 			var warningText = "@Localizer["MinorLowerMajor"]";
-			if (warningText === "MinorLowerMajor") warningText = (typeof currentCulture !== 'undefined' && currentCulture === 'en-US') ? "Minor Price never can be lower than Major Price" : "Precio por menor nunca puede ser menor que precio por mayor";
+			if (warningText === "MinorLowerMajor") warningText = (typeof currentCulture !== 'undefined' && currentCulture === 'en-US') ? "Retail price shouldn't be lower than wholesale price, do you still want to continue?" : "Precio minorista no debería ser menor que precio mayorista, ¿aún así deseas continuar?";
+			var yesText = "@Localizer["MinorLowerMajorYes"]";
+			if (yesText === "MinorLowerMajorYes") yesText = (typeof currentCulture !== 'undefined' && currentCulture === 'en-US') ? "Yes" : "Sí";
+			var noText = "@Localizer["MinorLowerMajorNo"]";
+			if (noText === "MinorLowerMajorNo") noText = "No";
 			form.addEventListener('submit', function (e) {
 				var retailEl = document.getElementById('Product_FinalRetailPrice');
 				var wholesaleEl = document.getElementById('Product_FinalWholesalePrice');
@@ -221,9 +225,11 @@
 				if (!isNaN(retail) && !isNaN(wholesale) && retail > 0 && wholesale > 0 && retail < wholesale) {
 					if (form.dataset.vsWarned === '1') { form.dataset.vsWarned = '0'; return; }
 					e.preventDefault();
-					Swal.fire({ icon: 'warning', title: warningText, confirmButtonText: 'OK' }).then(function () {
-						form.dataset.vsWarned = '1';
-						form.requestSubmit();
+					Swal.fire({ icon: 'warning', title: warningText, showCancelButton: true, confirmButtonText: yesText, cancelButtonText: noText }).then(function (result) {
+						if (result.isConfirmed) {
+							form.dataset.vsWarned = '1';
+							form.requestSubmit();
+						}
 					});
 				}
 			});
