@@ -38,7 +38,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		public IActionResult Index(int pageNumber = 1)
 		{
 			var productList = _unitOfWork.Product
-				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages")
+				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages,Keywords.Keyword.Images")
 				.OrderBy(u => u.Id)
 				.ToList();
 			var featuredProducts = productList
@@ -63,7 +63,8 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				Products = pagedProducts,
 				FeaturedProducts = featuredProducts,
-				Categories = categories
+				Categories = categories,
+				Collections = HomeIndexVM.ComputeCollections(productList)
 			});
 		}
 
@@ -189,39 +190,61 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		}
 
 
-		public IActionResult Search(string searchString, int pageNumber = 1)
+		public IActionResult Search(string searchString, int? categoryId, int? keywordId, int pageNumber = 1)
 		{
-			if (string.IsNullOrWhiteSpace(searchString))
+			if (string.IsNullOrWhiteSpace(searchString) && categoryId == null && keywordId == null)
 			{
 				TempData["error"] = _localizer["SearchEmpty"].Value;
 				return RedirectToAction("Index");
 			}
 
 			var products = _unitOfWork.Product
-				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages")
+				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages,Keywords.Keyword.Images")
 				.OrderBy(u => u.Id)
 				.ToList();
 
-			var compareInfo = CultureInfo.CurrentCulture.CompareInfo;
-			var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+			// ponytail: missing/soft-deleted ids filter down to an empty set here, no extra lookup needed.
+			IEnumerable<Product> filtered = products;
 
-			var searchProductList = products
-				.Where(p => compareInfo.IndexOf(p.Name, searchString, compareOptions) >= 0
-						 || compareInfo.IndexOf(p.Category?.Name ?? string.Empty, searchString, compareOptions) >= 0
-						 || compareInfo.IndexOf(p.Description ?? string.Empty, searchString, compareOptions) >= 0)
-				.OrderBy(p => p.Id)
-				.ToList();
+			if (categoryId.HasValue)
+			{
+				filtered = filtered.Where(p => p.CategoryId == categoryId.Value);
+			}
 
-			if (searchProductList.Count == 0)
+			if (keywordId.HasValue)
+			{
+				filtered = filtered.Where(p => p.Keywords.Any(k => k.KeywordId == keywordId.Value));
+			}
+
+			if (!string.IsNullOrWhiteSpace(searchString))
+			{
+				var compareInfo = CultureInfo.CurrentCulture.CompareInfo;
+				var compareOptions = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
+
+				filtered = filtered
+					.Where(p => compareInfo.IndexOf(p.Name, searchString, compareOptions) >= 0
+							 || compareInfo.IndexOf(p.Category?.Name ?? string.Empty, searchString, compareOptions) >= 0
+							 || compareInfo.IndexOf(p.Description ?? string.Empty, searchString, compareOptions) >= 0);
+			}
+
+			var searchProductList = filtered.OrderBy(p => p.Id).ToList();
+
+			if (searchProductList.Count == 0 && categoryId == null && keywordId == null)
 			{
 				TempData["error"] = _localizer["SearchNoMatches"].Value;
 				return RedirectToAction("Index");
 			}
 
 			var pagedProducts = PagedList<Product>.Create(searchProductList, pageNumber, _paginationOptions.PageSize);
-			if (pageNumber > pagedProducts.TotalPages)
+			if (searchProductList.Count > 0 && pageNumber > pagedProducts.TotalPages)
 			{
-				return RedirectToAction(nameof(Search), new { searchString, pageNumber = pagedProducts.TotalPages });
+				return RedirectToAction(nameof(Search), new { searchString, categoryId, keywordId, pageNumber = pagedProducts.TotalPages });
+			}
+
+			ViewData["Collections"] = HomeIndexVM.ComputeCollections(products);
+			if (categoryId.HasValue)
+			{
+				ViewData["ActiveCategory"] = products.Select(p => p.Category).FirstOrDefault(c => c != null && c.Id == categoryId.Value);
 			}
 
 			return View(pagedProducts);

@@ -144,4 +144,7 @@
   <data name="OutOfStock" xml:space="preserve">
     <value>Out of stock</value>
   </data>
+  <data name="RemoveCategoryFilter" xml:space="preserve">
+    <value>Remove {0} filter</value>
+  </data>
 </root>

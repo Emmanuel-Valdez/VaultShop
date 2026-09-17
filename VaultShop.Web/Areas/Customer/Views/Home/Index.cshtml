@@ -12,6 +12,7 @@
     List<Product> products = Model?.Products.ToList() ?? [];
     var featuredProducts = Model?.FeaturedProducts.ToList() ?? new List<Product>();
     IEnumerable<Category> categories = Model?.Categories ?? [];
+    var collections = Model?.Collections ?? [];
 }
 
 <section class="storefront-section">
@@ -94,9 +95,17 @@ else
 			<div class="d-flex flex-wrap gap-2" aria-label='@Localizer["ShopByCategory"]'>
 				@foreach (var category in categories)
 				{
-					<a asp-action="Search" asp-route-searchString="@category.Name" class="btn btn-outline-primary btn-sm rounded-pill">@category.Name</a>
+					<a asp-action="Search" asp-route-categoryId="@category.Id" class="btn btn-outline-primary btn-sm rounded-pill">@category.Name</a>
 				}
 			</div>
+		</section>
+	}
+
+	@if (collections.Any())
+	{
+		<section class="storefront-section" aria-labelledby="collection-shortcuts-heading">
+			<h2 id="collection-shortcuts-heading" class="h4 text-primary mb-3">@Localizer["ShopByCollection"]</h2>
+			<partial name="_CollectionChips" model="collections" />
 		</section>
 	}
 

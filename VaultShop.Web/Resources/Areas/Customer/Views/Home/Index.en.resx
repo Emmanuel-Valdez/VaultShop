@@ -147,6 +147,9 @@
   <data name="ShopByCategory" xml:space="preserve">
     <value>Shop by category</value>
   </data>
+  <data name="ShopByCollection" xml:space="preserve">
+    <value>Browse by collection</value>
+  </data>
   <data name="TrustStripLabel" xml:space="preserve">
     <value>Shop with clarity</value>
   </data>

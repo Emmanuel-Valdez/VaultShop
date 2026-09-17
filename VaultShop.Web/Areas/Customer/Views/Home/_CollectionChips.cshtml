@@ -1,0 +1,47 @@
+@model List<VaultShop.Models.ViewModels.CollectionChipVM>
+@{
+	var activeKeywordId = Context.Request.Query["keywordId"].ToString();
+	var activeKeyword = int.TryParse(activeKeywordId, out var akid) ? akid : (int?)null;
+	var searchString = Context.Request.Query["searchString"].ToString();
+	var categoryId = Context.Request.Query["categoryId"].ToString();
+	var cleanedSearch = string.IsNullOrWhiteSpace(searchString) ? null : searchString;
+	var cleanedCategory = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId;
+}
+<div class="collections-row" aria-label='@Localizer["ShopByCollection"]'>
+	@foreach (var collection in Model)
+	{
+		var isActive = activeKeyword == collection.Id;
+		<div class="collection-chip@(isActive ? " active" : string.Empty)">
+			<a asp-action="Search" asp-route-keywordId="@collection.Id" class="collection-chip__link"
+			   aria-current="@(isActive ? "true" : null)">
+				<span class="collection-chip__image" aria-hidden="true">
+					@if (!string.IsNullOrWhiteSpace(collection.ChipImageUrl))
+					{
+						<img src="@collection.ChipImageUrl" alt="" loading="lazy" />
+					}
+					else
+					{
+						var letter = char.IsLetter(collection.Name.FirstOrDefault()) ? collection.Name.Substring(0, 1).ToUpperInvariant() : "#";
+						<span class="collection-chip__fallback">@letter</span>
+					}
+				</span>
+				<span class="collection-chip__name">@collection.Name</span>
+				@if (collection.Count > 0)
+				{
+					<span class="collection-chip__count">(@collection.Count)</span>
+				}
+			</a>
+			@if (isActive)
+			{
+				<a asp-action="Search"
+				   asp-route-searchString="@cleanedSearch"
+				   asp-route-categoryId="@cleanedCategory"
+				   class="collection-chip__remove"
+				   aria-label='@Localizer["RemoveCollectionFilter", collection.Name]'
+				   title='@Localizer["RemoveCollectionFilter", collection.Name]'>
+					<span aria-hidden="true">&times;</span>
+				</a>
+			}
+		</div>
+	}
+</div>

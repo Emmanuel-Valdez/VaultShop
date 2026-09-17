@@ -9,6 +9,14 @@
     ViewData["Description"] = Localizer["MetaDescription"];
     ViewData["Keywords"] = Localizer["MetaKeywords"];
     var searchString = Context.Request.Query["searchString"].ToString();
+    var collections = ViewData["Collections"] as List<CollectionChipVM>;
+    var activeCategory = ViewData["ActiveCategory"] as Category;
+    var keywordId = Context.Request.Query["keywordId"].ToString();
+    var categoryId = Context.Request.Query["categoryId"].ToString();
+    var activeKeywordId = int.TryParse(keywordId, out var kid) ? kid : (int?)null;
+    var termText = !string.IsNullOrWhiteSpace(searchString)
+        ? searchString
+        : activeCategory?.Name ?? collections?.FirstOrDefault(c => c.Id == activeKeywordId)?.Name;
 }
 
 <div class="row pb-3" id="productos">
@@ -17,12 +25,36 @@
 			<div>
 				<p class="product-card__meta mb-1">@branding.PublicName</p>
 				<h1 class="h3 text-primary mb-0">@Localizer["SearchResults"]</h1>
-				@if (!string.IsNullOrWhiteSpace(searchString))
+				@if (!string.IsNullOrWhiteSpace(termText))
 				{
-				<p class="text-muted mb-0">@Localizer["SearchTerm", searchString]</p>
+				<p class="text-muted mb-0">@Localizer["SearchTerm", termText]</p>
 				}
 			</div>
 		</div>
+
+		@if (activeCategory != null || (collections != null && collections.Count > 0))
+		{
+			<div class="mb-3">
+				@if (activeCategory != null)
+				{
+					<span class="active-filter-chip">
+						<span class="active-filter-chip__label">@activeCategory.Name</span>
+						<a asp-action="Search"
+						   asp-route-searchString="@(string.IsNullOrWhiteSpace(searchString) ? null : searchString)"
+						   asp-route-keywordId="@(string.IsNullOrWhiteSpace(keywordId) ? null : keywordId)"
+						   class="active-filter-chip__clear"
+						   aria-label='@Localizer["RemoveCategoryFilter", activeCategory.Name]'
+						   title='@Localizer["RemoveCategoryFilter", activeCategory.Name]'>
+							<span aria-hidden="true">&times;</span>
+						</a>
+					</span>
+				}
+			</div>
+			@if (collections != null && collections.Count > 0)
+			{
+				<partial name="_CollectionChips" model="collections" />
+			}
+		}
 	</div>
 	@if (!Model.Any())
 	{

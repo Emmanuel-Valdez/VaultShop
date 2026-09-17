@@ -3,6 +3,10 @@
 {
 	var searchParam = Context.Request.Query["searchString"].ToString();
 	var searchString = string.IsNullOrEmpty(searchParam) ? null : searchParam;
+	var keywordIdParam = Context.Request.Query["keywordId"].ToString();
+	var keywordId = string.IsNullOrEmpty(keywordIdParam) ? null : keywordIdParam;
+	var categoryIdParam = Context.Request.Query["categoryId"].ToString();
+	var categoryId = string.IsNullOrEmpty(categoryIdParam) ? null : categoryIdParam;
 	var windowStart = Math.Max(1, Math.Min(Model.PageIndex - 2, Model.TotalPages - 4));
 	var windowEnd = Math.Min(Model.TotalPages, Math.Max(Model.PageIndex + 2, 5));
 
@@ -10,19 +14,19 @@
 		<span class="visually-hidden">@string.Format(Localizer["PagerPageOf"].Value, Model.PageIndex, Model.TotalPages)</span>
 		<ul class="pagination justify-content-center mb-0">
 			<li class="page-item @(Model.HasPreviousPage ? string.Empty : "disabled")">
-				<a class="page-link" asp-route-pageNumber="@(Model.PageIndex - 1)" asp-route-searchString="@searchString" asp-fragment="productos"
+				<a class="page-link" asp-route-pageNumber="@(Model.PageIndex - 1)" asp-route-searchString="@searchString" asp-route-keywordId="@keywordId" asp-route-categoryId="@categoryId" asp-fragment="productos"
 					aria-label="@Localizer["PagerPrevious"]"
 					aria-disabled="@(Model.HasPreviousPage ? null : "true")">&#8249;</a>
 			</li>
 			@foreach (var pageNumber in Enumerable.Range(windowStart, windowEnd - windowStart + 1))
 			{
 				<li class="page-item @(pageNumber == Model.PageIndex ? "active" : string.Empty)">
-					<a class="page-link" asp-route-pageNumber="@pageNumber" asp-route-searchString="@searchString" asp-fragment="productos"
+					<a class="page-link" asp-route-pageNumber="@pageNumber" asp-route-searchString="@searchString" asp-route-keywordId="@keywordId" asp-route-categoryId="@categoryId" asp-fragment="productos"
 						aria-current="@(pageNumber == Model.PageIndex ? "page" : null)">@pageNumber</a>
 				</li>
 			}
 			<li class="page-item @(Model.HasNextPage ? string.Empty : "disabled")">
-				<a class="page-link" asp-route-pageNumber="@(Model.PageIndex + 1)" asp-route-searchString="@searchString" asp-fragment="productos"
+				<a class="page-link" asp-route-pageNumber="@(Model.PageIndex + 1)" asp-route-searchString="@searchString" asp-route-keywordId="@keywordId" asp-route-categoryId="@categoryId" asp-fragment="productos"
 					aria-label="@Localizer["PagerNext"]"
 					aria-disabled="@(Model.HasNextPage ? null : "true")">&#8250;</a>
 			</li>
