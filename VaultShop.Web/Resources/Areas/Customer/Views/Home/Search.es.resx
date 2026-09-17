@@ -147,4 +147,7 @@
   <data name="RemoveCategoryFilter" xml:space="preserve">
     <value>Quitar filtro de {0}</value>
   </data>
+  <data name="ShopByCategory" xml:space="preserve">
+    <value>Comprar por categoría</value>
+  </data>
 </root>

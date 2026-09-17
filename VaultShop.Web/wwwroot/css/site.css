@@ -947,6 +947,8 @@ div.dt-button-collection .dt-button:hover {
     padding-right: 2.5rem;
 }
 
+html { overflow-x: clip; }
+
 /*
  * Storefront collection chips row (home + search).
  * One horizontal row, no wrap; overflow scrolls horizontally with touch.
@@ -963,6 +965,86 @@ div.dt-button-collection .dt-button:hover {
     padding-bottom: 0.5rem;
     margin-top: 0.15rem;
     -webkit-overflow-scrolling: touch;
+}
+
+/* ponytail: generic scroll-row — hide native bar, smooth, mask fade, nav buttons target this class */
+.scroll-row {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+    mask-image: linear-gradient(to right, transparent, black 1rem, black calc(100% - 1rem), transparent);
+}
+.scroll-row::-webkit-scrollbar { display: none; }
+.scroll-row[data-at-start="true"] { mask-image: linear-gradient(to right, black calc(100% - 1rem), transparent); }
+.scroll-row[data-at-end="true"] { mask-image: linear-gradient(to right, transparent, black 1rem, black); }
+.scroll-row[data-at-start="true"][data-at-end="true"] { mask-image: none; }
+
+.scroll-row-wrap { position: relative; }
+.scroll-row-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--theme-primary-rgb), 0.15);
+    background: var(--theme-surface);
+    color: var(--theme-primary);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.12);
+    z-index: 1;
+}
+.scroll-row-btn--prev { left: 0.25rem; }
+.scroll-row-btn--next { right: 0.25rem; }
+.scroll-row-btn.is-visible { display: flex; }
+
+/* collection hero — reusable breakout above search results */
+.collection-hero--breakout {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    position: relative;
+    height: var(--hero-h-current, var(--hero-h));
+    overflow: hidden;
+    --hero-h: 400px;
+    --hero-h-collapsed: 80px;
+    --hero-h-current: 400px;
+}
+.collection-hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: translateY(var(--img-ty, 0));
+    will-change: transform;
+}
+.collection-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.55));
+}
+.collection-hero__content {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+    opacity: var(--content-opacity, 1);
+}
+.collection-hero__title { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; margin: 0; display: inline; }
+.collection-hero__slug { font-size: 0.95rem; opacity: 0.9; margin-left: 0.35rem; }
+.collection-hero__count { font-size: 0.9rem; opacity: 0.85; margin-left: 0.25rem; }
+@media (max-width: 991.98px) {
+    .collection-hero--breakout { --hero-h: 340px; --hero-h-collapsed: 64px; --hero-h-current: 340px; }
+}
+@media (max-width: 767.98px) {
+    .collection-hero--breakout { --hero-h: 260px; --hero-h-collapsed: 52px; --hero-h-current: 260px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .collection-hero--breakout { transition: none !important; }
+    .collection-hero__image { transform: none !important; }
 }
 
 .collection-chip {

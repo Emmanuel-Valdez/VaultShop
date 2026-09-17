@@ -71,7 +71,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 		public IActionResult Details(int productId)
 		{
-			var product = _unitOfWork.Product.Get(u => u.IsDeleted == false && u.IsAvailableInStore == true && u.Id == productId, includeProperties: "Category,ProductImages");
+			var product = _unitOfWork.Product.Get(u => u.IsDeleted == false && u.IsAvailableInStore == true && u.Id == productId, includeProperties: "Category,ProductImages,Keywords.Keyword.Images");
 			if (product == null)
 			{
 				return NotFound();
@@ -100,6 +100,20 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 					cart.FavoriteProductId = isFavorite.Id;
 				}
 			}
+
+			var detailCollections = product.Keywords
+				.Where(pk => pk.Keyword != null && !pk.Keyword.IsDeleted)
+				.Select(pk => new CollectionChipVM
+				{
+					Id = pk.KeywordId,
+					Name = pk.Keyword.Name,
+					Slug = pk.Keyword.Slug,
+					ChipImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Chip)?.ImageUrl,
+					CoverImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Cover)?.ImageUrl
+				})
+				.OrderBy(c => c.Name)
+				.ToList();
+			ViewData["DetailCollections"] = detailCollections;
 
 			return View(cart);
 		}
@@ -190,8 +204,24 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		}
 
 
-		public IActionResult Search(string searchString, int? categoryId, int? keywordId, int pageNumber = 1)
+		public IActionResult Search(string searchString, int? categoryId, int? keywordId, string? slug, int pageNumber = 1)
 		{
+			// 1.1 slug canonical redirect
+			if (keywordId.HasValue)
+			{
+				var kw = _unitOfWork.Keyword.Get(k => k.Id == keywordId.Value && !k.IsDeleted);
+				var canonical = kw?.Slug;
+				ViewData["ActiveCollectionSlug"] = canonical;
+				if (!string.IsNullOrWhiteSpace(slug) && !string.IsNullOrWhiteSpace(canonical)
+					&& !string.Equals(slug, canonical, StringComparison.Ordinal))
+				{
+					return RedirectToActionPermanent(nameof(Search), new { searchString, categoryId, keywordId, slug = canonical, pageNumber });
+				}
+				// expose canonical even when slug missing so pager/chips can add it
+				if (!string.IsNullOrWhiteSpace(canonical))
+					ViewData["Slug"] = canonical;
+			}
+
 			if (string.IsNullOrWhiteSpace(searchString) && categoryId == null && keywordId == null)
 			{
 				TempData["error"] = _localizer["SearchEmpty"].Value;
@@ -238,10 +268,26 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			var pagedProducts = PagedList<Product>.Create(searchProductList, pageNumber, _paginationOptions.PageSize);
 			if (searchProductList.Count > 0 && pageNumber > pagedProducts.TotalPages)
 			{
-				return RedirectToAction(nameof(Search), new { searchString, categoryId, keywordId, pageNumber = pagedProducts.TotalPages });
+				return RedirectToAction(nameof(Search), new { searchString, categoryId, keywordId, slug = ViewData["Slug"] as string ?? slug, pageNumber = pagedProducts.TotalPages });
 			}
 
-			ViewData["Collections"] = HomeIndexVM.ComputeCollections(products);
+			var collections = HomeIndexVM.ComputeCollections(products);
+			ViewData["Collections"] = collections;
+			if (keywordId.HasValue)
+			{
+				var activeColl = collections.FirstOrDefault(c => c.Id == keywordId.Value);
+				if (activeColl != null)
+				{
+					if (!string.IsNullOrWhiteSpace(activeColl.CoverImageUrl))
+						ViewData["ActiveCollectionCover"] = activeColl.CoverImageUrl;
+					ViewData["ActiveCollectionName"] = activeColl.Name;
+					ViewData["ActiveCollectionCount"] = activeColl.Count;
+					if (ViewData["Slug"] == null && !string.IsNullOrWhiteSpace(activeColl.Slug))
+						ViewData["Slug"] = activeColl.Slug;
+					if (ViewData["ActiveCollectionSlug"] == null)
+						ViewData["ActiveCollectionSlug"] = activeColl.Slug;
+				}
+			}
 			var allCategories = products
 				.Where(p => p.Category != null && !string.IsNullOrWhiteSpace(p.Category.Name))
 				.GroupBy(p => p.Category.Id)

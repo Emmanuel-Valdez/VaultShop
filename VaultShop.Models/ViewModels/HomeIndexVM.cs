@@ -23,6 +23,7 @@ namespace VaultShop.Models.ViewModels
 					Name = g.First().Keyword.Name,
 					Slug = g.First().Keyword.Slug,
 					ChipImageUrl = g.First().Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Chip)?.ImageUrl,
+					CoverImageUrl = g.First().Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Cover)?.ImageUrl,
 					Count = g.Count(x => x.InStock)
 				})
 				.OrderBy(c => c.Name)

@@ -6,13 +6,16 @@
 	var categoryId = Context.Request.Query["categoryId"].ToString();
 	var cleanedSearch = string.IsNullOrWhiteSpace(searchString) ? null : searchString;
 	var cleanedCategory = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId;
+	var slugFromQuery = Context.Request.Query["slug"].ToString();
+	var cleanedSlugFromQuery = string.IsNullOrWhiteSpace(slugFromQuery) ? null : slugFromQuery;
 }
-<div class="collections-row" aria-label='@Localizer["ShopByCollection"]'>
+<div class="collections-row scroll-row" aria-label='@Localizer["ShopByCollection"]'>
 	@foreach (var collection in Model)
 	{
 		var isActive = activeKeyword == collection.Id;
+		var chipSlug = string.IsNullOrWhiteSpace(collection.Slug) ? null : collection.Slug;
 		<div class="collection-chip@(isActive ? " active" : string.Empty)">
-			<a asp-action="Search" asp-route-keywordId="@collection.Id" asp-route-categoryId="@cleanedCategory" asp-route-searchString="@cleanedSearch" class="collection-chip__link"
+			<a asp-action="Search" asp-route-keywordId="@collection.Id" asp-route-slug="@chipSlug" asp-route-categoryId="@cleanedCategory" asp-route-searchString="@cleanedSearch" class="collection-chip__link"
 			   aria-current="@(isActive ? "true" : null)">
 				<span class="collection-chip__image" aria-hidden="true">
 					@if (!string.IsNullOrWhiteSpace(collection.ChipImageUrl))

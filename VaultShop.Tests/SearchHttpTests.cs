@@ -160,6 +160,72 @@ public class SearchHttpTests
         Assert.DoesNotContain("keywordId=", removeHref);
     }
 
+    [Fact]
+    public async Task Search_AdditiveFilters_Preserve()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var (categoryId, keywordId, _) = SeedCatalog(factory);
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        // from ?categoryId=X clicking collection Y → should keep categoryId and add slug
+        var catFiltered = await client.GetStringAsync($"/en-US/Customer/Home/Search?categoryId={categoryId}");
+        Assert.Contains("collection-chip__link", catFiltered);
+        var chipHrefIdx = catFiltered.IndexOf("collection-chip__link");
+        Assert.True(chipHrefIdx >= 0);
+        // find first chip link href after that marker
+        var hrefKeyword = catFiltered.IndexOf($"keywordId={keywordId}", chipHrefIdx);
+        Assert.True(hrefKeyword >= 0, "collection chip should link to keywordId");
+        var hrefCategory = catFiltered.IndexOf($"categoryId={categoryId}", chipHrefIdx);
+        Assert.True(hrefCategory >= 0, "collection chip should preserve categoryId (AND navigation)");
+        Assert.Contains("slug=naruto", catFiltered);
+
+        // from ?keywordId=Y clicking category X → should keep keywordId+slug
+        var collFiltered = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=naruto");
+        // category button for Mochilas should preserve keywordId+slug
+        Assert.Contains($"keywordId={keywordId}", collFiltered);
+        Assert.Contains("slug=naruto", collFiltered);
+        // category chip href for our category should contain both
+        var catBtnIdx = collFiltered.IndexOf($"categoryId={categoryId}");
+        Assert.True(catBtnIdx >= 0, "category button should be present");
+        // ensure the surrounding anchor also has keywordId
+        var catAnchorStart = collFiltered.LastIndexOf("href=\"", catBtnIdx);
+        var catAnchorEnd = collFiltered.IndexOf("\"", catBtnIdx);
+        var catAnchor = collFiltered.Substring(catAnchorStart, catAnchorEnd - catAnchorStart);
+        Assert.Contains($"keywordId={keywordId}", catAnchor);
+        Assert.Contains("slug=naruto", catAnchor);
+
+        // removing collection keeps category
+        var combined = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=naruto&categoryId={categoryId}&searchString=negra");
+        var rIdx = combined.IndexOf("collection-chip__remove");
+        Assert.True(rIdx >= 0, "remove collection link expected");
+        var rhStart = combined.IndexOf("href=\"", rIdx);
+        var rhEnd = combined.IndexOf("\"", rhStart + 6);
+        var rHref = combined.Substring(rhStart + 6, rhEnd - (rhStart + 6));
+        Assert.Contains($"categoryId={categoryId}", rHref);
+        Assert.Contains("searchString=negra", rHref);
+        Assert.DoesNotContain("keywordId=", rHref);
+        Assert.DoesNotContain("slug=", rHref);
+
+        // pager keeps slug (use large catalog to ensure paging)
+        using var factoryLarge = new CustomWebApplicationFactory();
+        var (catLarge, kwLarge) = SeedLargeCatalog(factoryLarge);
+        var clientLarge = factoryLarge.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var largeBody = await clientLarge.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={kwLarge}");
+        var pageMatch = Regex.Match(largeBody, @"href=""([^""]*pageNumber=2[^""]*)""");
+        Assert.True(pageMatch.Success, "expected pager page 2 link with slug preserved");
+        Assert.Contains($"keywordId={kwLarge}", pageMatch.Groups[1].Value);
+        Assert.Contains("slug=naruto", pageMatch.Groups[1].Value);
+
+        // slug mismatch redirects to canonical, slug absent still 200
+        var wrongResp = await client.GetAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=wrong");
+        Assert.Equal(HttpStatusCode.MovedPermanently, wrongResp.StatusCode);
+        Assert.Contains("slug=naruto", wrongResp.Headers.Location!.OriginalString);
+        var okNoSlug = await client.GetAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
+        Assert.Equal(HttpStatusCode.OK, okNoSlug.StatusCode);
+        var okBody = await okNoSlug.Content.ReadAsStringAsync();
+        Assert.Contains("naruto", okBody.ToLowerInvariant());
+    }
+
     private static (int categoryId, int keywordId) SeedLargeCatalog(CustomWebApplicationFactory factory)
     {
         using var scope = factory.Services.CreateScope();
