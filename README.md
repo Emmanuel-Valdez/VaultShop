@@ -28,12 +28,14 @@ Selected current flows for backend/portfolio review.
 
 ## Features
 
-- Customer storefront with product browsing (paginated, 12/page), search (case/accent-insensitive), favorites, cart, checkout, and retail/wholesale pricing.
-- Admin product, category, company, order, and price-management flows.
-- Admin pricing calculator for fabrics, hardware, packaging, fixed costs, separate retail/wholesale percentage costs, profit margins, and final prices; dashboard compares live prices vs cost-based suggestions.
+- Customer storefront with product browsing (paginated 12/page, `PagedList<T>`), search (case/accent-insensitive `CompareInfo.IndexOf`), keyword/collection + category filters (additive `AND`, slug-aware `?keywordId&slug=` canonical redirect, both rows always visible), collection hero (`100vw` breakout cover with scroll collapse/parallax), favorites, cart, checkout, and unified retail/wholesale pricing (`PricingHelper.GetPriceForUser` — Company role or admin/employee wholesale preview).
+- Admin product, category, keyword/collection (with cover `Kind.Cover` + slug), company, order, and price-management flows; detail pages surface collection chips.
+- Admin pricing calculator per-product `MaxExpectation` (1–10000, default 30, fixed-cost share `totalFixedCost / product.MaxExpectation`), fabrics, hardware, packaging, fixed costs, separate retail/wholesale percentage costs, margins, and final prices; dashboard compares live prices vs cost-based suggestions; retail < wholesale is warned (non-blocking) and labeled "Precio Calculado Sugerido" in es-AR.
+- Admin preview toggle: `bi-gear` Settings dropdown (Admin/Employee only, localized `PreviewMode`) with session-persisted retail/wholesale preview + indicator banner, consistent across Home/Search/Favorites/Details/Cart/Checkout.
 - Internal order summary ("Resumen de pedido") — HTML view + QuestPDF PDF download, fiscal snapshot for Company orders, explicitly non-fiscal.
-- ASP.NET Core Identity with roles Customer/Company/Employee/Admin, Google OAuth, rate limiting + lockout, branded 404/500.
-- Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer, provider-verified webhooks/browser returns, refunds on cancellation.
+- Stock/inventory: `Product.StockQuantity`, admin CRUD, cart/checkout guards, atomic decrement, storefront badges and stock-aware sitemap.
+- ASP.NET Core Identity with roles Customer/Company/Employee/Admin, Google OAuth (only external provider), rate limiting + lockout, branded 404/500 (sakura, localized).
+- Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer, provider-verified webhooks/browser returns, refunds on cancellation, background `PaymentReconciliation` re-checks stale pending sessions.
 - Product image upload validation, resizing, metadata persistence via `IImageStorageService` (Local/MinIO).
  - Localization es-AR/en-US; health endpoints (`/health/live`, `/health/ready`) for liveness/readiness probes.
  - Deployment version stamped at build (`APP_VERSION`/`APP_BUILD_DATE`) with admin-only page (`/Admin/System/Version`) comparing deployed commit vs GitHub `main` (cached 5 min).
@@ -45,7 +47,7 @@ Selected current flows for backend/portfolio review.
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer
 - Resend email (Fake/Unconfigured) + QuestPDF (order summary PDF, community license)
 - Docker & Docker Compose (platform + per-store stacks) + Nginx HTTPS proxy + MinIO S3
-- xUnit + Moq + SQLite in-memory (159 tests, service/integration/HTTP)
+- xUnit + Moq + SQLite in-memory (293 tests post collections-polish, service/integration/HTTP — `dotnet test VaultShop.sln` green)
 
 ## Architecture Highlights
 
@@ -226,10 +228,10 @@ For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on 
 ## Tests
 
 ```powershell
-dotnet test VaultShop.sln   # 207 tests — dotnet build --no-restore clean
+dotnet test VaultShop.sln   # 293 tests post collections-polish — dotnet build --no-restore clean
 ```
 
-Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing formulas/publish, pagination, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks.
+Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview.
 
 ## Deployment Direction
 
@@ -245,10 +247,11 @@ Runbook: [`docs/operations/runbook.md`](docs/operations/runbook.md).
 
 ## Current Limitations / Next Work
 
-- Stock/inventory not yet tracked (`Product` has no `StockQuantity` — next openspec `stock-inventory`); oversell possible until guards land.
-- Backups automated; restore drills are manual (repeat after backup-process changes).
-- Smoke-test after deploys: paid/unpaid flows (Stripe/MP), bank-transfer approval, branding/theme, pagination, order-summary PDF, 404/health.
-- Frontend is functional polish (stepper, password toggles, sakura 404); portfolio value is backend/ops evidence.
+- Backups automated; restore drills are manual (repeat after backup-process changes — `pg_restore --no-owner` + `mc mirror`).
+- Smoke-test after deploys: paid/unpaid flows (Stripe/MP), bank-transfer approval, branding/theme, pagination + keyword/collection hero, order-summary PDF, 404/health, wholesale preview.
+- Next spec: **Category images** (`plans/vaultshop-new-specs.md#7`) — representative thumbnail per category in filter UI (`Category` image via MinIO, admin upsert, home/search chips).
+- Deferred backlog: product slugs (SEO `/products/name`), variants (size/color), coupons/discounts, shipping as order line, multiple addresses, customer self-cancel, Correo Argentino branches. See `plans/vaultshop-new-specs.md` and `openspec/specs/` (pricing `per-product MaxExpectation`, admin-preview, catalog keywords/collection-hero all shipped and archived `2026-09-14`/`15`/`17`/`18`).
+- Frontend is functional polish (stepper, password toggles, sakura 404, scroll-row collection chips, hero parallax); portfolio value is backend/ops evidence.
 
 ## Portfolio Scope
 

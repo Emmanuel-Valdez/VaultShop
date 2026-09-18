@@ -30,13 +30,13 @@ Not a marketplace — a production-style portfolio that proves practical .NET ba
 - Uptime/TLS external monitor; runbook `docs/operations/runbook.md` documents every check; webhook/restart visibility via `docker logs | grep`
 
 ## What This Demonstrates
-MVC + EF Core/PG, Identity roles, Google OAuth, multi-provider payments + webhooks + refunds, object storage, pagination, internal PDF, Docker/Nginx, l10n, rate limiting/lockout/health, backup/restore, 159 tests.
+MVC + EF Core/PG, Identity roles, Google OAuth, multi-provider payments + webhooks + refunds + reconciliation, object storage (`IImageStorageService` Local/MinIO), pagination + keyword/collection taxonomy (slug, hero, additive filters), per-product pricing (`PricingCalculatorService` `product.MaxExpectation`), admin wholesale/retail preview (`PricingHelper` unified), stock/inventory guards, internal PDF (QuestPDF), Docker/Nginx, l10n, rate limiting/lockout/health, backup/restore, 293 tests.
 
 ## Current Limitations
-- Portfolio production-style, not HA; observability is uptime/TLS + log greps
-- Stock/inventory not yet tracked — next `stock-inventory` change
-- Fiscal integration (ARCA/CAE) deferred; order summary is intentionally non-fiscal
+- Portfolio production-style, not HA; observability is uptime/TLS + log greps + health probes
+- Fiscal integration (ARCA/CAE) deferred; order summary ("Resumen de pedido") is intentionally non-fiscal
 - Restore drills manual; MP sandbox has no real webhook (simulator coverage)
+- Next: category images (`plans/vaultshop-new-specs.md#7`); deferred: slugs, variants, coupons — see `openspec/specs/` (pricing, admin-preview, catalog/keywords/collection-hero shipped `2026-09-14`/`15`/`17`/`18`)
 
 ## Interview Summary
 Self-hosted ASP.NET Core 8 e-commerce with two isolated stores on shared infra, demonstrating backend + payments + storage + deployment + ops with a lean, test-covered codebase.
