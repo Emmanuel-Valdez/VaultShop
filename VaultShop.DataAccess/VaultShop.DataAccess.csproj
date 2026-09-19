@@ -21,4 +21,10 @@
     <ProjectReference Include="..\VaultShop.Utility\VaultShop.Utility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="SeedData\sucursales.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

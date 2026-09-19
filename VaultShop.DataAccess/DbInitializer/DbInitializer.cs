@@ -44,6 +44,7 @@ namespace VaultShop.DataAccess.DbInitializer
 			EnsureRequiredRoles();
 			EnsureAdminUser();
 			EnsurePercentageProfit();
+			EnsurePostalAgencies();
 		}
 
 		private void EnsureRequiredRoles()
@@ -111,6 +112,65 @@ namespace VaultShop.DataAccess.DbInitializer
 				});
 				_db.SaveChanges();
 			}
+		}
+
+		private void EnsurePostalAgencies()
+		{
+			try
+			{
+				// ponytail: idempotent upsert by Code; synthetic coords (~province centroid ±0.8°) are approximate — replace with Georef batch if precision matters
+				var jsonPath = ResolveSucursalesPath();
+				if (jsonPath == null)
+				{
+					_logger.LogWarning("PostalAgency seed skipped — sucursales.json not found.");
+					return;
+				}
+				var json = File.ReadAllText(jsonPath);
+				var agencies = System.Text.Json.JsonSerializer.Deserialize<List<PostalAgency>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+				if (agencies == null || agencies.Count == 0) return;
+				var existing = _db.PostalAgencies.Select(a => a.Code).ToHashSet();
+				var toAdd = agencies.Where(a => !existing.Contains(a.Code)).ToList();
+				if (toAdd.Count > 0)
+				{
+					_db.PostalAgencies.AddRange(toAdd);
+					_db.SaveChanges();
+					_logger.LogInformation("Seeded {Count} PostalAgencies.", toAdd.Count);
+				}
+				// update changed rows on reseed (idempotent)
+				var changed = 0;
+				foreach (var a in agencies.Where(a => existing.Contains(a.Code)))
+				{
+					var e = _db.PostalAgencies.Find(a.Code);
+					if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.PostalCode != a.PostalCode || e.Province != a.Province))
+					{
+						e.Name = a.Name; e.Street = a.Street; e.Number = a.Number; e.Locality = a.Locality; e.City = a.City;
+						e.Province = a.Province; e.ProvinceCode = a.ProvinceCode; e.PostalCode = a.PostalCode; e.Latitude = a.Latitude; e.Longitude = a.Longitude;
+						changed++;
+					}
+				}
+				if (changed > 0) _db.SaveChanges();
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to seed PostalAgencies.");
+			}
+		}
+
+		private string? ResolveSucursalesPath()
+		{
+			var candidates = new List<string>();
+			var baseDir = AppContext.BaseDirectory;
+			candidates.Add(Path.Combine(baseDir, "SeedData", "sucursales.json"));
+			try
+			{
+				var asmLoc = typeof(VaultShop.DataAccess.Data.ApplicationDbContext).Assembly.Location;
+				if (!string.IsNullOrEmpty(asmLoc))
+					candidates.Add(Path.Combine(Path.GetDirectoryName(asmLoc)!, "SeedData", "sucursales.json"));
+			}
+			catch { }
+			candidates.Add(Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "VaultShop.DataAccess", "SeedData", "sucursales.json")));
+			candidates.Add("VaultShop.DataAccess/SeedData/sucursales.json");
+			return candidates.FirstOrDefault(File.Exists);
 		}
 	}
 }

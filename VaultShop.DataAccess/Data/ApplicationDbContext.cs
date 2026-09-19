@@ -40,6 +40,7 @@ namespace VaultShop.DataAccess.Data
 		public DbSet<Keyword> Keywords { get; set; }
 		public DbSet<ProductKeyword> ProductKeywords { get; set; }
 		public DbSet<KeywordImage> KeywordImages { get; set; }
+		public DbSet<PostalAgency> PostalAgencies { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

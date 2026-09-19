@@ -1,9 +1,9 @@
 ## 1. Snapshot — acquisition and data
 
-- [ ] 1.1 Spike: probe `wsFacade.php` (and site sucursales endpoint) for a JSON returning branches with lat/lon and verify schema matches `PostalAgency` and verify the national count is ~3,300
-- [ ] 1.2 Fallback: generate `sucursales.json` with coordinates — ingest national gist (no coords) and batch-geocode via Georef `/direcciones` lotes until every row has `lat/lon`, and verify no row has null coords and file is checked in under `data/` or `VaultShop.DataAccess/SeedData/`
-- [ ] 1.3 Add `PostalAgency` entity (Code PK, Name, Street, Number, Locality, City, Province, ProvinceCode, PostalCode, Latitude, Longitude) and verify `dotnet build` succeeds
-- [ ] 1.4 Add EF migration + idempotent seed (upsert by Code) for `PostalAgency` and verify `dotnet ef database update` locally seeds ~3,300 rows and re-running seed does not duplicate
+- [x] 1.1 Spike: probe `wsFacade.php` (and site sucursales endpoint) for a JSON returning branches with lat/lon and verify schema matches `PostalAgency` and verify the national count is ~3,300
+- [x] 1.2 Fallback: generate `sucursales.json` with coordinates — ingest national gist (no coords) and batch-geocode via Georef `/direcciones` lotes until every row has `lat/lon`, and verify no row has null coords and file is checked in under `data/` or `VaultShop.DataAccess/SeedData/`
+- [x] 1.3 Add `PostalAgency` entity (Code PK, Name, Street, Number, Locality, City, Province, ProvinceCode, PostalCode, Latitude, Longitude) and verify `dotnet build` succeeds
+- [x] 1.4 Add EF migration + idempotent seed (upsert by Code) for `PostalAgency` and verify `dotnet ef database update` locally seeds ~3,300 rows and re-running seed does not duplicate
 
 ## 2. Order model — agency snapshot
 
