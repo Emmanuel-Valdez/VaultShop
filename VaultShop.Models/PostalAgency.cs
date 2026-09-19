@@ -18,5 +18,7 @@ namespace VaultShop.Models
         public double Longitude { get; set; }
         public DateTime? LastVerifiedUtc { get; set; }
         public string? Source { get; set; }
+        public string Services { get; set; } = string.Empty;
+        public string Kind { get; set; } = "SUCURSAL";
     }
 }

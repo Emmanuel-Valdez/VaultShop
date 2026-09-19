@@ -10,6 +10,7 @@ Idempotent: re-runs merge by Code; gist-only fields are never overwritten.
 """
 import argparse
 import datetime
+import hashlib
 import json
 import re
 import time
@@ -37,7 +38,6 @@ LATLNG_RE = re.compile(r"L\.marker\(\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)
 CONTENIDO_RE = re.compile(r"var\s+contenido\s*=\s*(.*?)</div>';", re.DOTALL)
 STRONG_RE = re.compile(r"<strong>(.*?)</strong>", re.DOTALL)
 SPAN_RE = re.compile(r"<span[^>]*>(.*?)</span>", re.DOTALL)
-CODE_RE = re.compile(r'(?:rel="([A-Z]\d+)"|id="accordion([A-Z]\d+)")')
 STREET_NUM_RE = re.compile(r"^(.*?)\s*N\u00b0\s*(\d+)\s*$")
 TAG_RE = re.compile(r"<[^>]+>")
 
@@ -110,31 +110,38 @@ def fetch_provinces(timeout: float) -> dict:
 
 
 CARD_RE = re.compile(r"<strong>(SUCURSAL|UNIDAD POSTAL): (.*?)</strong>")
+SERV_RE = re.compile(r'<a class="accordion-toggle servicios"[^>]*rel="([^"]*)"')
+SEC_CODE_RE = re.compile(r'id="accordion(?!Serv)([A-Z]\d+)"')
+
+
+def up_code(prov, name, locality, street):
+    """Stable synthetic code over normalized name|locality|street."""
+    h = hashlib.sha1(f"{name}|{locality}|{street}".encode("utf-8")).hexdigest()[:6].upper()
+    return f"UP-{prov}-{h}"
 
 
 def parse_fragment(html: str):
-    """Zip L.markers + cards + codes in document order; keep SUCURSAL only.
+    """Zip L.markers + cards + servicios + secundarios-codes in document order.
 
-    Returns (rows, warnings). Each row: dict(code,name,addrline,lat,lng).
-    UNIDAD POSTAL cards carry codes too but have no PAQ code -> skipped.
+    Returns (rows, warnings). Each row: dict(kind,name,addrline,lat,lng,services,site_code).
+    Keeps SUCURSAL and UNIDAD POSTAL; AGENCIA-labeled pins (map-only dupes) are skipped.
+    site_code comes from the secundarios accordion id (CABA only; elsewhere "") and is
+    only meaningful for SUCURSAL — UP rows get synthetic UP-{prov}-{hash6} codes.
     """
     warnings = []
     latlngs = list(LATLNG_RE.finditer(html))
     contenidos = list(CONTENIDO_RE.finditer(html))
     cards = list(CARD_RE.finditer(html))
-    codes = []
-    for a, b in CODE_RE.findall(html):
-        c = a or b
-        if c not in codes:  # ponytail: dedup rel+accordionId per card, doc order kept
-            codes.append(c)
+    servs = list(SERV_RE.finditer(html))
+    codes = list(SEC_CODE_RE.finditer(html))
     n = len(latlngs)
-    if not (len(contenidos) == len(cards) == n):
+    if not (len(contenidos) == len(cards) == len(servs) == n):
         warnings.append(
-            f"count mismatch: {n} L.marker vs {len(contenidos)} contenido vs {len(cards)} cards")
+            f"count mismatch: {n} L.marker vs {len(contenidos)} contenido vs {len(cards)} cards vs {len(servs)} servicios")
     elif codes and len(codes) != n:
-        warnings.append(f"count mismatch: {n} markers vs {len(codes)} codes")
+        warnings.append(f"count mismatch: {n} markers vs {len(codes)} secundarios codes")
     rows = []
-    for i in range(min(n, len(contenidos), len(cards))):
+    for i in range(min(n, len(contenidos), len(cards), len(servs))):
         lat, lng = float(latlngs[i].group(1)), float(latlngs[i].group(2))
         contenido = contenidos[i].group(1)
         strong = STRONG_RE.search(contenido)
@@ -145,12 +152,19 @@ def parse_fragment(html: str):
         if mtitle != cardtitle:
             warnings.append(f"order mismatch #{i}: marker {mtitle!r} vs card {cardtitle!r}")
             continue
-        if not mtitle.startswith("SUCURSAL "):
-            continue  # UNIDAD POSTAL: Punto Correo stand, no PAQ code
+        kind = "UP" if mtitle.startswith("UNIDAD POSTAL ") else ("SUCURSAL" if mtitle.startswith("SUCURSAL ") else "")
+        if not kind:
+            warnings.append(f"skipped non-branch pin #{i}: {mtitle!r}")
+            continue
+        rel = servs[i].group(1)
+        if "|" in rel and rel.split("|")[1] != str(i + 1):
+            warnings.append(f"servicios order mismatch #{i}: rel suffix {rel!r}")
         # Non-CABA fragments leave the {nis} template unsubstituted -> code ""
-        rows.append({"code": codes[i] if i < len(codes) else "",
-                     "name": mtitle[len("SUCURSAL "):].strip(),
-                     "addrline": addr, "lat": lat, "lng": lng})
+        rows.append({"kind": kind,
+                      "code": codes[i].group(1) if (kind == "SUCURSAL" and i < len(codes)) else "",
+                      "name": mtitle.split(" ", 1)[1].strip(),
+                      "addrline": addr, "lat": lat, "lng": lng,
+                      "services": rel.split("|")[0]})
     return rows, warnings
 
 
@@ -229,8 +243,8 @@ def scrape_province(code: str, timeout: float, throttle: float):
     for mk in rows_all:
         street_full, locality = (mk["addrline"].split("|", 1) + [""])[:2]
         street, number = split_street(street_full)
-        rows.append({"code": mk["code"], "name": norm(mk["name"]), "street": street, "number": number,
-                     "locality": norm(locality), "lat": mk["lat"], "lng": mk["lng"]})
+        rows.append({"kind": mk["kind"], "code": mk["code"], "name": norm(mk["name"]), "street": street, "number": number,
+                     "locality": norm(locality), "lat": mk["lat"], "lng": mk["lng"], "services": mk["services"]})
     return rows, warnings
 
 
@@ -266,20 +280,63 @@ def main():
         # gist index for code-less (non-CABA) matching: exact (name, locality)
         # first, then unique-name + street/number corroboration
         gist_prov = [r for r in by_code.values() if r.get("provinceCode") == prov]
-        by_nl, by_n = {}, {}
+        by_nl, by_n, up_by_key = {}, {}, {}
         for r in gist_prov:
             by_nl.setdefault((norm(r.get("name")), norm(r.get("locality"))), []).append(r["code"])
             by_n.setdefault(norm(r.get("name")), []).append(r["code"])
+            if (r.get("kind") or "SUCURSAL") == "UP":
+                up_by_key.setdefault(addr_key(r.get("street"), r.get("number"), r.get("locality")), []).append(r["code"])
 
         def verify(code, tier):
             r = by_code[code]
             r["latitude"], r["longitude"] = s["lat"], s["lng"]
             r["lastVerifiedUtc"], r["source"] = now, "correo"
+            r["services"], r["kind"] = s["services"], "SUCURSAL"
             done.add(code)
             if tier:
                 name_warns.append(f"{code}: name-tier match ({tier}) site {s['name']!r} (gist kept)")
 
+        def new_row(code, kind):
+            by_code[code] = {"code": code, "name": s["name"], "street": s["street"],
+                             "number": s["number"], "locality": s["locality"], "city": s["locality"],
+                             "province": provinces[prov], "provinceCode": prov, "postalCode": "",
+                             "latitude": s["lat"], "longitude": s["lng"],
+                             "services": s["services"], "kind": kind,
+                             "lastVerifiedUtc": now, "source": "correo"}
+            new.append(code)
+            done.add(code)
+
         for s in scraped:
+            if s["kind"] == "UP":
+                code = up_code(prov, s["name"], s["locality"], s["street"])
+                if code in by_code:
+                    r = by_code[code]  # idempotent re-run: refresh in place, site wins
+                    r.update({"name": s["name"], "street": s["street"], "number": s["number"],
+                              "locality": s["locality"], "city": s["locality"],
+                              "latitude": s["lat"], "longitude": s["lng"],
+                              "services": s["services"], "kind": "UP",
+                              "lastVerifiedUtc": now, "source": "correo"})
+                    done.add(code)
+                    matched += 1
+                    continue
+                reuse = up_by_key.get(addr_key(s["street"], s["number"], s["locality"]), [])
+                if len(reuse) == 1 and reuse[0] not in done:
+                    r = by_code[reuse[0]]  # site renamed it: keep stable code, take site fields
+                    old = r.get("name")
+                    r.update({"name": s["name"], "street": s["street"], "number": s["number"],
+                              "locality": s["locality"], "city": s["locality"],
+                              "latitude": s["lat"], "longitude": s["lng"],
+                              "services": s["services"], "kind": "UP",
+                              "lastVerifiedUtc": now, "source": "correo"})
+                    done.add(reuse[0])
+                    renamed.append(f"{old} -> {s['name']}")
+                    matched += 1
+                    continue
+                if code in by_code:  # hash collision with a different address
+                    name_warns.append(f"UP hash collision: {code} {s['name']!r}@{s['locality']!r} (skipped)")
+                    continue
+                new_row(code, "UP")
+                continue
             if s["code"] and s["code"] in by_code:
                 r = by_code[s["code"]]
                 if norm(r.get("name")) != s["name"]:
@@ -287,13 +344,7 @@ def main():
                 verify(s["code"], "")
                 matched += 1
             elif s["code"]:
-                by_code[s["code"]] = {"code": s["code"], "name": s["name"], "street": s["street"],
-                                      "number": s["number"], "locality": s["locality"], "city": s["locality"],
-                                      "province": provinces[prov], "provinceCode": prov, "postalCode": "",
-                                      "latitude": s["lat"], "longitude": s["lng"],
-                                      "lastVerifiedUtc": now, "source": "correo"}
-                new.append(s["code"])
-                done.add(s["code"])
+                new_row(s["code"], "SUCURSAL")
             else:
                 cands = by_nl.get((s["name"], s["locality"]), [])
                 tier = ""
@@ -312,8 +363,10 @@ def main():
                 else:
                     unmatched.append(s)
                     name_warns.append(f"no gist match: site {s['name']!r}@{s['locality']!r} candidates={cands}")
-        # second pass: address match for still-gist-only rows vs unmatched site entries
-        gist_left = [r for r in gist_prov if r["code"] not in done and r.get("source") != "correo"]
+        # second pass: address match for still-gist-only SUCURSAL rows vs unmatched
+        # site entries — on one-to-one match rename to the site name (site wins)
+        gist_left = [r for r in gist_prov if r["code"] not in done and r.get("source") != "correo"
+                     and (r.get("kind") or "SUCURSAL") == "SUCURSAL"]
         g_by_key, s_by_key = {}, {}
         for r in gist_left:
             g_by_key.setdefault(addr_key(r.get("street"), r.get("number"), r.get("locality")), []).append(r["code"])
@@ -329,16 +382,20 @@ def main():
                     name_warns.append(f'{g[0]}: override {site["name"]!r} -> {r["name"]!r}')
                 r["latitude"], r["longitude"] = site["lat"], site["lng"]
                 r["lastVerifiedUtc"], r["source"] = now, "correo"
+                r["services"], r["kind"] = site["services"], "SUCURSAL"
                 done.add(g[0])
                 renamed.append(f"{old} -> {site['name']}")
                 matched += 1
             else:
                 ambig_warns.append(f"ambiguous address {key}: gist={sorted(g)}"
                                    f" site={[x['name'] + '@' + x['locality'] for x in sl]}")
-        # backfill gist source on untouched rows of processed provinces
+        # backfill gist source + services/kind on untouched rows of processed provinces
         for r in by_code.values():
-            if r.get("provinceCode") == prov and r.get("source") not in ("correo", "gist"):
-                r["source"] = "gist"
+            if r.get("provinceCode") == prov:
+                if r.get("source") not in ("correo", "gist"):
+                    r["source"] = "gist"
+                r.setdefault("services", "")
+                r.setdefault("kind", "SUCURSAL")
         total_matched += matched
         total_new += new
         total_renamed += len(renamed)
@@ -348,7 +405,9 @@ def main():
         unmatched_names = [f'{s["name"]}@{s["locality"]}' for s in unmatched]
         unverified = sorted(c for c, r in by_code.items()
                             if r.get("provinceCode") == prov and r.get("source") != "correo")
-        print(f"{prov} {provinces[prov]}: scraped={len(scraped)} matched={matched} new={len(new)}"
+        n_suc = sum(1 for s in scraped if s["kind"] == "SUCURSAL")
+        n_up = len(scraped) - n_suc
+        print(f"{prov} {provinces[prov]}: scraped={len(scraped)}(SUC={n_suc} UP={n_up}) matched={matched} new={len(new)}"
               + (f" new={new}" if new else "")
               + f" renamed={len(renamed)}"
               + (f" unmatched-site={len(unmatched_names)}" + (f" {unmatched_names[:10]}" if unmatched_names else "") if unmatched_names else "")
@@ -361,14 +420,19 @@ def main():
             print(f"  warn: ... +{len(warns) + len(name_warns) + len(ambig_warns) - 10} more")
         time.sleep(a.throttle)
 
-    # rows of unprocessed provinces: source backfill only
+    # rows of unprocessed provinces: source/services/kind backfill only
     for r in by_code.values():
-        if r.get("provinceCode") not in want_set and r.get("source") not in ("correo", "gist"):
-            r["source"] = "gist"
+        if r.get("provinceCode") not in want_set:
+            if r.get("source") not in ("correo", "gist"):
+                r["source"] = "gist"
+            r.setdefault("services", "")
+            r.setdefault("kind", "SUCURSAL")
 
     out = sorted(by_code.values(), key=lambda r: r["code"])
     n_correo = sum(1 for r in out if r.get("source") == "correo")
-    print(f"TOTAL rows={len(out)} verified(correo)={n_correo} gist-only={len(out) - n_correo} new-this-run={len(total_new)} renamed={total_renamed} ambiguous={total_ambig}")
+    n_up = sum(1 for r in out if r.get("kind") == "UP")
+    n_40 = sum(1 for r in out if "40" in (r.get("services") or "").split(","))
+    print(f"TOTAL rows={len(out)} verified(correo)={n_correo} gist-only={len(out) - n_correo} UP={n_up} with-service-40={n_40} new-this-run={len(total_new)} renamed={total_renamed} ambiguous={total_ambig}")
     if all_ambig:
         print(f"AMBIGUOUS ({len(all_ambig)}):")
         for w in all_ambig[:30]:

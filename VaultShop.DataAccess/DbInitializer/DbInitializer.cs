@@ -141,11 +141,11 @@ namespace VaultShop.DataAccess.DbInitializer
 				foreach (var a in agencies.Where(a => existing.Contains(a.Code)))
 				{
 					var e = _db.PostalAgencies.Find(a.Code);
-				if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.PostalCode != a.PostalCode || e.Province != a.Province || e.LastVerifiedUtc != a.LastVerifiedUtc || e.Source != a.Source))
+				if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.PostalCode != a.PostalCode || e.Province != a.Province || e.LastVerifiedUtc != a.LastVerifiedUtc || e.Source != a.Source || e.Services != a.Services || e.Kind != a.Kind))
 				{
 					e.Name = a.Name; e.Street = a.Street; e.Number = a.Number; e.Locality = a.Locality; e.City = a.City;
 					e.Province = a.Province; e.ProvinceCode = a.ProvinceCode; e.PostalCode = a.PostalCode; e.Latitude = a.Latitude; e.Longitude = a.Longitude;
-					e.LastVerifiedUtc = a.LastVerifiedUtc; e.Source = a.Source;
+					e.LastVerifiedUtc = a.LastVerifiedUtc; e.Source = a.Source; e.Services = a.Services; e.Kind = a.Kind;
 					changed++;
 				}
 				}
