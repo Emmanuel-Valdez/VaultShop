@@ -94,6 +94,11 @@ namespace VaultShop.Web.Tests
 				var savedImagePath = Path.Combine(webRootPath, savedImageUrl.TrimStart('\\').Replace('\\', Path.DirectorySeparatorChar));
 				Assert.True(File.Exists(savedImagePath));
 
+				using var savedImageBitmap = SKBitmap.Decode(savedImagePath);
+				Assert.NotNull(savedImageBitmap);
+				Assert.Equal(1000, savedImageBitmap.Width);
+				Assert.Equal(1200, savedImageBitmap.Height);
+
 				var savedImage = Assert.Single(result.SavedImages);
 				Assert.Equal(savedImageUrl, savedImage.ImageUrl);
 				Assert.StartsWith("images/products/product-42/", savedImage.ObjectKey);
