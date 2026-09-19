@@ -16,15 +16,15 @@
 
 ## 3. Services — geocoding and nearest-5
 
-- [ ] 3.1 Implement `GeorefAddressService` (`HttpClient`, `GeorefOptions:BaseUrl`, 5s timeout) calling `georef/api/direcciones?direccion=&provincia=&localidad=&max=1` and verify it returns `lat/lon` for a known Mendoza address and `null` on bad address / non-2xx
-- [ ] 3.2 Implement `NearestAgencyService` (haversine, province-filtered, top 5, distanceKm, verified `Source="correo"` + service-`40` filter, both `Kind`s) and verify unit test `NearestAgencyServiceTests` passes for ranking, tie, <5-in-province, unverified-exclusion, and no-40-exclusion cases
-- [ ] 3.3 Register services in DI (`Program.cs`) and verify checkout still resolves `CartController`
+- [x] 3.1 Implement `GeorefAddressService` (`HttpClient`, `GeorefOptions:BaseUrl`, 5s timeout) calling `georef/api/direcciones?direccion=&provincia=&localidad=&max=1` and verify it returns `lat/lon` for a known Mendoza address and `null` on bad address / non-2xx
+- [x] 3.2 Implement `NearestAgencyService` (haversine, province-filtered, top 5, distanceKm, verified `Source="correo"` + service-`40` filter, both `Kind`s) and verify unit test `NearestAgencyServiceTests` passes for ranking, tie, <5-in-province, unverified-exclusion, and no-40-exclusion cases
+- [x] 3.3 Register services in DI (`Program.cs`) and verify checkout still resolves `CartController`
 
 ## 4. Checkout — branch search and selection
 
-- [ ] 4.1 Add `CartController.GetNearestAgencies` (GET or POST with antiforgery) returning JSON `[{code,name,address,locality,province,distanceKm}]` using `GeorefAddressService` + `NearestAgencyService`, and verify manual call returns 5 for a Mendoza address
-- [ ] 4.2 Update `Cart/Summary.cshtml` — add "Retiro en sucursal — Envío gratis" block with "Buscar sucursales cercanas" button and required radio list of 5 candidates (hidden `PickupAgencyCode` + client snapshot), and verify the picker appears and enforces selection
-- [ ] 4.3 Update `CartController.SummaryPOST` to validate a branch is selected, re-resolve the snapshot from `PostalAgency` by code (never trust client name/address), persist `DeliveryType=S` + snapshot on `OrderHeader`, and verify an order created with a picked branch stores the denormalized snapshot
+- [x] 4.1 Add `CartController.GetNearestAgencies` (GET or POST with antiforgery) returning JSON `[{code,name,address,locality,province,distanceKm}]` using `GeorefAddressService` + `NearestAgencyService`, and verify manual call returns 5 for a Mendoza address
+- [x] 4.2 Update `Cart/Summary.cshtml` — add "Retiro en sucursal — Envío gratis" block with "Buscar sucursales cercanas" button and required radio list of 5 candidates (hidden `PickupAgencyCode` + client snapshot), and verify the picker appears and enforces selection
+- [x] 4.3 Update `CartController.SummaryPOST` to validate a branch is selected, re-resolve the snapshot from `PostalAgency` by code (never trust client name/address), persist `DeliveryType=S` + snapshot on `OrderHeader`, and verify an order created with a picked branch stores the denormalized snapshot
 
 ## 5. Admin and order history
 

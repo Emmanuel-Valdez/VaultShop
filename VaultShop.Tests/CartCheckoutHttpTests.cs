@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using VaultShop.DataAccess.Data;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Payments;
+using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Tests;
 
@@ -373,7 +375,138 @@ public class CartCheckoutHttpTests
         Assert.Contains("?ReturnUrl=", location.Query);
     }
 
-    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe)
+    [Fact]
+    public async Task SummaryPost_WithoutAgency_RerendersSummaryWithoutCreatingOrder()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: null);
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Select a Correo Argentino branch to continue.", html);
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Empty(db.OrderHeaders.AsNoTracking());
+    }
+
+    [Fact]
+    public async Task SummaryPost_WithInvalidAgencyCode_RerendersSummaryWithoutCreatingOrder()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: "NOPE");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Select a Correo Argentino branch to continue.", html);
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Empty(db.OrderHeaders.AsNoTracking());
+    }
+
+    [Fact]
+    public async Task SummaryPost_WithAgency_StoresDenormalizedSnapshot()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("/Cart/OrderConfirmation", response.Headers.Location!.ToString());
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
+        Assert.Equal(SD.DeliveryTypePickup, orderHeader.DeliveryType);
+        Assert.Equal("TEST01", orderHeader.PickupAgencyCode);
+        Assert.Equal("Test Branch", orderHeader.PickupAgencyName);
+        Assert.Contains("San Martin 123", orderHeader.PickupAgencyAddress);
+        Assert.Contains("Godoy Cruz", orderHeader.PickupAgencyAddress);
+        Assert.Contains("Mendoza", orderHeader.PickupAgencyAddress);
+    }
+
+    [Fact]
+    public async Task GetNearestAgencies_ReturnsFiveOrderedByDistance()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IGeorefAddressService>();
+                services.AddScoped<IGeorefAddressService, FakeGeorefAddressService>();
+            }));
+        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            for (var i = 1; i <= 7; i++)
+            {
+                db.PostalAgencies.Add(new PostalAgency
+                {
+                    Code = $"MND00{i}",
+                    Name = $"Branch {i}",
+                    Street = "Calle",
+                    Number = i,
+                    Locality = "Capital",
+                    City = "Capital",
+                    Province = "MENDOZA",
+                    ProvinceCode = "M",
+                    PostalCode = "M5500",
+                    Latitude = -32.925 + 0.001 * i,
+                    Longitude = -68.845,
+                    Source = "correo",
+                    Services = "1,40",
+                    Kind = "SUCURSAL",
+                });
+            }
+            db.SaveChanges();
+        }
+
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync("/en-US/Customer/Cart/GetNearestAgencies?street=San%20Martin%20123&city=Godoy%20Cruz&state=Mendoza");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = System.Text.Json.JsonDocument.Parse(body);
+        var items = json.RootElement.EnumerateArray().ToList();
+        Assert.Equal(5, items.Count);
+        var distances = items.Select(e => e.GetProperty("distanceKm").GetDouble()).ToList();
+        Assert.Equal(distances.OrderBy(d => d).ToList(), distances);
+        Assert.Equal("MND001", items[0].GetProperty("code").GetString());
+        Assert.All(items, e =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(e.GetProperty("name").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(e.GetProperty("address").GetString()));
+        });
+    }
+
+    private sealed class FakeGeorefAddressService : IGeorefAddressService
+    {
+        public Task<(double Lat, double Lon)?> GeocodeAsync(string streetAddress, string? province, string? locality, CancellationToken ct = default)
+            => Task.FromResult<(double, double)?>((-32.925, -68.845));
+    }
+
+    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe, string? pickupCode = "TEST01")
     {
         var form = new Dictionary<string, string>
         {
@@ -386,6 +519,10 @@ public class CartCheckoutHttpTests
             ["OrderHeader.PostalCode"] = "1000",
             ["OrderHeader.PaymentMethod"] = paymentMethod,
         };
+        if (pickupCode is not null)
+        {
+            form["OrderHeader.PickupAgencyCode"] = pickupCode;
+        }
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
     }
 
@@ -421,6 +558,26 @@ public class CartCheckoutHttpTests
             Product = product,
             Count = count,
         });
+        if (!db.PostalAgencies.Any(a => a.Code == "TEST01"))
+        {
+            db.PostalAgencies.Add(new PostalAgency
+            {
+                Code = "TEST01",
+                Name = "Test Branch",
+                Street = "San Martin",
+                Number = 123,
+                Locality = "Godoy Cruz",
+                City = "Godoy Cruz",
+                Province = "Mendoza",
+                ProvinceCode = "M",
+                PostalCode = "M5501",
+                Latitude = -32.925,
+                Longitude = -68.845,
+                Source = "correo",
+                Services = "40",
+                Kind = "SUCURSAL",
+            });
+        }
         db.SaveChanges();
     }
 

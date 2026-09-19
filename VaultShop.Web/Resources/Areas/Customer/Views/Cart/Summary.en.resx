@@ -189,4 +189,19 @@
   <data name="UserStreetAddress" xml:space="preserve">
     <value>Street Address</value>
   </data>
+  <data name="PickupHeading" xml:space="preserve">
+    <value>Branch pickup</value>
+  </data>
+  <data name="PickupFreeShipping" xml:space="preserve">
+    <value>Free shipping to branch</value>
+  </data>
+  <data name="SearchBranches" xml:space="preserve">
+    <value>Find nearby branches</value>
+  </data>
+  <data name="SearchingBranches" xml:space="preserve">
+    <value>Searching branches…</value>
+  </data>
+  <data name="NoBranchesFound" xml:space="preserve">
+    <value>No branches found. Check the address and try again.</value>
+  </data>
 </root>

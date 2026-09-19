@@ -37,6 +37,7 @@ using VaultShop.Web.Services.ProductImages;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pagination;
 using VaultShop.Web.Services.Pricing;
+using VaultShop.Web.Services.Shipping;
 using VaultShopRateLimiterOptions = VaultShop.Web.Services.RateLimiting.RateLimiterOptions;
 using VaultShop.Web.Services.RichText;
 using VaultShop.Web.Services;
@@ -233,6 +234,18 @@ builder.Services.AddHealthChecks()
 	.AddDbContextCheck<ApplicationDbContext>(name: "database")
 	.AddCheck<StorageHealthCheck>("storage");
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.Configure<GeorefOptions>(builder.Configuration.GetSection("Georef"));
+builder.Services.AddHttpClient<IGeorefAddressService, GeorefAddressService>(client =>
+{
+	var baseUrl = builder.Configuration["Georef:BaseUrl"];
+	if (string.IsNullOrWhiteSpace(baseUrl))
+	{
+		baseUrl = new GeorefOptions().BaseUrl;
+	}
+	client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
+	client.Timeout = TimeSpan.FromSeconds(5);
+});
+builder.Services.AddScoped<INearestAgencyService, NearestAgencyService>();
 builder.Services.AddHttpClient("GitHub", client =>
 {
 	client.BaseAddress = new Uri("https://api.github.com/");

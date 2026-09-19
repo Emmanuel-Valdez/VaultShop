@@ -235,17 +235,19 @@ namespace VaultShop.Web.Tests
 			};
 			httpContext.Session = Mock.Of<ISession>();
 
-			var controller = new CartController(
-				unitOfWorkMock.Object,
-				localizerMock.Object,
-				null!,
-				NullLogger<CartController>.Instance,
-				null!,
-				null!,
-				null!,
-				null!,
-				null!,
-				null!)
+		var controller = new CartController(
+			unitOfWorkMock.Object,
+			localizerMock.Object,
+			null!,
+			NullLogger<CartController>.Instance,
+			null!,
+			null!,
+			null!,
+			null!,
+			null!,
+			null!,
+			null!,
+			null!)
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

@@ -15,6 +15,7 @@ using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pricing;
+using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Areas.Customer.Controllers
 {
@@ -34,9 +35,12 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly ITransactionalEmailService _emailService;
 		private readonly IConfiguration _configuration;
 		private readonly OrderAccessPolicy _orderAccessPolicy;
+		private readonly IGeorefAddressService _georefAddressService;
+		private readonly INearestAgencyService _nearestAgencyService;
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
 			ILogger<CartController> logger, ICheckoutService checkoutService, IServiceProvider paymentSessionServiceProvider,
-			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration, OrderAccessPolicy orderAccessPolicy)
+			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration, OrderAccessPolicy orderAccessPolicy,
+			IGeorefAddressService georefAddressService, INearestAgencyService nearestAgencyService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -48,6 +52,8 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_emailService = emailService;
 			_configuration = configuration;
 			_orderAccessPolicy = orderAccessPolicy;
+			_georefAddressService = georefAddressService;
+			_nearestAgencyService = nearestAgencyService;
 		}
 		public IActionResult Index()
 		{
@@ -117,6 +123,22 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			return View(result.ShoppingCartVM);
 		}
 
+		[HttpGet]
+		public async Task<IActionResult> GetNearestAgencies(string street, string city, string state, CancellationToken ct)
+		{
+			var coords = await _georefAddressService.GeocodeAsync(street ?? string.Empty, state, city, ct);
+			var candidates = _nearestAgencyService.FindNearest(coords?.Lat, coords?.Lon, state, city);
+			return Json(candidates.Select(c => new
+			{
+				code = c.Code,
+				name = c.Name,
+				address = c.Address,
+				locality = c.Locality,
+				province = c.Province,
+				distanceKm = c.DistanceKm is null ? (double?)null : Math.Round(c.DistanceKm.Value, 1)
+			}));
+		}
+
 		[HttpPost]
 		[ActionName("Summary")]
 		public async Task<IActionResult> SummaryPOST()
@@ -127,14 +149,36 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return Unauthorized();
 			}
 
-			if (!ModelState.IsValid)
-			{
-				var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
-				PopulatePaymentMethodViewData();
-				return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
-			}
+		if (!ModelState.IsValid)
+		{
+			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
+			PopulatePaymentMethodViewData();
+			return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
+		}
 
-			var isCompanyCheckout = User.IsInRole(SD.Role_Company);
+		// ponytail: snapshot is re-resolved from PostalAgency by code — client name/address are never trusted.
+		var agency = _nearestAgencyService.GetByCode(ShoppingCartVM.OrderHeader.PickupAgencyCode);
+		if (agency is null)
+		{
+			ModelState.AddModelError("OrderHeader.PickupAgencyCode", _localizer["PickupAgencyRequired"].Value);
+			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
+			if (summaryResult.IsCartEmpty)
+			{
+				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
+				return RedirectToAction(nameof(Index));
+			}
+			PopulatePaymentMethodViewData();
+			return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
+		}
+
+		ShoppingCartVM.OrderHeader.DeliveryType = SD.DeliveryTypePickup;
+		ShoppingCartVM.OrderHeader.PickupAgencyCode = agency.Code;
+		ShoppingCartVM.OrderHeader.PickupAgencyName = agency.Name;
+		ShoppingCartVM.OrderHeader.PickupAgencyAddress =
+			(agency.Number.HasValue ? $"{agency.Street} {agency.Number}" : agency.Street).Trim()
+			+ $", {agency.Locality}, {agency.Province} {agency.PostalCode}";
+
+		var isCompanyCheckout = User.IsInRole(SD.Role_Company);
 			var useWholesalePrice = PricingHelper.ShouldUseWholesale(User, HttpContext);
 			if (isCompanyCheckout)
 			{

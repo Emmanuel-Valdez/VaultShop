@@ -129,4 +129,7 @@
   <data name="NotEnoughStock" xml:space="preserve">
     <value>No hay suficiente stock disponible para este producto.</value>
   </data>
+  <data name="PickupAgencyRequired" xml:space="preserve">
+    <value>Seleccioná una sucursal de Correo Argentino para continuar.</value>
+  </data>
 </root>

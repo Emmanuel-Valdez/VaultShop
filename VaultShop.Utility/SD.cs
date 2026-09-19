@@ -25,6 +25,8 @@ namespace VaultShop.Utility
 		public const string PaymentMethodBankTransfer = "BankTransfer";
 		public const string PaymentMethodMercadoPago = "MercadoPago";
 
+		public const string DeliveryTypePickup = "S";
+
 		public const string SessionCart = "SessionShoppingCart";
 		public const string AdminPreviewMode = "AdminPreviewMode";
 

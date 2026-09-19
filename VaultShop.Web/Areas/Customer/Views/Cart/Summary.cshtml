@@ -86,6 +86,18 @@
 							</ul>
 						</div>
 					</div>
+					<div class="row g-4 mt-1">
+						<div class="col-12">
+							<div role="group" aria-labelledby="pickupAgencyHeading">
+								<h2 id="pickupAgencyHeading" class="h5 mb-1 text-primary">@Localizer["PickupHeading"]</h2>
+								<p class="text-success fw-semibold mb-3">@Localizer["PickupFreeShipping"]</p>
+								<button type="button" id="searchAgenciesBtn" class="btn btn-outline-primary btn-sm">@Localizer["SearchBranches"]</button>
+								<span id="searchAgenciesStatus" class="ms-2 small text-muted" role="status" aria-live="polite"></span>
+								<div id="agencyCandidates" class="list-group mt-3"></div>
+								<span asp-validation-for="OrderHeader.PickupAgencyCode" class="text-danger small"></span>
+							</div>
+						</div>
+					</div>
                     @if (!User.IsInRole(SD.Role_Company))
                     {
                         var paymentMethodPicker = new PaymentMethodPickerVM
@@ -157,6 +169,51 @@
 	@{
 		<partial name="_ValidationScriptsPartial" />
 	}
+	<script>
+		document.getElementById('searchAgenciesBtn').addEventListener('click', async () => {
+			const status = document.getElementById('searchAgenciesStatus');
+			const list = document.getElementById('agencyCandidates');
+			const val = (id) => document.getElementById(id)?.value ?? '';
+			status.textContent = '@Localizer["SearchingBranches"]';
+			list.innerHTML = '';
+			const params = new URLSearchParams({
+				street: val('OrderHeader_StreetAddress'),
+				city: val('OrderHeader_City'),
+				state: val('OrderHeader_State')
+			});
+			let items = [];
+			try {
+				const res = await fetch('@Url.Action("GetNearestAgencies", "Cart", new { area = "Customer" })?' + params.toString(), { headers: { 'Accept': 'application/json' } });
+				if (res.ok) items = await res.json();
+			} catch { /* network failure renders as no-results below */ }
+			if (!Array.isArray(items) || items.length === 0) {
+				status.textContent = '@Localizer["NoBranchesFound"]';
+				return;
+			}
+			status.textContent = '';
+			for (const item of items) {
+				const id = 'agency_' + item.code;
+				const label = document.createElement('label');
+				label.className = 'list-group-item d-flex gap-2';
+				label.setAttribute('for', id);
+				const radio = document.createElement('input');
+				radio.type = 'radio';
+				radio.name = 'OrderHeader.PickupAgencyCode';
+				radio.value = item.code;
+				radio.id = id;
+				radio.required = true;
+				radio.className = 'form-check-input mt-1';
+				const body = document.createElement('span');
+				const distance = item.distanceKm === null || item.distanceKm === undefined ? '' : ' <small class="text-muted">(' + item.distanceKm + ' km)</small>';
+				body.innerHTML = '<strong></strong><br><small class="text-muted"></small>' + distance;
+				body.querySelector('strong').textContent = item.name;
+				body.querySelector('small').textContent = item.address + ', ' + item.locality + ', ' + item.province;
+				label.appendChild(radio);
+				label.appendChild(body);
+				list.appendChild(label);
+			}
+		});
+	</script>
 }
 
 
