@@ -138,4 +138,10 @@
   <data name="NameError" xml:space="preserve">
     <value>The Category Name can't match exactly as Max Expectation or Avg Shipping Cost</value>
   </data>
+  <data name="CategorySavedImageFailed" xml:space="preserve">
+    <value>Category saved, but image upload failed. You can retry by editing it.</value>
+  </data>
+  <data name="ImageDeletedSuccessfully" xml:space="preserve">
+    <value>Image deleted successfully</value>
+  </data>
 </root>

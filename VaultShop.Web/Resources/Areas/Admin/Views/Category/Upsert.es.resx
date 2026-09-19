@@ -138,4 +138,19 @@
   <data name="Update" xml:space="preserve">
     <value>Actualizar</value>
   </data>
+  <data name="CategoryImage" xml:space="preserve">
+    <value>Imagen de Categoría</value>
+  </data>
+  <data name="CategoryImageHelp" xml:space="preserve">
+    <value>JPG, PNG o WebP, máx 10 MB. Se recortará a 400px cuadrado.</value>
+  </data>
+  <data name="CategoryImageCurrent" xml:space="preserve">
+    <value>Imagen actual</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>Eliminar imagen</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>No hay imagen cargada. La tienda mostrará una letra de respaldo.</value>
+  </data>
 </root>

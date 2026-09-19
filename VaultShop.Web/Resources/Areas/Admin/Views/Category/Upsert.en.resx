@@ -138,4 +138,19 @@
   <data name="Update" xml:space="preserve">
     <value>Update</value>
   </data>
+  <data name="CategoryImage" xml:space="preserve">
+    <value>Category Image</value>
+  </data>
+  <data name="CategoryImageHelp" xml:space="preserve">
+    <value>JPG, PNG or WebP, max 10 MB. Will be cropped to 400px square.</value>
+  </data>
+  <data name="CategoryImageCurrent" xml:space="preserve">
+    <value>Current image</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>Delete image</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>No image uploaded. The storefront will show a letter fallback.</value>
+  </data>
 </root>

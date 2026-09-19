@@ -9,51 +9,87 @@
 		</div>
 	</div>
 	<div class="card-body p-4">
-
-		<form method="post">
-			@Html.AntiForgeryToken()
-			<input asp-for="Id" hidden />
-			<div class="border p-3 ">
-				<div asp-validation-summary="ModelOnly" class="text-danger"></div>
-				<div class="mb-3">
-					<div class="form-floating mb-3 col-md-12 shadow">
-						<input asp-for="Name" class="form-control" placeholder="Name" />
-						<label asp-for="Name" class="ms-2 text-muted">@Localizer["Name"]</label>
-					</div>
-					<span asp-validation-for="Name" class="text-danger"></span>
-				</div>
-				<div class="mb-3">
-					<div class="mb-3 col-md-12 shadow">
-						<div class="input-group mb-3">
-							<span class="input-group-text text-dark">$</span>
-							<div class="form-floating">
-								<input asp-for="AvgShippingCost" class="form-control" placeholder="AvgShippingCost" />
-								<label asp-for="AvgShippingCost" class="ms-2 text-muted">@Localizer["AvgShippingCost"]</label>
+		<div class="row g-4">
+			<div class="col-12 col-lg-8">
+				<form method="post" enctype="multipart/form-data">
+					@Html.AntiForgeryToken()
+					<input asp-for="Id" hidden />
+					<div class="border rounded-3 p-3 bg-body-tertiary">
+						<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Name" class="form-control" placeholder="Name" />
+								<label asp-for="Name" class="ms-2 text-muted">@Localizer["Name"]</label>
+							</div>
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<div class="mb-3 col-md-12 shadow">
+								<div class="input-group mb-3">
+									<span class="input-group-text text-dark">$</span>
+									<div class="form-floating">
+										<input asp-for="AvgShippingCost" class="form-control" placeholder="AvgShippingCost" />
+										<label asp-for="AvgShippingCost" class="ms-2 text-muted">@Localizer["AvgShippingCost"]</label>
+									</div>
+								</div>
+							</div>
+							<span asp-validation-for="AvgShippingCost" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<label class="form-label fw-semibold">@Localizer["CategoryImage"]</label>
+							<input type="file" name="imageFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<div class="form-text">@Localizer["CategoryImageHelp"]</div>
+						</div>
+						<div class="row mt-3">
+							<div class="col-6 col-md-3">
+								@if (Model.Id != 0)
+								{
+									<button type="submit" class="btn btn-primary form-control">@Localizer["Update"]</button>
+								}
+								else
+								{
+									<button type="submit" class="btn btn-primary form-control">@Localizer["Create"]</button>
+								}
+							</div>
+							<div class="col-6 col-md-3">
+								<a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary border form-control">
+									@Localizer["BackToList"]
+								</a>
 							</div>
 						</div>
 					</div>
-					<span asp-validation-for="AvgShippingCost" class="text-danger"></span>
-				</div>
-				
-				<div class="row mt-3">
-					<div class="col-6 col-md-3">
-						@if (Model.Id != 0)
+				</form>
+			</div>
+			@if (Model.Id != 0)
+			{
+				<div class="col-12 col-lg-4">
+					<div class="border rounded-3 p-3 h-100">
+						<h3 class="h5 mb-3 text-primary">@Localizer["CategoryImage"]</h3>
+						@if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
 						{
-							<button type="submit" class="btn btn-primary form-control">@Localizer["Update"]</button>
+							<div class="border rounded-3 p-2 mb-3 text-center">
+								<img src="@Model.ImageUrl" class="w-100 rounded mb-2" style="max-height:160px; object-fit:cover" alt="@Localizer["CategoryImageCurrent"]" />
+								<span class="badge bg-secondary d-block mb-2">@Localizer["CategoryImageCurrent"]</span>
+								<form method="post" asp-action="DeleteImage" class="w-100">
+									@Html.AntiForgeryToken()
+									<input type="hidden" name="categoryId" value="@Model.Id" />
+									<button type="submit" class="btn btn-outline-danger btn-sm w-100">
+										<i class="bi bi-trash-fill"></i> @Localizer["DeleteImage"]
+									</button>
+								</form>
+							</div>
 						}
 						else
 						{
-							<button type="submit" class="btn btn-primary form-control">@Localizer["Create"]</button>
+							<div class="empty-state rounded-3 p-4 text-center text-muted">
+								<i class="bi bi-image fs-2 d-block mb-2" aria-hidden="true"></i>
+								@Localizer["NoImage"]
+							</div>
 						}
 					</div>
-					<div class="col-6 col-md-3">
-						<a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary border form-control">
-							@Localizer["BackToList"]
-						</a>
-					</div>
 				</div>
-			</div>
-		</form>
+			}
+		</div>
 	</div>
 </div>
 

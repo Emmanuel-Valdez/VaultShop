@@ -95,7 +95,7 @@ else
 			<div class="d-flex flex-wrap gap-2" aria-label='@Localizer["ShopByCategory"]'>
 				@foreach (var category in categories)
 				{
-					<a asp-action="Search" asp-route-categoryId="@category.Id" class="btn btn-outline-primary btn-sm rounded-pill">@category.Name</a>
+					<partial name="_CategoryPill" model='new VaultShop.Models.ViewModels.CategoryPillVM { Id = category.Id, Name = category.Name, ImageUrl = category.ImageUrl, IsActive = false }' />
 				}
 			</div>
 		</section>

@@ -1,0 +1,29 @@
+@model VaultShop.Models.ViewModels.CategoryPillVM
+@{
+    var keywordId = Context.Request.Query["keywordId"].ToString();
+    var searchString = Context.Request.Query["searchString"].ToString();
+    var cleanedKeyword = string.IsNullOrWhiteSpace(keywordId) ? null : keywordId;
+    var cleanedSearch = string.IsNullOrWhiteSpace(searchString) ? null : searchString;
+    var slug = string.IsNullOrWhiteSpace(Model.Slug) ? null : Model.Slug;
+    var firstChar = Model.Name.Trim().FirstOrDefault();
+    var fallback = char.IsLetter(firstChar) ? firstChar.ToString().ToUpperInvariant() : "#";
+}
+<a asp-action="Search"
+   asp-route-categoryId="@Model.Id"
+   asp-route-keywordId="@cleanedKeyword"
+   asp-route-slug="@slug"
+   asp-route-searchString="@cleanedSearch"
+   class="category-pill btn btn-sm rounded-pill @(Model.IsActive ? "btn-primary" : "btn-outline-primary")"
+   aria-current="@(Model.IsActive ? "true" : null)">
+    <span class="category-pill__image" aria-hidden="true">
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="" loading="lazy" class="category-pill__thumb" />
+        }
+        else
+        {
+            <span class="category-pill__fallback">@fallback</span>
+        }
+    </span>
+    <span class="category-pill__label">@Model.Name</span>
+</a>

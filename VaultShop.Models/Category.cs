@@ -22,6 +22,13 @@ namespace VaultShop.Models
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal AvgShippingCost { get; set; }
 
+		public string? ImageUrl { get; set; }
+		public string? ObjectKey { get; set; }
+		public string? FileName { get; set; }
+		public string? ContentType { get; set; }
+		public long? SizeBytes { get; set; }
+		public string? StorageProvider { get; set; }
+
 
         [ValidateNever]
 		public PackagingByCategory PackagingByCategory { get; set; } = null!;

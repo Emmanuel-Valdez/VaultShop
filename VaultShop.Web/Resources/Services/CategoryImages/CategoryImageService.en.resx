@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UploadFileEmpty" xml:space="preserve"><value>The uploaded file is empty.</value></data>
+  <data name="UploadFileInvalidContentType" xml:space="preserve"><value>The uploaded file content type is not allowed.</value></data>
+  <data name="UploadFileInvalidExtension" xml:space="preserve"><value>Only JPG, PNG, and WebP images are allowed.</value></data>
+  <data name="UploadFileInvalidImage" xml:space="preserve"><value>The uploaded file is not a valid image.</value></data>
+  <data name="UploadFileTooLarge" xml:space="preserve"><value>The uploaded image is larger than the 10 MB limit.</value></data>
+</root>

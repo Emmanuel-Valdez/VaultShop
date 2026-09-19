@@ -1,11 +1,14 @@
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.CalculatorModels;
 using VaultShop.Web.Areas.Admin.Controllers;
+using VaultShop.Web.Services.CategoryImages;
+using VaultShop.Web.Services.ImageStorage;
 using Xunit;
 
 namespace VaultShop.Web.Tests
@@ -13,13 +16,13 @@ namespace VaultShop.Web.Tests
 	public class CategoryControllerDeleteTests
 	{
 		[Fact]
-		public void Delete_WithActiveProducts_ReturnsFalseAndDoesNotDelete()
+		public async Task Delete_WithActiveProducts_ReturnsFalseAndDoesNotDelete()
 		{
 			var category = CreateCategory(id: 1);
 			var uow = CreateUnitOfWork(category, activeProductCount: 2);
 			var controller = CreateController(uow);
 
-			var result = controller.Delete(1);
+			var result = await controller.Delete(1);
 
 			var json = Assert.IsType<JsonResult>(result);
 			Assert.False(GetBool(json, "success"));
@@ -29,13 +32,13 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void Delete_WithOnlySoftDeletedProducts_Succeeds()
+		public async Task Delete_WithOnlySoftDeletedProducts_Succeeds()
 		{
 			var category = CreateCategory(id: 1);
 			var uow = CreateUnitOfWork(category, activeProductCount: 0);
 			var controller = CreateController(uow);
 
-			var result = controller.Delete(1);
+			var result = await controller.Delete(1);
 
 			var json = Assert.IsType<JsonResult>(result);
 			Assert.True(GetBool(json, "success"));
@@ -44,7 +47,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void Delete_WithPackaging_RemovesChildrenAndParent()
+		public async Task Delete_WithPackaging_RemovesChildrenAndParent()
 		{
 			var category = CreateCategory(id: 1);
 			var packaging = new PackagingByCategory
@@ -60,7 +63,7 @@ namespace VaultShop.Web.Tests
 			var uow = CreateUnitOfWork(category, activeProductCount: 0, packaging: packaging);
 			var controller = CreateController(uow);
 
-			var result = controller.Delete(1);
+			var result = await controller.Delete(1);
 
 			var json = Assert.IsType<JsonResult>(result);
 			Assert.True(GetBool(json, "success"));
@@ -71,13 +74,13 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void Delete_WithoutPackaging_Succeeds()
+		public async Task Delete_WithoutPackaging_Succeeds()
 		{
 			var category = CreateCategory(id: 1);
 			var uow = CreateUnitOfWork(category, activeProductCount: 0, packaging: null);
 			var controller = CreateController(uow);
 
-			var result = controller.Delete(1);
+			var result = await controller.Delete(1);
 
 			var json = Assert.IsType<JsonResult>(result);
 			Assert.True(GetBool(json, "success"));
@@ -88,12 +91,12 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void Delete_NullCategory_ReturnsFalse()
+		public async Task Delete_NullCategory_ReturnsFalse()
 		{
 			var uow = CreateUnitOfWork(null, activeProductCount: 0);
 			var controller = CreateController(uow);
 
-			var result = controller.Delete(999);
+			var result = await controller.Delete(999);
 
 			var json = Assert.IsType<JsonResult>(result);
 			Assert.False(GetBool(json, "success"));
@@ -110,7 +113,12 @@ namespace VaultShop.Web.Tests
 				.Returns((string name) => new LocalizedString(name, name));
 			localizer.Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
 				.Returns((string name, object[] args) => new LocalizedString(name, $"{name}:{string.Join(":", args)}"));
-			return new CategoryController(uow.Mock.Object, localizer.Object);
+			return new CategoryController(
+				uow.Mock.Object,
+				localizer.Object,
+				Mock.Of<ICategoryImageService>(),
+				Mock.Of<IImageStorageService>(),
+				Mock.Of<ILogger<CategoryController>>());
 		}
 
 		private static TestUnitOfWork CreateUnitOfWork(Category? category, int activeProductCount, PackagingByCategory? packaging = null)

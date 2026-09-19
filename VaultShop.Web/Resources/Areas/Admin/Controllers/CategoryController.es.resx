@@ -138,4 +138,10 @@
   <data name="NameError" xml:space="preserve">
     <value>El nombre de la categoría no puede ser exactamente igual a Costo Promedio Envío o Expectativa Mensual Máx</value>
   </data>
+  <data name="CategorySavedImageFailed" xml:space="preserve">
+    <value>Categoría guardada, pero falló la subida de imagen. Podés reintentar editándola.</value>
+  </data>
+  <data name="ImageDeletedSuccessfully" xml:space="preserve">
+    <value>Imagen eliminada correctamente</value>
+  </data>
 </root>
