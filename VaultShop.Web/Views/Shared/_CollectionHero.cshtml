@@ -1,6 +1,6 @@
 @model VaultShop.Models.ViewModels.CollectionHeroVM
-@* ponytail: reusable 100vw breakout; height via CSS vars --hero-h / --hero-h-collapsed *@
-<section class="collection-hero collection-hero--breakout" data-collection-hero aria-label="@Model.Title">
+@* ponytail: reusable 100vw breakout; height via CSS var --hero-h (320/260), fixed, transform-only parallax *@
+<section class="collection-hero collection-hero--breakout u-breakout" data-collection-hero aria-label="@Model.Title">
 	<img src="@Model.ImageUrl" alt="@Model.Title" class="collection-hero__image" fetchpriority="high" loading="eager" decoding="async" />
 	<div class="collection-hero__scrim" aria-hidden="true"></div>
 	<div class="collection-hero__content">
@@ -11,7 +11,7 @@
 		}
 		@if (Model.Count > 0)
 		{
-			<span class="collection-hero__count">(@Model.Count)</span>
+			<span class="collection-hero__count">· @Model.Count productos</span>
 		}
 	</div>
 </section>

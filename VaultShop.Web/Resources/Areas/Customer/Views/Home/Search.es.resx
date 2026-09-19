@@ -147,6 +147,12 @@
   <data name="RemoveCategoryFilter" xml:space="preserve">
     <value>Quitar filtro de {0}</value>
   </data>
+  <data name="RemoveSearchFilter" xml:space="preserve">
+    <value>Quitar filtro de búsqueda "{0}"</value>
+  </data>
+  <data name="ActiveFilters" xml:space="preserve">
+    <value>Filtros activos</value>
+  </data>
   <data name="ShopByCategory" xml:space="preserve">
     <value>Comprar por categoría</value>
   </data>

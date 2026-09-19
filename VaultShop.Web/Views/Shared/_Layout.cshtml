@@ -30,7 +30,13 @@
 		string? GetViewDataText(string key)
 		{
 			var value = ViewData[key];
-			return value is LocalizedHtmlString localizedValue ? localizedValue.Value : value?.ToString();
+			return value switch
+			{
+				LocalizedHtmlString h => h.Value,
+				Microsoft.Extensions.Localization.LocalizedString s => s.Value,
+				null => null,
+				_ => value.ToString()
+			};
 		}
 
 		var currentUrl = $"{SD.SiteUrl}{Context.Request.Path}";

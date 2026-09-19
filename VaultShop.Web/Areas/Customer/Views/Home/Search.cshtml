@@ -24,9 +24,11 @@
         : activeCollection != null
             ? (cleanedSlug != null ? $"{activeCollection.Name} /{cleanedSlug}" : activeCollection.Name)
             : activeCategory?.Name;
-    ViewData["Title"] = activeCollection != null && cleanedSlug != null ? $"{Localizer["Search"]} - {activeCollection.Name} /{cleanedSlug}" : (string.IsNullOrWhiteSpace(termText) ? Localizer["Search"].Value : $"{Localizer["Search"]} - {termText}");
-    var coverUrl = ViewData["ActiveCollectionCover"] as string;
+    var searchTitleBase = Localizer["Search"].Value;
+    ViewData["Title"] = activeCollection != null && cleanedSlug != null ? $"{searchTitleBase} - {activeCollection.Name} /{cleanedSlug}" : (string.IsNullOrWhiteSpace(termText) ? searchTitleBase : $"{searchTitleBase} - {termText}");
+    var coverUrl = ViewData["ActiveCollectionCover"] as string ?? ViewData["CollectionCover"] as string;
     var activeCount = ViewData["ActiveCollectionCount"] as int?;
+    var heroShown = !string.IsNullOrWhiteSpace(coverUrl);
 }
 
 @if (!string.IsNullOrWhiteSpace(coverUrl) && activeKeywordId.HasValue)
@@ -35,45 +37,48 @@
 }
 <div class="row pb-3" id="productos">
 	<div class="col-12 storefront-section pb-3">
+		@if (!heroShown)
+		{
 		<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
 			<div>
-				<p class="product-card__meta mb-1">@branding.PublicName</p>
-				<h1 class="h3 text-primary mb-0">@Localizer["SearchResults"]</h1>
-				@if (!string.IsNullOrWhiteSpace(termText))
-				{
-				<p class="text-muted mb-0">@Localizer["SearchTerm", termText]</p>
-				}
+				<h1 class="h3 text-primary mb-0">@Localizer["SearchResults"] (@Model.TotalCount)</h1>
 			</div>
 		</div>
-
-		@if (collections != null && collections.Count > 0)
-		{
-			<partial name="_CollectionChips" model="collections" />
 		}
-		@if (activeCategory != null)
+
+		@* ponytail: active search pill — same editorial chip family, Option A (search only) *@
+		@if (!string.IsNullOrWhiteSpace(searchString))
 		{
-			<div class="mt-3">
-				<span class="active-filter-chip">
-					<span class="active-filter-chip__label">@activeCategory.Name</span>
-					<a asp-action="Search"
-					   asp-route-searchString="@(string.IsNullOrWhiteSpace(searchString) ? null : searchString)"
-					   asp-route-keywordId="@(string.IsNullOrWhiteSpace(keywordId) ? null : keywordId)"
-					   asp-route-slug="@cleanedSlug"
-					   class="active-filter-chip__clear"
-					   aria-label='@Localizer["RemoveCategoryFilter", activeCategory.Name]'
-					   title='@Localizer["RemoveCategoryFilter", activeCategory.Name]'>
-						<span aria-hidden="true">&times;</span>
-					</a>
-				</span>
+			var cleanedCategoryForSearch = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId;
+			var cleanedKeywordForSearch = string.IsNullOrWhiteSpace(keywordId) ? null : keywordId;
+			<div class="mb-3">
+				<h2 class="visually-hidden">@Localizer["ActiveFilters"]</h2>
+				<div class="collections-row scroll-row" aria-label='@Localizer["ActiveFilters"]'>
+					<div class="collection-chip active">
+						<a asp-action="Search" asp-route-searchString="@searchString" asp-route-categoryId="@cleanedCategoryForSearch" asp-route-keywordId="@cleanedKeywordForSearch" asp-route-slug="@cleanedSlug" class="collection-chip__link" aria-current="true" title="@searchString">
+							<span class="collection-chip__image" aria-hidden="true"><span class="collection-chip__fallback"><i class="bi bi-search" aria-hidden="true"></i></span></span>
+							<span class="collection-chip__name">"@searchString"</span>
+						</a>
+						<a asp-action="Search" asp-route-categoryId="@cleanedCategoryForSearch" asp-route-keywordId="@cleanedKeywordForSearch" asp-route-slug="@cleanedSlug" class="collection-chip__remove" aria-label='@Localizer["RemoveSearchFilter", searchString]' title='@Localizer["RemoveSearchFilter", searchString]'>
+							<span aria-hidden="true">&times;</span>
+						</a>
+					</div>
+				</div>
 			</div>
 		}
+
 		@{
 			var searchCategories = ViewData["Categories"] as List<Category>;
+			var hasFilters = (searchCategories != null && searchCategories.Count > 0) || (collections != null && collections.Count > 0);
+			if (hasFilters)
+			{
+				<p class="filter-row__label" aria-hidden="true">Filtrar por</p>
+			}
 			if (searchCategories != null && searchCategories.Count > 0)
 			{
-				<div class="mt-3 mb-4 pb-2">
-					<h2 class="h5 text-primary mb-2">@Localizer["ShopByCategory"]</h2>
-					<div class="d-flex flex-wrap gap-2" aria-label='@Localizer["ShopByCategory"]'>
+				<div class="mt-2 mb-3">
+					<h2 class="visually-hidden">@Localizer["ShopByCategory"]</h2>
+					<div class="collections-row scroll-row" aria-label='@Localizer["ShopByCategory"]'>
 						@foreach (var cat in searchCategories)
 						{
 							var isCatActive = !string.IsNullOrWhiteSpace(categoryId) && int.TryParse(categoryId, out var cid) && cid == cat.Id;
@@ -82,6 +87,11 @@
 					</div>
 				</div>
 			}
+		}
+		@if (collections != null && collections.Count > 0)
+		{
+			<h2 class="visually-hidden">@Localizer["ShopByCollection"]</h2>
+			<partial name="_CollectionChips" model="collections" />
 		}
 	</div>
 	@if (!Model.Any())

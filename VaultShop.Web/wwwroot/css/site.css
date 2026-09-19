@@ -947,7 +947,13 @@ div.dt-button-collection .dt-button:hover {
     padding-right: 2.5rem;
 }
 
-html { overflow-x: clip; }
+html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verify scrollWidth === clientWidth at 1280/390 */
+
+/* ponytail: .u-breakout — 100vw breakout utility for hero (requires overflow-x:clip on root) */
+.u-breakout {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+}
 
 /*
  * Storefront collection chips row (home + search).
@@ -961,7 +967,8 @@ html { overflow-x: clip; }
     overflow-x: auto;
     scroll-snap-type: x proximity;
     scroll-padding-left: 0.5rem;
-    padding-top: 0.35rem;
+    padding-top: 0.75rem;
+    padding-right: 0.5rem;
     padding-bottom: 0.5rem;
     margin-top: 0.15rem;
     -webkit-overflow-scrolling: touch;
@@ -978,6 +985,14 @@ html { overflow-x: clip; }
 .scroll-row[data-at-start="true"] { mask-image: linear-gradient(to right, black calc(100% - 1rem), transparent); }
 .scroll-row[data-at-end="true"] { mask-image: linear-gradient(to right, transparent, black 1rem, black); }
 .scroll-row[data-at-start="true"][data-at-end="true"] { mask-image: none; }
+
+.filter-row__label {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.35rem;
+}
 
 .scroll-row-wrap { position: relative; }
 .scroll-row-btn {
@@ -1000,22 +1015,21 @@ html { overflow-x: clip; }
 .scroll-row-btn--next { right: 0.25rem; }
 .scroll-row-btn.is-visible { display: flex; }
 
-/* collection hero — reusable breakout above search results */
+/* collection hero — reusable breakout above search results (fixed 320/260, compositor-only parallax) */
 .collection-hero--breakout {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     position: relative;
-    height: var(--hero-h-current, var(--hero-h));
+    height: var(--hero-h);
     overflow: hidden;
-    --hero-h: 400px;
-    --hero-h-collapsed: 80px;
-    --hero-h-current: 400px;
+    --hero-h: 320px;
 }
 .collection-hero__image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    overflow: hidden;
     transform: translateY(var(--img-ty, 0));
     will-change: transform;
 }
@@ -1033,14 +1047,14 @@ html { overflow-x: clip; }
     text-shadow: 0 1px 8px rgba(0,0,0,0.5);
     opacity: var(--content-opacity, 1);
 }
-.collection-hero__title { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; margin: 0; display: inline; }
+.collection-hero__title { font-family: "Playfair Display", serif; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 700; margin: 0; display: inline; }
 .collection-hero__slug { font-size: 0.95rem; opacity: 0.9; margin-left: 0.35rem; }
 .collection-hero__count { font-size: 0.9rem; opacity: 0.85; margin-left: 0.25rem; }
 @media (max-width: 991.98px) {
-    .collection-hero--breakout { --hero-h: 340px; --hero-h-collapsed: 64px; --hero-h-current: 340px; }
+    .collection-hero--breakout { --hero-h: 320px; }
 }
 @media (max-width: 767.98px) {
-    .collection-hero--breakout { --hero-h: 260px; --hero-h-collapsed: 52px; --hero-h-current: 260px; }
+    .collection-hero--breakout { --hero-h: 260px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .collection-hero--breakout { transition: none !important; }
@@ -1061,6 +1075,7 @@ html { overflow-x: clip; }
     width: 6.5rem;
     min-width: 6.5rem;
     max-width: 6.5rem;
+    min-height: 44px;
     padding: 0.75rem;
     color: var(--theme-primary);
     text-decoration: none;
@@ -1069,6 +1084,13 @@ html { overflow-x: clip; }
     border: 1px solid rgba(var(--theme-primary-rgb), 0.2);
     border-radius: 1rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.collection-chip__link:focus-visible,
+.category-pill:focus-visible,
+.collection-chip__remove:focus-visible {
+    outline: 2px solid var(--theme-accent);
+    outline-offset: 2px;
 }
 
 .collection-chip__link:hover {
@@ -1110,14 +1132,16 @@ html { overflow-x: clip; }
 .collection-chip__name {
     font-size: 0.85rem;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
     overflow: hidden;
     overflow-wrap: anywhere;
     hyphens: auto;
     max-width: 6.5rem;
+    padding-bottom: 0.12rem;
 }
 
 .collection-chip__count {
@@ -1132,8 +1156,10 @@ html { overflow-x: clip; }
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.6rem;
-    height: 1.6rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
     color: var(--theme-primary);
     text-decoration: none;
     background-color: var(--theme-surface);
@@ -1178,82 +1204,8 @@ html { overflow-x: clip; }
     background-color: var(--theme-primary);
 }
 
-/* ponytail: category pill — compact btn with 28px thumb + gap, mirrors collection-chip fallback approach */
-.category-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.32rem 0.75rem 0.32rem 0.38rem;
-    line-height: 1.2;
-}
-
-.category-pill__image {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    flex: 0 0 1.75rem;
-    overflow: hidden;
-    border-radius: 50%;
-    background-color: rgba(var(--theme-primary-rgb), 0.08);
-}
-
-.category-pill__thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.category-pill__fallback {
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1;
-    text-transform: uppercase;
-    color: var(--theme-primary);
-}
-
-.category-pill__label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-/* active pill is solid primary (navy in light mode): fallback letter needs white to keep contrast */
-.category-pill.btn-primary .category-pill__image {
-    background-color: rgba(255, 255, 255, 0.18);
-}
-
-.category-pill.btn-primary .category-pill__fallback {
-    color: #fff;
-}
-
-[data-bs-theme=dark] .category-pill__image {
-    background-color: rgba(var(--theme-accent-rgb), 0.15);
-}
-
-[data-bs-theme=dark] .category-pill__fallback {
-    color: #e8eaf2;
-}
-
-@media (max-width: 575.98px) {
-    .category-pill {
-        gap: 0.4rem;
-        padding: 0.28rem 0.65rem 0.28rem 0.34rem;
-    }
-    .category-pill__image {
-        width: 1.5rem;
-        height: 1.5rem;
-        flex-basis: 1.5rem;
-    }
-    .category-pill__fallback {
-        font-size: 0.66rem;
-    }
-    .category-pill__label {
-        font-size: 0.82rem;
-    }
-}
+/* ponytail: category pill — alias to editorial chip (72px/6.5rem via collection-chip family); no sizing overrides */
+.category-pill { min-height: 44px; }
 
 @media (min-width: 576px) and (max-width: 991.98px) {
     .collections-row {

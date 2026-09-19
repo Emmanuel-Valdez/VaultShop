@@ -16,7 +16,7 @@
 		var chipSlug = string.IsNullOrWhiteSpace(collection.Slug) ? null : collection.Slug;
 		<div class="collection-chip@(isActive ? " active" : string.Empty)">
 			<a asp-action="Search" asp-route-keywordId="@collection.Id" asp-route-slug="@chipSlug" asp-route-categoryId="@cleanedCategory" asp-route-searchString="@cleanedSearch" class="collection-chip__link"
-			   aria-current="@(isActive ? "true" : null)">
+			   aria-current="@(isActive ? "true" : null)" title="@(collection.Count > 0 ? $"{collection.Count} productos" : null)">
 				<span class="collection-chip__image" aria-hidden="true">
 					@if (!string.IsNullOrWhiteSpace(collection.ChipImageUrl))
 					{
@@ -29,10 +29,6 @@
 					}
 				</span>
 				<span class="collection-chip__name">@collection.Name</span>
-				@if (collection.Count > 0)
-				{
-					<span class="collection-chip__count">(@collection.Count)</span>
-				}
 			</a>
 			@if (isActive)
 			{

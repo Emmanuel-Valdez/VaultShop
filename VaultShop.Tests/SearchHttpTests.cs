@@ -66,7 +66,9 @@ public class SearchHttpTests
 
         var body = await client.GetStringAsync("/en-US/Customer/Home/Index");
 
-        Assert.DoesNotContain("collection-chip", body);
+        // ponytail: categories now also use collection-chip class (editorial chip), so absence is keyword-specific
+        Assert.DoesNotContain("keywordId=", body);
+        Assert.DoesNotContain("Test Collection", body);
     }
 
     [Fact]
@@ -133,26 +135,47 @@ public class SearchHttpTests
 
         var home = await client.GetStringAsync("/en-US/Customer/Home/Index");
         Assert.Contains("collection-chip", home);
-        Assert.Contains("(13)", home);
+        // ponytail: editorial — count moved from chip to hero/header, chip shows only name
+        Assert.DoesNotContain("(13)", home);
+        Assert.Contains("Naruto", home);
 
-        var filtered = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
+        var filteredRaw = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
+        var filtered = System.Net.WebUtility.HtmlDecode(filteredRaw);
         Assert.Contains("collection-chip active", filtered);
         Assert.Contains("aria-current=\"true\"", filtered);
+        // count now in hero/title, not chip
+        Assert.Contains("13 productos", filtered);
+        Assert.DoesNotContain("(13)", filtered);
+        // P1: single h1 — hero when cover present, otherwise Search Results
+        var h1Count = Regex.Matches(filtered, "<h1[^>]*>").Count;
+        Assert.Equal(1, h1Count);
+        if (filtered.Contains("collection-hero"))
+            Assert.DoesNotContain("Search Results (13)", filtered);
+        else
+            Assert.Contains("Search Results (13)", filtered);
 
         var page2Match = Regex.Match(filtered, @"href=""([^""]*pageNumber=2[^""]*)""");
         Assert.True(page2Match.Success, "expected a page-2 pager link");
         Assert.Contains($"keywordId={keywordId}", page2Match.Groups[1].Value);
         Assert.DoesNotContain("categoryId=", page2Match.Groups[1].Value);
 
-        var combined = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&categoryId={categoryId}&searchString=Mochila");
-        Assert.Contains("active-filter-chip__label", combined);
+        var combinedRaw = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&categoryId={categoryId}&searchString=Mochila");
+        var combined = System.Net.WebUtility.HtmlDecode(combinedRaw);
+        // ponytail: categories now also editorial chip, both filters show as active chips with × (order categories first)
+        Assert.Contains("collection-chip active", combined);
         Assert.Contains("Mochilas", combined);
-        Assert.Contains("Remove Mochilas filter", combined);
-        Assert.Contains("Remove Naruto filter", combined);
+        // verify both removes are present (Mochilas from category chip, Naruto from collection chip)
+        Assert.Contains("collection-chip__remove", combined);
+        // check at least one Naruto remove and one Mochilas label (order may vary, count via substring)
+        Assert.Contains("Remove Naruto", combined);
+        Assert.Contains("Mochilas", combined);
 
-        var removeIdx = combined.IndexOf("collection-chip__remove");
-        Assert.True(removeIdx >= 0, "expected a remove-collection anchor");
-        var hrefStart = combined.IndexOf("href=\"", removeIdx);
+        // locate Naruto remove href specifically (categories now before collections, first remove is Mochilas)
+        var narutoLabelIdx = combined.IndexOf("Remove Naruto");
+        Assert.True(narutoLabelIdx >= 0, "expected Remove Naruto label");
+        // ponytail: href is after aria-label in generated tag (aria-label before href), so search forward
+        var hrefStart = combined.IndexOf("href=\"", narutoLabelIdx);
+        Assert.True(hrefStart >= 0, "href after Remove Naruto expected");
         var hrefEnd = combined.IndexOf("\"", hrefStart + 6);
         var removeHref = combined.Substring(hrefStart + 6, hrefEnd - (hrefStart + 6));
         Assert.Contains("categoryId=", removeHref);
@@ -170,37 +193,36 @@ public class SearchHttpTests
         // from ?categoryId=X clicking collection Y → should keep categoryId and add slug
         var catFiltered = await client.GetStringAsync($"/en-US/Customer/Home/Search?categoryId={categoryId}");
         Assert.Contains("collection-chip__link", catFiltered);
-        var chipHrefIdx = catFiltered.IndexOf("collection-chip__link");
-        Assert.True(chipHrefIdx >= 0);
-        // find first chip link href after that marker
-        var hrefKeyword = catFiltered.IndexOf($"keywordId={keywordId}", chipHrefIdx);
-        Assert.True(hrefKeyword >= 0, "collection chip should link to keywordId");
-        var hrefCategory = catFiltered.IndexOf($"categoryId={categoryId}", chipHrefIdx);
-        Assert.True(hrefCategory >= 0, "collection chip should preserve categoryId (AND navigation)");
-        Assert.Contains("slug=naruto", catFiltered);
+        // ponytail: categories now also chip — search entire body for AND preservation, not first chip proximity
+        Assert.Contains($"keywordId={keywordId}", System.Net.WebUtility.HtmlDecode(catFiltered));
+        Assert.Contains($"categoryId={categoryId}", System.Net.WebUtility.HtmlDecode(catFiltered));
+        Assert.Contains("slug=naruto", System.Net.WebUtility.HtmlDecode(catFiltered));
 
         // from ?keywordId=Y clicking category X → should keep keywordId+slug
         var collFiltered = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=naruto");
+        var decodedColl = System.Net.WebUtility.HtmlDecode(collFiltered);
         // category button for Mochilas should preserve keywordId+slug
-        Assert.Contains($"keywordId={keywordId}", collFiltered);
-        Assert.Contains("slug=naruto", collFiltered);
+        Assert.Contains($"keywordId={keywordId}", decodedColl);
+        Assert.Contains("slug=naruto", decodedColl);
         // category chip href for our category should contain both
-        var catBtnIdx = collFiltered.IndexOf($"categoryId={categoryId}");
+        var catBtnIdx = decodedColl.IndexOf($"categoryId={categoryId}");
         Assert.True(catBtnIdx >= 0, "category button should be present");
         // ensure the surrounding anchor also has keywordId
-        var catAnchorStart = collFiltered.LastIndexOf("href=\"", catBtnIdx);
-        var catAnchorEnd = collFiltered.IndexOf("\"", catBtnIdx);
-        var catAnchor = collFiltered.Substring(catAnchorStart, catAnchorEnd - catAnchorStart);
+        var catAnchorStart = decodedColl.LastIndexOf("href=\"", catBtnIdx);
+        var catAnchorEnd = decodedColl.IndexOf("\"", catBtnIdx);
+        var catAnchor = decodedColl.Substring(catAnchorStart, catAnchorEnd - catAnchorStart);
         Assert.Contains($"keywordId={keywordId}", catAnchor);
         Assert.Contains("slug=naruto", catAnchor);
 
         // removing collection keeps category
-        var combined = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=naruto&categoryId={categoryId}&searchString=negra");
-        var rIdx = combined.IndexOf("collection-chip__remove");
-        Assert.True(rIdx >= 0, "remove collection link expected");
-        var rhStart = combined.IndexOf("href=\"", rIdx);
-        var rhEnd = combined.IndexOf("\"", rhStart + 6);
-        var rHref = combined.Substring(rhStart + 6, rhEnd - (rhStart + 6));
+        var combined2Raw = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=naruto&categoryId={categoryId}&searchString=negra");
+        var combined2 = System.Net.WebUtility.HtmlDecode(combined2Raw);
+        var rLabelIdx = combined2.IndexOf("Remove Naruto");
+        Assert.True(rLabelIdx >= 0, "remove collection link expected");
+        var rhStart = combined2.IndexOf("href=\"", rLabelIdx);
+        Assert.True(rhStart >= 0, "href after Remove Naruto expected");
+        var rhEnd = combined2.IndexOf("\"", rhStart + 6);
+        var rHref = combined2.Substring(rhStart + 6, rhEnd - (rhStart + 6));
         Assert.Contains($"categoryId={categoryId}", rHref);
         Assert.Contains("searchString=negra", rHref);
         Assert.DoesNotContain("keywordId=", rHref);
@@ -213,8 +235,8 @@ public class SearchHttpTests
         var largeBody = await clientLarge.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={kwLarge}");
         var pageMatch = Regex.Match(largeBody, @"href=""([^""]*pageNumber=2[^""]*)""");
         Assert.True(pageMatch.Success, "expected pager page 2 link with slug preserved");
-        Assert.Contains($"keywordId={kwLarge}", pageMatch.Groups[1].Value);
-        Assert.Contains("slug=naruto", pageMatch.Groups[1].Value);
+        Assert.Contains($"keywordId={kwLarge}", System.Net.WebUtility.HtmlDecode(pageMatch.Groups[1].Value));
+        Assert.Contains("slug=naruto", System.Net.WebUtility.HtmlDecode(pageMatch.Groups[1].Value));
 
         // slug mismatch redirects to canonical, slug absent still 200
         var wrongResp = await client.GetAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=wrong");
@@ -240,6 +262,12 @@ public class SearchHttpTests
         {
             Kind = KeywordImageKind.Chip,
             ImageUrl = $"images/keywords/keyword-{keyword.Id}/chip.jpg",
+            KeywordId = keyword.Id,
+        });
+        db.KeywordImages.Add(new KeywordImage
+        {
+            Kind = KeywordImageKind.Cover,
+            ImageUrl = $"images/keywords/keyword-{keyword.Id}/cover.jpg",
             KeywordId = keyword.Id,
         });
         db.SaveChanges();

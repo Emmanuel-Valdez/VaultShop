@@ -8,22 +8,37 @@
     var firstChar = Model.Name.Trim().FirstOrDefault();
     var fallback = char.IsLetter(firstChar) ? firstChar.ToString().ToUpperInvariant() : "#";
 }
-<a asp-action="Search"
-   asp-route-categoryId="@Model.Id"
-   asp-route-keywordId="@cleanedKeyword"
-   asp-route-slug="@slug"
-   asp-route-searchString="@cleanedSearch"
-   class="category-pill btn btn-sm rounded-pill @(Model.IsActive ? "btn-primary" : "btn-outline-primary")"
-   aria-current="@(Model.IsActive ? "true" : null)">
-    <span class="category-pill__image" aria-hidden="true">
-        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
-        {
-            <img src="@Model.ImageUrl" alt="" loading="lazy" class="category-pill__thumb" />
-        }
-        else
-        {
-            <span class="category-pill__fallback">@fallback</span>
-        }
-    </span>
-    <span class="category-pill__label">@Model.Name</span>
-</a>
+@* ponytail: re-themed to editorial chip (72px circle, 6.5rem card, no count) — uses collection-chip family, alias category-pill* for test compat *@
+<div class="collection-chip category-pill@(Model.IsActive ? " active btn-primary" : " btn-outline-primary")">
+    <a asp-action="Search"
+       asp-route-categoryId="@Model.Id"
+       asp-route-keywordId="@cleanedKeyword"
+       asp-route-slug="@slug"
+       asp-route-searchString="@cleanedSearch"
+       class="collection-chip__link category-pill"
+       aria-current="@(Model.IsActive ? "true" : null)">
+        <span class="collection-chip__image category-pill__image" aria-hidden="true">
+            @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="" loading="lazy" class="category-pill__thumb" />
+            }
+            else
+            {
+                <span class="collection-chip__fallback category-pill__fallback">@fallback</span>
+            }
+        </span>
+        <span class="collection-chip__name category-pill__label">@Model.Name</span>
+    </a>
+    @if (Model.IsActive)
+    {
+        <a asp-action="Search"
+           asp-route-keywordId="@cleanedKeyword"
+           asp-route-slug="@slug"
+           asp-route-searchString="@cleanedSearch"
+           class="collection-chip__remove"
+           aria-label='@Localizer["RemoveCategoryFilter", Model.Name]'
+           title='@Localizer["RemoveCategoryFilter", Model.Name]'>
+            <span aria-hidden="true">&times;</span>
+        </a>
+    }
+</div>

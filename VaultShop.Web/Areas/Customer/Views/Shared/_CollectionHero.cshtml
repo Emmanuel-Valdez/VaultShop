@@ -1,17 +1,3 @@
 @model VaultShop.Models.ViewModels.CollectionHeroVM
-@* ponytail: reusable 100vw breakout; height via CSS vars --hero-h / --hero-h-collapsed *@
-<section class="collection-hero collection-hero--breakout" data-collection-hero aria-label="@Model.Title">
-	<img src="@Model.ImageUrl" alt="@Model.Title" class="collection-hero__image" fetchpriority="high" loading="eager" decoding="async" />
-	<div class="collection-hero__scrim" aria-hidden="true"></div>
-	<div class="collection-hero__content">
-		<h1 class="collection-hero__title">@Model.Title</h1>
-		@if (!string.IsNullOrWhiteSpace(Model.Slug))
-		{
-			<span class="collection-hero__slug">/@Model.Slug</span>
-		}
-		@if (Model.Count > 0)
-		{
-			<span class="collection-hero__count">(@Model.Count)</span>
-		}
-	</div>
-</section>
+@* ponytail: thin wrapper — delegates to Views/Shared/_CollectionHero.cshtml to avoid divergence *@
+<partial name="~/Views/Shared/_CollectionHero.cshtml" model="Model" />

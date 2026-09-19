@@ -91,8 +91,8 @@ else
 	@if (categories.Any())
 	{
 		<section class="storefront-section" aria-labelledby="category-shortcuts-heading">
-			<h2 id="category-shortcuts-heading" class="h4 text-primary mb-3">@Localizer["ShopByCategory"]</h2>
-			<div class="d-flex flex-wrap gap-2" aria-label='@Localizer["ShopByCategory"]'>
+			<h2 id="category-shortcuts-heading" class="filter-row__label">@Localizer["ShopByCategory"]</h2>
+			<div class="collections-row scroll-row" aria-label='@Localizer["ShopByCategory"]'>
 				@foreach (var category in categories)
 				{
 					<partial name="_CategoryPill" model='new VaultShop.Models.ViewModels.CategoryPillVM { Id = category.Id, Name = category.Name, ImageUrl = category.ImageUrl, IsActive = false }' />
@@ -104,7 +104,7 @@ else
 	@if (collections.Any())
 	{
 		<section class="storefront-section" aria-labelledby="collection-shortcuts-heading">
-			<h2 id="collection-shortcuts-heading" class="h4 text-primary mb-3">@Localizer["ShopByCollection"]</h2>
+			<h2 id="collection-shortcuts-heading" class="filter-row__label">@Localizer["ShopByCollection"]</h2>
 			<partial name="_CollectionChips" model="collections" />
 		</section>
 	}
