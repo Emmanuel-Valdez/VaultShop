@@ -67,5 +67,11 @@ namespace VaultShop.Models
 		[Display(Name = "CUIT")]
 		public string? CuitSnapshot { get; set; }
 
+		// correo-argentino pickup: null for pre-change orders
+		public string? DeliveryType { get; set; }
+		public string? PickupAgencyCode { get; set; }
+		public string? PickupAgencyName { get; set; }
+		public string? PickupAgencyAddress { get; set; }
+
 	}
 }

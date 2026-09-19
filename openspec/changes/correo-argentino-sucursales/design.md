@@ -19,10 +19,9 @@ VaultShop checkout today collects domicile fields in `Cart/Summary.cshtml` and s
 
 ## Decisions
 
-**Snapshot acquisition — wsFacade probe, fallback gist+Georef batch**
-- Probe the site-internal `wsFacade.php` sucursales/CPA action first — if it returns lat/lon, we get an official national snapshot without API creds.
-- Fallback: national gist (`aaron-marco`, no coords) batch-geocoded once via Georef `/direcciones` (lotes endpoint) to produce `sucursales.json` with coords. One-time, free, no key. Coordinates remain approximate (Georef docs: accuracy varies by region) — acceptable for ranking.
-- *Alternative rejected:* scrape HTML branch finder (fragile) or wait for PAQ.AR creds (blocks MVP).
+**Snapshot acquisition — wsFacade scrape (proven, no auth), gist as base**
+- The site-internal `wsFacade.php` proved viable without credentials: `localidadesconsucursales` + per-localidad `sucursales` returns cards + `L.marker([lat,lng])` + service ids (`rel`). `tools/refresh_sucursales.py` (stdlib-only) re-runs monthly; merge by Code (CABA only exposes codes) / exact (name, locality) / normalized address; `LastVerifiedUtc` + `Source` track confirmations. The 2020 gist stays as base (only source of CPA + split street/number).
+- Live PAQ.AR agencies feed still deferred until creds.
 
 **Seeding — EF entity `PostalAgency`**
 - Store snapshot in DB (`VaultShop.DataAccess`, EF migration). Columns: `Code` PK (CODIGONIS), `Name`, `Street`, `Number`, `Locality`, `City`, `Province`, `ProvinceCode`, `PostalCode`, `Latitude`, `Longitude`. Seed via `HasData` / `DbInitializer` upsert by `Code` (idempotent reseed).
@@ -32,7 +31,10 @@ VaultShop checkout today collects domicile fields in `Cart/Summary.cshtml` and s
 - Calls `https://apis.datos.gob.ar/georef/api/direcciones?direccion=&provincia=&localidad=&max=1`. Parses `direcciones[0].ubicacion.{lat,lon}`. Timeout ~5s, `max` 1, returns `null` coords on failure (no throw).
 - Caller (`NearestAgencyService` / controller) treats `null` coords as "no distance ordering" and falls back to province-filtered list. Logs at Information/Debug without PII.
 
-**Nearest-5 — `NearestAgencyService` (pure haversine, province-filtered)**
+**Nearest-5 — `NearestAgencyService` (pure haversine, province-filtered, verified + parcel-capable)**
+- Candidates are drawn ONLY from verified rows (`Source="correo"`) that offer parcel handover (**service `40` in `Services`**; `40` alone, not `29`). Unverified gist-only rows and branches without `40` (ej. OBELISCO, TIENDA FILATELIA) SHALL NOT be shown at checkout. If a shopper asks for a missing branch, its parcel capability is confirmed manually and it is added/updated via the monthly refresh.
+- Source of truth is the Correo site scrape, not the 2020 gist: same address = same branch, site name wins; obvious site typos live in `NAME_OVERRIDES` in the script.
+- **UP (Unidad Postal; map pins labeled AGENCIA) are included as candidates** — 95% offer service `40` in CABA, but only classic parcel/postal services (no monetarios, telegramas, pagos, SUBE). Ingested with stable synthetic codes (`UP-{provinceCode}-{hash6}` over name|locality|street, `Kind="UP"`), `Services` from the card `rel`. They have no CODIGONIS by nature. Risk: PAQ.AR may not route parcels to codeless points — revisit if label creation rejects them.
 - If coords available: filter by `Province`/`ProvinceCode` derived from `OrderHeader.State`, compute haversine (km), sort, take 5. If province has <5, return all. If province empty (mismatch), broaden to national top-5.
 - If coords absent: filter by province+locality, return up to 5 alphabetically (no distance shown).
 - Service is unit-testable (distance ranking); controller only orchestrates. No caching needed (dataset ~3,300 rows, in-memory scan trivial).

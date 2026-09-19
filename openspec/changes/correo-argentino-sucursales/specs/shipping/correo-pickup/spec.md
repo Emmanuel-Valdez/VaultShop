@@ -38,11 +38,23 @@ The system SHALL geocode the address the shopper typed in `Summary` via the offi
 
 ### Requirement: Branch search returns the 5 nearest agencies
 
-The system SHALL return at most 5 candidate branches ordered by haversine distance from the geocoded point. Candidates SHALL be drawn from `PostalAgency` and SHALL be filtered by the customer's `State`/province when that province has agencies. Distance in kilometers SHALL be shown per candidate. Branches beyond the 5 nearest SHALL NOT be shown.
+The system SHALL return at most 5 candidate branches ordered by haversine distance from the geocoded point. Candidates SHALL be drawn from `PostalAgency` and SHALL be filtered by the customer's `State`/province when that province has agencies. Only verified branches (`Source="correo"`) offering parcel handover (service `40` in `Services`) SHALL be candidates — including Unidad Postal points (synthetic `UP-*` codes); unverified gist-only rows and branches without service `40` SHALL NOT be shown. Distance in kilometers SHALL be shown per candidate. Branches beyond the 5 nearest SHALL NOT be shown.
 
 #### Scenario: 5 nearest within province
 - **WHEN** the geocoded point is in Mendoza and 20 Mendoza branches exist
 - **THEN** the result is exactly 5 branches of Mendoza ordered ascending by haversine distance, each with name, street + number, locality, province, and distance
+
+#### Scenario: Only verified parcel-capable branches are candidates
+- **WHEN** the geocoded point is in Córdoba and unverified gist-only rows exist nearby
+- **THEN** those rows are excluded and the 5 candidates come only from verified (`Source="correo"`) branches offering service `40`
+
+#### Scenario: Branch without parcel handover is excluded
+- **WHEN** a nearby branch (e.g. OBELISCO) has no service `40` in `Services`
+- **THEN** it is excluded from candidates even though it is verified
+
+#### Scenario: Unidad Postal point is a candidate
+- **WHEN** a nearby Unidad Postal point (synthetic `UP-*` code) is verified and offers service `40`
+- **THEN** it appears among the candidates with its name, address, and distance like any branch
 
 #### Scenario: Few branches in province
 - **WHEN** the geocoded province has fewer than 5 branches
@@ -76,9 +88,9 @@ Order details for Admin and the customer's order history SHALL display the picku
 - **WHEN** an order predates this change and has no agency snapshot
 - **THEN** no agency block is rendered and the page does not error
 
-### Requirement: Branch data is a seeded static snapshot with coordinates
+### Requirement: Branch data is a curated snapshot with coordinates, services, and kind
 
-The system SHALL seed `PostalAgency` from a static `sucursales.json` snapshot that includes lat/lon per branch. The snapshot SHALL be treated as the source of truth until a live PAQ.AR feed replaces it. Reseeding SHALL be idempotent by `Code`.
+The system SHALL seed `PostalAgency` from a curated `sucursales.json` snapshot that includes lat/lon, `Services` (comma-separated official service ids from the site card `rel`), and `Kind` (`SUCURSAL` or `UP`) per branch. Unidad Postal points SHALL be ingested with stable synthetic codes (`UP-{provinceCode}-{hash6}`). The Correo site SHALL be the source of truth (monthly `tools/refresh_sucursales.py`); `LastVerifiedUtc`/`Source` track confirmations. Reseeding SHALL be idempotent by `Code`.
 
 #### Scenario: Seeded agencies have coordinates
 - **WHEN** migrations/seed run

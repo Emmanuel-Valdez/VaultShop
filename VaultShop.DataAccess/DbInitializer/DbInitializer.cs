@@ -118,7 +118,7 @@ namespace VaultShop.DataAccess.DbInitializer
 		{
 			try
 			{
-				// ponytail: idempotent upsert by Code; synthetic coords (~province centroid ±0.8°) are approximate — replace with Georef batch if precision matters
+				// ponytail: idempotent upsert by Code; rows with Source="correo" carry official coords from tools/refresh_sucursales.py, LastVerifiedUtc=null means never confirmed (closure candidate)
 				var jsonPath = ResolveSucursalesPath();
 				if (jsonPath == null)
 				{
@@ -141,12 +141,13 @@ namespace VaultShop.DataAccess.DbInitializer
 				foreach (var a in agencies.Where(a => existing.Contains(a.Code)))
 				{
 					var e = _db.PostalAgencies.Find(a.Code);
-					if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.PostalCode != a.PostalCode || e.Province != a.Province))
-					{
-						e.Name = a.Name; e.Street = a.Street; e.Number = a.Number; e.Locality = a.Locality; e.City = a.City;
-						e.Province = a.Province; e.ProvinceCode = a.ProvinceCode; e.PostalCode = a.PostalCode; e.Latitude = a.Latitude; e.Longitude = a.Longitude;
-						changed++;
-					}
+				if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.PostalCode != a.PostalCode || e.Province != a.Province || e.LastVerifiedUtc != a.LastVerifiedUtc || e.Source != a.Source))
+				{
+					e.Name = a.Name; e.Street = a.Street; e.Number = a.Number; e.Locality = a.Locality; e.City = a.City;
+					e.Province = a.Province; e.ProvinceCode = a.ProvinceCode; e.PostalCode = a.PostalCode; e.Latitude = a.Latitude; e.Longitude = a.Longitude;
+					e.LastVerifiedUtc = a.LastVerifiedUtc; e.Source = a.Source;
+					changed++;
+				}
 				}
 				if (changed > 0) _db.SaveChanges();
 			}

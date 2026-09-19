@@ -4,16 +4,20 @@
 - [x] 1.2 Fallback: generate `sucursales.json` with coordinates — ingest national gist (no coords) and batch-geocode via Georef `/direcciones` lotes until every row has `lat/lon`, and verify no row has null coords and file is checked in under `data/` or `VaultShop.DataAccess/SeedData/`
 - [x] 1.3 Add `PostalAgency` entity (Code PK, Name, Street, Number, Locality, City, Province, ProvinceCode, PostalCode, Latitude, Longitude) and verify `dotnet build` succeeds
 - [x] 1.4 Add EF migration + idempotent seed (upsert by Code) for `PostalAgency` and verify `dotnet ef database update` locally seeds ~3,300 rows and re-running seed does not duplicate
+- [x] 1.5 Add `PostalAgency.LastVerifiedUtc` (nullable) + `Source` ("correo"|"gist") + migration `AddPostalAgencyVerification`, extend seed upsert to those fields, and verify `dotnet build` succeeds
+- [x] 1.6 Write `tools/refresh_sucursales.py` (stdlib-only, re-runnable monthly): scrape `wsFacade.php` `localidadesconsucursales` + `sucursales` per province, parse `L.marker([lat,lng])` + code from card `rel`, merge over `sucursales.json` by Code (official coords + `LastVerifiedUtc=now` on match, keep gist-only rows as closure candidates), and verify report shows confirmed/unconfirmed/new counts
+- [x] 1.7 Second-pass match by address in `tools/refresh_sucursales.py`
+- [ ] 1.8 Capture services + ingest UP: extend `tools/refresh_sucursales.py` to store card `rel` service ids per branch and ingest UNIDAD POSTAL points (skip AGENCIA-labeled pins duplication) with stable synthetic codes `UP-{provinceCode}-{hash6}` over name|locality|street and `Kind="UP"`; add `PostalAgency.Services` (string) + `Kind` (string) + migration, extend seed upsert, re-run full refresh, and verify CABA has ~49 SUC + ~265 UP rows and every candidate row carries service `40` where the site lists it: for gist-only rows, match site entries on (normalized street + number + locality) within the same province — on one-to-one match rename to the site name (site wins), set official coords + `LastVerifiedUtc=now` + `source="correo"`, log renames; skip ambiguous matches with warning — and verify report shows rename count and remaining unverified count
 
 ## 2. Order model — agency snapshot
 
-- [ ] 2.1 Add `OrderHeader` columns `DeliveryType` (string), `PickupAgencyCode`, `PickupAgencyName`, `PickupAgencyAddress` (all nullable for pre-change orders) and verify migration creates them
-- [ ] 2.2 Update `ApplicationDbContext` / model snapshot and verify `dotnet build` succeeds
+- [x] 2.1 Add `OrderHeader` columns `DeliveryType` (string), `PickupAgencyCode`, `PickupAgencyName`, `PickupAgencyAddress` (all nullable for pre-change orders) and verify migration creates them
+- [x] 2.2 Update `ApplicationDbContext` / model snapshot and verify `dotnet build` succeeds
 
 ## 3. Services — geocoding and nearest-5
 
 - [ ] 3.1 Implement `GeorefAddressService` (`HttpClient`, `GeorefOptions:BaseUrl`, 5s timeout) calling `georef/api/direcciones?direccion=&provincia=&localidad=&max=1` and verify it returns `lat/lon` for a known Mendoza address and `null` on bad address / non-2xx
-- [ ] 3.2 Implement `NearestAgencyService` (haversine, province-filtered, top 5, distanceKm) and verify unit test `NearestAgencyServiceTests` passes for ranking, tie, and <5-in-province cases
+- [ ] 3.2 Implement `NearestAgencyService` (haversine, province-filtered, top 5, distanceKm, verified `Source="correo"` + service-`40` filter, both `Kind`s) and verify unit test `NearestAgencyServiceTests` passes for ranking, tie, <5-in-province, unverified-exclusion, and no-40-exclusion cases
 - [ ] 3.3 Register services in DI (`Program.cs`) and verify checkout still resolves `CartController`
 
 ## 4. Checkout — branch search and selection
