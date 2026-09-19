@@ -29,7 +29,7 @@
 ## 6. Final verification
 
 - [x] 6.1 Run `dotnet test VaultShop.sln` and verify the full suite is green (306 baseline + new category-image tests — 323 total after review fixes)
-- [ ] 6.2 Browser-check the full admin upload → storefront render path (upload image, see pill thumb on home + search, delete image, confirm fallback returns) including dark mode
+- [x] 6.2 Browser-check the full admin upload → storefront render path (upload image, see pill thumb on home + search, delete image, confirm fallback returns) including dark mode
 
 ## 7. Review follow-up (code-reviewer + test-engineer fixes)
 
