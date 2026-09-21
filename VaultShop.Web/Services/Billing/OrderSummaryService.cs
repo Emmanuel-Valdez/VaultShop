@@ -59,6 +59,11 @@ namespace VaultShop.Web.Services.Billing
 				ShippingPostalCode = o.PostalCode,
 				ShippingPhoneNumber = o.PhoneNumber,
 
+				DeliveryType = o.DeliveryType,
+				PickupAgencyCode = o.PickupAgencyCode,
+				PickupAgencyName = o.PickupAgencyName,
+				PickupAgencyAddress = o.PickupAgencyAddress,
+
 				Items = details.Select(d => new OrderSummaryItemViewModel
 				{
 					ProductName = d.Product?.Name ?? string.Empty,

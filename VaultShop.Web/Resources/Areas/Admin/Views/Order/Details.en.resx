@@ -255,6 +255,18 @@
   <data name="Phone" xml:space="preserve">
     <value>Phone</value>
   </data>
+  <data name="PickupAgencyAddress" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="PickupAgencyCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="PickupAgencyName" xml:space="preserve">
+    <value>Branch</value>
+  </data>
+  <data name="PickupAgencyTitle" xml:space="preserve">
+    <value>Branch pickup</value>
+  </data>
   <data name="PickupDetails" xml:space="preserve">
     <value>Pickup Details</value>
   </data>

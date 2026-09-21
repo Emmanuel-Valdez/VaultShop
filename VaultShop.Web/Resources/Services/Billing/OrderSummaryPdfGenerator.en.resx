@@ -139,4 +139,7 @@
   <data name="Unspecified" xml:space="preserve">
     <value>Unspecified</value>
   </data>
+  <data name="PickupAgencyTitle" xml:space="preserve">
+    <value>Branch pickup</value>
+  </data>
 </root>

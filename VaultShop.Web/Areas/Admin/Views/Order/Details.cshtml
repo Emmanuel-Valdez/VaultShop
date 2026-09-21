@@ -206,6 +206,30 @@
 									<input asp-for="OrderHeader.ApplicationUser.Email" readonly type="text" class="form-control shadow" />
 								</div>
 							</div>
+							@if (Model.OrderHeader.DeliveryType == SD.DeliveryTypePickup)
+							{
+								<div class="row my-1">
+									<div class="col-12"><strong>@Localizer["PickupAgencyTitle"]</strong></div>
+								</div>
+								<div class="row my-1">
+									<div class="col-3">@Localizer["PickupAgencyCode"]</div>
+									<div class="col-9">
+										<input asp-for="OrderHeader.PickupAgencyCode" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+								<div class="row my-1">
+									<div class="col-3">@Localizer["PickupAgencyName"]</div>
+									<div class="col-9">
+										<input asp-for="OrderHeader.PickupAgencyName" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+								<div class="row my-1">
+									<div class="col-3">@Localizer["PickupAgencyAddress"]</div>
+									<div class="col-9">
+										<input asp-for="OrderHeader.PickupAgencyAddress" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+							}
 							<div class="row my-1">
 								<div class="col-3">@Localizer["OrderDate"]</div>
 								<div class="col-9">

@@ -142,4 +142,7 @@
   <data name="Unspecified" xml:space="preserve">
     <value>No especificado</value>
   </data>
+  <data name="PickupAgencyTitle" xml:space="preserve">
+    <value>Retiro en sucursal</value>
+  </data>
 </root>

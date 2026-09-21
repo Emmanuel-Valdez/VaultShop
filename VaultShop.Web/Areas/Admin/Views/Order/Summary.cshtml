@@ -91,6 +91,22 @@
 			</div>
 		</div>
 
+		@if (!string.IsNullOrWhiteSpace(Model.PickupAgencyCode))
+		{
+			<div class="col-12">
+				<div class="card">
+					<div class="card-header bg-body-tertiary">
+						<h5 class="mb-0">@Localizer["PickupAgencyTitle"]</h5>
+					</div>
+					<div class="card-body">
+						<p class="mb-1 fw-semibold">@Model.PickupAgencyName</p>
+						<p class="mb-1">@Model.PickupAgencyCode</p>
+						<p class="mb-0">@Model.PickupAgencyAddress</p>
+					</div>
+				</div>
+			</div>
+		}
+
 		<div class="col-12">
 			<div class="card">
 				<div class="card-header bg-body-tertiary">

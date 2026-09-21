@@ -66,6 +66,46 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void GetSummary_PickupOrder_MapsAgencySnapshot()
+		{
+			var order = CreateCustomerOrder();
+			order.DeliveryType = SD.DeliveryTypePickup;
+			order.PickupAgencyCode = "TEST01";
+			order.PickupAgencyName = "Test Branch";
+			order.PickupAgencyAddress = "San Martin 123, Godoy Cruz, Mendoza M5501";
+			var details = CreateCustomerOrderDetails();
+			var unitOfWork = CreateUnitOfWork(order, details, [CreateUser("user-1")]);
+			var service = new OrderSummaryService(unitOfWork.Object, new OrderAccessPolicy(unitOfWork.Object));
+			var principal = CreatePrincipal("user-1");
+
+			var result = service.GetSummary(order.Id, principal);
+
+			Assert.NotNull(result);
+			Assert.Equal(SD.DeliveryTypePickup, result.DeliveryType);
+			Assert.Equal("TEST01", result.PickupAgencyCode);
+			Assert.Equal("Test Branch", result.PickupAgencyName);
+			Assert.Equal("San Martin 123, Godoy Cruz, Mendoza M5501", result.PickupAgencyAddress);
+		}
+
+		[Fact]
+		public void GetSummary_PreChangeOrder_AgencyFieldsAreNull()
+		{
+			var order = CreateCustomerOrder();
+			var details = CreateCustomerOrderDetails();
+			var unitOfWork = CreateUnitOfWork(order, details, [CreateUser("user-1")]);
+			var service = new OrderSummaryService(unitOfWork.Object, new OrderAccessPolicy(unitOfWork.Object));
+			var principal = CreatePrincipal("user-1");
+
+			var result = service.GetSummary(order.Id, principal);
+
+			Assert.NotNull(result);
+			Assert.Null(result.DeliveryType);
+			Assert.Null(result.PickupAgencyCode);
+			Assert.Null(result.PickupAgencyName);
+			Assert.Null(result.PickupAgencyAddress);
+		}
+
+		[Fact]
 		public void GetSummary_ForeignOrder_ReturnsNull()
 		{
 			var order = CreateCustomerOrder();

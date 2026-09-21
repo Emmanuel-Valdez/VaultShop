@@ -154,4 +154,16 @@
   <data name="Unspecified" xml:space="preserve">
     <value>No especificado</value>
   </data>
+  <data name="PickupAgencyTitle" xml:space="preserve">
+    <value>Retiro en sucursal</value>
+  </data>
+  <data name="PickupAgencyCode" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="PickupAgencyName" xml:space="preserve">
+    <value>Sucursal</value>
+  </data>
+  <data name="PickupAgencyAddress" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
 </root>

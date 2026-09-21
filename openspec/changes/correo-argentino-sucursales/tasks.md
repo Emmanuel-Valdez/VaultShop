@@ -28,13 +28,13 @@
 
 ## 5. Admin and order history
 
-- [ ] 5.1 Show agency snapshot on `Admin/Order/Details` (and customer order history) when `DeliveryType=S`, and verify pre-change orders render no agency block without error
+- [x] 5.1 Show agency snapshot on `Admin/Order/Details` (and customer order history) when `DeliveryType=S`, and verify pre-change orders render no agency block without error
 
 ## 6. Localization and copy
 
-- [ ] 6.1 Add `es-AR`/`en-US` resx entries for the branch block, free-shipping copy, search button, validation messages, and agency fields, and verify both cultures render correctly
+- [x] 6.1 Add `es-AR`/`en-US` resx entries for the branch block, free-shipping copy, search button, validation messages, and agency fields, and verify both cultures render correctly
 
 ## 7. Tests and verification
 
-- [ ] 7.1 Add `VaultShop.Tests` coverage: `GeorefAddressService` parsing (mock `HttpMessageHandler`) + `NearestAgencyService` haversine ordering + `SummaryPOST` rejects missing agency, and verify `dotnet test` passes
-- [ ] 7.2 Run full verification `dotnet build` and `dotnet test` and verify green
+- [x] 7.1 Add `VaultShop.Tests` coverage: `GeorefAddressService` parsing (mock `HttpMessageHandler`) + `NearestAgencyService` haversine ordering + `SummaryPOST` rejects missing agency, and verify `dotnet test` passes
+- [x] 7.2 Run full verification `dotnet build` and `dotnet test` and verify green

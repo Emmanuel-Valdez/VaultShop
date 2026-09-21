@@ -128,6 +128,14 @@ namespace VaultShop.DataAccess.DbInitializer
 				var json = File.ReadAllText(jsonPath);
 				var agencies = System.Text.Json.JsonSerializer.Deserialize<List<PostalAgency>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 				if (agencies == null || agencies.Count == 0) return;
+				// ponytail: sucursales.json carries offsets (Kind=Local) and Npgsql rejects Local for timestamptz — normalize once, covers insert + update paths.
+				foreach (var a in agencies)
+				{
+					if (a.LastVerifiedUtc.HasValue)
+					{
+						a.LastVerifiedUtc = a.LastVerifiedUtc.Value.ToUniversalTime();
+					}
+				}
 				var existing = _db.PostalAgencies.Select(a => a.Code).ToHashSet();
 				var toAdd = agencies.Where(a => !existing.Contains(a.Code)).ToList();
 				if (toAdd.Count > 0)

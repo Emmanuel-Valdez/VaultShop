@@ -23,6 +23,12 @@ namespace VaultShop.Models.ViewModels
 		public string ShippingPostalCode { get; set; } = string.Empty;
 		public string ShippingPhoneNumber { get; set; } = string.Empty;
 
+		// correo-argentino pickup snapshot: null for pre-change orders
+		public string? DeliveryType { get; set; }
+		public string? PickupAgencyCode { get; set; }
+		public string? PickupAgencyName { get; set; }
+		public string? PickupAgencyAddress { get; set; }
+
 		public List<OrderSummaryItemViewModel> Items { get; set; } = new();
 		public decimal OrderTotal { get; set; }
 	}

@@ -89,6 +89,15 @@ namespace VaultShop.Web.Services.Billing
 				column.Item().Text(summary.ShippingStreetAddress);
 				column.Item().Text($"{summary.ShippingCity}, {summary.ShippingState} {summary.ShippingPostalCode}");
 				column.Item().Text(summary.ShippingPhoneNumber);
+				if (!string.IsNullOrWhiteSpace(summary.PickupAgencyCode))
+				{
+					column.Item().PaddingTop(8).Text(_localizer["PickupAgencyTitle"].Value).Bold().FontSize(14);
+					if (!string.IsNullOrWhiteSpace(summary.PickupAgencyName))
+						column.Item().Text(summary.PickupAgencyName);
+					column.Item().Text(summary.PickupAgencyCode);
+					if (!string.IsNullOrWhiteSpace(summary.PickupAgencyAddress))
+						column.Item().Text(summary.PickupAgencyAddress);
+				}
 
 				column.Item().PaddingTop(8).Table(table =>
 				{
