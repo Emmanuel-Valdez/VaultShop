@@ -121,7 +121,7 @@
     <value>Volver a Lista</value>
   </data>
   <data name="City" xml:space="preserve">
-    <value>Ciudad</value>
+    <value>Localidad</value>
   </data>
   <data name="Company" xml:space="preserve">
     <value>Empresa</value>

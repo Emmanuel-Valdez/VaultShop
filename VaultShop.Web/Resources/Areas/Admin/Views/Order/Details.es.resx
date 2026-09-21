@@ -154,7 +154,7 @@
     <value>Ingresá el transportista.</value>
   </data>
   <data name="City" xml:space="preserve">
-    <value>Ciudad</value>
+    <value>Localidad</value>
   </data>
   <data name="ConfirmTransferSent" xml:space="preserve">
     <value>Ya transferí</value>

@@ -617,8 +617,10 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				}
 				else
 				{
+					// ponytail: exclude company-stamped orders so demoted ex-Company users
+					// don't see list entries they can no longer open (OrderAccessPolicy 404s them).
 					objOrderHeaders = _unitOfWork.OrderHeader
-						.GetAll(u => u.ApplicationUserId == userId, includeProperties: "ApplicationUser");
+						.GetAll(u => u.ApplicationUserId == userId && u.CompanyId.GetValueOrDefault() == 0, includeProperties: "ApplicationUser");
 				}
 			}
 

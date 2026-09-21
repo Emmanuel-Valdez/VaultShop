@@ -172,7 +172,7 @@
     <value>Total</value>
   </data>
   <data name="UserCity" xml:space="preserve">
-    <value>Ciudad</value>
+    <value>Localidad</value>
   </data>
   <data name="UserName" xml:space="preserve">
     <value>Nombre</value>

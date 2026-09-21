@@ -49,7 +49,7 @@ namespace VaultShop.Models
 		[Display(Name = "Street Address")]
 		[LocalizedRequired("Street address is required.", "La direcci�n es obligatoria.")]
 		public string StreetAddress { get; set; } = string.Empty;
-		[LocalizedRequired("City is required.", "La ciudad es obligatoria.")]
+		[LocalizedRequired("City is required.", "La localidad es obligatoria.")]
 		public string City { get; set; } = string.Empty;
 		[LocalizedRequired("State is required.", "La provincia es obligatoria.")]
 		public string State { get; set; } = string.Empty;
