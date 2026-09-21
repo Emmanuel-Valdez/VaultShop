@@ -37,7 +37,7 @@ public sealed class NearestAgencyService : INearestAgencyService
 
 		var agency = _db.PostalAgencies.AsNoTracking().FirstOrDefault(a => a.Code == code.Trim());
 		// ponytail: same candidate rules as Rank — a forged code for an unverified or non-parcel branch resolves to null.
-		if (agency is null || !string.Equals(agency.Source, "correo", StringComparison.OrdinalIgnoreCase) || !HasParcelService(agency.Services))
+		if (agency is null || !IsCandidate(agency))
 		{
 			return null;
 		}
@@ -47,7 +47,7 @@ public sealed class NearestAgencyService : INearestAgencyService
 
 	internal static IReadOnlyList<AgencyCandidate> Rank(IEnumerable<PostalAgency> agencies, double? lat, double? lon, string? province, string? locality, int max = 5)
 	{
-		var candidates = agencies.Where(a => string.Equals(a.Source, "correo", StringComparison.OrdinalIgnoreCase) && HasParcelService(a.Services)).ToList();
+		var candidates = agencies.Where(IsCandidate).ToList();
 		var inProvince = MatchProvince(candidates, province);
 		// ponytail: province mismatch broadens to national top-5 instead of returning empty.
 		var pool = inProvince.Count > 0 ? inProvince : candidates;
@@ -72,8 +72,13 @@ public sealed class NearestAgencyService : INearestAgencyService
 			.ToList();
 	}
 
-	internal static bool HasParcelService(string? services)
-	{
+	// ponytail: MiCorreo valida elegibilidad de paqueteria por si misma — una fila
+	// source=micorreo no necesita servicio 40 del scrapeo del sitio.
+	internal static bool IsCandidate(PostalAgency a) =>
+		(string.Equals(a.Source, "correo", StringComparison.OrdinalIgnoreCase) && HasParcelService(a.Services)) ||
+		string.Equals(a.Source, "micorreo", StringComparison.OrdinalIgnoreCase);
+
+	internal static bool HasParcelService(string? services)	{
 		if (string.IsNullOrWhiteSpace(services))
 		{
 			return false;

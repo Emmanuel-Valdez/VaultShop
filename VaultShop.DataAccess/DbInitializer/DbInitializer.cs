@@ -158,6 +158,15 @@ namespace VaultShop.DataAccess.DbInitializer
 				}
 				}
 				if (changed > 0) _db.SaveChanges();
+			// ponytail: sucursales.json is the full truth — rows removed from it (quarantined in sucursales-dudosas.json) must disappear from the DB too. Orders keep their own snapshot strings, so no history breaks.
+			var jsonCodes = agencies.Select(a => a.Code).ToHashSet();
+			var stale = _db.PostalAgencies.Where(a => !jsonCodes.Contains(a.Code)).ToList();
+			if (stale.Count > 0)
+			{
+				_db.PostalAgencies.RemoveRange(stale);
+				_db.SaveChanges();
+				_logger.LogInformation("Removed {Count} stale PostalAgencies not present in sucursales.json.", stale.Count);
+			}
 			}
 			catch (Exception ex)
 			{

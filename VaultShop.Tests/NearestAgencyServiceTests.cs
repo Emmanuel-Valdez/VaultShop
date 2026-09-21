@@ -117,6 +117,18 @@ namespace VaultShop.Web.Tests
 			Assert.All(result, c => Assert.Null(c.DistanceKm));
 		}
 
+		[Fact]
+		public void Rank_IncludesMicorreoWithoutParcelService()
+		{
+			var micorreo = Agency("V0004", "Ushuaia", "Tierra del Fuego", -54.80, -68.30, services: "1,2,3");
+			micorreo.Source = "micorreo";
+
+			var result = NearestAgencyService.Rank([micorreo], -54.80, -68.30, "Tierra del Fuego", null);
+
+			Assert.Single(result);
+			Assert.Equal("V0004", result[0].Code);
+		}
+
 		private static PostalAgency Agency(string code, string name, string province, double lat, double lon, string services = "1,40", string kind = "SUCURSAL")
 		{
 			return new PostalAgency
