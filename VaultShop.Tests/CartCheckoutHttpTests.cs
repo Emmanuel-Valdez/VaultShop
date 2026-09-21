@@ -376,6 +376,70 @@ public class CartCheckoutHttpTests
     }
 
     [Fact]
+    public async Task SummaryPost_WithoutAgency_PreservesAddressAndRehidesCandidates()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IGeorefAddressService>();
+                services.AddScoped<IGeorefAddressService, FakeGeorefAddressService>();
+            }));
+        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: null);
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Select a Correo Argentino branch to continue.", html);
+        // Typed address + payment choice survive the failed POST.
+        Assert.Contains("123 Test St", html);
+        Assert.Contains("555-0100", html);
+        Assert.Contains($"value=\"{SD.PaymentMethodBankTransfer}\"", html);
+        // Candidates rehydrated server-side.
+        Assert.Contains("TEST01", html);
+        Assert.Contains("Test Branch", html);
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Empty(db.OrderHeaders.AsNoTracking());
+    }
+
+    [Fact]
+    public async Task SummaryPost_WithInvalidAgencyCode_RehidesCandidates()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IGeorefAddressService>();
+                services.AddScoped<IGeorefAddressService, FakeGeorefAddressService>();
+            }));
+        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: "NOPE");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Select a Correo Argentino branch to continue.", html);
+        Assert.Contains("123 Test St", html);
+        Assert.Contains("TEST01", html);
+        Assert.Contains("Test Branch", html);
+
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Empty(db.OrderHeaders.AsNoTracking());
+    }
+
+    [Fact]
     public async Task SummaryPost_WithoutAgency_RerendersSummaryWithoutCreatingOrder()
     {
         using var factory = new CustomWebApplicationFactory();

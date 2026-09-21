@@ -153,7 +153,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		{
 			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
 			PopulatePaymentMethodViewData();
-			return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
+			return View(await RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM, HttpContext.RequestAborted));
 		}
 
 		// ponytail: snapshot is re-resolved from PostalAgency by code — client name/address are never trusted.
@@ -168,7 +168,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return RedirectToAction(nameof(Index));
 			}
 			PopulatePaymentMethodViewData();
-			return View(summaryResult.ShoppingCartVM ?? ShoppingCartVM);
+			return View(await RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM, HttpContext.RequestAborted));
 		}
 
 		ShoppingCartVM.OrderHeader.DeliveryType = SD.DeliveryTypePickup;
@@ -328,6 +328,44 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
 			ViewData["ShowDemoNotice"] = _configuration.GetValue("Storefront:ShowDemoNotice", true);
 			PopulateBankTransferViewData();
+		}
+
+		// ponytail: failure-path only — posted scalars overlay the authoritative rebuilt VM (cart/totals stay server-built),
+		// then candidates rehydrate via the same geocode + nearest-5 path as GetNearestAgencies. Never throws.
+		private async Task<ShoppingCartVM> RestorePostedHeaderAndCandidates(ShoppingCartVM? fresh, CancellationToken ct)
+		{
+			var posted = ShoppingCartVM.OrderHeader;
+			var vm = fresh ?? ShoppingCartVM;
+			if (!ReferenceEquals(vm, ShoppingCartVM) && vm.OrderHeader is not null && posted is not null)
+			{
+				vm.OrderHeader.Name = posted.Name ?? string.Empty;
+				vm.OrderHeader.PhoneNumber = posted.PhoneNumber ?? string.Empty;
+				vm.OrderHeader.StreetAddress = posted.StreetAddress ?? string.Empty;
+				vm.OrderHeader.City = posted.City ?? string.Empty;
+				vm.OrderHeader.State = posted.State ?? string.Empty;
+				vm.OrderHeader.PostalCode = posted.PostalCode ?? string.Empty;
+				vm.OrderHeader.PaymentMethod = posted.PaymentMethod;
+				vm.OrderHeader.PickupAgencyCode = posted.PickupAgencyCode;
+			}
+
+			IReadOnlyList<AgencyCandidate> candidates = [];
+			try
+			{
+				(double Lat, double Lon)? coords = null;
+				if (!string.IsNullOrWhiteSpace(posted?.StreetAddress) && !string.IsNullOrWhiteSpace(posted?.State))
+				{
+					// ponytail: HttpClient timeout is 5s; service returns null (never throws) on lookup failure.
+					coords = await _georefAddressService.GeocodeAsync(posted!.StreetAddress, posted.State, posted.City, ct);
+				}
+				candidates = _nearestAgencyService.FindNearest(coords?.Lat, coords?.Lon, posted?.State, posted?.City);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Branch candidate rehydration failed during checkout.");
+				candidates = [];
+			}
+			ViewData["AgencyCandidates"] = candidates;
+			return vm;
 		}
 
 		private void PopulateBankTransferViewData()

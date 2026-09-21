@@ -204,4 +204,7 @@
   <data name="NoBranchesFound" xml:space="preserve">
     <value>No se encontraron sucursales. Verificá la dirección e intentá de nuevo.</value>
   </data>
+  <data name="EnterAddressBeforeSearch" xml:space="preserve">
+    <value>Completá la calle y la provincia antes de buscar sucursales.</value>
+  </data>
 </root>
