@@ -37,8 +37,9 @@ Selected current flows for backend/portfolio review.
 - ASP.NET Core Identity with roles Customer/Company/Employee/Admin, Google OAuth (only external provider), rate limiting + lockout, branded 404/500 (sakura, localized).
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer, provider-verified webhooks/browser returns, refunds on cancellation, background `PaymentReconciliation` re-checks stale pending sessions.
 - Product image upload validation, resizing, metadata persistence via `IImageStorageService` (Local/MinIO).
- - Localization es-AR/en-US; health endpoints (`/health/live`, `/health/ready`) for liveness/readiness probes.
- - Deployment version stamped at build (`APP_VERSION`/`APP_BUILD_DATE`) with admin-only page (`/Admin/System/Version`) comparing deployed commit vs GitHub `main` (cached 5 min).
+- Branch pickup: deterministic province→locality→branch cascade selection with hours, admin correction window, shipped-order freeze, pickup branch block in transactional emails + PDF summary + FAQ.
+- Localization es-AR/en-US; health endpoints (`/health/live`, `/health/ready`) for liveness/readiness probes.
+- Deployment version stamped at build (`APP_VERSION`/`APP_BUILD_DATE`) with admin-only page (`/Admin/System/Version`) comparing deployed commit vs GitHub `main` (cached 5 min).
 
 ## Tech Stack
 
@@ -47,7 +48,7 @@ Selected current flows for backend/portfolio review.
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer
 - Resend email (Fake/Unconfigured) + QuestPDF (order summary PDF, community license)
 - Docker & Docker Compose (platform + per-store stacks) + Nginx HTTPS proxy + MinIO S3
-- xUnit + Moq + SQLite in-memory (293 tests post collections-polish, service/integration/HTTP — `dotnet test VaultShop.sln` green)
+- xUnit + Moq + SQLite in-memory (373 tests post correo-sucursales-fase-2, service/integration/HTTP — `dotnet test VaultShop.sln` green)
 
 ## Architecture Highlights
 
@@ -228,10 +229,10 @@ For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on 
 ## Tests
 
 ```powershell
-dotnet test VaultShop.sln   # 293 tests post collections-polish — dotnet build --no-restore clean
+dotnet test VaultShop.sln   # 373 tests post correo-sucursales-fase-2 — dotnet build --no-restore clean
 ```
 
-Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview.
+Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview, branch cascade API, seeded province list, pickup branch correction, shipped-order freeze.
 
 ## Deployment Direction
 
@@ -239,7 +240,7 @@ Live on Ubuntu 24.04 Oracle VPS, Docker Compose behind host Nginx HTTPS (only 80
 
 Shape: PostgreSQL + MinIO private on Docker network; images via `https://{domain}/product-images`; secrets in git-ignored `.platform.env`/`.env.compose`; `Database__RunMigrationsOnStartup=false` (intentional migrations); `DataProtection__KeysPath` persisted.
 
-Hardening done: automated store-parametric backups (weekly VaultShop, daily UkiyoStudio) with freshness/disk checks, container `unless-stopped`, health probes (`/health/live` liveness, `/health/ready` DB+storage), rate limiting + lockout, branded 404/500.
+Hardening done: automated store-parametric backups (weekly VaultShop, daily UkiyoStudio) with freshness/disk checks, container `unless-stopped`, health probes (`/health/live` liveness, `/health/ready` DB+storage), rate limiting + lockout, branded 404/500, shipped-order freeze.
 
 Still manual: restore drills (tested locally with `pg_restore --no-owner` + `mc mirror`), webhook/user-flow smoke after deploy, broader observability if real traffic grows.
 
@@ -248,10 +249,10 @@ Runbook: [`docs/operations/runbook.md`](docs/operations/runbook.md).
 ## Current Limitations / Next Work
 
 - Backups automated; restore drills are manual (repeat after backup-process changes — `pg_restore --no-owner` + `mc mirror`).
-- Smoke-test after deploys: paid/unpaid flows (Stripe/MP), bank-transfer approval, branding/theme, pagination + keyword/collection hero, order-summary PDF, 404/health, wholesale preview.
-- Next spec: **Category images** (`plans/vaultshop-new-specs.md#7`) — representative thumbnail per category in filter UI (`Category` image via MinIO, admin upsert, home/search chips).
-- Deferred backlog: product slugs (SEO `/products/name`), variants (size/color), coupons/discounts, shipping as order line, multiple addresses, customer self-cancel, Correo Argentino branches. See `plans/vaultshop-new-specs.md` and `openspec/specs/` (pricing `per-product MaxExpectation`, admin-preview, catalog keywords/collection-hero all shipped and archived `2026-09-14`/`15`/`17`/`18`).
-- Frontend is functional polish (stepper, password toggles, sakura 404, scroll-row collection chips, hero parallax); portfolio value is backend/ops evidence.
+- Smoke-test after deploys: paid/unpaid flows (Stripe/MP), bank-transfer approval, branding/theme, pagination + keyword/collection hero, order-summary PDF, 404/health, wholesale preview, branch cascade pickup.
+- Next spec: **Product slugs** (`plans/vaultshop-new-specs.md#9`) — SEO-friendly URLs (`/products/product-name`), shared slug helper, category slugs ride along.
+- Deferred backlog: variants (size/color), coupons/discounts, shipping as order line, multiple addresses, customer self-cancel, email attachments. See `plans/vaultshop-new-specs.md`.
+- Frontend is functional polish (stepper, password toggles, sakura 404, scroll-row collection chips, hero parallax, branch cascade picker); portfolio value is backend/ops evidence.
 
 ## Portfolio Scope
 
