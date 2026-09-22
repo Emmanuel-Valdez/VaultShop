@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Web.Services.Branding;
 
@@ -97,6 +98,8 @@ namespace VaultShop.Web.Services.Billing
 					column.Item().Text(summary.PickupAgencyCode);
 					if (!string.IsNullOrWhiteSpace(summary.PickupAgencyAddress))
 						column.Item().Text(summary.PickupAgencyAddress);
+					// ponytail: snapshot is NOT NULL DEFAULT sentinel, so the value renders as-is; fallback only for hand-built VMs
+					column.Item().Text($"{_localizer["PickupAgencyHoursLabel"].Value}: {summary.PickupAgencyHours ?? PostalAgency.HoursUnknown}");
 				}
 
 				column.Item().PaddingTop(8).Table(table =>

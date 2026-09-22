@@ -234,18 +234,7 @@ builder.Services.AddHealthChecks()
 	.AddDbContextCheck<ApplicationDbContext>(name: "database")
 	.AddCheck<StorageHealthCheck>("storage");
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
-builder.Services.Configure<GeorefOptions>(builder.Configuration.GetSection("Georef"));
-builder.Services.AddHttpClient<IGeorefAddressService, GeorefAddressService>(client =>
-{
-	var baseUrl = builder.Configuration["Georef:BaseUrl"];
-	if (string.IsNullOrWhiteSpace(baseUrl))
-	{
-		baseUrl = new GeorefOptions().BaseUrl;
-	}
-	client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
-	client.Timeout = TimeSpan.FromSeconds(5);
-});
-builder.Services.AddScoped<INearestAgencyService, NearestAgencyService>();
+builder.Services.AddScoped<IBranchLookupService, BranchLookupService>();
 builder.Services.AddHttpClient("GitHub", client =>
 {
 	client.BaseAddress = new Uri("https://api.github.com/");

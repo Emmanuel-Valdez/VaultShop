@@ -15,6 +15,7 @@ using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
+using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Areas.Admin.Controllers
 {
@@ -37,11 +38,13 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		private readonly IOrderSummaryService _orderSummaryService;
 		private readonly IOrderSummaryPdfGenerator _pdfGenerator;
 		private readonly OrderAccessPolicy _orderAccessPolicy;
+		private readonly IBranchLookupService _branchLookup;
 
 		public OrderController(IUnitOfWork unitOfWork, IStringLocalizer<OrderController> localizer, ILogger<OrderController> logger,
 			IServiceProvider paymentSessionServiceProvider, IPaymentRefundService paymentRefundService, IPaymentStatusService paymentStatusService,
 			IWebHostEnvironment environment, IConfiguration configuration, ITransactionalEmailService emailService,
-			IOrderSummaryService orderSummaryService, IOrderSummaryPdfGenerator pdfGenerator, OrderAccessPolicy orderAccessPolicy)
+			IOrderSummaryService orderSummaryService, IOrderSummaryPdfGenerator pdfGenerator, OrderAccessPolicy orderAccessPolicy,
+			IBranchLookupService branchLookup)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
@@ -55,6 +58,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_orderSummaryService = orderSummaryService;
 			_pdfGenerator = pdfGenerator;
 			_orderAccessPolicy = orderAccessPolicy;
+			_branchLookup = branchLookup;
 		}
 
 
@@ -80,11 +84,12 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				OrderHeader = orderHeader,
 				OrderDetail = _unitOfWork.OrderDetail.GetAll(u => u.OrderHeaderId == orderId, includeProperties: "Product")
 			};
-			ViewData["AllowDevelopmentManualPaymentApproval"] = ManualPaymentApprovalEnabled();
-			var isCompanyDetails = orderHeader.CompanyId.GetValueOrDefault() > 0;
-			PopulateBankTransferViewData(isCompanyDetails);
-			return View(OrderVM);
-		}
+		ViewData["AllowDevelopmentManualPaymentApproval"] = ManualPaymentApprovalEnabled();
+		var isCompanyDetails = orderHeader.CompanyId.GetValueOrDefault() > 0;
+		PopulateBankTransferViewData(isCompanyDetails);
+		ViewData["BranchCascadePicker"] = BuildBranchPickerVM(orderHeader);
+		return View(OrderVM);
+	}
 
 		public IActionResult Summary(int orderId)
 		{
@@ -116,31 +121,61 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			if (User.IsInRole(SD.Role_Admin) && !ModelState.IsValid)
 				return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 
-			var orderHeaderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
-			if (orderHeaderFromDb == null)
-			{
-				return NotFound();
-			}
-			if (IsTerminal(orderHeaderFromDb))
-			{
-				_logger.LogWarning("Rejected order-detail update for terminal order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeaderFromDb.Id, orderHeaderFromDb.OrderStatus, orderHeaderFromDb.PaymentStatus);
-				return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
-			}
+		var orderHeaderFromDb = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+		if (orderHeaderFromDb == null)
+		{
+			return NotFound();
+		}
+		// ponytail: shipped orders are frozen for everyone through the app — only direct DB access can alter them.
+		if (IsFrozen(orderHeaderFromDb))
+		{
+			_logger.LogWarning("Rejected order-detail update for frozen order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeaderFromDb.Id, orderHeaderFromDb.OrderStatus, orderHeaderFromDb.PaymentStatus);
+			return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
+		}
 
-			if (orderHeaderFromDb.OrderStatus == SD.StatusShipped && !User.IsInRole(SD.Role_Admin))
+		if (User.IsInRole(SD.Role_Admin))
+		{
+			orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
+			orderHeaderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
+			orderHeaderFromDb.StreetAddress = OrderVM.OrderHeader.StreetAddress;
+			orderHeaderFromDb.City = OrderVM.OrderHeader.City;
+			orderHeaderFromDb.State = OrderVM.OrderHeader.State;
+			orderHeaderFromDb.PostalCode = OrderVM.OrderHeader.PostalCode;
+			if (!string.IsNullOrWhiteSpace(OrderVM.OrderHeader.PickupAgencyCode) &&
+				orderHeaderFromDb.DeliveryType == SD.DeliveryTypePickup)
 			{
-				_logger.LogWarning("Rejected shipped order-detail update by non-admin for order {OrderId}.", orderHeaderFromDb.Id);
-				return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
+				// ponytail: snapshot overwrite is re-resolved by code — posted name/address/hours are never trusted, and no email is sent.
+				var branch = _branchLookup.GetByCode(OrderVM.OrderHeader.PickupAgencyCode);
+				if (branch is null)
+				{
+					if (string.Equals(OrderVM.OrderHeader.PickupAgencyCode, orderHeaderFromDb.PickupAgencyCode, StringComparison.Ordinal))
+					{
+						// ponytail: branch removed/quarantined after the order was created — keep the snapshot on record, never reject.
+						_logger.LogWarning("Pickup branch {BranchCode} no longer exists; keeping snapshot for order {OrderId}.", orderHeaderFromDb.PickupAgencyCode, orderHeaderFromDb.Id);
+					}
+					else
+					{
+						_logger.LogWarning("Rejected order-detail update with unknown branch code for order {OrderId}.", orderHeaderFromDb.Id);
+						TempData["error"] = _localizer["UnknownBranchCode"].Value;
+						return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
+					}
+				}
+				else
+				{
+					if (!string.Equals(orderHeaderFromDb.PickupAgencyCode, branch.Code, StringComparison.Ordinal))
+					{
+						_logger.LogInformation("Corrected pickup branch for order {OrderId}: {OldCode} -> {NewCode}.", orderHeaderFromDb.Id, orderHeaderFromDb.PickupAgencyCode, branch.Code);
+					}
+					orderHeaderFromDb.PickupAgencyCode = branch.Code;
+					orderHeaderFromDb.PickupAgencyName = branch.Name;
+					orderHeaderFromDb.PickupAgencyAddress =
+						(branch.Number.HasValue ? $"{branch.Street} {branch.Number}" : branch.Street).Trim()
+						+ $", {branch.Locality}, {branch.Province} {branch.PostalCode}";
+					orderHeaderFromDb.PickupAgencyHours =
+						string.IsNullOrWhiteSpace(branch.Hours) ? PostalAgency.HoursUnknown : branch.Hours;
+				}
 			}
-			if (User.IsInRole(SD.Role_Admin))
-			{
-				orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
-				orderHeaderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
-				orderHeaderFromDb.StreetAddress = OrderVM.OrderHeader.StreetAddress;
-				orderHeaderFromDb.City = OrderVM.OrderHeader.City;
-				orderHeaderFromDb.State = OrderVM.OrderHeader.State;
-				orderHeaderFromDb.PostalCode = OrderVM.OrderHeader.PostalCode;
-			}
+		}
 			if (!string.IsNullOrEmpty(OrderVM.OrderHeader.Carrier))
 			{
 				orderHeaderFromDb.Carrier = OrderVM.OrderHeader.Carrier;
@@ -217,13 +252,18 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[HttpPost]
 		public async Task<IActionResult> CancelOrder()
 		{
-			var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
-			if (orderHeader == null)
-			{
-				return NotFound();
-			}
+		var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
+		if (orderHeader == null)
+		{
+			return NotFound();
+		}
+		if (IsFrozen(orderHeader))
+		{
+			_logger.LogWarning("Rejected cancel request for frozen order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+			return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
+		}
 
-			if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
+		if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
 			{
 				if (orderHeader.PaymentMethod is SD.PaymentMethodStripe or SD.PaymentMethodMercadoPago
 					&& !string.IsNullOrWhiteSpace(orderHeader.PaymentIntentId))
@@ -270,7 +310,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 			if (orderHeader.CompanyId.GetValueOrDefault() == 0 ||
 				orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment ||
-				IsTerminal(orderHeader))
+				IsFrozen(orderHeader))
 			{
 				return NotFound();
 			}
@@ -473,11 +513,70 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				string.Equals(orderHeader.SessionId, sessionId, StringComparison.Ordinal);
 		}
 
-		private static bool IsTerminal(OrderHeader orderHeader)
+	private static bool IsTerminal(OrderHeader orderHeader)
+	{
+		return orderHeader.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
+			orderHeader.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
+	}
+
+	// ponytail: single freeze predicate — terminal or shipped means fully read-only through the app.
+	private static bool IsFrozen(OrderHeader orderHeader)
+	{
+		return IsTerminal(orderHeader) || orderHeader.OrderStatus == SD.StatusShipped;
+	}
+
+	// ponytail: admin correction reuses the checkout cascade; endpoints stay the Customer ones (public branch data).
+	// Returns null when the picker must not render (non-pickup or frozen order).
+	private BranchCascadePickerVM? BuildBranchPickerVM(OrderHeader order)
+	{
+		if (order.DeliveryType != SD.DeliveryTypePickup || IsFrozen(order))
 		{
-			return orderHeader.OrderStatus is SD.StatusCancelled or SD.StatusRefunded ||
-				orderHeader.PaymentStatus is SD.StatusCancelled or SD.StatusRefunded or SD.PaymentStatusRejected;
+			return null;
 		}
+
+		string? provinceCode = null;
+		string? locality = null;
+		var current = string.IsNullOrWhiteSpace(order.PickupAgencyCode)
+			? null
+			: _branchLookup.GetByCode(order.PickupAgencyCode);
+		if (current is not null)
+		{
+			provinceCode = current.ProvinceCode;
+			locality = current.Locality;
+		}
+
+		return new BranchCascadePickerVM
+		{
+			FieldName = "OrderHeader.PickupAgencyCode",
+			IdPrefix = "adminBranchPicker",
+			// ponytail: gate the Update button only when the current branch preselects it — otherwise the
+			// picker is correction-only and must not block the other admin actions on this form.
+			SubmitButtonId = current is null ? string.Empty : "updateOrderBtn",
+			IsRequired = false,
+			ProvincesUrl = Url?.Action("BranchProvinces", "Cart", new { area = "Customer" }) ?? string.Empty,
+			LocalitiesUrl = Url?.Action("BranchLocalities", "Cart", new { area = "Customer" }) ?? string.Empty,
+			BranchesUrl = Url?.Action("BranchBranches", "Cart", new { area = "Customer" }) ?? string.Empty,
+			Provinces = _branchLookup.GetCandidateProvinces(),
+			SelectedProvinceCode = provinceCode ?? string.Empty,
+			Localities = string.IsNullOrWhiteSpace(provinceCode) ? [] : _branchLookup.GetCandidateLocalities(provinceCode),
+			SelectedLocality = locality ?? string.Empty,
+			Branches = (string.IsNullOrWhiteSpace(provinceCode) || string.IsNullOrWhiteSpace(locality))
+				? []
+				: _branchLookup.GetCandidateBranches(provinceCode, locality).Select(ToBranchOption).ToList(),
+			SelectedBranchCode = current?.Code ?? string.Empty,
+		};
+	}
+
+	private static BranchOption ToBranchOption(PostalAgency agency)
+	{
+		return new BranchOption(
+			agency.Code,
+			agency.Name,
+			(agency.Number.HasValue ? $"{agency.Street} {agency.Number}" : agency.Street).Trim(),
+			agency.Locality,
+			agency.Province,
+			string.IsNullOrWhiteSpace(agency.Hours) ? PostalAgency.HoursUnknown : agency.Hours);
+	}
 
 		private static bool CanStartProcessing(OrderHeader orderHeader)
 		{

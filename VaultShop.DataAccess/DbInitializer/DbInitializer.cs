@@ -128,14 +128,18 @@ namespace VaultShop.DataAccess.DbInitializer
 				var json = File.ReadAllText(jsonPath);
 				var agencies = System.Text.Json.JsonSerializer.Deserialize<List<PostalAgency>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 				if (agencies == null || agencies.Count == 0) return;
-				// ponytail: sucursales.json carries offsets (Kind=Local) and Npgsql rejects Local for timestamptz — normalize once, covers insert + update paths.
-				foreach (var a in agencies)
+			// ponytail: sucursales.json carries offsets (Kind=Local) and Npgsql rejects Local for timestamptz — normalize once, covers insert + update paths.
+			foreach (var a in agencies)
+			{
+				if (a.LastVerifiedUtc.HasValue)
 				{
-					if (a.LastVerifiedUtc.HasValue)
-					{
-						a.LastVerifiedUtc = a.LastVerifiedUtc.Value.ToUniversalTime();
-					}
+					a.LastVerifiedUtc = a.LastVerifiedUtc.Value.ToUniversalTime();
 				}
+				if (string.IsNullOrWhiteSpace(a.Hours))
+				{
+					a.Hours = PostalAgency.HoursUnknown;
+				}
+			}
 				var existing = _db.PostalAgencies.Select(a => a.Code).ToHashSet();
 				var toAdd = agencies.Where(a => !existing.Contains(a.Code)).ToList();
 				if (toAdd.Count > 0)
@@ -149,24 +153,30 @@ namespace VaultShop.DataAccess.DbInitializer
 				foreach (var a in agencies.Where(a => existing.Contains(a.Code)))
 				{
 					var e = _db.PostalAgencies.Find(a.Code);
-				if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.PostalCode != a.PostalCode || e.Province != a.Province || e.LastVerifiedUtc != a.LastVerifiedUtc || e.Source != a.Source || e.Services != a.Services || e.Kind != a.Kind))
-				{
-					e.Name = a.Name; e.Street = a.Street; e.Number = a.Number; e.Locality = a.Locality; e.City = a.City;
-					e.Province = a.Province; e.ProvinceCode = a.ProvinceCode; e.PostalCode = a.PostalCode; e.Latitude = a.Latitude; e.Longitude = a.Longitude;
-					e.LastVerifiedUtc = a.LastVerifiedUtc; e.Source = a.Source; e.Services = a.Services; e.Kind = a.Kind;
-					changed++;
-				}
+				if (e != null && (e.Name != a.Name || e.Latitude != a.Latitude || e.Longitude != a.Longitude || e.Street != a.Street || e.Number != a.Number || e.Locality != a.Locality || e.City != a.City || e.PostalCode != a.PostalCode || e.Province != a.Province || e.ProvinceCode != a.ProvinceCode || e.LastVerifiedUtc != a.LastVerifiedUtc || e.Source != a.Source || e.Services != a.Services || e.Kind != a.Kind || e.Hours != a.Hours))
+			{
+				e.Name = a.Name; e.Street = a.Street; e.Number = a.Number; e.Locality = a.Locality; e.City = a.City;
+				e.Province = a.Province; e.ProvinceCode = a.ProvinceCode; e.PostalCode = a.PostalCode; e.Latitude = a.Latitude; e.Longitude = a.Longitude;
+				e.LastVerifiedUtc = a.LastVerifiedUtc; e.Source = a.Source; e.Services = a.Services; e.Kind = a.Kind; e.Hours = a.Hours;
+				changed++;
+			}
 				}
 				if (changed > 0) _db.SaveChanges();
-			// ponytail: sucursales.json is the full truth — rows removed from it (quarantined in sucursales-dudosas.json) must disappear from the DB too. Orders keep their own snapshot strings, so no history breaks.
-			var jsonCodes = agencies.Select(a => a.Code).ToHashSet();
-			var stale = _db.PostalAgencies.Where(a => !jsonCodes.Contains(a.Code)).ToList();
-			if (stale.Count > 0)
+		// ponytail: sucursales.json is the full truth — rows removed from it (quarantined in sucursales-dudosas.json) must disappear from the DB too. Orders keep their own snapshot strings, so no history breaks.
+		var jsonCodes = agencies.Select(a => a.Code).ToHashSet();
+		var stale = _db.PostalAgencies.Where(a => !jsonCodes.Contains(a.Code)).ToList();
+		if (stale.Count > 0)
+		{
+			// ponytail: a truncated JSON would mass-delete branches — abort the delete, never the seed.
+			if (stale.Count > 200 || stale.Count > _db.PostalAgencies.Count() / 10)
 			{
-				_db.PostalAgencies.RemoveRange(stale);
-				_db.SaveChanges();
-				_logger.LogInformation("Removed {Count} stale PostalAgencies not present in sucursales.json.", stale.Count);
+				_logger.LogCritical("Refusing to delete {Count} stale PostalAgencies (JSON carries {JsonCount}); possible truncated seed file.", stale.Count, agencies.Count);
+				return;
 			}
+			_db.PostalAgencies.RemoveRange(stale);
+			_db.SaveChanges();
+			_logger.LogInformation("Removed {Count} stale PostalAgencies not present in sucursales.json.", stale.Count);
+		}
 			}
 			catch (Exception ex)
 			{

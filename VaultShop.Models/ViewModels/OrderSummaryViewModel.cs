@@ -28,6 +28,7 @@ namespace VaultShop.Models.ViewModels
 		public string? PickupAgencyCode { get; set; }
 		public string? PickupAgencyName { get; set; }
 		public string? PickupAgencyAddress { get; set; }
+		public string? PickupAgencyHours { get; set; }
 
 		public List<OrderSummaryItemViewModel> Items { get; set; } = new();
 		public decimal OrderTotal { get; set; }

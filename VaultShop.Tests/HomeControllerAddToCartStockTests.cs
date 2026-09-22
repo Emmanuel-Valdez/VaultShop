@@ -246,7 +246,6 @@ namespace VaultShop.Web.Tests
 			null!,
 			null!,
 			null!,
-			null!,
 			null!)
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },

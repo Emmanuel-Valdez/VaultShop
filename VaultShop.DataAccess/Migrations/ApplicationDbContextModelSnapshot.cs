@@ -870,6 +870,12 @@ namespace VaultShop.DataAccess.Migrations
                     b.Property<string>("PickupAgencyCode")
                         .HasColumnType("text");
 
+                    b.Property<string>("PickupAgencyHours")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("no informa");
+
                     b.Property<string>("PickupAgencyName")
                         .HasColumnType("text");
 
@@ -921,6 +927,13 @@ namespace VaultShop.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Hours")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("no informa")
+                        .HasAnnotation("Relational:JsonPropertyName", "horario");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("text");
@@ -969,6 +982,12 @@ namespace VaultShop.DataAccess.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Code");
+
+                    b.HasIndex("ProvinceCode");
+
+                    b.HasIndex("ProvinceCode", "Locality");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("ProvinceCode", "Locality"), new[] { "Code", "Name" });
 
                     b.ToTable("PostalAgencies");
                 });

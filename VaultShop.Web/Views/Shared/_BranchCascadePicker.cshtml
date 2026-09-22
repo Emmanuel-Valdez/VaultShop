@@ -1,0 +1,220 @@
+@model BranchCascadePickerVM
+@{
+	var provinceId = $"{Model.IdPrefix}Province";
+	var localityId = $"{Model.IdPrefix}Locality";
+	var branchesId = $"{Model.IdPrefix}Branches";
+	var filterId = $"{Model.IdPrefix}Filter";
+	var statusId = $"{Model.IdPrefix}Status";
+	var showFilter = Model.Branches.Count > 10;
+}
+<div class="branch-cascade-picker" id="@Model.IdPrefix"
+	data-provinces-url="@Model.ProvincesUrl"
+	data-localities-url="@Model.LocalitiesUrl"
+	data-branches-url="@Model.BranchesUrl"
+	data-submit-button-id="@Model.SubmitButtonId"
+	data-required="@(Model.IsRequired ? "true" : "false")"
+	data-text-loading-localities="@Localizer["LoadingLocalities"]"
+	data-text-loading-branches="@Localizer["LoadingBranches"]"
+	data-text-no-localities="@Localizer["NoLocalities"]"
+	data-text-no-branches="@Localizer["NoBranches"]"
+	data-text-filter-placeholder="@Localizer["FilterBranches"]"
+	data-text-hours="@Localizer["HoursLabel"]"
+	data-selected-branch="@Model.SelectedBranchCode">
+	<fieldset>
+		<legend class="h6 mb-3">@Localizer["Legend"]</legend>
+		<div class="mb-3">
+			<label class="form-label" for="@provinceId">@Localizer["ProvinceLabel"]</label>
+			<select class="form-select" id="@provinceId" name="@provinceId" autocomplete="off">
+				<option value="">@Localizer["SelectProvince"]</option>
+				@foreach (var province in Model.Provinces)
+				{
+					<option value="@province.Code" selected="@(string.Equals(province.Code, Model.SelectedProvinceCode, StringComparison.OrdinalIgnoreCase))">@province.Name</option>
+				}
+			</select>
+		</div>
+		<div class="mb-3">
+			<label class="form-label" for="@localityId">@Localizer["LocalityLabel"]</label>
+			<select class="form-select" id="@localityId" name="@localityId" autocomplete="off" disabled="@(Model.Localities.Count == 0)">
+				<option value="">@Localizer["SelectLocality"]</option>
+				@foreach (var locality in Model.Localities)
+				{
+					<option value="@locality" selected="@(string.Equals(locality, Model.SelectedLocality, StringComparison.OrdinalIgnoreCase))">@locality</option>
+				}
+			</select>
+		</div>
+		<div class="mb-3 @(showFilter ? "" : "d-none")" data-filter-wrap>
+			<label class="form-label visually-hidden" for="@filterId">@Localizer["FilterBranches"]</label>
+			<input class="form-control" type="search" id="@filterId" placeholder="@Localizer["FilterBranches"]" autocomplete="off" />
+		</div>
+		<div class="list-group" id="@branchesId">
+			@foreach (var branch in Model.Branches)
+			{
+				var radioId = $"{Model.IdPrefix}_{branch.Code}";
+				var isPicked = !string.IsNullOrEmpty(Model.SelectedBranchCode) && string.Equals(Model.SelectedBranchCode, branch.Code, StringComparison.OrdinalIgnoreCase);
+				<label class="list-group-item d-flex gap-2" for="@radioId">
+					<input type="radio" name="@Model.FieldName" value="@branch.Code" id="@radioId" @(Model.IsRequired ? "required" : null) class="form-check-input mt-1" checked="@isPicked" />
+					<span>
+						<strong>@branch.Name</strong><br />
+						<small class="text-muted">@branch.Address, @branch.Locality, @branch.Province</small><br />
+						<small class="text-muted">@Localizer["HoursLabel"]: @branch.Hours</small>
+					</span>
+				</label>
+			}
+		</div>
+		<div id="@statusId" class="small text-muted mt-2" role="status" aria-live="polite"></div>
+	</fieldset>
+</div>
+
+<script>
+	(function () {
+		var root = document.getElementById('@Model.IdPrefix');
+		if (!root || root.dataset.initialized) return;
+		root.dataset.initialized = 'true';
+		var provinceSelect = root.querySelector('#@provinceId');
+		var localitySelect = root.querySelector('#@localityId');
+		var branches = root.querySelector('#@branchesId');
+		var filterWrap = root.querySelector('[data-filter-wrap]');
+		var filter = root.querySelector('#@filterId');
+		var status = root.querySelector('#@statusId');
+		// ponytail: re-query the button on every gate check — the inline script runs
+		// before later DOM (e.g. the submit button in the card footer) is parsed.
+		var submitButtonId = root.dataset.submitButtonId;
+		var fieldName = '@Model.FieldName';
+		var hoursLabel = root.dataset.textHours;
+		var selectedBranchCode = root.dataset.selectedBranch || '';
+		var currentFetch = null;
+
+		function updateSubmitGate() {
+			var submitBtn = submitButtonId ? document.getElementById(submitButtonId) : null;
+			if (!submitBtn || !branches) return;
+			submitBtn.disabled = !branches.querySelector('input[name="' + fieldName + '"]:checked');
+		}
+
+		function applyFilter() {
+			if (!filter || !branches) return;
+			var q = (filter.value || '').toLowerCase();
+			branches.querySelectorAll('label').forEach(function (label) {
+				label.style.display = !q || label.textContent.toLowerCase().includes(q) ? '' : 'none';
+			});
+		}
+
+		function renderBranches(items) {
+			branches.innerHTML = '';
+			for (var i = 0; i < items.length; i++) {
+				var item = items[i];
+				var id = '@Model.IdPrefix' + '_' + item.code;
+				var label = document.createElement('label');
+				label.className = 'list-group-item d-flex gap-2';
+				label.setAttribute('for', id);
+				var radio = document.createElement('input');
+				radio.type = 'radio';
+				radio.name = fieldName;
+				radio.value = item.code;
+				radio.id = id;
+				radio.required = root.dataset.required === 'true';
+				radio.className = 'form-check-input mt-1';
+				if (selectedBranchCode && item.code === selectedBranchCode) radio.checked = true;
+				var body = document.createElement('span');
+				var name = document.createElement('strong');
+				name.textContent = item.name;
+				var addr = document.createElement('small');
+				addr.className = 'text-muted';
+				addr.textContent = item.address + ', ' + item.locality + ', ' + item.province;
+				var hours = document.createElement('small');
+				hours.className = 'text-muted';
+				hours.textContent = hoursLabel + ': ' + item.hours;
+				body.appendChild(name);
+				body.appendChild(document.createElement('br'));
+				body.appendChild(addr);
+				body.appendChild(document.createElement('br'));
+				body.appendChild(hours);
+				label.appendChild(radio);
+				label.appendChild(body);
+				branches.appendChild(label);
+			}
+			var show = items.length > 10;
+			if (filterWrap) filterWrap.classList.toggle('d-none', !show);
+			if (filter) filter.value = '';
+			updateSubmitGate();
+		}
+
+		async function fetchJson(url) {
+			currentFetch?.abort();
+			var controller = new AbortController();
+			currentFetch = controller;
+			try {
+				var res = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: controller.signal });
+				if (!res.ok) return null;
+				return await res.json();
+			} catch (e) {
+				return e?.name === 'AbortError' ? 'aborted' : null;
+			}
+		}
+
+		function fillSelect(select, items) {
+			// ponytail: keep the server-rendered localized placeholder, replace the rest.
+			var first = select.querySelector('option');
+			select.innerHTML = '';
+			if (first) select.appendChild(first);
+			(items || []).forEach(function (text) {
+				var opt = document.createElement('option');
+				opt.value = text;
+				opt.textContent = text;
+				select.appendChild(opt);
+			});
+		}
+
+		provinceSelect.addEventListener('change', async function () {
+			var code = provinceSelect.value;
+			fillSelect(localitySelect, []);
+			localitySelect.disabled = true;
+			renderBranches([]);
+			status.textContent = '';
+			updateSubmitGate();
+			if (!code) return;
+			status.textContent = root.dataset.textLoadingLocalities;
+			var url = root.dataset.localitiesUrl + '?provinceCode=' + encodeURIComponent(code);
+			var items = await fetchJson(url);
+			if (items === 'aborted' || provinceSelect.value !== code) return;
+			status.textContent = '';
+			if (!Array.isArray(items) || items.length === 0) {
+				status.textContent = root.dataset.textNoLocalities;
+				return;
+			}
+			fillSelect(localitySelect, items);
+			localitySelect.disabled = false;
+		});
+
+		localitySelect.addEventListener('change', async function () {
+			var code = provinceSelect.value;
+			var locality = localitySelect.value;
+			renderBranches([]);
+			status.textContent = '';
+			updateSubmitGate();
+			if (!code || !locality) return;
+			status.textContent = root.dataset.textLoadingBranches;
+			var url = root.dataset.branchesUrl + '?provinceCode=' + encodeURIComponent(code) + '&locality=' + encodeURIComponent(locality);
+			var items = await fetchJson(url);
+			if (items === 'aborted' || localitySelect.value !== locality) return;
+			if (!Array.isArray(items) || items.length === 0) {
+				status.textContent = root.dataset.textNoBranches;
+				return;
+			}
+			status.textContent = '';
+			renderBranches(items);
+		});
+
+		branches.addEventListener('change', function (e) {
+			if (e.target && e.target.name === fieldName) updateSubmitGate();
+		});
+		if (filter) filter.addEventListener('input', applyFilter);
+
+		// Progressive enhancement: server-rendered radios stay selectable with JS disabled; gate applies on load.
+		// ponytail: the inline script runs before later DOM (submit button) is parsed — gate again once parsing finishes.
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', updateSubmitGate);
+		} else {
+			updateSubmitGate();
+		}
+	})();
+</script>

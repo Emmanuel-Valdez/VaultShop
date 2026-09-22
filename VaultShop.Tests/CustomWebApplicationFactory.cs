@@ -21,6 +21,7 @@ namespace VaultShop.Web.Tests
         // Populated during ConfigureWebHost so tests can reference the seeded fixtures by id/email.
         public string CustomerEmail => TestDataSeeder.CustomerEmail;
         public string CompanyEmail => TestDataSeeder.CompanyEmail;
+        public string AdminEmail => TestDataSeeder.AdminEmail;
         public string TestPassword => TestDataSeeder.Password;
         public int TestCompanyId { get; private set; }
 
@@ -86,6 +87,7 @@ namespace VaultShop.Web.Tests
     {
         public const string CustomerEmail = "customer.tests@vaultshop.local";
         public const string CompanyEmail = "company.tests@vaultshop.local";
+        public const string AdminEmail = "admin.tests@vaultshop.local";
         public const string Password = "Test123!";
 
         // Returns the seeded Company's Id so tests can assert OrderHeader.CompanyId.
@@ -116,6 +118,16 @@ namespace VaultShop.Web.Tests
             };
             await userManager.CreateAsync(customer, Password);
             await userManager.AddToRoleAsync(customer, SD.Role_Customer);
+
+            var admin = new ApplicationUser
+            {
+                UserName = AdminEmail,
+                Email = AdminEmail,
+                Name = "Test Admin",
+                EmailConfirmed = true,
+            };
+            await userManager.CreateAsync(admin, Password);
+            await userManager.AddToRoleAsync(admin, SD.Role_Admin);
 
             var companyUser = new ApplicationUser
             {

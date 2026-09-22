@@ -7,6 +7,10 @@ Usage:
 
 Stdlib only (urllib, json, re, argparse, time, datetime).
 Idempotent: re-runs merge by Code; gist-only fields are never overwritten.
+Confirm-only: rows are never deleted here — unverified rows go to a parallel
+<json-stem>-changelist.json for human review (quarantine), the main file only
+gains rows or updates fields. Branch hours (`horario`) are carried through
+every merge; fresh scraped rows without hours get the `no informa` sentinel.
 """
 import argparse
 import datetime
@@ -19,6 +23,15 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+HORARIO_SENTINEL = "no informa"
+
+
+def ensure_horario(row: dict) -> dict:
+    """Carry branch hours through merges; sentinel when the source has none."""
+    row.setdefault("horario", HORARIO_SENTINEL)
+    return row
+
 
 WS_URL = "https://www.correoargentino.com.ar/sites/all/modules/custom/ca_forms/api/wsFacade.php"
 FORM_URL = "https://www.correoargentino.com.ar/formularios/sucursales"
@@ -297,12 +310,12 @@ def main():
                 name_warns.append(f"{code}: name-tier match ({tier}) site {s['name']!r} (gist kept)")
 
         def new_row(code, kind):
-            by_code[code] = {"code": code, "name": s["name"], "street": s["street"],
+            by_code[code] = ensure_horario({"code": code, "name": s["name"], "street": s["street"],
                              "number": s["number"], "locality": s["locality"], "city": s["locality"],
                              "province": provinces[prov], "provinceCode": prov, "postalCode": "",
                              "latitude": s["lat"], "longitude": s["lng"],
                              "services": s["services"], "kind": kind,
-                             "lastVerifiedUtc": now, "source": "correo"}
+                             "lastVerifiedUtc": now, "source": "correo"})
             new.append(code)
             done.add(code)
 
@@ -389,13 +402,14 @@ def main():
             else:
                 ambig_warns.append(f"ambiguous address {key}: gist={sorted(g)}"
                                    f" site={[x['name'] + '@' + x['locality'] for x in sl]}")
-        # backfill gist source + services/kind on untouched rows of processed provinces
+        # backfill gist source + services/kind/horario on untouched rows of processed provinces
         for r in by_code.values():
             if r.get("provinceCode") == prov:
                 if r.get("source") not in ("correo", "gist"):
                     r["source"] = "gist"
                 r.setdefault("services", "")
                 r.setdefault("kind", "SUCURSAL")
+                ensure_horario(r)
         total_matched += matched
         total_new += new
         total_renamed += len(renamed)
@@ -420,15 +434,26 @@ def main():
             print(f"  warn: ... +{len(warns) + len(name_warns) + len(ambig_warns) - 10} more")
         time.sleep(a.throttle)
 
-    # rows of unprocessed provinces: source/services/kind backfill only
+    # rows of unprocessed provinces: source/services/kind/horario backfill only
     for r in by_code.values():
         if r.get("provinceCode") not in want_set:
             if r.get("source") not in ("correo", "gist"):
                 r["source"] = "gist"
             r.setdefault("services", "")
             r.setdefault("kind", "SUCURSAL")
+            ensure_horario(r)
 
     out = sorted(by_code.values(), key=lambda r: r["code"])
+    # ponytail: confirm-only — this script never deletes rows; quarantine
+    # candidates go to the sidecar changelist for human review instead.
+    assert len(out) >= len(rows), f"refresh must never delete rows ({len(rows)} -> {len(out)})"
+    changelist = {"generated_utc": now, "json": str(jpath), "provinces": want,
+                  "candidates": [{"code": r["code"], "name": r.get("name"),
+                                  "locality": r.get("locality"),
+                                  "reason": "unverified-after-scrape"}
+                                 for r in out
+                                 if r.get("provinceCode") in want_set and r.get("source") != "correo"]}
+    changelist_path = jpath.with_name(jpath.stem + "-changelist.json")
     n_correo = sum(1 for r in out if r.get("source") == "correo")
     n_up = sum(1 for r in out if r.get("kind") == "UP")
     n_40 = sum(1 for r in out if "40" in (r.get("services") or "").split(","))
@@ -441,9 +466,12 @@ def main():
             print(f"  ambig: ... +{len(all_ambig) - 30} more")
     if a.dry_run:
         print("dry-run: no write")
+        print(f"dry-run: changelist not written ({len(changelist['candidates'])} candidates)")
     else:
         jpath.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"wrote {jpath}")
+        changelist_path.write_text(json.dumps(changelist, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"wrote {changelist_path} ({len(changelist['candidates'])} quarantine candidates)")
 
 
 if __name__ == "__main__":

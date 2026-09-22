@@ -27,6 +27,18 @@ namespace VaultShop.Utility
 
 		public const string DeliveryTypePickup = "S";
 
+		// ponytail: Correo Argentino province codes (A–Z minus I/Ñ/O, 24 total); display names mirror tools/refresh_sucursales.py fallback. Seed codes must stay ⊆ this list (see CorreoProvincesTests).
+		public static readonly IReadOnlyList<(string Code, string Name)> CorreoProvinces =
+		[
+			("A", "Salta"), ("B", "Buenos Aires"), ("C", "CABA"), ("D", "San Luis"),
+			("E", "Entre Ríos"), ("F", "La Rioja"), ("G", "Santiago del Estero"),
+			("H", "Chaco"), ("J", "San Juan"), ("K", "Catamarca"), ("L", "La Pampa"),
+			("M", "Mendoza"), ("N", "Misiones"), ("P", "Formosa"), ("Q", "Neuquén"),
+			("R", "Río Negro"), ("S", "Santa Fe"), ("T", "Tucumán"),
+			("U", "Chubut"), ("V", "Tierra del Fuego"), ("W", "Corrientes"),
+			("X", "Córdoba"), ("Y", "Jujuy"), ("Z", "Santa Cruz"),
+		];
+
 		public const string SessionCart = "SessionShoppingCart";
 		public const string AdminPreviewMode = "AdminPreviewMode";
 

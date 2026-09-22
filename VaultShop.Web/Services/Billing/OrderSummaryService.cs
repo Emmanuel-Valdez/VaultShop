@@ -63,6 +63,7 @@ namespace VaultShop.Web.Services.Billing
 				PickupAgencyCode = o.PickupAgencyCode,
 				PickupAgencyName = o.PickupAgencyName,
 				PickupAgencyAddress = o.PickupAgencyAddress,
+				PickupAgencyHours = o.PickupAgencyHours,
 
 				Items = details.Select(d => new OrderSummaryItemViewModel
 				{

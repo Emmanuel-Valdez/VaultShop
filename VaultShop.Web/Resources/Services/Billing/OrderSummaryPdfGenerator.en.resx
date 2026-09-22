@@ -142,4 +142,7 @@
   <data name="PickupAgencyTitle" xml:space="preserve">
     <value>Branch pickup</value>
   </data>
+  <data name="PickupAgencyHoursLabel" xml:space="preserve">
+    <value>Hours</value>
+  </data>
 </root>

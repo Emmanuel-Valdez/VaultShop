@@ -258,11 +258,17 @@
   <data name="PickupAgencyAddress" xml:space="preserve">
     <value>Address</value>
   </data>
+  <data name="BranchCorrectionHint" xml:space="preserve">
+    <value>If the branch is wrong, pick the right one below. No email is sent for this change; the shipping email will carry the final branch.</value>
+  </data>
   <data name="PickupAgencyCode" xml:space="preserve">
     <value>Code</value>
   </data>
   <data name="PickupAgencyName" xml:space="preserve">
     <value>Branch</value>
+  </data>
+  <data name="PickupAgencyHours" xml:space="preserve">
+    <value>Hours</value>
   </data>
   <data name="PickupAgencyTitle" xml:space="preserve">
     <value>Branch pickup</value>
@@ -323,15 +329,6 @@
   </data>
   <data name="UpdateOrderDetails" xml:space="preserve">
     <value>Update Order Details</value>
-  </data>
-  <data name="UpdateShippedOrderConfirmTitle" xml:space="preserve">
-    <value>Update a shipped order?</value>
-  </data>
-  <data name="UpdateShippedOrderConfirmText" xml:space="preserve">
-    <value>This order was already shipped. Changes to customer or shipping data will be saved permanently.</value>
-  </data>
-  <data name="UpdateShippedOrderConfirmButton" xml:space="preserve">
-    <value>Yes, update it</value>
   </data>
   <data name="CompanyBankTransferConfirmTitle" xml:space="preserve">
     <value>Choose bank transfer?</value>

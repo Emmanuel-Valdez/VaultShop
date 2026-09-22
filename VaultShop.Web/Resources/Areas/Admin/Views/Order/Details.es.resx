@@ -258,11 +258,17 @@
   <data name="PickupAgencyAddress" xml:space="preserve">
     <value>Dirección</value>
   </data>
+  <data name="BranchCorrectionHint" xml:space="preserve">
+    <value>Si la sucursal es incorrecta, elegí la correcta abajo. Este cambio no envía ningún correo; el correo de envío llevará la sucursal final.</value>
+  </data>
   <data name="PickupAgencyCode" xml:space="preserve">
     <value>Código</value>
   </data>
   <data name="PickupAgencyName" xml:space="preserve">
     <value>Sucursal</value>
+  </data>
+  <data name="PickupAgencyHours" xml:space="preserve">
+    <value>Horario</value>
   </data>
   <data name="PickupAgencyTitle" xml:space="preserve">
     <value>Retiro en sucursal</value>
@@ -323,15 +329,6 @@
   </data>
   <data name="UpdateOrderDetails" xml:space="preserve">
     <value>Actualizar Detalles de Órden</value>
-  </data>
-  <data name="UpdateShippedOrderConfirmTitle" xml:space="preserve">
-    <value>¿Actualizar una orden enviada?</value>
-  </data>
-  <data name="UpdateShippedOrderConfirmText" xml:space="preserve">
-    <value>Esta orden ya fue enviada. Los cambios en datos del cliente o envío se guardarán permanentemente.</value>
-  </data>
-  <data name="UpdateShippedOrderConfirmButton" xml:space="preserve">
-    <value>Sí, actualizar</value>
   </data>
   <data name="CompanyBankTransferConfirmTitle" xml:space="preserve">
     <value>¿Elegir transferencia bancaria?</value>

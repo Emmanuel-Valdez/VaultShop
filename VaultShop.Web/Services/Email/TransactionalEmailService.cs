@@ -96,7 +96,12 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             _bankTransferBankName,
             _branding.WhatsAppNumber,
             order.PaymentDueDate == default ? null : order.PaymentDueDate,
-            isCompanyWholesale);
+            isCompanyWholesale,
+            order.DeliveryType,
+            order.PickupAgencyName,
+            order.PickupAgencyCode,
+            order.PickupAgencyAddress,
+            order.PickupAgencyHours);
 
         // already claimed, so onSuccess is no-op (timestamp persisted via conditional UPDATE)
         await TrySendEmailAsync(orderId, userEmail, content,
@@ -180,7 +185,12 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.TrackingNumber,
             order.Carrier,
             SD.SiteUrl,
-            Thread.CurrentThread.CurrentUICulture);
+            Thread.CurrentThread.CurrentUICulture,
+            order.DeliveryType,
+            order.PickupAgencyName,
+            order.PickupAgencyCode,
+            order.PickupAgencyAddress,
+            order.PickupAgencyHours);
 
         await TrySendEmailAsync(orderId, userEmail, content,
             () => order.ShippingConfirmationEmailSentUtc = DateTime.UtcNow,

@@ -35,12 +35,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly ITransactionalEmailService _emailService;
 		private readonly IConfiguration _configuration;
 		private readonly OrderAccessPolicy _orderAccessPolicy;
-		private readonly IGeorefAddressService _georefAddressService;
-		private readonly INearestAgencyService _nearestAgencyService;
+		private readonly IBranchLookupService _branchLookup;
+		// ponytail: must match BranchCascadePickerVM.IdPrefix — failed POSTs reselect province/locality from these form fields.
+		private const string BranchPickerPrefix = "branchPicker";
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
 			ILogger<CartController> logger, ICheckoutService checkoutService, IServiceProvider paymentSessionServiceProvider,
 			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration, OrderAccessPolicy orderAccessPolicy,
-			IGeorefAddressService georefAddressService, INearestAgencyService nearestAgencyService)
+			IBranchLookupService branchLookup)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -52,8 +53,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_emailService = emailService;
 			_configuration = configuration;
 			_orderAccessPolicy = orderAccessPolicy;
-			_georefAddressService = georefAddressService;
-			_nearestAgencyService = nearestAgencyService;
+			_branchLookup = branchLookup;
 		}
 		public IActionResult Index()
 		{
@@ -119,25 +119,55 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
 				return RedirectToAction(nameof(Index));
 			}
-			PopulatePaymentMethodViewData();
-			return View(result.ShoppingCartVM);
+		PopulatePaymentMethodViewData();
+		ViewData["BranchCascadePicker"] = BuildBranchCascadePickerVM();
+		return View(result.ShoppingCartVM);
+	}
+
+	// ponytail: deterministic cascade Provincia → Localidad → Sucursal; branch rows are public data, cacheable, and shared by checkout + admin correction.
+	[HttpGet]
+	[AllowAnonymous]
+	[ResponseCache(Duration = 300)]
+	public IActionResult BranchProvinces()
+	{
+		return Json(_branchLookup.GetCandidateProvinces()
+			.Select(p => new { code = p.Code, name = p.Name }));
+	}
+
+	[HttpGet]
+	[AllowAnonymous]
+	[ResponseCache(Duration = 60)]
+	public IActionResult BranchLocalities(string provinceCode)
+	{
+		if (string.IsNullOrWhiteSpace(provinceCode))
+		{
+			return BadRequest();
 		}
 
-		[HttpGet]
-		public async Task<IActionResult> GetNearestAgencies(string street, string city, string state, CancellationToken ct)
+		return Json(_branchLookup.GetCandidateLocalities(provinceCode));
+	}
+
+	[HttpGet]
+	[AllowAnonymous]
+	[ResponseCache(Duration = 60)]
+	public IActionResult BranchBranches(string provinceCode, string locality)
+	{
+		if (string.IsNullOrWhiteSpace(provinceCode) || string.IsNullOrWhiteSpace(locality))
 		{
-			var coords = await _georefAddressService.GeocodeAsync(street ?? string.Empty, state, city, ct);
-			var candidates = _nearestAgencyService.FindNearest(coords?.Lat, coords?.Lon, state, city);
-			return Json(candidates.Select(c => new
-			{
-				code = c.Code,
-				name = c.Name,
-				address = c.Address,
-				locality = c.Locality,
-				province = c.Province,
-				distanceKm = c.DistanceKm is null ? (double?)null : Math.Round(c.DistanceKm.Value, 1)
-			}));
+			return BadRequest();
 		}
+
+		return Json(_branchLookup.GetCandidateBranches(provinceCode, locality)
+			.Select(a => new
+			{
+				code = a.Code,
+				name = a.Name,
+				address = (a.Number.HasValue ? $"{a.Street} {a.Number}" : a.Street).Trim(),
+				locality = a.Locality,
+				province = a.Province,
+				hours = string.IsNullOrWhiteSpace(a.Hours) ? PostalAgency.HoursUnknown : a.Hours
+			}));
+	}
 
 		[HttpPost]
 		[ActionName("Summary")]
@@ -153,11 +183,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		{
 			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
 			PopulatePaymentMethodViewData();
-			return View(await RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM, HttpContext.RequestAborted));
+			return View(RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM));
 		}
 
 		// ponytail: snapshot is re-resolved from PostalAgency by code — client name/address are never trusted.
-		var agency = _nearestAgencyService.GetByCode(ShoppingCartVM.OrderHeader.PickupAgencyCode);
+		var agency = _branchLookup.GetByCode(ShoppingCartVM.OrderHeader.PickupAgencyCode);
 		if (agency is null)
 		{
 			ModelState.AddModelError("OrderHeader.PickupAgencyCode", _localizer["PickupAgencyRequired"].Value);
@@ -168,10 +198,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return RedirectToAction(nameof(Index));
 			}
 			PopulatePaymentMethodViewData();
-			return View(await RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM, HttpContext.RequestAborted));
+			return View(RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM));
 		}
 
-		ShoppingCartVM.OrderHeader.DeliveryType = SD.DeliveryTypePickup;
+		ShoppingCartVM.OrderHeader.PickupAgencyHours =
+		string.IsNullOrWhiteSpace(agency.Hours) ? PostalAgency.HoursUnknown : agency.Hours;
+
+	ShoppingCartVM.OrderHeader.DeliveryType = SD.DeliveryTypePickup;
 		ShoppingCartVM.OrderHeader.PickupAgencyCode = agency.Code;
 		ShoppingCartVM.OrderHeader.PickupAgencyName = agency.Name;
 		ShoppingCartVM.OrderHeader.PickupAgencyAddress =
@@ -330,43 +363,78 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			PopulateBankTransferViewData();
 		}
 
-		// ponytail: failure-path only — posted scalars overlay the authoritative rebuilt VM (cart/totals stay server-built),
-		// then candidates rehydrate via the same geocode + nearest-5 path as GetNearestAgencies. Never throws.
-		private async Task<ShoppingCartVM> RestorePostedHeaderAndCandidates(ShoppingCartVM? fresh, CancellationToken ct)
+	// ponytail: cascade rehydration — posted province/locality reseed the picker's options server-side so a failed
+	// POST keeps selection + candidates without geocoding. The picked code survives via the posted OrderHeader.
+	private BranchCascadePickerVM BuildBranchCascadePickerVM(string? provinceCode = null, string? locality = null, string? branchCode = null)
+	{
+		var provinces = _branchLookup.GetCandidateProvinces();
+		IReadOnlyList<string> localities = string.IsNullOrWhiteSpace(provinceCode)
+			? []
+			: _branchLookup.GetCandidateLocalities(provinceCode);
+		IReadOnlyList<BranchOption> branches = (string.IsNullOrWhiteSpace(provinceCode) || string.IsNullOrWhiteSpace(locality))
+			? []
+			: _branchLookup.GetCandidateBranches(provinceCode, locality).Select(ToBranchOption).ToList();
+		return new BranchCascadePickerVM
 		{
-			var posted = ShoppingCartVM.OrderHeader;
-			var vm = fresh ?? ShoppingCartVM;
-			if (!ReferenceEquals(vm, ShoppingCartVM) && vm.OrderHeader is not null && posted is not null)
-			{
-				vm.OrderHeader.Name = posted.Name ?? string.Empty;
-				vm.OrderHeader.PhoneNumber = posted.PhoneNumber ?? string.Empty;
-				vm.OrderHeader.StreetAddress = posted.StreetAddress ?? string.Empty;
-				vm.OrderHeader.City = posted.City ?? string.Empty;
-				vm.OrderHeader.State = posted.State ?? string.Empty;
-				vm.OrderHeader.PostalCode = posted.PostalCode ?? string.Empty;
-				vm.OrderHeader.PaymentMethod = posted.PaymentMethod;
-				vm.OrderHeader.PickupAgencyCode = posted.PickupAgencyCode;
-			}
+			FieldName = "OrderHeader.PickupAgencyCode",
+			IdPrefix = BranchPickerPrefix,
+			SubmitButtonId = "placeOrderBtn",
+			ProvincesUrl = Url.Action("BranchProvinces", "Cart", new { area = "Customer" }) ?? string.Empty,
+			LocalitiesUrl = Url.Action("BranchLocalities", "Cart", new { area = "Customer" }) ?? string.Empty,
+			BranchesUrl = Url.Action("BranchBranches", "Cart", new { area = "Customer" }) ?? string.Empty,
+			Provinces = provinces,
+			SelectedProvinceCode = provinceCode ?? string.Empty,
+			Localities = localities,
+			SelectedLocality = locality ?? string.Empty,
+			Branches = branches,
+			SelectedBranchCode = branchCode ?? string.Empty,
+		};
+	}
 
-			IReadOnlyList<AgencyCandidate> candidates = [];
-			try
-			{
-				(double Lat, double Lon)? coords = null;
-				if (!string.IsNullOrWhiteSpace(posted?.StreetAddress) && !string.IsNullOrWhiteSpace(posted?.State))
-				{
-					// ponytail: HttpClient timeout is 5s; service returns null (never throws) on lookup failure.
-					coords = await _georefAddressService.GeocodeAsync(posted!.StreetAddress, posted.State, posted.City, ct);
-				}
-				candidates = _nearestAgencyService.FindNearest(coords?.Lat, coords?.Lon, posted?.State, posted?.City);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogWarning(ex, "Branch candidate rehydration failed during checkout.");
-				candidates = [];
-			}
-			ViewData["AgencyCandidates"] = candidates;
-			return vm;
+	private static BranchOption ToBranchOption(PostalAgency agency)
+	{
+		return new BranchOption(
+			agency.Code,
+			agency.Name,
+			(agency.Number.HasValue ? $"{agency.Street} {agency.Number}" : agency.Street).Trim(),
+			agency.Locality,
+			agency.Province,
+			string.IsNullOrWhiteSpace(agency.Hours) ? PostalAgency.HoursUnknown : agency.Hours);
+	}
+
+	// ponytail: failure-path only — posted scalars overlay the authoritative rebuilt VM (cart/totals stay server-built),
+	// then the cascade picker rehydrates selection + candidates from the posted province/locality. Never throws.
+	private ShoppingCartVM RestorePostedHeaderAndCandidates(ShoppingCartVM? fresh)
+	{
+		var posted = ShoppingCartVM.OrderHeader;
+		var vm = fresh ?? ShoppingCartVM;
+		if (!ReferenceEquals(vm, ShoppingCartVM) && vm.OrderHeader is not null && posted is not null)
+		{
+			vm.OrderHeader.Name = posted.Name ?? string.Empty;
+			vm.OrderHeader.PhoneNumber = posted.PhoneNumber ?? string.Empty;
+			vm.OrderHeader.StreetAddress = posted.StreetAddress ?? string.Empty;
+			vm.OrderHeader.City = posted.City ?? string.Empty;
+			vm.OrderHeader.State = posted.State ?? string.Empty;
+			vm.OrderHeader.PostalCode = posted.PostalCode ?? string.Empty;
+			vm.OrderHeader.PaymentMethod = posted.PaymentMethod;
+			vm.OrderHeader.PickupAgencyCode = posted.PickupAgencyCode;
 		}
+
+		string? province = null;
+		string? locality = null;
+		try
+		{
+			var form = HttpContext.Request.Form;
+			province = form[$"{BranchPickerPrefix}Province"].ToString();
+			locality = form[$"{BranchPickerPrefix}Locality"].ToString();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex, "Branch cascade selection rehydration failed during checkout.");
+		}
+		ViewData["BranchCascadePicker"] = BuildBranchCascadePickerVM(province, locality, vm.OrderHeader?.PickupAgencyCode);
+		return vm;
+	}
 
 		private void PopulateBankTransferViewData()
 		{

@@ -82,11 +82,24 @@ namespace VaultShop.DataAccess.Data
 				.HasIndex(i => new { i.KeywordId, i.Kind })
 				.IsUnique();
 
-			// Slug uniqueness only among active keywords, so soft-deleted slugs can be reused.
-			modelBuilder.Entity<Keyword>()
-				.HasIndex(k => k.Slug)
-				.IsUnique()
-				.HasFilter("\"IsDeleted\" = false");
+		// Slug uniqueness only among active keywords, so soft-deleted slugs can be reused.
+		modelBuilder.Entity<Keyword>()
+			.HasIndex(k => k.Slug)
+			.IsUnique()
+			.HasFilter("\"IsDeleted\" = false");
+
+		// correo-argentino branch cascade: hours sentinel backfills pre-change rows; indexes serve province → locality → branch filtering.
+		modelBuilder.Entity<PostalAgency>()
+			.Property(p => p.Hours)
+			.HasDefaultValue(PostalAgency.HoursUnknown);
+		modelBuilder.Entity<OrderHeader>()
+			.Property(o => o.PickupAgencyHours)
+			.HasDefaultValue(PostalAgency.HoursUnknown);
+		modelBuilder.Entity<PostalAgency>()
+			.HasIndex(p => p.ProvinceCode);
+		modelBuilder.Entity<PostalAgency>()
+			.HasIndex(p => new { p.ProvinceCode, p.Locality })
+			.IncludeProperties(p => new { p.Code, p.Name });
 		}
 	}
 }

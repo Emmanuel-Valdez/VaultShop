@@ -1,9 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace VaultShop.Models
 {
     public class PostalAgency
     {
+        public const string HoursUnknown = "no informa";
+
         [Key]
         public string Code { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
@@ -20,5 +23,7 @@ namespace VaultShop.Models
         public string? Source { get; set; }
         public string Services { get; set; } = string.Empty;
         public string Kind { get; set; } = "SUCURSAL";
+        [JsonPropertyName("horario")]
+        public string Hours { get; set; } = HoursUnknown;
     }
 }

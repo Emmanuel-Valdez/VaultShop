@@ -195,16 +195,4 @@
   <data name="PickupFreeShipping" xml:space="preserve">
     <value>Free shipping to branch</value>
   </data>
-  <data name="SearchBranches" xml:space="preserve">
-    <value>Find nearby branches</value>
-  </data>
-  <data name="SearchingBranches" xml:space="preserve">
-    <value>Searching branches…</value>
-  </data>
-  <data name="NoBranchesFound" xml:space="preserve">
-    <value>No branches found. Check the address and try again.</value>
-  </data>
-  <data name="EnterAddressBeforeSearch" xml:space="preserve">
-    <value>Enter the street and state before searching for branches.</value>
-  </data>
 </root>

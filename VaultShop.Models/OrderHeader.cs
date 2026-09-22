@@ -72,6 +72,7 @@ namespace VaultShop.Models
 		public string? PickupAgencyCode { get; set; }
 		public string? PickupAgencyName { get; set; }
 		public string? PickupAgencyAddress { get; set; }
+		public string PickupAgencyHours { get; set; } = PostalAgency.HoursUnknown;
 
 	}
 }

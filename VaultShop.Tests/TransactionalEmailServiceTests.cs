@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
@@ -144,6 +145,154 @@ namespace VaultShop.Web.Tests
 			Assert.NotNull(body);
 			Assert.True(body.Contains("Unspecified", StringComparison.OrdinalIgnoreCase) || body.Contains("Sin definir", StringComparison.OrdinalIgnoreCase));
 			Assert.True(body.Contains("delayed payment", StringComparison.OrdinalIgnoreCase) || body.Contains("pago diferido", StringComparison.OrdinalIgnoreCase));
+		}
+
+		[Fact]
+		public async Task TrySendOrderConfirmationAsync_PickupOrder_IncludesBranchBlockAndPolicy()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Ada",
+				OrderTotal = 1500m,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				DeliveryType = SD.DeliveryTypePickup,
+				PickupAgencyName = "Sucursal Centro",
+				PickupAgencyCode = "CEN01",
+				PickupAgencyAddress = "Centro 1",
+				PickupAgencyHours = "LUN A VIE 9 A 18",
+				ApplicationUser = new ApplicationUser { Email = "ada@vaultshop.test" }
+			};
+			var test = CreateService(order);
+			string? body = null;
+			test.EmailSenderMock
+				.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+				.Callback<string, string, string>((_, _, b) => body = b)
+				.Returns(Task.CompletedTask);
+
+			await test.Service.TrySendOrderConfirmationAsync(42);
+
+			Assert.NotNull(body);
+			Assert.Contains("Sucursal Centro", body);
+			Assert.Contains("LUN A VIE 9 A 18", body);
+			Assert.True(body.Contains("5 días hábiles") || body.Contains("5 business days"));
+		}
+
+		[Fact]
+		public async Task TrySendShippingConfirmationAsync_PickupOrder_IncludesBranchBlockTrackingAndCorreoLink()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Ada",
+				OrderTotal = 1500m,
+				TrackingNumber = "ABC123",
+				Carrier = "Correo Argentino",
+				DeliveryType = SD.DeliveryTypePickup,
+				PickupAgencyName = "Sucursal Centro",
+				PickupAgencyCode = "CEN01",
+				PickupAgencyAddress = "Centro 1",
+				PickupAgencyHours = "LUN A VIE 9 A 18",
+				ApplicationUser = new ApplicationUser { Email = "ada@vaultshop.test" }
+			};
+			var test = CreateService(order);
+			string? body = null;
+			test.EmailSenderMock
+				.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+				.Callback<string, string, string>((_, _, b) => body = b)
+				.Returns(Task.CompletedTask);
+
+			await test.Service.TrySendShippingConfirmationAsync(42);
+
+			Assert.NotNull(body);
+			Assert.Contains("Sucursal Centro", body);
+			Assert.Contains("ABC123", body);
+			Assert.Contains("correoargentino.com.ar/seguimiento-de-envios", body);
+			Assert.NotNull(order.ShippingConfirmationEmailSentUtc);
+		}
+
+		[Theory]
+		[InlineData("es-AR", "Retiro en sucursal", "Horario", "5 días hábiles")]
+		[InlineData("en-US", "Branch pickup", "Hours", "5 business days")]
+		public void OrderConfirmation_PickupBlock_RendersInBothCultures(
+			string cultureName, string title, string hoursLabel, string policyFragment)
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo(cultureName),
+				deliveryType: SD.DeliveryTypePickup, pickupAgencyName: "Sucursal Centro",
+				pickupAgencyCode: "CEN01", pickupAgencyAddress: "Centro 1",
+				pickupAgencyHours: "LUN A VIE 9 A 18");
+
+			Assert.Contains(title, content.Body);
+			Assert.Contains("Sucursal Centro", content.Body);
+			Assert.Contains($"{hoursLabel}:</strong> LUN A VIE 9 A 18", content.Body);
+			Assert.Contains(policyFragment, content.Body);
+		}
+
+		[Theory]
+		[InlineData("es-AR")]
+		[InlineData("en-US")]
+		public void OrderConfirmation_PickupBlock_UsesSentinelWhenHoursMissing(string cultureName)
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo(cultureName),
+				deliveryType: SD.DeliveryTypePickup, pickupAgencyName: "Sucursal Centro",
+				pickupAgencyHours: null);
+
+			Assert.Contains(PostalAgency.HoursUnknown, content.Body);
+		}
+
+		[Fact]
+		public void OrderConfirmation_NonPickupOrder_HasNoBranchBlock()
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo("es-AR"));
+
+			Assert.DoesNotContain("Retiro en sucursal", content.Body);
+			Assert.DoesNotContain("Branch pickup", content.Body);
+		}
+
+		[Theory]
+		[InlineData("es-AR", "en camino a la sucursal", "Código de seguimiento:")]
+		[InlineData("en-US", "on its way to the", "Tracking number:")]
+		public void ShippingConfirmation_PickupOrder_UsesInTransitCopy(
+			string cultureName, string inTransitFragment, string trackingLabel)
+		{
+			var content = EmailTemplates.ShippingConfirmation(
+				"Shop", "Ada", 7, "ABC123", "Correo Argentino", "https://x.test",
+				new CultureInfo(cultureName), SD.DeliveryTypePickup, "Sucursal Centro",
+				"CEN01", "Centro 1", "LUN A VIE 9 A 18");
+
+			Assert.Contains(inTransitFragment, content.Body);
+			Assert.Contains("Sucursal Centro", content.Body);
+			Assert.Contains("LUN A VIE 9 A 18", content.Body);
+			Assert.Contains($"{trackingLabel} ABC123", content.Body);
+			Assert.Contains("correoargentino.com.ar/seguimiento-de-envios", content.Body);
+		}
+
+		[Fact]
+		public void ShippingConfirmation_HtmlEncodesTrackingAndCarrier()
+		{
+			var content = EmailTemplates.ShippingConfirmation(
+				"Shop", "Ada", 7, "<b>ABC</b>", "<i>Correo</i>", "https://x.test",
+				new CultureInfo("es-AR"));
+
+			Assert.Contains("&lt;b&gt;ABC&lt;/b&gt;", content.Body);
+			Assert.Contains("&lt;i&gt;Correo&lt;/i&gt;", content.Body);
+			Assert.DoesNotContain("<b>ABC</b>", content.Body);
+		}
+
+		[Fact]
+		public void ShippingConfirmation_NonPickupOrder_KeepsCurrentCopy()
+		{
+			var content = EmailTemplates.ShippingConfirmation(
+				"Shop", "Ada", 7, "ABC123", "Correo Argentino", "https://x.test",
+				new CultureInfo("es-AR"));
+
+			Assert.Contains("ha sido despachado", content.Body);
+			Assert.DoesNotContain("Retiro en sucursal", content.Body);
+			Assert.DoesNotContain("correoargentino.com.ar", content.Body);
 		}
 
 		private static TestContext CreateService(OrderHeader order, IEnumerable<OrderDetail>? details = null)

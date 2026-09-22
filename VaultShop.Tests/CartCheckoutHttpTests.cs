@@ -5,12 +5,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using VaultShop.DataAccess.Data;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Payments;
-using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Tests;
 
@@ -101,6 +99,36 @@ public class CartCheckoutHttpTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.DoesNotContain("Payment method", html);
         Assert.DoesNotContain("OrderHeader.PaymentMethod", html);
+    }
+
+    [Theory]
+    [InlineData("es-AR", "Elegí la sucursal de retiro", "Provincia", "Seleccioná una provincia")]
+    [InlineData("en-US", "Choose your pickup branch", "Province", "Select a province")]
+    public async Task Summary_RendersBranchCascadePickerInBothCultures(string culture, string legend, string provinceLabel, string selectProvince)
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync($"/{culture}/Customer/Cart/Summary");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("<fieldset>", html);
+        Assert.Contains(legend, html);
+        Assert.Contains(provinceLabel, html);
+        Assert.Contains(selectProvince, html);
+        Assert.Contains("aria-live=\"polite\"", html);
+        Assert.Contains("name=\"branchPickerProvince\"", html);
+        Assert.Contains("name=\"branchPickerLocality\"", html);
+        Assert.Contains("data-submit-button-id=\"placeOrderBtn\"", html);
+        // Server-rendered provinces include the seeded candidate's province.
+        Assert.Contains("value=\"M\"", html);
+        // Nearest-search path is gone.
+        Assert.DoesNotContain("searchAgenciesBtn", html);
+        Assert.DoesNotContain("GetNearestAgencies", html);
     }
 
     [Fact]
@@ -376,22 +404,16 @@ public class CartCheckoutHttpTests
     }
 
     [Fact]
-    public async Task SummaryPost_WithoutAgency_PreservesAddressAndRehidesCandidates()
+    public async Task SummaryPost_WithoutAgency_PreservesCascadeState()
     {
         using var factory = new CustomWebApplicationFactory();
-        using var configuredFactory = factory.WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services =>
-            {
-                services.RemoveAll<IGeorefAddressService>();
-                services.AddScoped<IGeorefAddressService, FakeGeorefAddressService>();
-            }));
-        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
         await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
         var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
-        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: null);
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: null, provinceCode: "M", locality: "Godoy Cruz");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -400,32 +422,29 @@ public class CartCheckoutHttpTests
         Assert.Contains("123 Test St", html);
         Assert.Contains("555-0100", html);
         Assert.Contains($"value=\"{SD.PaymentMethodBankTransfer}\"", html);
-        // Candidates rehydrated server-side.
+        // Cascade selection + candidates rehydrated server-side.
+        Assert.Contains("value=\"M\" selected", html);
+        Assert.Contains("value=\"Godoy Cruz\" selected", html);
         Assert.Contains("TEST01", html);
         Assert.Contains("Test Branch", html);
+        Assert.Contains("LUN A VIE 9 A 18", html);
 
-        using var scope = configuredFactory.Services.CreateScope();
+        using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.Empty(db.OrderHeaders.AsNoTracking());
     }
 
     [Fact]
-    public async Task SummaryPost_WithInvalidAgencyCode_RehidesCandidates()
+    public async Task SummaryPost_WithInvalidAgencyCode_PreservesCascadeState()
     {
         using var factory = new CustomWebApplicationFactory();
-        using var configuredFactory = factory.WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services =>
-            {
-                services.RemoveAll<IGeorefAddressService>();
-                services.AddScoped<IGeorefAddressService, FakeGeorefAddressService>();
-            }));
-        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
         await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
         var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
-        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: "NOPE");
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: "NOPE", provinceCode: "M", locality: "Godoy Cruz");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -434,7 +453,7 @@ public class CartCheckoutHttpTests
         Assert.Contains("TEST01", html);
         Assert.Contains("Test Branch", html);
 
-        using var scope = configuredFactory.Services.CreateScope();
+        using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         Assert.Empty(db.OrderHeaders.AsNoTracking());
     }
@@ -505,72 +524,10 @@ public class CartCheckoutHttpTests
         Assert.Contains("San Martin 123", orderHeader.PickupAgencyAddress);
         Assert.Contains("Godoy Cruz", orderHeader.PickupAgencyAddress);
         Assert.Contains("Mendoza", orderHeader.PickupAgencyAddress);
+        Assert.Equal("LUN A VIE 9 A 18", orderHeader.PickupAgencyHours);
     }
 
-    [Fact]
-    public async Task GetNearestAgencies_ReturnsFiveOrderedByDistance()
-    {
-        using var factory = new CustomWebApplicationFactory();
-        using var configuredFactory = factory.WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services =>
-            {
-                services.RemoveAll<IGeorefAddressService>();
-                services.AddScoped<IGeorefAddressService, FakeGeorefAddressService>();
-            }));
-        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-
-        using (var scope = configuredFactory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            for (var i = 1; i <= 7; i++)
-            {
-                db.PostalAgencies.Add(new PostalAgency
-                {
-                    Code = $"MND00{i}",
-                    Name = $"Branch {i}",
-                    Street = "Calle",
-                    Number = i,
-                    Locality = "Capital",
-                    City = "Capital",
-                    Province = "MENDOZA",
-                    ProvinceCode = "M",
-                    PostalCode = "M5500",
-                    Latitude = -32.925 + 0.001 * i,
-                    Longitude = -68.845,
-                    Source = "correo",
-                    Services = "1,40",
-                    Kind = "SUCURSAL",
-                });
-            }
-            db.SaveChanges();
-        }
-
-        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
-
-        var response = await client.GetAsync("/en-US/Customer/Cart/GetNearestAgencies?street=San%20Martin%20123&city=Godoy%20Cruz&state=Mendoza");
-        var body = await response.Content.ReadAsStringAsync();
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var json = System.Text.Json.JsonDocument.Parse(body);
-        var items = json.RootElement.EnumerateArray().ToList();
-        Assert.Equal(5, items.Count);
-        var distances = items.Select(e => e.GetProperty("distanceKm").GetDouble()).ToList();
-        Assert.Equal(distances.OrderBy(d => d).ToList(), distances);
-        Assert.Equal("MND001", items[0].GetProperty("code").GetString());
-        Assert.All(items, e =>
-        {
-            Assert.False(string.IsNullOrWhiteSpace(e.GetProperty("name").GetString()));
-            Assert.False(string.IsNullOrWhiteSpace(e.GetProperty("address").GetString()));
-        });
-    }
-
-    private sealed class FakeGeorefAddressService : IGeorefAddressService
-    {
-        public Task<(double Lat, double Lon)?> GeocodeAsync(string streetAddress, string? province, string? locality, CancellationToken ct = default)
-            => Task.FromResult<(double, double)?>((-32.925, -68.845));
-    }
-
-    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe, string? pickupCode = "TEST01")
+    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe, string? pickupCode = "TEST01", string? provinceCode = null, string? locality = null)
     {
         var form = new Dictionary<string, string>
         {
@@ -586,6 +543,14 @@ public class CartCheckoutHttpTests
         if (pickupCode is not null)
         {
             form["OrderHeader.PickupAgencyCode"] = pickupCode;
+        }
+        if (provinceCode is not null)
+        {
+            form["branchPickerProvince"] = provinceCode;
+        }
+        if (locality is not null)
+        {
+            form["branchPickerLocality"] = locality;
         }
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
     }
@@ -640,6 +605,7 @@ public class CartCheckoutHttpTests
                 Source = "correo",
                 Services = "40",
                 Kind = "SUCURSAL",
+                Hours = "LUN A VIE 9 A 18",
             });
         }
         db.SaveChanges();

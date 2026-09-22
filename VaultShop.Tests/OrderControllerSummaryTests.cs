@@ -14,6 +14,7 @@ using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
+using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Tests
 {
@@ -99,7 +100,8 @@ namespace VaultShop.Web.Tests
 				Mock.Of<ITransactionalEmailService>(),
 				summaryMock.Object,
 				pdfMock.Object,
-				new OrderAccessPolicy(unitOfWorkMock.Object))
+				new OrderAccessPolicy(unitOfWorkMock.Object),
+				Mock.Of<IBranchLookupService>())
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

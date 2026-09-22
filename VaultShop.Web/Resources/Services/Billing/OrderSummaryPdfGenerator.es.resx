@@ -145,4 +145,7 @@
   <data name="PickupAgencyTitle" xml:space="preserve">
     <value>Retiro en sucursal</value>
   </data>
+  <data name="PickupAgencyHoursLabel" xml:space="preserve">
+    <value>Horario</value>
+  </data>
 </root>

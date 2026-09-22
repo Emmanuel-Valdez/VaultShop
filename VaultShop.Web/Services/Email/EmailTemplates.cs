@@ -1,17 +1,24 @@
 using System.Globalization;
+using System.Net;
 using System.Text;
+using VaultShop.Models;
+using VaultShop.Utility;
 
 namespace VaultShop.Web.Services.Email;
 
 public static class EmailTemplates
 {
+    // ponytail: static landing URL + copy-paste code; no templated deep link that rots on Correo redesigns
+    private const string CorreoTrackingUrl = "https://www.correoargentino.com.ar/seguimiento-de-envios";
     public static EmailContent OrderConfirmation(
         string storeName, string customerName, int orderId,
         IEnumerable<OrderItemLine> items, string orderTotal, string siteUrl,
         CultureInfo culture, string? paymentMethod = null, bool includeBankTransferInstructions = false,
         string? bankTransferCbu = null, string? bankTransferAlias = null,
         string? bankTransferRecipientName = null, string? bankTransferBankName = null,
-        string? whatsAppNumber = null, DateOnly? paymentDueDate = null, bool isCompanyWholesale = false)
+        string? whatsAppNumber = null, DateOnly? paymentDueDate = null, bool isCompanyWholesale = false,
+        string? deliveryType = null, string? pickupAgencyName = null, string? pickupAgencyCode = null,
+        string? pickupAgencyAddress = null, string? pickupAgencyHours = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -101,6 +108,9 @@ public static class EmailTemplates
             wholesaleHtml = wb.ToString();
         }
 
+        var pickupHtml = BuildPickupBlock(culture, deliveryType, pickupAgencyName,
+            pickupAgencyAddress, pickupAgencyHours, includePolicy: true);
+
         var body = $@"
 <!DOCTYPE html>
 <html><body style='font-family:sans-serif;margin:0;padding:0;background:#f4f4f4;'>
@@ -123,6 +133,7 @@ public static class EmailTemplates
 <p style='font-size:18px;'><strong>{totalLabel}:</strong> {orderTotal}</p>
 {wholesaleHtml}
 {bankTransferHtml}
+{pickupHtml}
 <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{viewOrderText}</a></p>
 </div></div></body></html>";
         return new EmailContent(subject, body);
@@ -167,30 +178,51 @@ public static class EmailTemplates
     public static EmailContent ShippingConfirmation(
         string storeName, string customerName, int orderId,
         string? trackingNumber, string? carrier, string siteUrl,
-        CultureInfo culture)
+        CultureInfo culture, string? deliveryType = null, string? pickupAgencyName = null,
+        string? pickupAgencyCode = null, string? pickupAgencyAddress = null, string? pickupAgencyHours = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
+        var isPickup = deliveryType == SD.DeliveryTypePickup;
         var subject = isSpanish
             ? $"Pedido #{orderId} enviado - {storeName}"
             : $"Order #{orderId} shipped - {storeName}";
         var heading = isSpanish ? "Tu pedido está en camino" : "Your order is on its way";
-        var message = isSpanish
-            ? $"El pedido N° {orderId} ha sido despachado."
-            : $"Order #{orderId} has been shipped.";
+        var encodedName = WebUtility.HtmlEncode(pickupAgencyName ?? string.Empty);
+        var message = isPickup
+            ? (isSpanish
+                ? $"El pedido N° {orderId} está en camino a la sucursal {encodedName}."
+                : $"Order #{orderId} is on its way to the {encodedName} branch.")
+            : (isSpanish
+                ? $"El pedido N° {orderId} ha sido despachado."
+                : $"Order #{orderId} has been shipped.");
+        var encodedTracking = WebUtility.HtmlEncode(trackingNumber ?? string.Empty);
         if (!string.IsNullOrEmpty(trackingNumber))
         {
             message += isSpanish
-                ? $" Código de seguimiento: {trackingNumber}"
-                : $" Tracking number: {trackingNumber}";
+                ? $" Código de seguimiento: {encodedTracking}"
+                : $" Tracking number: {encodedTracking}";
         }
+        var encodedCarrier = WebUtility.HtmlEncode(carrier ?? string.Empty);
         if (!string.IsNullOrEmpty(carrier))
         {
             message += isSpanish
-                ? $" Transporte: {carrier}"
-                : $" Carrier: {carrier}";
+                ? $" Transporte: {encodedCarrier}"
+                : $" Carrier: {encodedCarrier}";
         }
         var dashboardText = isSpanish ? "Seguir pedido" : "Track order";
-        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
+        var extraHtml = BuildPickupBlock(culture, deliveryType, pickupAgencyName,
+            pickupAgencyAddress, pickupAgencyHours, includePolicy: true);
+        if (isPickup && !string.IsNullOrEmpty(trackingNumber))
+        {
+            var trackingLinkText = isSpanish ? "Seguimiento de Correo Argentino" : "Correo Argentino tracking";
+            var trackingHint = isSpanish
+                ? $"Seguí tu envío en <a href='{CorreoTrackingUrl}'>{trackingLinkText}</a> copiando el código de seguimiento."
+                : $"Track your parcel at <a href='{CorreoTrackingUrl}'>{trackingLinkText}</a> by pasting the tracking number.";
+            extraHtml += $"<p>{trackingHint}</p>";
+        }
+        var body = extraHtml.Length == 0
+            ? HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture)
+            : HtmlTemplateWithExtra(storeName, heading, message, extraHtml, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
         return new EmailContent(subject, body);
     }
 
@@ -323,6 +355,33 @@ public static class EmailTemplates
 </div></div></body></html>";
     }
 
+    private static string BuildPickupBlock(
+        CultureInfo culture, string? deliveryType, string? name,
+        string? address, string? hours, bool includePolicy)
+    {
+        if (deliveryType != SD.DeliveryTypePickup) return string.Empty;
+        var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
+        var hoursValue = string.IsNullOrWhiteSpace(hours) ? PostalAgency.HoursUnknown : hours;
+        var builder = new StringBuilder();
+        builder.Append("<div style='margin:16px 0;padding:16px;border-radius:8px;background:#f6fbf6;border:1px solid #cfe8cf;'>");
+        builder.Append($"<p style='margin:0 0 12px 0;'><strong>{Translate("PickupBranchTitle", culture)}</strong></p>");
+        builder.Append($"<div><strong>{WebUtility.HtmlEncode(name)}</strong></div>");
+        if (!string.IsNullOrWhiteSpace(address))
+        {
+            builder.Append($"<div>{WebUtility.HtmlEncode(address)}</div>");
+        }
+        builder.Append($"<div><strong>{Translate("PickupBranchHoursLabel", culture)}:</strong> {WebUtility.HtmlEncode(hoursValue)}</div>");
+        if (includePolicy)
+        {
+            var policy = isSpanish
+                ? "Tenés 5 días hábiles para retirar tu pedido en la sucursal. Presentá tu DNI y el número de seguimiento. Si no lo retirás en ese plazo, el paquete vuelve al remitente y el reenvío tiene costo."
+                : "You have 5 business days to pick up your order at the branch. Bring your ID and tracking number. Unclaimed parcels are returned to the sender and reshipping is charged.";
+            builder.Append($"<p style='margin:12px 0 0 0;'>{policy}</p>");
+        }
+        builder.Append("</div>");
+        return builder.ToString();
+    }
+
     private static string Translate(string key, CultureInfo culture)
     {
         // ponytail: inline translation for email snippets; tiny surface, not worth resx plumbing
@@ -339,6 +398,8 @@ public static class EmailTemplates
             "BankTransferRecipientNameLabel" => isSpanish ? "Titular" : "Recipient",
             "BankTransferBankNameLabel" => isSpanish ? "Banco" : "Bank",
             "WhatsAppLabel" => "WhatsApp",
+            "PickupBranchTitle" => isSpanish ? "Retiro en sucursal" : "Branch pickup",
+            "PickupBranchHoursLabel" => isSpanish ? "Horario" : "Hours",
             _ => key,
         };
     }

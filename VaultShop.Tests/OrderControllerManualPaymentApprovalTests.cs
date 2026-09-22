@@ -20,6 +20,7 @@ using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
+using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Tests
 {
@@ -541,6 +542,32 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void DetailsPayNow_RejectsShippedOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusShipped
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company));
+
+			var result = test.Controller.Details_PAY_NOW(42, SD.PaymentMethodStripe);
+
+			Assert.IsType<NotFoundResult>(result);
+			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Never);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
 		public async Task PaymentConfirmation_MercadoPagoPreferenceId_SyncsApprovedPayment()
 		{
 			var order = new OrderHeader
@@ -803,7 +830,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
-		public void UpdateOrderDetail_AllowsShippedOrderEdit_ForAdmin()
+		public void UpdateOrderDetail_RejectsShippedOrderEdit_ForAdmin()
 		{
 			var order = new OrderHeader
 			{
@@ -828,12 +855,215 @@ namespace VaultShop.Web.Tests
 
 			var result = test.Controller.UpdateOrderDetail();
 
-			Assert.IsType<RedirectToActionResult>(result);
-			Assert.Equal("Changed Name", order.Name);
-			Assert.Equal("Changed Carrier", order.Carrier);
-			Assert.Equal("CHANGED", order.TrackingNumber);
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal("Original Name", order.Name);
+			Assert.Equal("Original Carrier", order.Carrier);
+			Assert.Equal("ORIGINAL", order.TrackingNumber);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void UpdateOrderDetail_CorrectsBranch_OnUnshippedPickupOrder_WithoutEmail()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				DeliveryType = SD.DeliveryTypePickup,
+				OrderStatus = SD.StatusInProcess,
+				PaymentStatus = SD.PaymentStatusApproved,
+				PickupAgencyCode = "OLD01",
+				PickupAgencyName = "Sucursal Vieja",
+				PickupAgencyAddress = "Vieja 1",
+				PickupAgencyHours = PostalAgency.HoursUnknown
+			};
+			var branch = new PostalAgency
+			{
+				Code = "NEW01",
+				Name = "Sucursal Nueva",
+				Street = "Calle",
+				Number = 5,
+				Locality = "Capital",
+				City = "Capital",
+				Province = "Mendoza",
+				ProvinceCode = "M",
+				PostalCode = "M5500",
+				Source = "correo",
+				Services = "40",
+				Hours = "LUN A VIE 9 A 18"
+			};
+			var nearest = new Mock<IBranchLookupService>();
+			nearest.Setup(x => x.GetByCode("NEW01")).Returns(branch);
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin),
+				branchLookup: nearest);
+			test.Controller.OrderVM.OrderHeader = new OrderHeader { Id = 42, PickupAgencyCode = "NEW01" };
+
+			var result = test.Controller.UpdateOrderDetail();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal("NEW01", order.PickupAgencyCode);
+			Assert.Equal("Sucursal Nueva", order.PickupAgencyName);
+			Assert.Contains("Calle 5", order.PickupAgencyAddress);
+			Assert.Contains("Capital", order.PickupAgencyAddress);
+			Assert.Equal("LUN A VIE 9 A 18", order.PickupAgencyHours);
 			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.EmailServiceMock.VerifyNoOtherCalls();
+		}
+
+		[Fact]
+		public void UpdateOrderDetail_RejectsForgedBranchCode()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				DeliveryType = SD.DeliveryTypePickup,
+				OrderStatus = SD.StatusInProcess,
+				PaymentStatus = SD.PaymentStatusApproved,
+				PickupAgencyCode = "OLD01",
+				PickupAgencyName = "Sucursal Vieja",
+				PickupAgencyHours = PostalAgency.HoursUnknown
+			};
+			var nearest = new Mock<IBranchLookupService>();
+			nearest.Setup(x => x.GetByCode(It.IsAny<string?>())).Returns((PostalAgency?)null);
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin),
+				branchLookup: nearest);
+			test.Controller.OrderVM.OrderHeader = new OrderHeader { Id = 42, PickupAgencyCode = "NOPE" };
+
+			var result = test.Controller.UpdateOrderDetail();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal("OLD01", order.PickupAgencyCode);
+			Assert.Equal("Sucursal Vieja", order.PickupAgencyName);
+			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void UpdateOrderDetail_KeepsSnapshot_WhenPostedCodeMatchesExistingButBranchMissing()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Original Name",
+				DeliveryType = SD.DeliveryTypePickup,
+				OrderStatus = SD.StatusInProcess,
+				PaymentStatus = SD.PaymentStatusApproved,
+				PickupAgencyCode = "OLD01",
+				PickupAgencyName = "Sucursal Vieja",
+				PickupAgencyAddress = "Vieja 1, Capital, Mendoza M5500",
+				PickupAgencyHours = "LUN A VIE 9 A 18"
+			};
+			var nearest = new Mock<IBranchLookupService>();
+			nearest.Setup(x => x.GetByCode(It.IsAny<string?>())).Returns((PostalAgency?)null);
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin),
+				branchLookup: nearest);
+			test.Controller.OrderVM.OrderHeader = new OrderHeader
+			{
+				Id = 42,
+				Name = "Changed Name",
+				PickupAgencyCode = "OLD01"
+			};
+
+			var result = test.Controller.UpdateOrderDetail();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal("Changed Name", order.Name);
+			Assert.Equal("OLD01", order.PickupAgencyCode);
+			Assert.Equal("Sucursal Vieja", order.PickupAgencyName);
+			Assert.Equal("LUN A VIE 9 A 18", order.PickupAgencyHours);
+			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+		}
+
+		[Fact]
+		public async Task CancelOrder_RejectsShippedOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				PaymentMethod = SD.PaymentMethodStripe,
+				PaymentIntentId = "pi_stripe",
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusShipped
+			};
+			var test = CreateController(Environments.Development, allowManualApproval: false, orderHeader: order, user: CreateUser("admin-user", SD.Role_Admin));
+			test.PaymentRefundMock
+				.Setup(x => x.RefundPaymentIntentAsync("pi_stripe"))
+				.Returns(Task.CompletedTask);
+
+			var result = await test.Controller.CancelOrder();
+
+			var redirect = Assert.IsType<RedirectToActionResult>(result);
+			Assert.Equal("Details", redirect.ActionName);
+			Assert.Equal(SD.StatusShipped, order.OrderStatus);
+			test.PaymentRefundMock.Verify(x => x.RefundPaymentIntentAsync(It.IsAny<string>()), Times.Never);
+			test.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+		}
+
+		[Fact]
+		public void Details_PopulatesBranchPicker_ForUnshippedPickupOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				DeliveryType = SD.DeliveryTypePickup,
+				OrderStatus = SD.StatusInProcess,
+				PaymentStatus = SD.PaymentStatusApproved,
+				PickupAgencyCode = "CUR01"
+			};
+			var branch = new PostalAgency
+			{
+				Code = "CUR01",
+				Name = "Sucursal Actual",
+				Street = "Calle",
+				Number = 1,
+				Locality = "Godoy Cruz",
+				City = "Godoy Cruz",
+				Province = "Mendoza",
+				ProvinceCode = "M",
+				PostalCode = "M5501",
+				Source = "correo",
+				Services = "40",
+				Hours = "LUN A VIE 9 A 18"
+			};
+			var nearest = new Mock<IBranchLookupService>();
+			nearest.Setup(x => x.GetByCode("CUR01")).Returns(branch);
+			nearest.Setup(x => x.GetCandidateProvinces()).Returns(new List<(string Code, string Name)> { ("M", "Mendoza") });
+			nearest.Setup(x => x.GetCandidateLocalities("M")).Returns(new List<string> { "Godoy Cruz" });
+			nearest.Setup(x => x.GetCandidateBranches("M", "Godoy Cruz")).Returns(new List<PostalAgency> { branch });
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				user: CreateUser("admin-user", SD.Role_Admin),
+				branchLookup: nearest);
+
+			var result = test.Controller.Details(42);
+
+			Assert.IsType<ViewResult>(result);
+			var picker = Assert.IsType<BranchCascadePickerVM>(test.Controller.ViewData["BranchCascadePicker"]);
+			Assert.Equal("M", picker.SelectedProvinceCode);
+			Assert.Equal("Godoy Cruz", picker.SelectedLocality);
+			Assert.Equal("CUR01", picker.SelectedBranchCode);
+			Assert.Contains(picker.Branches, b => b.Code == "CUR01" && b.Hours == "LUN A VIE 9 A 18");
 		}
 
 
@@ -944,7 +1174,8 @@ namespace VaultShop.Web.Tests
 			ApplicationUser? currentUser = null,
 			ClaimsPrincipal? user = null,
 			bool mercadoPagoEnabled = false,
-			bool companyCardPaymentsEnabled = true)
+			bool companyCardPaymentsEnabled = true,
+			Mock<IBranchLookupService>? branchLookup = null)
 		{
 			var unitOfWorkMock = new Mock<IUnitOfWork>();
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();
@@ -1000,6 +1231,7 @@ namespace VaultShop.Web.Tests
 			var emailServiceMock = new Mock<ITransactionalEmailService>();
 			var orderSummaryServiceMock = new Mock<IOrderSummaryService>();
 			var pdfGeneratorMock = new Mock<IOrderSummaryPdfGenerator>();
+			var branchLookupMock = branchLookup ?? new Mock<IBranchLookupService>();
 			var localizerMock = new Mock<IStringLocalizer<OrderController>>();
 			localizerMock
 				.Setup(x => x[It.IsAny<string>()])
@@ -1039,14 +1271,15 @@ namespace VaultShop.Web.Tests
 				emailServiceMock.Object,
 				orderSummaryServiceMock.Object,
 				pdfGeneratorMock.Object,
-				new OrderAccessPolicy(unitOfWorkMock.Object))
+				new OrderAccessPolicy(unitOfWorkMock.Object),
+				branchLookupMock.Object)
 			{
 				OrderVM = new OrderVM { OrderHeader = new OrderHeader { Id = orderHeader?.Id ?? 42 } },
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
 			};
 
-			return new TestController(controller, paymentStatusMock, paymentSessionMock, mercadoPagoPaymentSessionMock, paymentRefundMock, mercadoPagoPaymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock, orderSummaryServiceMock, pdfGeneratorMock);
+			return new TestController(controller, paymentStatusMock, paymentSessionMock, mercadoPagoPaymentSessionMock, paymentRefundMock, mercadoPagoPaymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock, orderSummaryServiceMock, pdfGeneratorMock, branchLookupMock);
 		}
 
 		private static List<object> GetJsonOrders(IActionResult result)
@@ -1091,7 +1324,7 @@ namespace VaultShop.Web.Tests
 			return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
 		}
 
-		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentSessionService> MercadoPagoPaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IPaymentRefundService> MercadoPagoPaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock, Mock<IOrderSummaryService> OrderSummaryServiceMock, Mock<IOrderSummaryPdfGenerator> PdfGeneratorMock);
+		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentSessionService> MercadoPagoPaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IPaymentRefundService> MercadoPagoPaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock, Mock<IOrderSummaryService> OrderSummaryServiceMock, Mock<IOrderSummaryPdfGenerator> PdfGeneratorMock, Mock<IBranchLookupService> BranchLookupServiceMock);
 	}
 }
 

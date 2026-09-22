@@ -213,4 +213,10 @@
   <data name="Answer9" xml:space="preserve">
     <value>Refunds are returned to the same original payment account or card used for the purchase. Bank transfer refunds go back to the source account, and card payments are refunded to the same card.</value>
   </data>
+  <data name="Question10" xml:space="preserve">
+    <value>10. How does Correo Argentino branch pickup work?</value>
+  </data>
+  <data name="Answer10" xml:space="preserve">
+    <value>Choose the branch at checkout (province, locality, and branch) and check its hours in your order confirmation. We email you when the order is on its way to the branch, with the tracking number. You have 5 business days to pick it up with your ID and tracking number. Unclaimed parcels are returned to the sender and reshipping is charged.</value>
+  </data>
 </root>

@@ -166,4 +166,7 @@
   <data name="PickupAgencyAddress" xml:space="preserve">
     <value>Dirección</value>
   </data>
+  <data name="PickupAgencyHoursLabel" xml:space="preserve">
+    <value>Horario</value>
+  </data>
 </root>

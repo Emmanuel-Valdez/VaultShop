@@ -73,6 +73,7 @@ namespace VaultShop.Web.Tests
 			order.PickupAgencyCode = "TEST01";
 			order.PickupAgencyName = "Test Branch";
 			order.PickupAgencyAddress = "San Martin 123, Godoy Cruz, Mendoza M5501";
+			order.PickupAgencyHours = "LUN A VIE 9 A 18";
 			var details = CreateCustomerOrderDetails();
 			var unitOfWork = CreateUnitOfWork(order, details, [CreateUser("user-1")]);
 			var service = new OrderSummaryService(unitOfWork.Object, new OrderAccessPolicy(unitOfWork.Object));
@@ -85,6 +86,7 @@ namespace VaultShop.Web.Tests
 			Assert.Equal("TEST01", result.PickupAgencyCode);
 			Assert.Equal("Test Branch", result.PickupAgencyName);
 			Assert.Equal("San Martin 123, Godoy Cruz, Mendoza M5501", result.PickupAgencyAddress);
+			Assert.Equal("LUN A VIE 9 A 18", result.PickupAgencyHours);
 		}
 
 		[Fact]

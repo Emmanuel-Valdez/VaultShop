@@ -195,16 +195,4 @@
   <data name="PickupFreeShipping" xml:space="preserve">
     <value>Envío gratis a sucursal</value>
   </data>
-  <data name="SearchBranches" xml:space="preserve">
-    <value>Buscar sucursales cercanas</value>
-  </data>
-  <data name="SearchingBranches" xml:space="preserve">
-    <value>Buscando sucursales…</value>
-  </data>
-  <data name="NoBranchesFound" xml:space="preserve">
-    <value>No se encontraron sucursales. Verificá la dirección e intentá de nuevo.</value>
-  </data>
-  <data name="EnterAddressBeforeSearch" xml:space="preserve">
-    <value>Completá la calle y la provincia antes de buscar sucursales.</value>
-  </data>
 </root>

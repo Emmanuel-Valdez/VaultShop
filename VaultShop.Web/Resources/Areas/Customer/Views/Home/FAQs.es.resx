@@ -213,4 +213,10 @@
   <data name="Answer9" xml:space="preserve">
     <value>Los reembolsos vuelven a la misma cuenta o tarjeta original usada en la compra. Las devoluciones de transferencias regresan a la cuenta de origen y los pagos con tarjeta se reintegran a la misma tarjeta.</value>
   </data>
+  <data name="Question10" xml:space="preserve">
+    <value>10. ¿Cómo funciona el retiro en sucursal de Correo Argentino?</value>
+  </data>
+  <data name="Answer10" xml:space="preserve">
+    <value>Elegí la sucursal al momento de comprar (provincia, localidad y sucursal) y revisá su horario en la confirmación de tu pedido. Te avisamos por email cuando el pedido esté en camino a la sucursal, con el código de seguimiento. Tenés 5 días hábiles para retirarlo presentando tu DNI y el número de seguimiento. Si no lo retirás en ese plazo, el paquete vuelve al remitente y el reenvío tiene costo.</value>
+  </data>
 </root>
