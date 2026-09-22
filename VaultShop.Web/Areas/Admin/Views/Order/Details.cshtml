@@ -6,8 +6,8 @@
 		Model.OrderHeader.OrderStatus == SD.StatusRefunded ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusRejected;
 	var orderIsShipped = Model.OrderHeader.OrderStatus == SD.StatusShipped;
-	var canEditShippingDetails = User.IsInRole(SD.Role_Admin) && !orderIsTerminal;
-	var canEditFulfillmentDetails = canManageOrder && !orderIsTerminal && (!orderIsShipped || User.IsInRole(SD.Role_Admin));
+	var canEditShippingDetails = User.IsInRole(SD.Role_Admin) && !orderIsTerminal && !orderIsShipped;
+	var canEditFulfillmentDetails = canManageOrder && !orderIsTerminal && !orderIsShipped;
 	var allowDevelopmentManualApproval = ViewData["AllowDevelopmentManualPaymentApproval"] is true;
 	var paymentCanBeManuallyApproved = Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending ||
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment;
@@ -29,7 +29,8 @@
 	var canPayNow = User.IsInRole(SD.Role_Company) &&
 		Model.OrderHeader.CompanyId.GetValueOrDefault() > 0 &&
 		Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment &&
-		!orderIsTerminal;
+		!orderIsTerminal &&
+		!orderIsShipped;
 	var canConfirmBankTransfer = canManageOrder && !orderIsTerminal &&
 		Model.OrderHeader.PaymentMethod == SD.PaymentMethodBankTransfer &&
 		(Model.OrderHeader.PaymentStatus == SD.PaymentStatusPending || Model.OrderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
@@ -214,7 +215,7 @@
 								<div class="row my-1">
 									<div class="col-3">@Localizer["PickupAgencyCode"]</div>
 									<div class="col-9">
-										<input asp-for="OrderHeader.PickupAgencyCode" readonly type="text" class="form-control shadow" />
+										<input value="@Model.OrderHeader.PickupAgencyCode" readonly type="text" class="form-control shadow" />
 									</div>
 								</div>
 								<div class="row my-1">
@@ -229,6 +230,27 @@
 										<input asp-for="OrderHeader.PickupAgencyAddress" readonly type="text" class="form-control shadow" />
 									</div>
 								</div>
+								<div class="row my-1">
+									<div class="col-3">@Localizer["PickupAgencyHours"]</div>
+									<div class="col-9">
+										<input asp-for="OrderHeader.PickupAgencyHours" readonly type="text" class="form-control shadow" />
+									</div>
+								</div>
+							@if (canManageOrder && ViewData["BranchCascadePicker"] as BranchCascadePickerVM is { } branchPicker)
+							{
+								<div class="row my-1">
+									<div class="col-12">
+										<button class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"
+												data-bs-toggle="collapse" data-bs-target="#adminBranchPickerCollapse"
+												aria-expanded="false" aria-controls="adminBranchPickerCollapse">
+											<i class="bi bi-geo-alt"></i> @Localizer["BranchCorrectionHint"]
+										</button>
+										<div class="collapse" id="adminBranchPickerCollapse">
+											<partial name="_BranchCascadePicker" model="branchPicker" />
+										</div>
+									</div>
+								</div>
+							}
 							}
 							<div class="row my-1">
 								<div class="col-3">@Localizer["OrderDate"]</div>
@@ -316,7 +338,7 @@
 							</div>
 							@if (canEditFulfillmentDetails)
 							{
-								<Button type="submit" asp-action="UpdateOrderDetail" onclick="return confirmShippedOrderUpdate(event)" class="btn btn-warning form-control my-1">
+								<Button type="submit" asp-action="UpdateOrderDetail" id="updateOrderBtn" class="btn btn-warning form-control my-1">
 									@Localizer["UpdateOrderDetails"]
 								</Button>
 							}
@@ -491,34 +513,6 @@
 				return false;
 			}
 			return true;
-		}
-
-		function confirmShippedOrderUpdate(event) {
-			const button = event.currentTarget;
-			const isShippedOrder = @Json.Serialize(Model.OrderHeader.OrderStatus == SD.StatusShipped);
-			const isAdmin = @Json.Serialize(User.IsInRole(SD.Role_Admin));
-			if (!isShippedOrder || !isAdmin || button.dataset.confirmed === "true") {
-				return true;
-			}
-
-			event.preventDefault();
-			Swal.fire({
-				icon: 'warning',
-				title: @Json.Serialize(Localizer["UpdateShippedOrderConfirmTitle"].Value),
-				text: @Json.Serialize(Localizer["UpdateShippedOrderConfirmText"].Value),
-				showCancelButton: true,
-				confirmButtonText: @Json.Serialize(Localizer["UpdateShippedOrderConfirmButton"].Value),
-				cancelButtonText: @Json.Serialize(Localizer["CancelOrderKeepButton"].Value),
-				confirmButtonColor: '#ffc107',
-				focusCancel: true
-			}).then((result) => {
-				if (result.isConfirmed) {
-					button.dataset.confirmed = "true";
-					button.click();
-				}
-			});
-
-			return false;
 		}
 
 		function confirmCompanyPaymentMethodChoice(event) {

@@ -1288,9 +1288,16 @@ html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verif
         width: auto !important;
     }
 
-    table.dataTable .btn {
-        padding: 0.15rem 0.4rem;
-        font-size: 0.85em;
-        line-height: 1.2;
-    }
+table.dataTable .btn {
+		padding: 0.15rem 0.4rem;
+		font-size: 0.85em;
+		line-height: 1.2;
+	}
+}
+
+/* ponytail: branch picker labels — prevent address/hours truncation on mobile */
+.branch-cascade-picker .list-group-item > span {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	min-width: 0;
 }
