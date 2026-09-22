@@ -1295,9 +1295,14 @@ table.dataTable .btn {
 	}
 }
 
-/* ponytail: branch picker labels — prevent address/hours truncation on mobile */
+/* ponytail: branch picker labels — prevent address/hours truncation */
 .branch-cascade-picker .list-group-item > span {
-	word-wrap: break-word;
-	overflow-wrap: break-word;
+	flex: 1 1 0%;
 	min-width: 0;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+.branch-cascade-picker .list-group-item > span small {
+	display: block;
 }

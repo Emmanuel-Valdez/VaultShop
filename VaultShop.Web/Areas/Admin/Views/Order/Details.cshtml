@@ -215,32 +215,32 @@
 								<div class="row my-1">
 									<div class="col-3">@Localizer["PickupAgencyCode"]</div>
 									<div class="col-9">
-										<input value="@Model.OrderHeader.PickupAgencyCode" readonly type="text" class="form-control shadow" />
+										<p class="form-control shadow mb-0 text-break">@Model.OrderHeader.PickupAgencyCode</p>
 									</div>
 								</div>
 								<div class="row my-1">
 									<div class="col-3">@Localizer["PickupAgencyName"]</div>
 									<div class="col-9">
-										<input asp-for="OrderHeader.PickupAgencyName" readonly type="text" class="form-control shadow" />
+										<p class="form-control shadow mb-0 text-break">@Model.OrderHeader.PickupAgencyName</p>
 									</div>
 								</div>
 								<div class="row my-1">
 									<div class="col-3">@Localizer["PickupAgencyAddress"]</div>
 									<div class="col-9">
-										<input asp-for="OrderHeader.PickupAgencyAddress" readonly type="text" class="form-control shadow" />
+										<p class="form-control shadow mb-0 text-break">@Model.OrderHeader.PickupAgencyAddress</p>
 									</div>
 								</div>
 								<div class="row my-1">
 									<div class="col-3">@Localizer["PickupAgencyHours"]</div>
 									<div class="col-9">
-										<input asp-for="OrderHeader.PickupAgencyHours" readonly type="text" class="form-control shadow" />
+										<p class="form-control shadow mb-0 text-break">@Model.OrderHeader.PickupAgencyHours</p>
 									</div>
 								</div>
 							@if (canManageOrder && ViewData["BranchCascadePicker"] as BranchCascadePickerVM is { } branchPicker)
 							{
 								<div class="row my-1">
 									<div class="col-12">
-										<button class="btn btn-outline-secondary btn-sm w-100 mb-2" type="button"
+										<button class="btn btn-secondary btn-sm w-100 mb-2" type="button"
 												data-bs-toggle="collapse" data-bs-target="#adminBranchPickerCollapse"
 												aria-expanded="false" aria-controls="adminBranchPickerCollapse">
 											<i class="bi bi-geo-alt"></i> @Localizer["BranchCorrectionHint"]

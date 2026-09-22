@@ -94,7 +94,8 @@
 			if (!filter || !branches) return;
 			var q = (filter.value || '').toLowerCase();
 			branches.querySelectorAll('label').forEach(function (label) {
-				label.style.display = !q || label.textContent.toLowerCase().includes(q) ? '' : 'none';
+				// ponytail: d-none (!important, later in cascade) beats the label's d-flex (!important) — inline display:none never could.
+				label.classList.toggle('d-none', !!q && !label.textContent.toLowerCase().includes(q));
 			});
 		}
 
