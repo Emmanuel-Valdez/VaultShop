@@ -18,6 +18,9 @@ namespace VaultShop.Web.Tests
     {
         private SqliteConnection? _connection;
 
+        // Per-factory EF command counter: tests reset it around a request to assert query counts.
+        public QueryCountInterceptor QueryCounter { get; } = new();
+
         // Populated during ConfigureWebHost so tests can reference the seeded fixtures by id/email.
         public string CustomerEmail => TestDataSeeder.CustomerEmail;
         public string CompanyEmail => TestDataSeeder.CompanyEmail;
@@ -43,7 +46,7 @@ namespace VaultShop.Web.Tests
                 services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
                 _connection = new SqliteConnection("Data Source=:memory:");
                 _connection.Open();
-                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection));
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection).AddInterceptors(QueryCounter));
 
                 services.RemoveAll<IStripeCheckoutSessionClient>();
                 services.AddScoped<IStripeCheckoutSessionClient, FakeStripeCheckoutSessionClient>();

@@ -27,13 +27,15 @@
     var searchTitleBase = Localizer["Search"].Value;
     ViewData["Title"] = activeCollection != null && cleanedSlug != null ? $"{searchTitleBase} - {activeCollection.Name} /{cleanedSlug}" : (string.IsNullOrWhiteSpace(termText) ? searchTitleBase : $"{searchTitleBase} - {termText}");
     var coverUrl = ViewData["ActiveCollectionCover"] as string ?? ViewData["CollectionCover"] as string;
+    var mediumCoverUrl = ViewData["ActiveCollectionMediumCover"] as string;
+    var smallCoverUrl = ViewData["ActiveCollectionSmallCover"] as string;
     var activeCount = ViewData["ActiveCollectionCount"] as int?;
     var heroShown = !string.IsNullOrWhiteSpace(coverUrl);
 }
 
 @if (!string.IsNullOrWhiteSpace(coverUrl) && activeKeywordId.HasValue)
 {
-	<partial name="_CollectionHero" model='new VaultShop.Models.ViewModels.CollectionHeroVM { ImageUrl = coverUrl, Title = activeCollection!.Name, Count = activeCount ?? 0, Slug = cleanedSlug }' />
+	<partial name="_CollectionHero" model='new VaultShop.Models.ViewModels.CollectionHeroVM { ImageUrl = coverUrl, MobileImageUrl = smallCoverUrl, MediumImageUrl = mediumCoverUrl, Title = activeCollection!.Name, Count = activeCount ?? 0, Slug = cleanedSlug }' />
 }
 <div class="row pb-3" id="productos">
 	<div class="col-12 storefront-section pb-3">

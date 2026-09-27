@@ -6,7 +6,9 @@ namespace VaultShop.Models
 	public enum KeywordImageKind
 	{
 		Chip = 0,
-		Cover = 1
+		Cover = 1,
+		CoverMedium = 2,
+		CoverSmall = 3
 	}
 
 	public class KeywordImage

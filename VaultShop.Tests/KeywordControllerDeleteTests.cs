@@ -175,7 +175,11 @@ public class KeywordControllerDeleteTests
 
 		var redirect = Assert.IsType<RedirectToActionResult>(result);
 		Assert.Equal("Upsert", redirect.ActionName);
-		uow.KeywordImageMock.Verify(x => x.Remove(image), Times.Once);
+		// Contract kept, call shape updated: DeleteImage now funnels every row through
+		// RemoveRange (single-element list for chips) instead of a per-row Remove.
+		uow.KeywordImageMock.Verify(x => x.RemoveRange(It.Is<IEnumerable<KeywordImage>>(rows => rows.Single() == image)), Times.Once);
+		uow.KeywordImageMock.Verify(x => x.Remove(It.IsAny<KeywordImage>()), Times.Never);
+
 		uow.Mock.Verify(x => x.Save(), Times.Once);
 	}
 

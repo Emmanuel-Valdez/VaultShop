@@ -127,16 +127,35 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 
 			int keywordId = image.KeywordId;
-			_unitOfWork.KeywordImage.Remove(image);
+
+			// Cover deletes as a unit: all crop rows go together.
+			List<KeywordImage> rows;
+			if (image.Kind == KeywordImageKind.Chip)
+			{
+				rows = new List<KeywordImage> { image };
+			}
+			else
+			{
+				rows = _unitOfWork.KeywordImage.GetAll(i => i.KeywordId == keywordId && i.Kind != KeywordImageKind.Chip).ToList();
+				if (!rows.Any(r => r.Id == image.Id))
+				{
+					rows.Add(image);
+				}
+			}
+
+			_unitOfWork.KeywordImage.RemoveRange(rows);
 			_unitOfWork.Save();
 
-			try
+			foreach (var row in rows)
 			{
-				await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(image.ObjectKey, image.StorageProvider, $"keywords/keyword-{keywordId}"));
-			}
-			catch (Exception ex)
-			{
-				_logger.LogWarning(ex, "Keyword image row {ImageId} for keyword {KeywordId} was deleted, but storage cleanup failed.", imageId, keywordId);
+				try
+				{
+					await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(row.ObjectKey, row.StorageProvider, $"keywords/keyword-{keywordId}"));
+				}
+				catch (Exception ex)
+				{
+					_logger.LogWarning(ex, "Keyword image row {ImageId} for keyword {KeywordId} was deleted, but storage cleanup failed.", row.Id, keywordId);
+				}
 			}
 
 			TempData["success"] = _localizer["DeletedSuccessfully"].Value;
@@ -211,42 +230,62 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 		private async Task ReplaceImageAsync(int keywordId, KeywordImageKind kind, IFormFile file)
 		{
-			// Save new image first — only delete old after new succeeds to prevent data loss.
-			var stored = kind == KeywordImageKind.Chip
-				? await _keywordImageService.SaveChipAsync(keywordId, file)
-				: await _keywordImageService.SaveCoverAsync(keywordId, file);
-
-			var existing = _unitOfWork.KeywordImage.Get(i => i.KeywordId == keywordId && i.Kind == kind);
-			if (existing != null)
+			if (kind == KeywordImageKind.Chip)
 			{
-				_unitOfWork.KeywordImage.Remove(existing);
+				// Save new image first — only delete old after new succeeds to prevent data loss.
+				var stored = await _keywordImageService.SaveChipAsync(keywordId, file);
+
+				var existing = _unitOfWork.KeywordImage.Get(i => i.KeywordId == keywordId && i.Kind == kind);
+				if (existing != null)
+				{
+					_unitOfWork.KeywordImage.Remove(existing);
+				}
+
+				_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, kind, stored));
+				_unitOfWork.Save();
+
+				// Best-effort cleanup of old storage after DB is consistent.
+				if (existing != null)
+				{
+					try
+					{
+						await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(existing.ObjectKey, existing.StorageProvider, $"keywords/keyword-{keywordId}"));
+					}
+					catch (Exception ex)
+					{
+						_logger.LogWarning(ex, "Keyword {KeywordId} {Kind} image row {ImageId} was replaced, but old storage cleanup failed.", keywordId, kind, existing.Id);
+					}
+				}
+				return;
 			}
 
-			_unitOfWork.KeywordImage.Add(new KeywordImage
+			// Cover: save all three new objects first, then replace all cover rows, then best-effort delete each old object.
+			var variants = await _keywordImageService.SaveCoverAsync(keywordId, file);
+
+			var existingCovers = _unitOfWork.KeywordImage.GetAll(i => i.KeywordId == keywordId && i.Kind != KeywordImageKind.Chip).ToList();
+			foreach (var old in existingCovers)
 			{
-				KeywordId = keywordId,
-				Kind = kind,
-				ImageUrl = stored.ImageUrl,
-				ObjectKey = stored.ObjectKey,
-				FileName = stored.FileName,
-				ContentType = stored.ContentType,
-				SizeBytes = stored.SizeBytes,
-				StorageProvider = stored.StorageProvider
-			});
+				_unitOfWork.KeywordImage.Remove(old);
+			}
+
+			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.Cover, variants.Large));
+			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.CoverMedium, variants.Medium));
+			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.CoverSmall, variants.Small));
 			_unitOfWork.Save();
 
-			// Best-effort cleanup of old storage after DB is consistent.
-			if (existing != null)
+			foreach (var old in existingCovers)
 			{
 				try
 				{
-					await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(existing.ObjectKey, existing.StorageProvider, $"keywords/keyword-{keywordId}"));
+					await _imageStorageService.DeleteObjectAsync(new DeleteObjectRequest(old.ObjectKey, old.StorageProvider, $"keywords/keyword-{keywordId}"));
 				}
 				catch (Exception ex)
 				{
-					_logger.LogWarning(ex, "Keyword {KeywordId} {Kind} image row {ImageId} was replaced, but old storage cleanup failed.", keywordId, kind, existing.Id);
+					_logger.LogWarning(ex, "Keyword {KeywordId} cover image row {ImageId} was replaced, but old storage cleanup failed.", keywordId, old.Id);
 				}
 			}
 		}
+
+		private static KeywordImage ToKeywordImage(int keywordId, KeywordImageKind kind, StoredImage stored) => new() { KeywordId = keywordId, Kind = kind, ImageUrl = stored.ImageUrl, ObjectKey = stored.ObjectKey, FileName = stored.FileName, ContentType = stored.ContentType, SizeBytes = stored.SizeBytes, StorageProvider = stored.StorageProvider };
 	}
 }

@@ -1,7 +1,17 @@
 @model VaultShop.Models.ViewModels.CollectionHeroVM
-@* ponytail: reusable 100vw breakout; height via CSS var --hero-h (320/260), fixed, transform-only parallax *@
+@* ponytail: reusable 100vw breakout; height via CSS var --hero-h (560/320/260), fixed, transform-only parallax *@
 <section class="collection-hero collection-hero--breakout u-breakout" data-collection-hero aria-label="@Model.Title">
-	<img src="@Model.ImageUrl" alt="@Model.Title" class="collection-hero__image" fetchpriority="high" loading="eager" decoding="async" />
+	<picture>
+		@if (!string.IsNullOrWhiteSpace(Model.MobileImageUrl))
+		{
+			<source media="(max-width:479.98px)" srcset="@Model.MobileImageUrl" />
+		}
+		@if (!string.IsNullOrWhiteSpace(Model.MediumImageUrl))
+		{
+			<source media="(min-width:480px) and (max-width:991.98px)" srcset="@Model.MediumImageUrl" />
+		}
+		<img src="@Model.ImageUrl" alt="@Model.Title" class="collection-hero__image" fetchpriority="high" loading="eager" decoding="async" />
+	</picture>
 	<div class="collection-hero__scrim" aria-hidden="true"></div>
 	<div class="collection-hero__content">
 		<h1 class="collection-hero__title">@Model.Title</h1>

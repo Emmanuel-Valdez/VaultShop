@@ -38,8 +38,12 @@
 						</div>
 						<div class="mb-3">
 							<label class="form-label fw-semibold">@Localizer["CoverImage"]</label>
-							<input type="file" name="coverFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<input type="file" name="coverFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-crop-hint="@Localizer["CoverCropHint"]" />
 							<div class="form-text">@Localizer["CoverImageHelp"]</div>
+							@if (Model.Id != 0 && Model.Images.Any(i => i.Kind == KeywordImageKind.Cover) && !Model.Images.Any(i => i.Kind == KeywordImageKind.CoverMedium || i.Kind == KeywordImageKind.CoverSmall))
+							{
+								<div class="alert alert-warning mt-2 mb-0" role="status">@Localizer["LegacyCoverNotice"]</div>
+							}
 						</div>
 						<div class="row mt-3">
 							<div class="col-6 col-md-3">
@@ -68,18 +72,35 @@
 						<h3 class="h5 mb-3 text-primary">@Localizer["KeywordImages"]</h3>
 						@if (Model.Images.Any())
 						{
-							@foreach (var image in Model.Images.OrderBy(i => i.Kind))
+							var chip = Model.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Chip);
+							var covers = Model.Images.Where(i => i.Kind != KeywordImageKind.Chip).OrderBy(i => i.Kind).ToList();
+							@if (chip != null)
 							{
 								<div class="border rounded-3 p-2 mb-3 text-center">
-									<img src="@image.ImageUrl" class="w-100 rounded mb-2" style="max-height:160px; object-fit:cover" alt="@(image.Kind == KeywordImageKind.Chip ? "Chip" : "Cover")" />
-									<span class="badge bg-secondary d-block mb-2">
-										@(image.Kind == KeywordImageKind.Chip ? Localizer["ChipImage"] : Localizer["CoverImage"])
-									</span>
+									<img src="@chip.ImageUrl" class="w-100 rounded mb-2" style="max-height:160px; object-fit:cover" alt="Chip" />
+									<span class="badge bg-secondary d-block mb-2">@Localizer["ChipImage"]</span>
 									<form method="post" asp-action="DeleteImage" class="w-100">
 										@Html.AntiForgeryToken()
-										<input type="hidden" name="imageId" value="@image.Id" />
+										<input type="hidden" name="imageId" value="@chip.Id" />
 										<button type="submit" class="btn btn-outline-danger btn-sm w-100">
 											<i class="bi bi-trash-fill"></i> @Localizer["Delete"]
+										</button>
+									</form>
+								</div>
+							}
+							@if (covers.Any())
+							{
+								<div class="border rounded-3 p-2 mb-3 text-center">
+									<span class="badge bg-secondary d-block mb-2">@Localizer["CoverImage"]</span>
+									@foreach (var cover in covers)
+									{
+										<img src="@cover.ImageUrl" class="w-100 rounded mb-2" style="max-height:160px; object-fit:cover" alt="Cover" />
+									}
+									<form method="post" asp-action="DeleteImage" class="w-100">
+										@Html.AntiForgeryToken()
+										<input type="hidden" name="imageId" value="@covers[0].Id" />
+										<button type="submit" class="btn btn-outline-danger btn-sm w-100">
+											<i class="bi bi-trash-fill"></i> @Localizer["DeleteCover"]
 										</button>
 									</form>
 								</div>

@@ -19,19 +19,25 @@
     <value>Imagen Chip</value>
   </data>
   <data name="ChipImageHelp" xml:space="preserve">
-    <value>Imagen cuadrada que se muestra circular en la navegación de la tienda.</value>
+    <value>Imagen cuadrada que se muestra circular en la navegación de la tienda (recorte 400x400).</value>
+  </data>
+  <data name="CoverCropHint" xml:space="preserve">
+    <value>Esta imagen será recortada. Relación recomendada 16:9 (1920x1080).</value>
   </data>
   <data name="CoverImage" xml:space="preserve">
     <value>Imagen Portada</value>
   </data>
   <data name="CoverImageHelp" xml:space="preserve">
-    <value>Imagen ancha usada como portada de la colección.</value>
+    <value>Master recomendado 1920x1080 (16:9). Deriva recortes 1600x700, 1200x500 y 780x520.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Crear</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>Eliminar</value>
+  </data>
+  <data name="DeleteCover" xml:space="preserve">
+    <value>Eliminar portada</value>
   </data>
   <data name="Keyword" xml:space="preserve">
     <value>Colección</value>
@@ -53,5 +59,8 @@
   </data>
   <data name="Update" xml:space="preserve">
     <value>Actualizar</value>
+  </data>
+  <data name="LegacyCoverNotice" xml:space="preserve">
+    <value>Esta portada es anterior a los recortes responsive. Volvé a subir la portada para generar las variantes 1600x700, 1200x500 y 780x520.</value>
   </data>
 </root>

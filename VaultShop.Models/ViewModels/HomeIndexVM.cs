@@ -21,9 +21,11 @@ namespace VaultShop.Models.ViewModels
 				{
 					Id = g.Key,
 					Name = g.First().Keyword.Name,
-					Slug = g.First().Keyword.Slug,
+					Slug = g.First().Keyword.Slug ?? string.Empty,
 					ChipImageUrl = g.First().Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Chip)?.ImageUrl,
 					CoverImageUrl = g.First().Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Cover)?.ImageUrl,
+					MediumCoverImageUrl = g.First().Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.CoverMedium)?.ImageUrl,
+					SmallCoverImageUrl = g.First().Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.CoverSmall)?.ImageUrl,
 					Count = g.Count(x => x.InStock)
 				})
 				.OrderBy(c => c.Name)

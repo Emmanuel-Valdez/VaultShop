@@ -107,9 +107,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				{
 					Id = pk.KeywordId,
 					Name = pk.Keyword.Name,
-					Slug = pk.Keyword.Slug,
+					Slug = pk.Keyword.Slug ?? string.Empty,
 					ChipImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Chip)?.ImageUrl,
-					CoverImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Cover)?.ImageUrl
+					CoverImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.Cover)?.ImageUrl,
+					MediumCoverImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.CoverMedium)?.ImageUrl,
+					SmallCoverImageUrl = pk.Keyword.Images.FirstOrDefault(i => i.Kind == KeywordImageKind.CoverSmall)?.ImageUrl
 				})
 				.OrderBy(c => c.Name)
 				.ToList();
@@ -280,6 +282,10 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				{
 					if (!string.IsNullOrWhiteSpace(activeColl.CoverImageUrl))
 						ViewData["ActiveCollectionCover"] = activeColl.CoverImageUrl;
+					if (!string.IsNullOrWhiteSpace(activeColl.MediumCoverImageUrl))
+						ViewData["ActiveCollectionMediumCover"] = activeColl.MediumCoverImageUrl;
+					if (!string.IsNullOrWhiteSpace(activeColl.SmallCoverImageUrl))
+						ViewData["ActiveCollectionSmallCover"] = activeColl.SmallCoverImageUrl;
 					ViewData["ActiveCollectionName"] = activeColl.Name;
 					ViewData["ActiveCollectionCount"] = activeColl.Count;
 					if (ViewData["Slug"] == null && !string.IsNullOrWhiteSpace(activeColl.Slug))

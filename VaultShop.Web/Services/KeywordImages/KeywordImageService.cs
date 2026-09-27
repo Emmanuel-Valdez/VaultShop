@@ -8,8 +8,13 @@ namespace VaultShop.Web.Services.KeywordImages;
 public sealed class KeywordImageService : IKeywordImageService
 {
 	private const int ChipSize = 400;
-	private const int CoverWidth = 1400;
-	private const int CoverHeight = 500;
+	// Band crops; comment names the --hero-h value each band assumes (site.css).
+	private const int CoverLargeWidth = 1600;
+	private const int CoverLargeHeight = 700; // --hero-h: 560
+	private const int CoverMediumWidth = 1200;
+	private const int CoverMediumHeight = 500; // --hero-h: 320
+	private const int CoverSmallWidth = 780;
+	private const int CoverSmallHeight = 520; // --hero-h: 260
 
 	private readonly IImageStorageService _imageStorageService;
 	private readonly ILogger<KeywordImageService> _logger;
@@ -23,12 +28,39 @@ public sealed class KeywordImageService : IKeywordImageService
 	}
 
 	public async Task<StoredImage> SaveChipAsync(int keywordId, IFormFile file)
-		=> await SaveAsync(keywordId, file, ChipSize, ChipSize, squareCrop: true);
+		=> await SaveAsync(keywordId, file, ChipSize, ChipSize);
 
-	public async Task<StoredImage> SaveCoverAsync(int keywordId, IFormFile file)
-		=> await SaveAsync(keywordId, file, CoverWidth, CoverHeight, squareCrop: false);
+	public async Task<CoverVariants> SaveCoverAsync(int keywordId, IFormFile file)
+	{
+		ValidateUpload(keywordId, file);
 
-	private async Task<StoredImage> SaveAsync(int keywordId, IFormFile file, int targetWidth, int targetHeight, bool squareCrop)
+		await using var inputStream = file.OpenReadStream();
+		using var original = SkiaImageProcessor.DecodeImageWithOrientation(inputStream);
+		if (original is null)
+		{
+			throw new InvalidOperationException("Keyword image validation passed, but decoding failed while saving.");
+		}
+
+		var large = await SaveCropAsync(keywordId, file.FileName, original, CoverLargeWidth, CoverLargeHeight);
+		var medium = await SaveCropAsync(keywordId, file.FileName, original, CoverMediumWidth, CoverMediumHeight);
+		var small = await SaveCropAsync(keywordId, file.FileName, original, CoverSmallWidth, CoverSmallHeight);
+		return new CoverVariants(large, medium, small);
+	}
+
+	private async Task<StoredImage> SaveCropAsync(int keywordId, string fileName, SkiaSharp.SKBitmap original, int targetWidth, int targetHeight)
+	{
+		await using var outputStream = new MemoryStream();
+		SkiaImageProcessor.WriteCroppedJpeg(original, outputStream, targetWidth, targetHeight);
+
+		return await _imageStorageService.SaveObjectAsync(new ImageStorageSaveRequest(
+			$"keywords/keyword-{keywordId}",
+			outputStream,
+			fileName,
+			"image/jpeg",
+			outputStream.Length));
+	}
+
+	private void ValidateUpload(int keywordId, IFormFile file)
 	{
 		var validationError = SkiaImageProcessor.ValidateFile(file);
 		if (validationError is not null)
@@ -54,6 +86,11 @@ public sealed class KeywordImageService : IKeywordImageService
 				file.ContentType);
 			throw new KeywordImageValidationException(_localizer[error].Value);
 		}
+	}
+
+	private async Task<StoredImage> SaveAsync(int keywordId, IFormFile file, int targetWidth, int targetHeight)
+	{
+		ValidateUpload(keywordId, file);
 
 		await using var inputStream = file.OpenReadStream();
 		using var original = SkiaImageProcessor.DecodeImageWithOrientation(inputStream);
@@ -63,7 +100,8 @@ public sealed class KeywordImageService : IKeywordImageService
 		}
 
 		await using var outputStream = new MemoryStream();
-		SkiaImageProcessor.WriteResizedJpeg(original, outputStream, targetWidth, targetHeight, squareCrop);
+		// ponytail: SaveChipAsync siempre recorta cuadrado; sin param hasta que otro caller pida distinto.
+		SkiaImageProcessor.WriteResizedJpeg(original, outputStream, targetWidth, targetHeight, true);
 
 		return await _imageStorageService.SaveObjectAsync(new ImageStorageSaveRequest(
 			$"keywords/keyword-{keywordId}",
@@ -80,3 +118,5 @@ public sealed class KeywordImageValidationException : Exception
 	{
 	}
 }
+
+public sealed record CoverVariants(StoredImage Large, StoredImage Medium, StoredImage Small);

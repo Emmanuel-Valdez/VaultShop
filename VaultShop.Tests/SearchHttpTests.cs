@@ -248,6 +248,217 @@ public class SearchHttpTests
         Assert.Contains("naruto", okBody.ToLowerInvariant());
     }
 
+    [Fact]
+    public async Task Search_CollectionHero_RendersPictureSources_WhenAllCropsPresent()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var keywordId = SeedKeywordWithCovers(factory, withResponsiveCrops: true);
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var body = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
+
+        Assert.Contains("collection-hero", body);
+        Assert.Contains("<picture>", body);
+        // small covers 390px, medium covers 768px, large fallback covers 1280px and 1920px
+        Assert.Contains("media=\"(max-width:479.98px)\"", body);
+        Assert.Contains("media=\"(min-width:480px) and (max-width:991.98px)\"", body);
+        Assert.Contains("cover-small.jpg", body);
+        Assert.Contains("cover-medium.jpg", body);
+        Assert.Contains("cover.jpg", body);
+        // Exactly two sources with the exact media strings, each srcset serving its own crop:
+        // a whole-body Contains passes even when the two URLs are swapped between sources.
+        var sources = Regex.Matches(body, "<source[^>]*>").Cast<Match>().Select(m => m.Value).ToList();
+        Assert.Equal(2, sources.Count);
+        var smallSource = Assert.Single(sources, s => s.Contains("(max-width:479.98px)"));
+        var mediumSource = Assert.Single(sources, s => s.Contains("(min-width:480px) and (max-width:991.98px)"));
+        Assert.Contains("media=\"(max-width:479.98px)\"", smallSource);
+        Assert.Contains("cover-small.jpg", smallSource);
+        Assert.DoesNotContain("cover-medium.jpg", smallSource);
+        Assert.Contains("media=\"(min-width:480px) and (max-width:991.98px)\"", mediumSource);
+        Assert.Contains("cover-medium.jpg", mediumSource);
+        Assert.DoesNotContain("cover-small.jpg", mediumSource);
+    }
+
+    [Fact]
+    public async Task Search_CollectionHero_RendersSingleImg_WhenLegacyCoverOnly()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var keywordId = SeedKeywordWithCovers(factory, withResponsiveCrops: false);
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var body = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
+
+        Assert.Contains("collection-hero", body);
+        Assert.Contains("cover.jpg", body);
+        Assert.DoesNotContain("<source", body);
+    }
+
+    [Fact]
+    public async Task Search_CollectionHero_PartialCrops_FallsBackToWidestAvailable()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var keywordId = SeedKeywordWithCovers(factory, withResponsiveCrops: true, withMediumCrop: false);
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var body = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
+
+        Assert.Contains("collection-hero", body);
+        Assert.Contains("<picture>", body);
+
+        var sources = Regex.Matches(body, "<source[^>]*>").Cast<Match>().Select(m => m.Value).ToList();
+        // small source is present and serves the small crop
+        var smallSource = Assert.Single(sources, s => s.Contains("media=\"(max-width:479.98px)\""));
+        Assert.Contains("cover-small.jpg", smallSource);
+        // medium source is absent — the browser falls back to the large <img> (768px band)
+        Assert.DoesNotContain(sources, s => s.Contains("(min-width:480px) and (max-width:991.98px)"));
+        Assert.DoesNotContain("cover-medium.jpg", body);
+        var heroImage = Regex.Match(body, "<img[^>]*collection-hero__image[^>]*>");
+        Assert.True(heroImage.Success, "expected the hero <img> fallback");
+        Assert.Contains("cover.jpg", heroImage.Value);
+    }
+
+    [Fact]
+    public async Task Search_ThreeCropHero_IssuesSameSqlQueryCountAsLegacyCoverHero()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var (legacyKeywordId, fullKeywordId) = SeedLegacyAndFullCoverKeywords(factory);
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        // warm-up request so both measured requests start from identical cookie/session state
+        await client.GetStringAsync("/en-US/Customer/Home/Index");
+
+        factory.QueryCounter.Reset();
+        var legacyBody = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={legacyKeywordId}");
+        var legacyQueries = factory.QueryCounter.Count;
+
+        factory.QueryCounter.Reset();
+        var fullBody = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={fullKeywordId}");
+        var fullQueries = factory.QueryCounter.Count;
+
+        // both renders really produced their markup (guards a no-op render trivially tying the counts)
+        Assert.Contains("<picture>", legacyBody);
+        Assert.DoesNotContain("cover-medium.jpg", legacyBody);
+        Assert.Contains("cover-small.jpg", fullBody);
+        Assert.Contains("cover-medium.jpg", fullBody);
+
+        Assert.True(legacyQueries > 0, "expected the request to issue SQL commands — is QueryCountInterceptor registered?");
+        // task 2.3: the extra FirstOrDefault variant projections over the materialized Images
+        // collection must not add a single query for a keyword that has all three crops.
+        Assert.Equal(legacyQueries, fullQueries);
+    }
+
+    private static (int legacyKeywordId, int fullKeywordId) SeedLegacyAndFullCoverKeywords(CustomWebApplicationFactory factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = new Category { Name = "Mochilas", AvgShippingCost = 100m };
+        db.Categories.Add(category);
+        db.SaveChanges();
+
+        var legacy = new Keyword { Name = "Legacy", Slug = "legacy-cover", IsDeleted = false };
+        var full = new Keyword { Name = "Full", Slug = "full-cover", IsDeleted = false };
+        db.Keywords.AddRange(legacy, full);
+        db.SaveChanges();
+
+        db.KeywordImages.AddRange(
+            new KeywordImage { Kind = KeywordImageKind.Chip, ImageUrl = $"images/keywords/keyword-{legacy.Id}/chip.jpg", KeywordId = legacy.Id },
+            new KeywordImage { Kind = KeywordImageKind.Cover, ImageUrl = $"images/keywords/keyword-{legacy.Id}/cover.jpg", KeywordId = legacy.Id },
+            new KeywordImage { Kind = KeywordImageKind.Chip, ImageUrl = $"images/keywords/keyword-{full.Id}/chip.jpg", KeywordId = full.Id },
+            new KeywordImage { Kind = KeywordImageKind.Cover, ImageUrl = $"images/keywords/keyword-{full.Id}/cover.jpg", KeywordId = full.Id },
+            new KeywordImage { Kind = KeywordImageKind.CoverMedium, ImageUrl = $"images/keywords/keyword-{full.Id}/cover-medium.jpg", KeywordId = full.Id },
+            new KeywordImage { Kind = KeywordImageKind.CoverSmall, ImageUrl = $"images/keywords/keyword-{full.Id}/cover-small.jpg", KeywordId = full.Id });
+        db.SaveChanges();
+
+        var legacyProduct = new Product
+        {
+            Name = "Mochila Legacy",
+            Description = "Mochila",
+            MaxExpectation = 10,
+            Category = category,
+            ListPrice = 100m,
+            FinalRetailPrice = 100m,
+            FinalWholesalePrice = 100m,
+            IsAvailableInStore = true,
+            IsDeleted = false,
+            StockQuantity = 3,
+        };
+        var fullProduct = new Product
+        {
+            Name = "Mochila Full",
+            Description = "Mochila",
+            MaxExpectation = 10,
+            Category = category,
+            ListPrice = 100m,
+            FinalRetailPrice = 100m,
+            FinalWholesalePrice = 100m,
+            IsAvailableInStore = true,
+            IsDeleted = false,
+            StockQuantity = 3,
+        };
+        db.Products.AddRange(legacyProduct, fullProduct);
+        db.SaveChanges();
+        db.ProductKeywords.AddRange(
+            new ProductKeyword { ProductId = legacyProduct.Id, KeywordId = legacy.Id },
+            new ProductKeyword { ProductId = fullProduct.Id, KeywordId = full.Id });
+        db.SaveChanges();
+
+        return (legacy.Id, full.Id);
+    }
+    private static int SeedKeywordWithCovers(CustomWebApplicationFactory factory, bool withResponsiveCrops, bool withMediumCrop = true)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = new Category { Name = "Mochilas", AvgShippingCost = 100m };
+        var keyword = new Keyword { Name = "Naruto", Slug = "naruto", IsDeleted = false };
+        db.Categories.Add(category);
+        db.Keywords.Add(keyword);
+        db.SaveChanges();
+        db.KeywordImages.Add(new KeywordImage
+        {
+            Kind = KeywordImageKind.Cover,
+            ImageUrl = $"images/keywords/keyword-{keyword.Id}/cover.jpg",
+            KeywordId = keyword.Id,
+        });
+        if (withResponsiveCrops)
+        {
+            if (withMediumCrop)
+            {
+                db.KeywordImages.Add(new KeywordImage
+                {
+                    Kind = KeywordImageKind.CoverMedium,
+                    ImageUrl = $"images/keywords/keyword-{keyword.Id}/cover-medium.jpg",
+                    KeywordId = keyword.Id,
+                });
+            }
+            db.KeywordImages.Add(new KeywordImage
+            {
+                Kind = KeywordImageKind.CoverSmall,
+                ImageUrl = $"images/keywords/keyword-{keyword.Id}/cover-small.jpg",
+                KeywordId = keyword.Id,
+            });
+        }
+        db.SaveChanges();
+        var product = new Product
+        {
+            Name = "Mochila Naruto",
+            Description = "Mochila",
+            MaxExpectation = 10,
+            Category = category,
+            ListPrice = 100m,
+            FinalRetailPrice = 100m,
+            FinalWholesalePrice = 100m,
+            IsAvailableInStore = true,
+            IsDeleted = false,
+            StockQuantity = 3,
+        };
+        db.Products.Add(product);
+        db.SaveChanges();
+        db.ProductKeywords.Add(new ProductKeyword { ProductId = product.Id, KeywordId = keyword.Id });
+        db.SaveChanges();
+
+        return keyword.Id;
+    }
+
     private static (int categoryId, int keywordId) SeedLargeCatalog(CustomWebApplicationFactory factory)
     {
         using var scope = factory.Services.CreateScope();

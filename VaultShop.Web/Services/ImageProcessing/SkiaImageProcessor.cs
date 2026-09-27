@@ -133,27 +133,55 @@ public static class SkiaImageProcessor
 		return destination;
 	}
 
-	public static void WriteResizedJpeg(SKBitmap original, Stream outputStream, int targetWidth, int targetHeight, bool squareCrop)
+	public static void WriteCroppedJpeg(SKBitmap original, Stream outputStream, int targetWidth, int targetHeight)
 	{
-		var source = new SKRect(0, 0, original.Width, original.Height);
-		var destination = new SKRect(0, 0, targetWidth, targetHeight);
-
-		if (squareCrop)
+		using var resized = new SKBitmap(targetWidth, targetHeight);
+		using (var canvas = new SKCanvas(resized))
 		{
-			var crop = Math.Min(original.Width, original.Height);
-			var cropX = (original.Width - crop) / 2;
-			var cropY = (original.Height - crop) / 2;
-			source = new SKRect(cropX, cropY, cropX + crop, cropY + crop);
+			DrawCenterCrop(original, canvas, targetWidth, targetHeight);
+		}
+
+		using var image = SKImage.FromBitmap(resized);
+		using var data = image.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
+		data.SaveTo(outputStream);
+	}
+
+	private static void DrawCenterCrop(SKBitmap original, SKCanvas canvas, int targetWidth, int targetHeight)
+	{
+		var targetAspect = (float)targetWidth / targetHeight;
+		var sourceAspect = (float)original.Width / original.Height;
+		SKRect source;
+		if (sourceAspect > targetAspect)
+		{
+			var cropWidth = original.Height * targetAspect;
+			var cropX = (original.Width - cropWidth) / 2;
+			source = new SKRect(cropX, 0, cropX + cropWidth, original.Height);
 		}
 		else
 		{
-			var scale = Math.Min((float)targetWidth / original.Width, (float)targetHeight / original.Height);
-			var drawWidth = (int)(original.Width * scale);
-			var drawHeight = (int)(original.Height * scale);
-			var offsetX = (targetWidth - drawWidth) / 2;
-			var offsetY = (targetHeight - drawHeight) / 2;
-			destination = new SKRect(offsetX, offsetY, offsetX + drawWidth, offsetY + drawHeight);
+			var cropHeight = original.Width / targetAspect;
+			var cropY = (original.Height - cropHeight) / 2;
+			source = new SKRect(0, cropY, original.Width, cropY + cropHeight);
 		}
+		canvas.DrawBitmap(original, source, new SKRect(0, 0, targetWidth, targetHeight));
+	}
+
+	public static void WriteResizedJpeg(SKBitmap original, Stream outputStream, int targetWidth, int targetHeight, bool squareCrop)
+	{
+		if (squareCrop)
+		{
+			WriteCroppedJpeg(original, outputStream, targetWidth, targetHeight);
+			return;
+		}
+
+		var source = new SKRect(0, 0, original.Width, original.Height);
+		var destination = new SKRect(0, 0, targetWidth, targetHeight);
+		var scale = Math.Min((float)targetWidth / original.Width, (float)targetHeight / original.Height);
+		var drawWidth = (int)(original.Width * scale);
+		var drawHeight = (int)(original.Height * scale);
+		var offsetX = (targetWidth - drawWidth) / 2;
+		var offsetY = (targetHeight - drawHeight) / 2;
+		destination = new SKRect(offsetX, offsetY, offsetX + drawWidth, offsetY + drawHeight);
 
 		using var resized = new SKBitmap(targetWidth, targetHeight);
 		using (var canvas = new SKCanvas(resized))

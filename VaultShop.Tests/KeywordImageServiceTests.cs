@@ -100,6 +100,80 @@ public class KeywordImageServiceTests
 	}
 
 	[Fact]
+	public async Task SaveCoverAsync_EmptyFile_RejectsWithLocalizedError()
+	{
+		var service = CreateService();
+		var file = CreateFormFile([], "cover.jpg", "image/jpeg");
+
+		var ex = await Assert.ThrowsAsync<KeywordImageValidationException>(() => service.SaveCoverAsync(1, file));
+
+		Assert.Equal("UploadFileEmpty", ex.Message);
+	}
+
+	[Fact]
+	public async Task SaveCoverAsync_OneMaster_ProducesThreeCropsWithDistinctKeys()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
+		try
+		{
+			var service = CreateService(webRootPath);
+			var png = CreateValidPngBytes();
+
+			var variants = await service.SaveCoverAsync(7, CreateFormFile(png, "cover.png", "image/png"));
+
+			Assert.StartsWith("images/keywords/keyword-7/", variants.Large.ObjectKey);
+			Assert.StartsWith("images/keywords/keyword-7/", variants.Medium.ObjectKey);
+			Assert.StartsWith("images/keywords/keyword-7/", variants.Small.ObjectKey);
+			Assert.NotEqual(variants.Large.ObjectKey, variants.Medium.ObjectKey);
+			Assert.NotEqual(variants.Large.ObjectKey, variants.Small.ObjectKey);
+			Assert.NotEqual(variants.Medium.ObjectKey, variants.Small.ObjectKey);
+
+			using var savedLarge = SKBitmap.Decode(Path.Combine(webRootPath, variants.Large.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			using var savedMedium = SKBitmap.Decode(Path.Combine(webRootPath, variants.Medium.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			using var savedSmall = SKBitmap.Decode(Path.Combine(webRootPath, variants.Small.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			Assert.Equal(1600, savedLarge.Width);
+			Assert.Equal(700, savedLarge.Height);
+			Assert.Equal(1200, savedMedium.Width);
+			Assert.Equal(500, savedMedium.Height);
+			Assert.Equal(780, savedSmall.Width);
+			Assert.Equal(520, savedSmall.Height);
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
+	}
+
+	[Fact]
+	public async Task SaveCoverAsync_SquareMaster_CenterCropsWithoutLetterbox()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
+		try
+		{
+			var service = CreateService(webRootPath);
+			var square = CreateSolidPngBytes(800, 800, SKColors.Red);
+
+			var variants = await service.SaveCoverAsync(9, CreateFormFile(square, "cover.png", "image/png"));
+
+			foreach (var stored in new[] { variants.Large, variants.Medium, variants.Small })
+			{
+				using var saved = SKBitmap.Decode(Path.Combine(webRootPath, stored.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+				// ponytail: solid-red master — a letterboxed contain would leave white bars at edges/corners
+				foreach (var (x, y) in new[] { (10, 10), (saved.Width - 10, 10), (10, saved.Height - 10), (saved.Width - 10, saved.Height - 10), (saved.Width / 2, saved.Height / 2) })
+				{
+					var pixel = saved.GetPixel(x, y);
+					Assert.True(pixel.Red > 200 && pixel.Green < 80 && pixel.Blue < 80,
+						$"Expected full-bleed red crop, got ({pixel.Red},{pixel.Green},{pixel.Blue}) at ({x},{y}).");
+				}
+			}
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
+	}
+
+	[Fact]
 	public async Task ChipCoverAndReplace_PersistIndependentlyUnderSamePrefix()
 	{
 		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
@@ -113,17 +187,17 @@ public class KeywordImageServiceTests
 			var replacedChip = await service.SaveChipAsync(7, CreateFormFile(png, "chip2.png", "image/png"));
 
 			Assert.StartsWith("images/keywords/keyword-7/", chip.ObjectKey);
-			Assert.StartsWith("images/keywords/keyword-7/", cover.ObjectKey);
+			Assert.StartsWith("images/keywords/keyword-7/", cover.Large.ObjectKey);
 			Assert.StartsWith("images/keywords/keyword-7/", replacedChip.ObjectKey);
 
-			Assert.NotEqual(chip.ObjectKey, cover.ObjectKey);
+			Assert.NotEqual(chip.ObjectKey, cover.Large.ObjectKey);
 			Assert.NotEqual(chip.ObjectKey, replacedChip.ObjectKey);
 
 			Assert.True(File.Exists(Path.Combine(webRootPath, replacedChip.ObjectKey.Replace('/', Path.DirectorySeparatorChar))));
 
-			using var savedCover = SKBitmap.Decode(Path.Combine(webRootPath, cover.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
-			Assert.Equal(1400, savedCover.Width);
-			Assert.Equal(500, savedCover.Height);
+			using var savedCover = SKBitmap.Decode(Path.Combine(webRootPath, cover.Large.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			Assert.Equal(1600, savedCover.Width);
+			Assert.Equal(700, savedCover.Height);
 		}
 		finally
 		{
@@ -155,8 +229,13 @@ public class KeywordImageServiceTests
 
 	private static byte[] CreateValidPngBytes()
 	{
-		using var bitmap = new SKBitmap(600, 400);
-		bitmap.Erase(SKColors.Red);
+		return CreateSolidPngBytes(600, 400, SKColors.Red);
+	}
+
+	private static byte[] CreateSolidPngBytes(int width, int height, SKColor color)
+	{
+		using var bitmap = new SKBitmap(width, height);
+		bitmap.Erase(color);
 		using var image = SKImage.FromBitmap(bitmap);
 		using var data = image.Encode(SKEncodedImageFormat.Png, 100);
 		return data.ToArray();

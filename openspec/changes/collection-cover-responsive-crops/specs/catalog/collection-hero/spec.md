@@ -1,8 +1,4 @@
-## Purpose
-
-Provides a reusable visual hero for collection cover images that introduces the collection with a full-bleed image above the search results.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Collection hero renders when cover exists
 When `Search` is filtered by `keywordId` and the corresponding keyword has a cover crop (`Kind.Cover`, `Kind.CoverMedium` or `Kind.CoverSmall`), the system SHALL render a hero banner immediately below the navbar, breakout to full viewport width, with `object-fit:cover center`, gradient scrim and overlay title/count. The cover SHALL be rendered through a `<picture>` element so the browser can select the crop matching the viewport before any crop of a single source is applied. When the keyword has no cover crop at all, no hero SHALL be rendered.
@@ -28,7 +24,7 @@ The hero SHALL have a consistent fixed height across collections, defined per br
 
 #### Scenario: Desktop heights
 - **WHEN** viewed at `>=992px`
-- **THEN** the hero height is `560px`
+- **THEN** the hero height is `320px`
 
 #### Scenario: Tablet height
 - **WHEN** viewed between `480px` and `991.98px`
@@ -52,6 +48,8 @@ The hero markup and styles SHALL be implementable as a reusable partial with a p
 #### Scenario: Reused without a band-specific crop
 - **WHEN** the component is invoked with only a primary image and no additional crop
 - **THEN** it renders a single `<img>` with no `<source>` elements and serves that image at every viewport width
+
+## ADDED Requirements
 
 ### Requirement: Hero selects the cover crop matching the viewport band
 The hero SHALL declare one `<source>` per stored cover crop, each scoped to a viewport band, and SHALL declare the widest available crop as the `<img>` fallback. Bands SHALL be `(max-width:479.98px)`, `(min-width:480px) and (max-width:991.98px)`, and the fallback for wider viewports. Each band's crop ratio SHALL be chosen so that across that band no more than 25% of the image is discarded horizontally and no more than 35% vertically. When a keyword lacks the crop for a band, the browser SHALL fall back to the widest available crop rather than rendering no image.
@@ -77,11 +75,11 @@ The hero SHALL declare one `<source>` per stored cover crop, each scoped to a vi
 - **THEN** the top and bottom of the medium crop are cropped and at least 75% of its height remains visible
 
 #### Scenario: Desktop receives the large crop with full width
-- **WHEN** a shopper views a collection hero at a `1280px` viewport, where the hero box is `1280x560` (`2.29:1`)
-- **THEN** the `1600x700` (`2.29:1`) crop is requested and the full width and height of that crop are visible, with no cropping on either axis
+- **WHEN** a shopper views a collection hero at a `1280px` viewport, where the hero box is `1280x320` (`4:1`)
+- **THEN** the `1600x400` (`4:1`) crop is requested and the full width and height of that crop are visible, with no cropping on either axis
 
 #### Scenario: Very wide desktop bounds vertical loss
-- **WHEN** a shopper views a collection hero at a `1920px` viewport, where the hero box is `1920x560` (`3.43:1`)
+- **WHEN** a shopper views a collection hero at a `1920px` viewport, where the hero box is `1920x320` (`6:1`)
 - **THEN** the top and bottom of the large crop are cropped symmetrically, discarding no more than 35% of its height in total
 
 #### Scenario: Legacy single cover serves every band
@@ -106,3 +104,10 @@ Scrolling SHALL translate the cover image upward at a fraction of the scroll dis
 #### Scenario: Reduced motion respected
 - **WHEN** `prefers-reduced-motion:reduce` is set
 - **THEN** no parallax translation and no overlay fade occur
+
+## REMOVED Requirements
+
+### Requirement: Hero collapses progressively on scroll
+**Reason**: The implementation has not collapsed the hero since the editorial change. `collectionHero.js` performs a compositor-only parallax and overlay fade, and the CSS defines a single fixed `--hero-h` per breakpoint with no `--hero-h-collapsed`. The spec described behavior that does not exist, and this change edits the same requirements, so the drift is corrected here rather than carried forward.
+
+**Migration**: Replace with the ADDED requirement "Hero parallax and overlay fade on scroll". No code change is required; this is a documentation correction that makes the spec match the existing fixed-height implementation.

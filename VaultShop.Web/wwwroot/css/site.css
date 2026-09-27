@@ -1015,14 +1015,14 @@ html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verif
 .scroll-row-btn--next { right: 0.25rem; }
 .scroll-row-btn.is-visible { display: flex; }
 
-/* collection hero — reusable breakout above search results (fixed 320/260, compositor-only parallax) */
+/* collection hero — reusable breakout above search results (fixed 560/320/260 desktop/tablet/mobile, compositor-only parallax) */
 .collection-hero--breakout {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     position: relative;
     height: var(--hero-h);
     overflow: hidden;
-    --hero-h: 320px;
+    --hero-h: 560px;
 }
 .collection-hero__image {
     width: 100%;
@@ -1033,6 +1033,8 @@ html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verif
     transform: translateY(var(--img-ty, 0));
     will-change: transform;
 }
+/* ponytail: picture wrapper must not disturb the img sizing — sources don't render */
+.collection-hero--breakout > picture { display: contents; }
 .collection-hero__scrim {
     position: absolute;
     inset: 0;
