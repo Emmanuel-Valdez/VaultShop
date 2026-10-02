@@ -117,7 +117,7 @@ public class KeywordImageServiceTests
 		try
 		{
 			var service = CreateService(webRootPath);
-			var png = CreateValidPngBytes();
+			var png = CreateSolidPngBytes(2100, 900, SKColors.Red);
 
 			var variants = await service.SaveCoverAsync(7, CreateFormFile(png, "cover.png", "image/png"));
 
@@ -131,12 +131,12 @@ public class KeywordImageServiceTests
 			using var savedLarge = SKBitmap.Decode(Path.Combine(webRootPath, variants.Large.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
 			using var savedMedium = SKBitmap.Decode(Path.Combine(webRootPath, variants.Medium.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
 			using var savedSmall = SKBitmap.Decode(Path.Combine(webRootPath, variants.Small.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
-			Assert.Equal(1600, savedLarge.Width);
-			Assert.Equal(700, savedLarge.Height);
-			Assert.Equal(1200, savedMedium.Width);
-			Assert.Equal(500, savedMedium.Height);
-			Assert.Equal(780, savedSmall.Width);
-			Assert.Equal(520, savedSmall.Height);
+			Assert.Equal(1905, savedLarge.Width);
+			Assert.Equal(714, savedLarge.Height);
+			Assert.Equal(1280, savedMedium.Width);
+			Assert.Equal(480, savedMedium.Height);
+			Assert.Equal(768, savedSmall.Width);
+			Assert.Equal(288, savedSmall.Height);
 		}
 		finally
 		{
@@ -151,7 +151,7 @@ public class KeywordImageServiceTests
 		try
 		{
 			var service = CreateService(webRootPath);
-			var square = CreateSolidPngBytes(800, 800, SKColors.Red);
+			var square = CreateSolidPngBytes(2200, 2200, SKColors.Red);
 
 			var variants = await service.SaveCoverAsync(9, CreateFormFile(square, "cover.png", "image/png"));
 
@@ -183,7 +183,7 @@ public class KeywordImageServiceTests
 			var png = CreateValidPngBytes();
 
 			var chip = await service.SaveChipAsync(7, CreateFormFile(png, "chip.png", "image/png"));
-			var cover = await service.SaveCoverAsync(7, CreateFormFile(png, "cover.png", "image/png"));
+			var cover = await service.SaveCoverAsync(7, CreateFormFile(CreateSolidPngBytes(2100, 900, SKColors.Red), "cover.png", "image/png"));
 			var replacedChip = await service.SaveChipAsync(7, CreateFormFile(png, "chip2.png", "image/png"));
 
 			Assert.StartsWith("images/keywords/keyword-7/", chip.ObjectKey);
@@ -196,14 +196,97 @@ public class KeywordImageServiceTests
 			Assert.True(File.Exists(Path.Combine(webRootPath, replacedChip.ObjectKey.Replace('/', Path.DirectorySeparatorChar))));
 
 			using var savedCover = SKBitmap.Decode(Path.Combine(webRootPath, cover.Large.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
-			Assert.Equal(1600, savedCover.Width);
-			Assert.Equal(700, savedCover.Height);
+			Assert.Equal(1905, savedCover.Width);
+			Assert.Equal(714, savedCover.Height);
 		}
 		finally
 		{
 			Directory.Delete(webRootPath, recursive: true);
 		}
 	}
+
+	[Fact]
+	public async Task SaveCoverAsync_ExactRatioMaster_PreservesFullContent()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
+		try
+		{
+			var service = CreateService(webRootPath);
+			// ponytail: blue edge bars die under any center crop; surviving bars prove the zero-crop path.
+			// Bars are 40px wide (sampled at center) so JPEG chroma bleed can't fake a failure.
+			var master = CreatePaintedPngBytes(1905, 714, bitmap =>
+			{
+				bitmap.Erase(SKColors.Red);
+				using var canvas = new SKCanvas(bitmap);
+				using var blue = new SKPaint { Color = SKColors.Blue };
+				canvas.DrawRect(0, 0, 40, 714, blue);
+				canvas.DrawRect(1905 - 40, 0, 40, 714, blue);
+			});
+
+			var variants = await service.SaveCoverAsync(11, CreateFormFile(master, "cover.png", "image/png"));
+
+			foreach (var stored in new[] { variants.Large, variants.Medium, variants.Small })
+			{
+				using var saved = SKBitmap.Decode(Path.Combine(webRootPath, stored.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+				// ponytail: bar-center in output coords — the bar narrows with each downscale.
+				var edge = saved.Width * 20 / 1905;
+				AssertDominantBlue(saved.GetPixel(edge, saved.Height / 2), "left edge");
+				AssertDominantBlue(saved.GetPixel(saved.Width - 1 - edge, saved.Height / 2), "right edge");
+				var center = saved.GetPixel(saved.Width / 2, saved.Height / 2);
+				Assert.True(center.Red > 200 && center.Blue < 80, "center must stay red.");
+			}
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
+	}
+
+	[Fact]
+	public async Task SaveCoverAsync_SmallMaster_RefusesUpscale()
+	{
+		var service = CreateService();
+		var small = CreateSolidPngBytes(1200, 800, SKColors.Red);
+
+		var ex = await Assert.ThrowsAsync<KeywordImageValidationException>(
+			() => service.SaveCoverAsync(1, CreateFormFile(small, "cover.png", "image/png")));
+
+		Assert.Equal("UploadCoverTooSmall", ex.Message);
+	}
+
+	[Fact]
+	public async Task SaveCoverAsync_TransparentMaster_FlattensWithoutHalo()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
+		try
+		{
+			var service = CreateService(webRootPath);
+			var master = CreatePaintedPngBytes(2100, 900, bitmap =>
+			{
+				bitmap.Erase(SKColors.Transparent);
+				using var canvas = new SKCanvas(bitmap);
+				using var red = new SKPaint { Color = SKColors.Red };
+				canvas.DrawRect(1050, 0, 1050, 900, red);
+			});
+
+			var variants = await service.SaveCoverAsync(13, CreateFormFile(master, "cover.png", "image/png"));
+
+			using var saved = SKBitmap.Decode(Path.Combine(webRootPath, variants.Large.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			var flat = saved.GetPixel(30, saved.Height / 2);
+			Assert.True(flat.Red > 200 && flat.Green > 200 && flat.Blue > 200,
+				$"Transparent area must flatten to white, got ({flat.Red},{flat.Green},{flat.Blue}).");
+			var red = saved.GetPixel(saved.Width - 30, saved.Height / 2);
+			Assert.True(red.Red > 200 && red.Green < 80 && red.Blue < 80,
+				$"Opaque area must stay red, got ({red.Red},{red.Green},{red.Blue}).");
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
+	}
+
+	private static void AssertDominantBlue(SKColor pixel, string where)
+		=> Assert.True(pixel.Blue > 200 && pixel.Red < 80, $"{where} bar must survive, got ({pixel.Red},{pixel.Green},{pixel.Blue}).");
 
 	private static KeywordImageService CreateService(string? webRootPath = null)
 	{
@@ -236,6 +319,15 @@ public class KeywordImageServiceTests
 	{
 		using var bitmap = new SKBitmap(width, height);
 		bitmap.Erase(color);
+		using var image = SKImage.FromBitmap(bitmap);
+		using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+		return data.ToArray();
+	}
+
+	private static byte[] CreatePaintedPngBytes(int width, int height, Action<SKBitmap> paint)
+	{
+		using var bitmap = new SKBitmap(width, height);
+		paint(bitmap);
 		using var image = SKImage.FromBitmap(bitmap);
 		using var data = image.Encode(SKEncodedImageFormat.Png, 100);
 		return data.ToArray();

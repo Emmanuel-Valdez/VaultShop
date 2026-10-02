@@ -27,4 +27,7 @@
   <data name="UploadFileTooLarge" xml:space="preserve">
     <value>La imagen subida supera el limite de 10 MB.</value>
   </data>
+  <data name="UploadCoverTooSmall" xml:space="preserve">
+    <value>La portada es demasiado pequeña. Subí una imagen de al menos 1905x714.</value>
+  </data>
 </root>

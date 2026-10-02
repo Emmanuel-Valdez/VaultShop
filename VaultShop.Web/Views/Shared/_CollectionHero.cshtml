@@ -1,24 +1,17 @@
 @model VaultShop.Models.ViewModels.CollectionHeroVM
-@* ponytail: reusable 100vw breakout; height via CSS var --hero-h (560/320/260), fixed, transform-only parallax *@
-<section class="collection-hero collection-hero--breakout u-breakout" data-collection-hero aria-label="@Model.Title">
-	<picture>
-		@if (!string.IsNullOrWhiteSpace(Model.MobileImageUrl))
-		{
-			<source media="(max-width:479.98px)" srcset="@Model.MobileImageUrl" />
-		}
-		@if (!string.IsNullOrWhiteSpace(Model.MediumImageUrl))
-		{
-			<source media="(min-width:480px) and (max-width:991.98px)" srcset="@Model.MediumImageUrl" />
-		}
+@* ponytail: single-ratio srcset (density only); legacy partial sets fall back to the widest single img *@
+<section class="collection-hero--breakout u-breakout" data-collection-hero aria-label="@Model.Title">
+	@if (!string.IsNullOrWhiteSpace(Model.MediumImageUrl) && !string.IsNullOrWhiteSpace(Model.SmallImageUrl))
+	{
+		<img src="@Model.ImageUrl" srcset="@Model.SmallImageUrl 768w, @Model.MediumImageUrl 1280w, @Model.ImageUrl 1905w" sizes="100vw" alt="@Model.Title" class="collection-hero__image" fetchpriority="high" loading="eager" decoding="async" />
+	}
+	else
+	{
 		<img src="@Model.ImageUrl" alt="@Model.Title" class="collection-hero__image" fetchpriority="high" loading="eager" decoding="async" />
-	</picture>
+	}
 	<div class="collection-hero__scrim" aria-hidden="true"></div>
 	<div class="collection-hero__content">
 		<h1 class="collection-hero__title">@Model.Title</h1>
-		@if (!string.IsNullOrWhiteSpace(Model.Slug))
-		{
-			<span class="collection-hero__slug">/@Model.Slug</span>
-		}
 		@if (Model.Count > 0)
 		{
 			<span class="collection-hero__count">· @Model.Count productos</span>

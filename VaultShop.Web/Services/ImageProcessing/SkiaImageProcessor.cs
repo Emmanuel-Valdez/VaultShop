@@ -6,7 +6,9 @@ namespace VaultShop.Web.Services.ImageProcessing;
 public static class SkiaImageProcessor
 {
 	private const long MaxFileSizeBytes = 10 * 1024 * 1024;
-	private const int JpegQuality = 75;
+	private const int JpegQuality = 82;
+	// ponytail: 5% matches the admin upload hint; within this the crop is skipped (downscale only).
+	private const double ProportionalTolerance = 0.05;
 
 	private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
 	{
@@ -135,9 +137,11 @@ public static class SkiaImageProcessor
 
 	public static void WriteCroppedJpeg(SKBitmap original, Stream outputStream, int targetWidth, int targetHeight)
 	{
-		using var resized = new SKBitmap(targetWidth, targetHeight);
+		// ponytail: explicit Opaque sRGB — JPEG has no alpha; platform-default bitmaps halo transparent PNGs.
+		using var resized = new SKBitmap(targetWidth, targetHeight, SKColorType.Rgba8888, SKAlphaType.Opaque);
 		using (var canvas = new SKCanvas(resized))
 		{
+			canvas.Clear(SKColors.White);
 			DrawCenterCrop(original, canvas, targetWidth, targetHeight);
 		}
 
@@ -146,12 +150,41 @@ public static class SkiaImageProcessor
 		data.SaveTo(outputStream);
 	}
 
+	// True when the center-cropped region covers the target, i.e. encoding never upscales.
+	public static bool CanDownscaleWithoutUpscale(SKBitmap original, int targetWidth, int targetHeight)
+	{
+		var (cropWidth, cropHeight) = CenterCropDimensions(original.Width, original.Height, targetWidth, targetHeight);
+		return cropWidth >= targetWidth && cropHeight >= targetHeight;
+	}
+
+	private static (float W, float H) CenterCropDimensions(int sourceWidth, int sourceHeight, int targetWidth, int targetHeight)
+	{
+		var targetAspect = (float)targetWidth / targetHeight;
+		var sourceAspect = (float)sourceWidth / sourceHeight;
+		if (Math.Abs(sourceAspect - targetAspect) / targetAspect <= ProportionalTolerance)
+		{
+			return (sourceWidth, sourceHeight);
+		}
+
+		if (sourceAspect > targetAspect)
+		{
+			return (sourceHeight * targetAspect, sourceHeight);
+		}
+
+		return (sourceWidth, sourceWidth / targetAspect);
+	}
+
 	private static void DrawCenterCrop(SKBitmap original, SKCanvas canvas, int targetWidth, int targetHeight)
 	{
 		var targetAspect = (float)targetWidth / targetHeight;
 		var sourceAspect = (float)original.Width / original.Height;
 		SKRect source;
-		if (sourceAspect > targetAspect)
+		if (Math.Abs(sourceAspect - targetAspect) / targetAspect <= ProportionalTolerance)
+		{
+			// Correct-ratio master: no crop, pure downscale + re-encode.
+			source = new SKRect(0, 0, original.Width, original.Height);
+		}
+		else if (sourceAspect > targetAspect)
 		{
 			var cropWidth = original.Height * targetAspect;
 			var cropX = (original.Width - cropWidth) / 2;
@@ -163,7 +196,11 @@ public static class SkiaImageProcessor
 			var cropY = (original.Height - cropHeight) / 2;
 			source = new SKRect(0, cropY, original.Width, cropY + cropHeight);
 		}
-		canvas.DrawBitmap(original, source, new SKRect(0, 0, targetWidth, targetHeight));
+		// ponytail: High sampling — plain bilinear aliases on large one-step downscales ("se ve rara").
+#pragma warning disable CS0618 // 3.116.1 obsoletes FilterQuality with no SKPaint replacement; High still applies.
+		using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
+#pragma warning restore CS0618
+		canvas.DrawBitmap(original, source, new SKRect(0, 0, targetWidth, targetHeight), paint);
 	}
 
 	public static void WriteResizedJpeg(SKBitmap original, Stream outputStream, int targetWidth, int targetHeight, bool squareCrop)
@@ -183,11 +220,14 @@ public static class SkiaImageProcessor
 		var offsetY = (targetHeight - drawHeight) / 2;
 		destination = new SKRect(offsetX, offsetY, offsetX + drawWidth, offsetY + drawHeight);
 
-		using var resized = new SKBitmap(targetWidth, targetHeight);
+		using var resized = new SKBitmap(targetWidth, targetHeight, SKColorType.Rgba8888, SKAlphaType.Opaque);
 		using (var canvas = new SKCanvas(resized))
 		{
 			canvas.Clear(SKColors.White);
-			canvas.DrawBitmap(original, source, destination);
+#pragma warning disable CS0618 // 3.116.1 obsoletes FilterQuality with no SKPaint replacement; High still applies.
+			using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
+#pragma warning restore CS0618
+			canvas.DrawBitmap(original, source, destination, paint);
 		}
 
 		using var image = SKImage.FromBitmap(resized);

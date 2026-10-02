@@ -3,10 +3,10 @@
     var hero = document.querySelector('[data-collection-hero]');
     if (!hero) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var getH = function (nm) {
-        return parseFloat(getComputedStyle(hero).getPropertyValue(nm)) || 0;
+    var getH = function () {
+        return hero.clientHeight || 0;
     };
-    var h0 = getH('--hero-h');
+    var h0 = getH();
     var range = Math.max(1, h0);
     var ticking = false;
     var onScroll = function () {
@@ -23,7 +23,7 @@
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', function () {
-        h0 = getH('--hero-h'); range = Math.max(1, h0);
+        h0 = getH(); range = Math.max(1, h0);
         onScroll();
     }, { passive: true });
     onScroll();

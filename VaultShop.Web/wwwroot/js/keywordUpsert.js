@@ -26,7 +26,7 @@ $(document).ready(function () {
                 container.appendChild(hint);
                 img.onload = function () {
                     const ratio = img.naturalWidth / img.naturalHeight;
-                    const expected = 16 / 9;
+                    const expected = 1905 / 714;
                     if (Math.abs(ratio - expected) / expected > 0.05 && input.dataset.cropHint) {
                         hint.textContent = input.dataset.cropHint;
                         hint.style.display = '';

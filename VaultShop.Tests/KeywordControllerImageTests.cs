@@ -266,7 +266,8 @@ public class KeywordControllerImageTests
 
 	private static byte[] CreateValidPngBytes()
 	{
-		using var bitmap = new SKBitmap(600, 400);
+		// ponytail: cover-sized master — chip path crops anything, cover path refuses upscales.
+		using var bitmap = new SKBitmap(2100, 900);
 		bitmap.Erase(SKColors.Red);
 		using var image = SKImage.FromBitmap(bitmap);
 		using var data = image.Encode(SKEncodedImageFormat.Png, 100);

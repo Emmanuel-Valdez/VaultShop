@@ -22,13 +22,13 @@
     <value>Square image shown circular in storefront navigation (400x400 crop).</value>
   </data>
   <data name="CoverCropHint" xml:space="preserve">
-    <value>This image will be cropped. Recommended ratio 16:9 (1920x1080).</value>
+    <value>This image will be cropped. Recommended ratio 2.67:1 (1905x714).</value>
   </data>
   <data name="CoverImage" xml:space="preserve">
     <value>Cover Image</value>
   </data>
   <data name="CoverImageHelp" xml:space="preserve">
-    <value>Recommended master 1920x1080 (16:9). Derives 1600x700, 1200x500 and 780x520 crops.</value>
+    <value>Recommended master 1905x714 (2.67:1). Derives 1905x714, 1280x480 and 768x288 variants.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Create</value>
@@ -61,6 +61,6 @@
     <value>Update</value>
   </data>
   <data name="LegacyCoverNotice" xml:space="preserve">
-    <value>This cover predates the responsive crops. Re-upload the cover to generate the 1600x700, 1200x500 and 780x520 variants.</value>
+    <value>This cover predates the single-ratio variants. Re-upload the cover to generate the 1905x714, 1280x480 and 768x288 variants.</value>
   </data>
 </root>

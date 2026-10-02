@@ -249,7 +249,7 @@ public class SearchHttpTests
     }
 
     [Fact]
-    public async Task Search_CollectionHero_RendersPictureSources_WhenAllCropsPresent()
+    public async Task Search_CollectionHero_RendersSrcSet_WhenAllCropsPresent()
     {
         using var factory = new CustomWebApplicationFactory();
         var keywordId = SeedKeywordWithCovers(factory, withResponsiveCrops: true);
@@ -258,25 +258,17 @@ public class SearchHttpTests
         var body = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
 
         Assert.Contains("collection-hero", body);
-        Assert.Contains("<picture>", body);
-        // small covers 390px, medium covers 768px, large fallback covers 1280px and 1920px
-        Assert.Contains("media=\"(max-width:479.98px)\"", body);
-        Assert.Contains("media=\"(min-width:480px) and (max-width:991.98px)\"", body);
-        Assert.Contains("cover-small.jpg", body);
-        Assert.Contains("cover-medium.jpg", body);
-        Assert.Contains("cover.jpg", body);
-        // Exactly two sources with the exact media strings, each srcset serving its own crop:
-        // a whole-body Contains passes even when the two URLs are swapped between sources.
-        var sources = Regex.Matches(body, "<source[^>]*>").Cast<Match>().Select(m => m.Value).ToList();
-        Assert.Equal(2, sources.Count);
-        var smallSource = Assert.Single(sources, s => s.Contains("(max-width:479.98px)"));
-        var mediumSource = Assert.Single(sources, s => s.Contains("(min-width:480px) and (max-width:991.98px)"));
-        Assert.Contains("media=\"(max-width:479.98px)\"", smallSource);
-        Assert.Contains("cover-small.jpg", smallSource);
-        Assert.DoesNotContain("cover-medium.jpg", smallSource);
-        Assert.Contains("media=\"(min-width:480px) and (max-width:991.98px)\"", mediumSource);
-        Assert.Contains("cover-medium.jpg", mediumSource);
-        Assert.DoesNotContain("cover-small.jpg", mediumSource);
+        // single-ratio srcset replaces the band <picture>: density selection only, no <source> elements
+        Assert.DoesNotContain("<picture>", body);
+        Assert.DoesNotContain("<source", body);
+        var heroImage = Regex.Match(body, "<img[^>]*collection-hero__image[^>]*>");
+        Assert.True(heroImage.Success, "expected the hero <img>");
+        Assert.Contains("cover-small.jpg 768w", heroImage.Value);
+        Assert.Contains("cover-medium.jpg 1280w", heroImage.Value);
+        Assert.Contains("cover.jpg 1905w", heroImage.Value);
+        Assert.Contains("sizes=\"100vw\"", heroImage.Value);
+        // overlay is title + count only, no slug
+        Assert.DoesNotContain("collection-hero__slug", body);
     }
 
     [Fact]
@@ -291,6 +283,8 @@ public class SearchHttpTests
         Assert.Contains("collection-hero", body);
         Assert.Contains("cover.jpg", body);
         Assert.DoesNotContain("<source", body);
+        Assert.DoesNotContain("srcset", body);
+        Assert.DoesNotContain("collection-hero__slug", body);
     }
 
     [Fact]
@@ -303,14 +297,10 @@ public class SearchHttpTests
         var body = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}");
 
         Assert.Contains("collection-hero", body);
-        Assert.Contains("<picture>", body);
+        Assert.DoesNotContain("<source", body);
+        Assert.DoesNotContain("srcset", body);
 
-        var sources = Regex.Matches(body, "<source[^>]*>").Cast<Match>().Select(m => m.Value).ToList();
-        // small source is present and serves the small crop
-        var smallSource = Assert.Single(sources, s => s.Contains("media=\"(max-width:479.98px)\""));
-        Assert.Contains("cover-small.jpg", smallSource);
-        // medium source is absent — the browser falls back to the large <img> (768px band)
-        Assert.DoesNotContain(sources, s => s.Contains("(min-width:480px) and (max-width:991.98px)"));
+        // partial set falls back to the widest available single img (the large cover)
         Assert.DoesNotContain("cover-medium.jpg", body);
         var heroImage = Regex.Match(body, "<img[^>]*collection-hero__image[^>]*>");
         Assert.True(heroImage.Success, "expected the hero <img> fallback");
@@ -336,7 +326,7 @@ public class SearchHttpTests
         var fullQueries = factory.QueryCounter.Count;
 
         // both renders really produced their markup (guards a no-op render trivially tying the counts)
-        Assert.Contains("<picture>", legacyBody);
+        Assert.Contains("collection-hero__image", legacyBody);
         Assert.DoesNotContain("cover-medium.jpg", legacyBody);
         Assert.Contains("cover-small.jpg", fullBody);
         Assert.Contains("cover-medium.jpg", fullBody);

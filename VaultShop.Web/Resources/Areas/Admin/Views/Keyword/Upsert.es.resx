@@ -22,13 +22,13 @@
     <value>Imagen cuadrada que se muestra circular en la navegación de la tienda (recorte 400x400).</value>
   </data>
   <data name="CoverCropHint" xml:space="preserve">
-    <value>Esta imagen será recortada. Relación recomendada 16:9 (1920x1080).</value>
+    <value>Esta imagen será recortada. Relación recomendada 2.67:1 (1905x714).</value>
   </data>
   <data name="CoverImage" xml:space="preserve">
     <value>Imagen Portada</value>
   </data>
   <data name="CoverImageHelp" xml:space="preserve">
-    <value>Master recomendado 1920x1080 (16:9). Deriva recortes 1600x700, 1200x500 y 780x520.</value>
+    <value>Master recomendado 1905x714 (2.67:1). Deriva variantes 1905x714, 1280x480 y 768x288.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Crear</value>
@@ -61,6 +61,6 @@
     <value>Actualizar</value>
   </data>
   <data name="LegacyCoverNotice" xml:space="preserve">
-    <value>Esta portada es anterior a los recortes responsive. Volvé a subir la portada para generar las variantes 1600x700, 1200x500 y 780x520.</value>
+    <value>Esta portada es anterior a las variantes de ratio único. Volvé a subir la portada para generar las variantes 1905x714, 1280x480 y 768x288.</value>
   </data>
 </root>

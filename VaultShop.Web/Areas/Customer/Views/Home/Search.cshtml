@@ -35,7 +35,7 @@
 
 @if (!string.IsNullOrWhiteSpace(coverUrl) && activeKeywordId.HasValue)
 {
-	<partial name="_CollectionHero" model='new VaultShop.Models.ViewModels.CollectionHeroVM { ImageUrl = coverUrl, MobileImageUrl = smallCoverUrl, MediumImageUrl = mediumCoverUrl, Title = activeCollection!.Name, Count = activeCount ?? 0, Slug = cleanedSlug }' />
+	<partial name="_CollectionHero" model='new VaultShop.Models.ViewModels.CollectionHeroVM { ImageUrl = coverUrl, SmallImageUrl = smallCoverUrl, MediumImageUrl = mediumCoverUrl, Title = activeCollection!.Name, Count = activeCount ?? 0 }' />
 }
 <div class="row pb-3" id="productos">
 	<div class="col-12 storefront-section pb-3">

@@ -8,13 +8,13 @@ namespace VaultShop.Web.Services.KeywordImages;
 public sealed class KeywordImageService : IKeywordImageService
 {
 	private const int ChipSize = 400;
-	// Band crops; comment names the --hero-h value each band assumes (site.css).
-	private const int CoverLargeWidth = 1600;
-	private const int CoverLargeHeight = 700; // --hero-h: 560
-	private const int CoverMediumWidth = 1200;
-	private const int CoverMediumHeight = 500; // --hero-h: 320
-	private const int CoverSmallWidth = 780;
-	private const int CoverSmallHeight = 520; // --hero-h: 260
+	// Single-ratio cover set at 2.67:1 (1905x714 master); widths cover density, never ratio.
+	private const int CoverLargeWidth = 1905;
+	private const int CoverLargeHeight = 714;
+	private const int CoverMediumWidth = 1280;
+	private const int CoverMediumHeight = 480;
+	private const int CoverSmallWidth = 768;
+	private const int CoverSmallHeight = 288;
 
 	private readonly IImageStorageService _imageStorageService;
 	private readonly ILogger<KeywordImageService> _logger;
@@ -39,6 +39,19 @@ public sealed class KeywordImageService : IKeywordImageService
 		if (original is null)
 		{
 			throw new InvalidOperationException("Keyword image validation passed, but decoding failed while saving.");
+		}
+
+		// ponytail: largest variant gates all three — same ratio, so no variant ever upscales.
+		if (!SkiaImageProcessor.CanDownscaleWithoutUpscale(original, CoverLargeWidth, CoverLargeHeight))
+		{
+			const string error = "UploadCoverTooSmall";
+			_logger.LogWarning(
+				"Rejected undersized keyword cover upload for keyword {KeywordId}. FileName: {FileName}, Image: {Width}x{Height}",
+				keywordId,
+				file.FileName,
+				original.Width,
+				original.Height);
+			throw new KeywordImageValidationException(_localizer[error].Value);
 		}
 
 		var large = await SaveCropAsync(keywordId, file.FileName, original, CoverLargeWidth, CoverLargeHeight);

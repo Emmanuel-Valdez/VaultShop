@@ -87,6 +87,15 @@ html {
     border-color: var(--theme-primary);
 }
 
+/* ponytail: --bs-secondary is a surface color in this theme, unreadable behind badge
+   text — pin badges to solid gray + white text in both themes (navbar/offcanvas use
+   .bg-secondary without .badge, so they keep the surface). */
+.badge.bg-secondary,
+.badge.text-bg-secondary {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}
+
 #productos {
     scroll-margin-top: 5rem;
 }
@@ -1015,14 +1024,13 @@ html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verif
 .scroll-row-btn--next { right: 0.25rem; }
 .scroll-row-btn.is-visible { display: flex; }
 
-/* collection hero — reusable breakout above search results (fixed 560/320/260 desktop/tablet/mobile, compositor-only parallax) */
+/* collection hero — reusable breakout above search results (fluid 1905:714, zero crop at every width, compositor-only parallax) */
 .collection-hero--breakout {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     position: relative;
-    height: var(--hero-h);
+    aspect-ratio: 1905 / 714;
     overflow: hidden;
-    --hero-h: 560px;
 }
 .collection-hero__image {
     width: 100%;
@@ -1033,8 +1041,6 @@ html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verif
     transform: translateY(var(--img-ty, 0));
     will-change: transform;
 }
-/* ponytail: picture wrapper must not disturb the img sizing — sources don't render */
-.collection-hero--breakout > picture { display: contents; }
 .collection-hero__scrim {
     position: absolute;
     inset: 0;
@@ -1050,16 +1056,8 @@ html { overflow-x: clip; } /* ponytail: required for .u-breakout 100vw — verif
     opacity: var(--content-opacity, 1);
 }
 .collection-hero__title { font-family: "Playfair Display", serif; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 700; margin: 0; display: inline; }
-.collection-hero__slug { font-size: 0.95rem; opacity: 0.9; margin-left: 0.35rem; }
 .collection-hero__count { font-size: 0.9rem; opacity: 0.85; margin-left: 0.25rem; }
-@media (max-width: 991.98px) {
-    .collection-hero--breakout { --hero-h: 320px; }
-}
-@media (max-width: 767.98px) {
-    .collection-hero--breakout { --hero-h: 260px; }
-}
 @media (prefers-reduced-motion: reduce) {
-    .collection-hero--breakout { transition: none !important; }
     .collection-hero__image { transform: none !important; }
 }
 
