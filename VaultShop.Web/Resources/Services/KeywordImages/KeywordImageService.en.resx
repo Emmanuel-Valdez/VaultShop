@@ -28,6 +28,6 @@
     <value>The uploaded image is larger than the 10 MB limit.</value>
   </data>
   <data name="UploadCoverTooSmall" xml:space="preserve">
-    <value>The cover image is too small. Upload an image of at least 1905x714.</value>
+    <value>The cover image is too small. Upload an image of at least 768x288.</value>
   </data>
 </root>

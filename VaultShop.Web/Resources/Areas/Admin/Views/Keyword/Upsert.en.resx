@@ -28,7 +28,7 @@
     <value>Cover Image</value>
   </data>
   <data name="CoverImageHelp" xml:space="preserve">
-    <value>Recommended master 1905x714 (2.67:1). Derives 1905x714, 1280x480 and 768x288 variants.</value>
+    <value>Recommended master 1905x714 (2.67:1) for best quality, minimum 768x288. Smaller images yield only the variant their size allows, never upscaled.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Create</value>

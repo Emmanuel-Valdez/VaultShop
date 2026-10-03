@@ -274,6 +274,36 @@ public class KeywordControllerImageTests
 		return data.ToArray();
 	}
 
+	[Fact]
+	public async Task Upsert_NarrowCover_PersistsSingleCoverRow_WithoutUpscale()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-controller-tests-").FullName;
+		try
+		{
+			var images = new List<KeywordImage>();
+			var uow = new TestUnitOfWork(images);
+			var controller = CreateController(uow, webRootPath);
+			var keyword = new Keyword { Id = 1, Name = "Naruto", Slug = "naruto", IsDeleted = false };
+			using var bitmap = new SKBitmap(800, 300);
+			bitmap.Erase(SKColors.Red);
+			using var image = SKImage.FromBitmap(bitmap);
+			using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+
+			await controller.Upsert(keyword, null, CreateFormFile(data.ToArray(), "cover.png", "image/png"));
+
+			// only the widest fitting variant persists, as the lone Cover row the hero serves directly
+			var cover = Assert.Single(images);
+			Assert.Equal(KeywordImageKind.Cover, cover.Kind);
+			using var saved = SKBitmap.Decode(OnDiskPath(webRootPath, cover.ObjectKey));
+			Assert.Equal(768, saved.Width);
+			Assert.Equal(288, saved.Height);
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
+	}
+
 	private sealed class TestUnitOfWork
 	{
 		public Mock<IUnitOfWork> Mock { get; } = new();

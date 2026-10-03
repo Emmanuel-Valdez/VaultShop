@@ -121,6 +121,8 @@ public class KeywordImageServiceTests
 
 			var variants = await service.SaveCoverAsync(7, CreateFormFile(png, "cover.png", "image/png"));
 
+			Assert.NotNull(variants.Large);
+			Assert.NotNull(variants.Medium);
 			Assert.StartsWith("images/keywords/keyword-7/", variants.Large.ObjectKey);
 			Assert.StartsWith("images/keywords/keyword-7/", variants.Medium.ObjectKey);
 			Assert.StartsWith("images/keywords/keyword-7/", variants.Small.ObjectKey);
@@ -155,6 +157,8 @@ public class KeywordImageServiceTests
 
 			var variants = await service.SaveCoverAsync(9, CreateFormFile(square, "cover.png", "image/png"));
 
+			Assert.NotNull(variants.Large);
+			Assert.NotNull(variants.Medium);
 			foreach (var stored in new[] { variants.Large, variants.Medium, variants.Small })
 			{
 				using var saved = SKBitmap.Decode(Path.Combine(webRootPath, stored.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
@@ -187,6 +191,7 @@ public class KeywordImageServiceTests
 			var replacedChip = await service.SaveChipAsync(7, CreateFormFile(png, "chip2.png", "image/png"));
 
 			Assert.StartsWith("images/keywords/keyword-7/", chip.ObjectKey);
+			Assert.NotNull(cover.Large);
 			Assert.StartsWith("images/keywords/keyword-7/", cover.Large.ObjectKey);
 			Assert.StartsWith("images/keywords/keyword-7/", replacedChip.ObjectKey);
 
@@ -225,6 +230,8 @@ public class KeywordImageServiceTests
 
 			var variants = await service.SaveCoverAsync(11, CreateFormFile(master, "cover.png", "image/png"));
 
+			Assert.NotNull(variants.Large);
+			Assert.NotNull(variants.Medium);
 			foreach (var stored in new[] { variants.Large, variants.Medium, variants.Small })
 			{
 				using var saved = SKBitmap.Decode(Path.Combine(webRootPath, stored.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
@@ -246,12 +253,64 @@ public class KeywordImageServiceTests
 	public async Task SaveCoverAsync_SmallMaster_RefusesUpscale()
 	{
 		var service = CreateService();
-		var small = CreateSolidPngBytes(1200, 800, SKColors.Red);
+		// ponytail: 600x400 center-crops to 600x225 — below the 768x288 floor, so no variant fits.
+		var small = CreateSolidPngBytes(600, 400, SKColors.Red);
 
 		var ex = await Assert.ThrowsAsync<KeywordImageValidationException>(
 			() => service.SaveCoverAsync(1, CreateFormFile(small, "cover.png", "image/png")));
 
 		Assert.Equal("UploadCoverTooSmall", ex.Message);
+	}
+
+	[Fact]
+	public async Task SaveCoverAsync_MediumMaster_SkipsLargeOnly()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
+		try
+		{
+			var service = CreateService(webRootPath);
+			// ponytail: 1400x600 center-crops to 1400x524 — covers 1280x480 but not 1905x714.
+			var master = CreateSolidPngBytes(1400, 600, SKColors.Red);
+
+			var variants = await service.SaveCoverAsync(12, CreateFormFile(master, "cover.png", "image/png"));
+
+			Assert.Null(variants.Large);
+			Assert.NotNull(variants.Medium);
+			using var savedMedium = SKBitmap.Decode(Path.Combine(webRootPath, variants.Medium.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			Assert.Equal(1280, savedMedium.Width);
+			Assert.Equal(480, savedMedium.Height);
+			using var savedSmall = SKBitmap.Decode(Path.Combine(webRootPath, variants.Small.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			Assert.Equal(768, savedSmall.Width);
+			Assert.Equal(288, savedSmall.Height);
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
+	}
+
+	[Fact]
+	public async Task SaveCoverAsync_NarrowMaster_YieldsSmallOnlyWithoutUpscale()
+	{
+		var webRootPath = Directory.CreateTempSubdirectory("vaultshop-keyword-image-tests-").FullName;
+		try
+		{
+			var service = CreateService(webRootPath);
+			// ponytail: exact-ratio 800x300 — the user case: only the 768 variant fits, nothing upscales.
+			var master = CreateSolidPngBytes(800, 300, SKColors.Red);
+
+			var variants = await service.SaveCoverAsync(14, CreateFormFile(master, "cover.png", "image/png"));
+
+			Assert.Null(variants.Large);
+			Assert.Null(variants.Medium);
+			using var savedSmall = SKBitmap.Decode(Path.Combine(webRootPath, variants.Small.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
+			Assert.Equal(768, savedSmall.Width);
+			Assert.Equal(288, savedSmall.Height);
+		}
+		finally
+		{
+			Directory.Delete(webRootPath, recursive: true);
+		}
 	}
 
 	[Fact]
@@ -271,6 +330,7 @@ public class KeywordImageServiceTests
 
 			var variants = await service.SaveCoverAsync(13, CreateFormFile(master, "cover.png", "image/png"));
 
+			Assert.NotNull(variants.Large);
 			using var saved = SKBitmap.Decode(Path.Combine(webRootPath, variants.Large.ObjectKey.Replace('/', Path.DirectorySeparatorChar)));
 			var flat = saved.GetPixel(30, saved.Height / 2);
 			Assert.True(flat.Red > 200 && flat.Green > 200 && flat.Blue > 200,

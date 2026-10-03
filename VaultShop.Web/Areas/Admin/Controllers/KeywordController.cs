@@ -257,19 +257,29 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				return;
 			}
 
-			// Cover: save all three new objects first, then replace all cover rows, then best-effort delete each old object.
-			var variants = await _keywordImageService.SaveCoverAsync(keywordId, file);
+		// Cover: save new objects first, then replace all cover rows, then best-effort delete each old object.
+		// Full masters yield the 3-row set; smaller masters yield one Cover row with the widest
+		// fitting variant (never upscaled) — the hero serves a lone Cover as a single img.
+		var variants = await _keywordImageService.SaveCoverAsync(keywordId, file);
 
-			var existingCovers = _unitOfWork.KeywordImage.GetAll(i => i.KeywordId == keywordId && i.Kind != KeywordImageKind.Chip).ToList();
-			foreach (var old in existingCovers)
-			{
-				_unitOfWork.KeywordImage.Remove(old);
-			}
+		var existingCovers = _unitOfWork.KeywordImage.GetAll(i => i.KeywordId == keywordId && i.Kind != KeywordImageKind.Chip).ToList();
+		foreach (var old in existingCovers)
+		{
+			_unitOfWork.KeywordImage.Remove(old);
+		}
 
+		if (variants.Large is not null && variants.Medium is not null)
+		{
 			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.Cover, variants.Large));
 			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.CoverMedium, variants.Medium));
 			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.CoverSmall, variants.Small));
-			_unitOfWork.Save();
+		}
+		else
+		{
+			// ponytail: partial master — one Cover row with the widest fitting variant.
+			_unitOfWork.KeywordImage.Add(ToKeywordImage(keywordId, KeywordImageKind.Cover, variants.Large ?? variants.Medium ?? variants.Small));
+		}
+		_unitOfWork.Save();
 
 			foreach (var old in existingCovers)
 			{

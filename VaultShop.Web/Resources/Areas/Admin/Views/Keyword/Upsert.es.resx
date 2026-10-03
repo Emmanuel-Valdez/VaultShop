@@ -28,7 +28,7 @@
     <value>Imagen Portada</value>
   </data>
   <data name="CoverImageHelp" xml:space="preserve">
-    <value>Master recomendado 1905x714 (2.67:1). Deriva variantes 1905x714, 1280x480 y 768x288.</value>
+    <value>Master recomendado 1905x714 (2.67:1) para máxima calidad, mínimo 768x288. Con imágenes más chicas se genera solo la variante que su tamaño permite, sin reescalar.</value>
   </data>
   <data name="Create" xml:space="preserve">
     <value>Crear</value>

@@ -40,10 +40,6 @@
 							<label class="form-label fw-semibold">@Localizer["CoverImage"]</label>
 							<input type="file" name="coverFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-crop-hint="@Localizer["CoverCropHint"]" />
 							<div class="form-text">@Localizer["CoverImageHelp"]</div>
-							@if (Model.Id != 0 && Model.Images.Any(i => i.Kind == KeywordImageKind.Cover) && !Model.Images.Any(i => i.Kind == KeywordImageKind.CoverMedium || i.Kind == KeywordImageKind.CoverSmall))
-							{
-								<div class="alert alert-warning mt-2 mb-0" role="status">@Localizer["LegacyCoverNotice"]</div>
-							}
 						</div>
 						<div class="row mt-3">
 							<div class="col-6 col-md-3">

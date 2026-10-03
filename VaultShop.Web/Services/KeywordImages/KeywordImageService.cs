@@ -41,8 +41,10 @@ public sealed class KeywordImageService : IKeywordImageService
 			throw new InvalidOperationException("Keyword image validation passed, but decoding failed while saving.");
 		}
 
-		// ponytail: largest variant gates all three — same ratio, so no variant ever upscales.
-		if (!SkiaImageProcessor.CanDownscaleWithoutUpscale(original, CoverLargeWidth, CoverLargeHeight))
+		// ponytail: smallest variant gates — larger variants are generated only when the
+		// master covers them, so the pipeline never upscales. Partial masters yield a
+		// partial set (Medium/Small); the controller stores the widest available as Cover.
+		if (!SkiaImageProcessor.CanDownscaleWithoutUpscale(original, CoverSmallWidth, CoverSmallHeight))
 		{
 			const string error = "UploadCoverTooSmall";
 			_logger.LogWarning(
@@ -54,8 +56,12 @@ public sealed class KeywordImageService : IKeywordImageService
 			throw new KeywordImageValidationException(_localizer[error].Value);
 		}
 
-		var large = await SaveCropAsync(keywordId, file.FileName, original, CoverLargeWidth, CoverLargeHeight);
-		var medium = await SaveCropAsync(keywordId, file.FileName, original, CoverMediumWidth, CoverMediumHeight);
+		var large = SkiaImageProcessor.CanDownscaleWithoutUpscale(original, CoverLargeWidth, CoverLargeHeight)
+			? await SaveCropAsync(keywordId, file.FileName, original, CoverLargeWidth, CoverLargeHeight)
+			: null;
+		var medium = SkiaImageProcessor.CanDownscaleWithoutUpscale(original, CoverMediumWidth, CoverMediumHeight)
+			? await SaveCropAsync(keywordId, file.FileName, original, CoverMediumWidth, CoverMediumHeight)
+			: null;
 		var small = await SaveCropAsync(keywordId, file.FileName, original, CoverSmallWidth, CoverSmallHeight);
 		return new CoverVariants(large, medium, small);
 	}
@@ -132,4 +138,4 @@ public sealed class KeywordImageValidationException : Exception
 	}
 }
 
-public sealed record CoverVariants(StoredImage Large, StoredImage Medium, StoredImage Small);
+public sealed record CoverVariants(StoredImage? Large, StoredImage? Medium, StoredImage Small);
