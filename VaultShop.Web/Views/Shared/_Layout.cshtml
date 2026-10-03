@@ -39,7 +39,9 @@
 			};
 		}
 
-		var currentUrl = $"{SD.SiteUrl}{Context.Request.Path}";
+		// product-slugs 3.1: a page can publish its canonical URL (slug form) via ViewData;
+		// default stays the visited path so every other page keeps today's behaviour.
+		var currentUrl = $"{SD.SiteUrl}{GetViewDataText("CanonicalUrl") ?? Context.Request.Path}";
 		var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
 		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
 		var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;

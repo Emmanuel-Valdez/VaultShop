@@ -88,6 +88,17 @@ namespace VaultShop.DataAccess.Data
 			.IsUnique()
 			.HasFilter("\"IsDeleted\" = false");
 
+		// Products and categories share the same soft-delete-scoped slug uniqueness, each in its
+		// own namespace (/Details/ vs Search?categoryId=) so a product may reuse a category's slug.
+		modelBuilder.Entity<Product>()
+			.HasIndex(p => p.Slug)
+			.IsUnique()
+			.HasFilter("\"IsDeleted\" = false");
+		modelBuilder.Entity<Category>()
+			.HasIndex(c => c.Slug)
+			.IsUnique()
+			.HasFilter("\"IsDeleted\" = false");
+
 		// correo-argentino branch cascade: hours sentinel backfills pre-change rows; indexes serve province → locality → branch filtering.
 		modelBuilder.Entity<PostalAgency>()
 			.Property(p => p.Hours)

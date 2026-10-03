@@ -82,6 +82,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			productVM.Product.Description = _richTextSanitizer.Sanitize(productVM.Product.Description) ?? string.Empty;
 			ModelState.Remove("Product.Description");
 
+			ApplySlug(productVM.Product);
+
 			if (!ModelState.IsValid)
 			{
 				PopulateProductFormData(productVM);
@@ -162,6 +164,23 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				_logger.LogError(ex, "Unexpected error while saving product {ProductId} and processing product image uploads.", productVM.Product.Id);
 				PopulateProductFormData(productVM);
 				return View(productVM);
+			}
+		}
+
+		private void ApplySlug(Product product)
+		{
+			// ValidateNever on Slug + clearing lets "leave blank to auto-generate" work without an implicit NRT required error.
+			ModelState.Remove("Product.Slug");
+			var (slug, slugError) = SlugHelper.ResolveSlugOrDefault(product.Slug, product.Name);
+			product.Slug = slug;
+
+			if (slugError != null)
+			{
+				ModelState.AddModelError("Product.Slug", _localizer[slugError].Value);
+			}
+			else if (_unitOfWork.Product.Get(u => u.IsDeleted == false && u.Id != product.Id && u.Slug == product.Slug) != null)
+			{
+				ModelState.AddModelError("Product.Slug", _localizer["SlugAlreadyExists"].Value);
 			}
 		}
 

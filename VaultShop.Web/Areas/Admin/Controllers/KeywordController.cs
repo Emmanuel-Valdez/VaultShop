@@ -55,16 +55,14 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		{
 			// ponytail: ValidateNever on Slug + clearing lets "Dejalo vacío…" work without the implicit NRT required error.
 			ModelState.Remove(nameof(obj.Slug));
-			obj.Slug = SlugHelper.Slugify(string.IsNullOrWhiteSpace(obj.Slug) ? obj.Name : obj.Slug);
+			var (slug, slugError) = SlugHelper.ResolveSlugOrDefault(obj.Slug, obj.Name);
+			obj.Slug = slug;
 
-			if (string.IsNullOrWhiteSpace(obj.Slug))
+			if (slugError != null)
 			{
-				ModelState.AddModelError(nameof(obj.Slug), _localizer["SlugRequired"].Value);
+				ModelState.AddModelError(nameof(obj.Slug), _localizer[slugError].Value);
 			}
-
-			var existingWithSlug = _unitOfWork.Keyword.Get(u => u.IsDeleted == false && u.Id != obj.Id
-				&& u.Slug == obj.Slug);
-			if (existingWithSlug != null)
+			else if (_unitOfWork.Keyword.Get(u => u.IsDeleted == false && u.Id != obj.Id && u.Slug == obj.Slug) != null)
 			{
 				ModelState.AddModelError(nameof(obj.Slug), _localizer["SlugAlreadyExists"].Value);
 			}

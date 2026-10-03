@@ -144,4 +144,10 @@
   <data name="ImageDeletedSuccessfully" xml:space="preserve">
     <value>Imagen eliminada correctamente</value>
   </data>
+  <data name="SlugRequired" xml:space="preserve">
+    <value>Se requiere un slug válido.</value>
+  </data>
+  <data name="SlugAlreadyExists" xml:space="preserve">
+    <value>Este slug ya está en uso por otra categoría activa.</value>
+  </data>
 </root>

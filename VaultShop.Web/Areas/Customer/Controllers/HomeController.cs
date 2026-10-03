@@ -69,13 +69,25 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		}
 
 
-		public IActionResult Details(int productId)
+		public IActionResult Details(int productId, string? slug = null)
 		{
 			var product = _unitOfWork.Product.Get(u => u.IsDeleted == false && u.IsAvailableInStore == true && u.Id == productId, includeProperties: "Category,ProductImages,Keywords.Keyword.Images");
 			if (product == null)
 			{
 				return NotFound();
 			}
+
+			// id is the lookup truth, slug is decorative: 301 only when a wrong non-empty slug is given.
+			// Absent slug renders as-is (bookmarks); null canonical (never upserted) has nothing to redirect to.
+			if (!string.IsNullOrWhiteSpace(slug) && !string.IsNullOrWhiteSpace(product.Slug)
+				&& !string.Equals(slug, product.Slug, StringComparison.Ordinal))
+			{
+				return RedirectToRoutePermanent("productDetails", new { productId, slug = product.Slug });
+			}
+
+			// product-slugs 3.1: canonical tag always advertises the slug form (matches the sitemap),
+			// even when the shopper arrived on the id-anchor URL.
+			ViewData["CanonicalUrl"] = Url.RouteUrl("productDetails", new { productId, slug = product.Slug });
 
 			ShoppingCart cart = new()
 			{
@@ -154,7 +166,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			if (existingCartCount + shoppingCart.Count > product.StockQuantity)
 			{
 				TempData["error"] = _localizer["NotEnoughStock"].Value;
-				return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId });
+				return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId, slug = product.Slug });
 			}
 
 			ShoppingCart? cartFromDb = _unitOfWork.ShoppingCart
@@ -174,7 +186,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 					_unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId).Count());
 				TempData["success"] = _localizer["ProductAddCart"].Value;
 			}
-			return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId });
+			return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId, slug = product.Slug });
 		}
 
 
@@ -206,7 +218,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		}
 
 
-		public IActionResult Search(string searchString, int? categoryId, int? keywordId, string? slug, int pageNumber = 1)
+		public IActionResult Search(string searchString, int? categoryId, int? keywordId, string? slug, string? cslug, int pageNumber = 1)
 		{
 			// 1.1 slug canonical redirect
 			if (keywordId.HasValue)
@@ -217,11 +229,29 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				if (!string.IsNullOrWhiteSpace(slug) && !string.IsNullOrWhiteSpace(canonical)
 					&& !string.Equals(slug, canonical, StringComparison.Ordinal))
 				{
-					return RedirectToActionPermanent(nameof(Search), new { searchString, categoryId, keywordId, slug = canonical, pageNumber });
+					return RedirectToActionPermanent(nameof(Search), new { searchString, categoryId, keywordId, slug = canonical, cslug, pageNumber });
 				}
 				// expose canonical even when slug missing so pager/chips can add it
 				if (!string.IsNullOrWhiteSpace(canonical))
 					ViewData["Slug"] = canonical;
+			}
+
+			// product-slugs 2.1: cslug mirrors the collection slug pattern for the category filter.
+			if (categoryId.HasValue)
+			{
+				var canonicalCategory = _unitOfWork.Category.Get(c => c.Id == categoryId.Value && !c.IsDeleted)?.Slug;
+				if (!string.IsNullOrWhiteSpace(cslug) && !string.IsNullOrWhiteSpace(canonicalCategory)
+					&& !string.Equals(cslug, canonicalCategory, StringComparison.Ordinal))
+				{
+					return RedirectToActionPermanent(nameof(Search), new { searchString, categoryId, keywordId, slug, cslug = canonicalCategory, pageNumber });
+				}
+				if (!string.IsNullOrWhiteSpace(canonicalCategory))
+					ViewData["CategorySlug"] = canonicalCategory;
+			}
+			// product-slugs 3.1: category "detail" is this filtered search, so that is the canonical.
+			if (categoryId.HasValue && ViewData["CategorySlug"] is string categoryCanonical)
+			{
+				ViewData["CanonicalUrl"] = Url.Action(nameof(Search), new { categoryId, cslug = categoryCanonical });
 			}
 
 			if (string.IsNullOrWhiteSpace(searchString) && categoryId == null && keywordId == null)
@@ -270,7 +300,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			var pagedProducts = PagedList<Product>.Create(searchProductList, pageNumber, _paginationOptions.PageSize);
 			if (searchProductList.Count > 0 && pageNumber > pagedProducts.TotalPages)
 			{
-				return RedirectToAction(nameof(Search), new { searchString, categoryId, keywordId, slug = ViewData["Slug"] as string ?? slug, pageNumber = pagedProducts.TotalPages });
+				return RedirectToAction(nameof(Search), new { searchString, categoryId, keywordId, slug = ViewData["Slug"] as string ?? slug, cslug = ViewData["CategorySlug"] as string ?? cslug, pageNumber = pagedProducts.TotalPages });
 			}
 
 			var collections = HomeIndexVM.ComputeCollections(products);

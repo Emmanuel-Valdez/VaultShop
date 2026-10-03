@@ -42,4 +42,41 @@ public class SlugHelperTests
     {
         Assert.Equal(expected, SlugHelper.Slugify(input));
     }
+
+    [Theory]
+    [InlineData(null, "Remera Negra", "remera-negra")]
+    [InlineData("", "Camperas de Invierno", "camperas-de-invierno")]
+    [InlineData("   ", "Studio Ghibli", "studio-ghibli")]
+    public void ResolveSlugOrDefault_BlankSlug_FallsBackToName(string? slug, string name, string expected)
+    {
+        var (resolved, errorKey) = SlugHelper.ResolveSlugOrDefault(slug, name);
+
+        Assert.Equal(expected, resolved);
+        Assert.Null(errorKey);
+    }
+
+    [Theory]
+    [InlineData("Mi REMERA!! negra", "mi-remera-negra")]
+    [InlineData("  Naruto  ", "naruto")]
+    public void ResolveSlugOrDefault_ManualSlug_IsNormalized(string slug, string expected)
+    {
+        var (resolved, errorKey) = SlugHelper.ResolveSlugOrDefault(slug, "ignored name");
+
+        Assert.Equal(expected, resolved);
+        Assert.Null(errorKey);
+    }
+
+    // CJK-only names fold to nothing — callers surface ErrorKey and keep the row unsaved.
+    [Theory]
+    [InlineData("進撃の巨人", null)]
+    [InlineData(null, "進撃の巨人")]
+    [InlineData("---", "Naruto")]
+    [InlineData("", "   ")]
+    public void ResolveSlugOrDefault_NormalizesToEmpty_ReturnsErrorKey(string? slug, string? name)
+    {
+        var (resolved, errorKey) = SlugHelper.ResolveSlugOrDefault(slug, name);
+
+        Assert.Equal(string.Empty, resolved);
+        Assert.Equal("SlugRequired", errorKey);
+    }
 }

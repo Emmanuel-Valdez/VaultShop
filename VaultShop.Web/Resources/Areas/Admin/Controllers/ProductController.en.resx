@@ -147,4 +147,10 @@
   <data name="UnexpectedError" xml:space="preserve">
     <value>An error occurred while processing your request.</value>
   </data>
+  <data name="SlugRequired" xml:space="preserve">
+    <value>A valid slug is required.</value>
+  </data>
+  <data name="SlugAlreadyExists" xml:space="preserve">
+    <value>This slug is already in use by another active product.</value>
+  </data>
 </root>

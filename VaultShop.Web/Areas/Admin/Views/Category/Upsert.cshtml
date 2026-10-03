@@ -21,8 +21,16 @@
 								<input asp-for="Name" class="form-control" placeholder="Name" />
 								<label asp-for="Name" class="ms-2 text-muted">@Localizer["Name"]</label>
 							</div>
-							<span asp-validation-for="Name" class="text-danger"></span>
+<span asp-validation-for="Name" class="text-danger"></span>
+					</div>
+					<div class="mb-3">
+						<div class="form-floating mb-3 col-md-12 shadow">
+							<input asp-for="Slug" class="form-control" placeholder="Slug" data-val="false" />
+							<label asp-for="Slug" class="ms-2 text-muted">@Localizer["Slug"]</label>
 						</div>
+						<div class="form-text">@Localizer["SlugHelp"]</div>
+						<span asp-validation-for="Slug" class="text-danger"></span>
+					</div>
 						<div class="mb-3">
 							<div class="mb-3 col-md-12 shadow">
 								<div class="input-group mb-3">

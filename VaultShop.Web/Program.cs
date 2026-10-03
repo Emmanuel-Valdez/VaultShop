@@ -395,6 +395,13 @@ app.MapGet("/terms", (HttpContext ctx) => {
 	var culture = CultureInfo.CurrentCulture.Name is "en-US" or "es-AR" ? CultureInfo.CurrentCulture.Name : "es-AR";
 	return Results.Redirect($"/{culture}/Customer/Home/Terms{ctx.Request.QueryString}", false);
 });
+// product-slugs 2.1: canonical product URL /Details/{id}/{slug}. Registered before "default" so
+// LinkGenerator prefers it on ties; {slug?} keeps the id-anchor form working with no redirect.
+app.MapControllerRoute(
+	name: "productDetails",
+	pattern: "{culture=es-AR}/Customer/Home/Details/{productId:int}/{slug?}",
+	defaults: new { area = "Customer", controller = "Home", action = "Details" },
+	constraints: new { culture = new RegexRouteConstraint("^(es-AR|en-US)$") });
 app.MapControllerRoute(
 	name: "default",
 	pattern: "{culture=es-AR}/{area=Customer}/{controller=Home}/{action=Index}/{id?}",

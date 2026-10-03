@@ -16,6 +16,10 @@ namespace VaultShop.Models
 		public string Name { get; set; } = string.Empty;
 
 		public bool IsDeleted { get; set; } = false;
+
+		// Decorative URL segment; Id stays the lookup truth. Null = not yet generated.
+		[ValidateNever]
+		public string? Slug { get; set; }
 		[LocalizedRequired("Average shipping cost is required.", "El costo promedio de envío es obligatorio.")]
         [LocalizedRange(1, 100000, "Please enter an average shipping cost between 1 and 100000.", "Ingresá un costo promedio de envío entre 1 y 100000.")]
         [DisplayName("Avg Shipping Cost")]

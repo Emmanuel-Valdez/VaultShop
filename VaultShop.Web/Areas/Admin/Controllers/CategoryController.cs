@@ -65,6 +65,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				ModelState.AddModelError("", _localizer["NameCantBeTest"].Value);
 			}
 
+			ApplySlug(obj);
+
 			if (!ModelState.IsValid)
 				return View(obj);
 
@@ -239,6 +241,23 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 
 			return Json(new { success = true, message = _localizer["DeleteSuccesfully"].Value });
+		}
+
+		private void ApplySlug(Category category)
+		{
+			// ValidateNever on Slug + clearing lets "leave blank to auto-generate" work without an implicit NRT required error.
+			ModelState.Remove(nameof(category.Slug));
+			var (slug, slugError) = SlugHelper.ResolveSlugOrDefault(category.Slug, category.Name);
+			category.Slug = slug;
+
+			if (slugError != null)
+			{
+				ModelState.AddModelError(nameof(category.Slug), _localizer[slugError].Value);
+			}
+			else if (_unitOfWork.Category.Get(u => u.IsDeleted == false && u.Id != category.Id && u.Slug == category.Slug) != null)
+			{
+				ModelState.AddModelError(nameof(category.Slug), _localizer["SlugAlreadyExists"].Value);
+			}
 		}
 
 		private async Task ReplaceImageAsync(Category category, IFormFile file)

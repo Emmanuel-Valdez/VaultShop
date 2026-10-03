@@ -377,6 +377,68 @@ public class CategoryControllerImageTests
 		uow.Mock.Verify(x => x.Save(), Times.Once);
 	}
 
+	// product-slugs 1.3 — blank slug auto-generates from the category name
+	[Fact]
+	public async Task Upsert_BlankSlug_SlugifiesFromName()
+	{
+		var uow = new TestUnitOfWork(new Category { Id = 20, Name = "Existing", AvgShippingCost = 1, IsDeleted = false, PackagingByCategory = new() });
+		var controller = CreateController(uow, Path.GetTempPath());
+		var posted = new Category { Id = 20, Name = "Camperas de Invierno", AvgShippingCost = 1, IsDeleted = false };
+
+		var result = await controller.Upsert(posted, null);
+
+		Assert.IsType<RedirectToActionResult>(result);
+		Assert.Equal("camperas-de-invierno", posted.Slug);
+		Assert.Equal("camperas-de-invierno", uow.Current.Slug);
+	}
+
+	// product-slugs 1.3 — a duplicate slug is rejected with the localized per-entity error
+	[Fact]
+	public async Task Upsert_DuplicateActiveSlug_IsRejected()
+	{
+		var existing = new Category { Id = 21, Name = "Remeras", Slug = "remeras", AvgShippingCost = 1, IsDeleted = false, PackagingByCategory = new() };
+		var uow = new TestUnitOfWork(existing);
+		var controller = CreateController(uow, Path.GetTempPath());
+		var posted = new Category { Id = 0, Name = "Remeras", Slug = "Remeras!!", AvgShippingCost = 1, IsDeleted = false };
+
+		var result = await controller.Upsert(posted, null);
+
+		Assert.IsType<ViewResult>(result);
+		Assert.Equal("SlugAlreadyExists", controller.ModelState["Slug"]!.Errors[0].ErrorMessage);
+		uow.CategoryMock.Verify(x => x.Add(It.IsAny<Category>()), Times.Never);
+		uow.Mock.Verify(x => x.Save(), Times.Never);
+	}
+
+	// product-slugs 1.3 — soft-deleted categories do not hold their slug hostage
+	[Fact]
+	public async Task Upsert_SoftDeletedSlug_CanBeReused()
+	{
+		var deleted = new Category { Id = 22, Name = "Remeras", Slug = "remeras", AvgShippingCost = 1, IsDeleted = true, PackagingByCategory = new() };
+		var uow = new TestUnitOfWork(deleted);
+		var controller = CreateController(uow, Path.GetTempPath());
+		var posted = new Category { Id = 0, Name = "Remeras", AvgShippingCost = 1, IsDeleted = false };
+
+		var result = await controller.Upsert(posted, null);
+
+		Assert.IsType<RedirectToActionResult>(result);
+		Assert.Equal("remeras", posted.Slug);
+	}
+
+	// product-slugs 1.3 — a name with nothing slug-worthy is rejected instead of saved empty
+	[Fact]
+	public async Task Upsert_NameWithoutLatinChars_IsRejected()
+	{
+		var uow = new TestUnitOfWork(new Category { Id = 23, Name = "Existing", AvgShippingCost = 1, IsDeleted = false, PackagingByCategory = new() });
+		var controller = CreateController(uow, Path.GetTempPath());
+		var posted = new Category { Id = 23, Name = "進撃の巨人", AvgShippingCost = 1, IsDeleted = false };
+
+		var result = await controller.Upsert(posted, null);
+
+		Assert.IsType<ViewResult>(result);
+		Assert.Equal("SlugRequired", controller.ModelState["Slug"]!.Errors[0].ErrorMessage);
+		uow.Mock.Verify(x => x.Save(), Times.Never);
+	}
+
 	private static CategoryController CreateController(TestUnitOfWork uow, string webRootPath)
 	{
 		var env = new Mock<IWebHostEnvironment>();
@@ -465,6 +527,7 @@ public class CategoryControllerImageTests
 		{
 			Id = c.Id,
 			Name = c.Name,
+			Slug = c.Slug,
 			IsDeleted = c.IsDeleted,
 			AvgShippingCost = c.AvgShippingCost,
 			ImageUrl = c.ImageUrl,
@@ -479,6 +542,7 @@ public class CategoryControllerImageTests
 		private static void CopyInto(Category src, Category dst)
 		{
 			dst.Name = src.Name;
+			dst.Slug = src.Slug;
 			dst.IsDeleted = src.IsDeleted;
 			dst.AvgShippingCost = src.AvgShippingCost;
 			dst.ImageUrl = src.ImageUrl;

@@ -270,6 +270,72 @@ public class ProductControllerUpsertTests
         uow.ProductKeywordMock.Verify(p => p.Add(It.Is<ProductKeyword>(pk => pk.KeywordId == 9999)), Times.Never);
     }
 
+    // product-slugs 1.3 — blank slug auto-generates from the product name
+    [Fact]
+    public async Task Upsert_Post_BlankSlug_SlugifiesFromName()
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.Name = "Campera de Invierno";
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("campera-de-invierno", vm.Product.Slug);
+    }
+
+    // product-slugs 1.3 — a duplicate slug is rejected with the localized per-entity error
+    [Fact]
+    public async Task Upsert_Post_DuplicateActiveSlug_IsRejected()
+    {
+        var duplicate = new Product { Id = 77, Name = "Remera Negra", Slug = "remera-negra", IsDeleted = false };
+        var uow = CreateUnitOfWork(existingProduct: duplicate);
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.Name = "Remera Negra";
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<ViewResult>(result);
+        Assert.Equal("SlugAlreadyExists", controller.ModelState["Product.Slug"]!.Errors[0].ErrorMessage);
+        uow.ProductMock.Verify(p => p.Add(It.IsAny<Product>()), Times.Never);
+        uow.Mock.Verify(u => u.Save(), Times.Never);
+    }
+
+    // product-slugs 1.3 — soft-deleted products do not hold their slug hostage
+    [Fact]
+    public async Task Upsert_Post_SoftDeletedSlug_CanBeReused()
+    {
+        var deleted = new Product { Id = 78, Name = "Remera Negra", Slug = "remera-negra", IsDeleted = true };
+        var uow = CreateUnitOfWork(existingProduct: deleted);
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.Name = "Remera Negra";
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("remera-negra", vm.Product.Slug);
+    }
+
+    // product-slugs 1.3 — a name with nothing slug-worthy is rejected instead of saved empty
+    [Fact]
+    public async Task Upsert_Post_NameWithoutLatinChars_IsRejected()
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.Name = "進撃の巨人";
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<ViewResult>(result);
+        Assert.Equal("SlugRequired", controller.ModelState["Product.Slug"]!.Errors[0].ErrorMessage);
+        uow.ProductMock.Verify(p => p.Add(It.IsAny<Product>()), Times.Never);
+        uow.Mock.Verify(u => u.Save(), Times.Never);
+    }
+
     private static ProductVM BuildValidVm(int id, List<int> selectedKeywordIds) => new()
     {
         Product = new Product
@@ -327,8 +393,11 @@ public class ProductControllerUpsertTests
                 uow.ExistingLinks.Where(filter?.Compile() ?? (_ => true)).ToList());
         if (existingProduct != null)
         {
+            uow.StoredProducts.Add(existingProduct);
+            // Honour the predicate so IsDeleted / Slug / Id filters actually gate the result.
             uow.ProductMock.Setup(p => p.Get(It.IsAny<Expression<Func<Product, bool>>>(), It.IsAny<string?>(), It.IsAny<bool>()))
-                .Returns(existingProduct);
+                .Returns((Expression<Func<Product, bool>>? pred, string? _, bool __) =>
+                    pred is null ? existingProduct : uow.StoredProducts.Where(pred.Compile()).FirstOrDefault());
         }
         return uow;
     }
@@ -342,6 +411,7 @@ public class ProductControllerUpsertTests
         public Mock<IKeywordRepository> KeywordMock { get; } = new();
         public Mock<IProductKeywordRepository> ProductKeywordMock { get; } = new();
         public List<ProductKeyword> ExistingLinks { get; set; } = new();
+        public List<Product> StoredProducts { get; } = new();
         public TestUow()
         {
             Mock.Setup(u => u.Category).Returns(CategoryMock.Object);

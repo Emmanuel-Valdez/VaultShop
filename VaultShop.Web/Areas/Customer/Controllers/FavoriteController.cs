@@ -62,7 +62,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			if (existingFavorite != null)
 			{
 				TempData["success"] = _localizer["FavoriteAlreadyAdded"].Value;
-				return RedirectToAction("Details", "Home", new { productId });
+				return RedirectToAction("Details", "Home", new { productId, slug = product.Slug });
 			}
 
 			FavoriteProduct favoriteProduct = new()
@@ -74,7 +74,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_unitOfWork.Save();
 			TempData["Success"] = _localizer["FavoriteAdd"].Value;
 
-			return RedirectToAction("Details","Home", new { productId });
+			return RedirectToAction("Details", "Home", new { productId, slug = product.Slug });
 		}
 		[HttpPost]
 		public IActionResult RemoveFromIndex(int favoriteId)

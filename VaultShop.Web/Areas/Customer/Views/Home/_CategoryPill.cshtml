@@ -5,6 +5,7 @@
     var cleanedKeyword = string.IsNullOrWhiteSpace(keywordId) ? null : keywordId;
     var cleanedSearch = string.IsNullOrWhiteSpace(searchString) ? null : searchString;
     var slug = string.IsNullOrWhiteSpace(Model.Slug) ? null : Model.Slug;
+    var collectionSlug = string.IsNullOrWhiteSpace(Model.CollectionSlug) ? null : Model.CollectionSlug;
     var firstChar = Model.Name.Trim().FirstOrDefault();
     var fallback = char.IsLetter(firstChar) ? firstChar.ToString().ToUpperInvariant() : "#";
 }
@@ -12,8 +13,9 @@
 <div class="collection-chip category-pill@(Model.IsActive ? " active btn-primary" : " btn-outline-primary")">
     <a asp-action="Search"
        asp-route-categoryId="@Model.Id"
+       asp-route-cslug="@slug"
        asp-route-keywordId="@cleanedKeyword"
-       asp-route-slug="@slug"
+       asp-route-slug="@collectionSlug"
        asp-route-searchString="@cleanedSearch"
        class="collection-chip__link category-pill"
        aria-current="@(Model.IsActive ? "true" : null)">
@@ -33,7 +35,7 @@
     {
         <a asp-action="Search"
            asp-route-keywordId="@cleanedKeyword"
-           asp-route-slug="@slug"
+           asp-route-slug="@collectionSlug"
            asp-route-searchString="@cleanedSearch"
            class="collection-chip__remove"
            aria-label='@Localizer["RemoveCategoryFilter", Model.Name]'

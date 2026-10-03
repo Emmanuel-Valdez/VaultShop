@@ -34,21 +34,21 @@
 							<div class="d-none d-lg-block col-lg-1 text-center py-2">
 								@if (primaryImage != null)
 								{
-									<a asp-action="Details" asp-controller="Home"  asp-route-productId="@item.Product.Id">
+									<a asp-action="Details" asp-controller="Home"  asp-route-productId="@item.Product.Id" asp-route-slug="@item.Product.Slug">
 										<img src="@primaryImage.ImageUrl" class="card-img-top rounded w-100" />
 									</a>
 									
 								}
 								else
 								{
-									<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id">
+									<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" asp-route-slug="@item.Product.Slug">
 										<img src="https://placehold.co/500x600/png" class="card-img-top rounded w-100" />
 									</a>
 									
 								}
 							</div>
 							<div class="col-12 col-lg-5 pt-md-3">
-								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" class="text-decoration-none">
+								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" asp-route-slug="@item.Product.Slug" class="text-decoration-none">
 									<h5 class="text-uppercase "><strong>@item.Product.Name</strong></h5>
 								</a>
 								

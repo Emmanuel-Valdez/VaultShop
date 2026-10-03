@@ -15,8 +15,12 @@ namespace VaultShop.Models
 		[LocalizedRequired("Product name is required.", "El nombre del producto es obligatorio.")]
 		public string Name { get; set; } = string.Empty;
 
-		[LocalizedRequired("Product description is required.", "La descripción del producto es obligatoria.")]
-		public string Description { get; set; } = string.Empty;
+[LocalizedRequired("Product description is required.", "La descripción del producto es obligatoria.")]
+        public string Description { get; set; } = string.Empty;
+
+        // Decorative URL segment; Id stays the lookup truth. Null = not yet generated.
+        [ValidateNever]
+        public string? Slug { get; set; }
 
 
         [Display(Name = "Calculate List Price")]

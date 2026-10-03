@@ -84,7 +84,7 @@
 						@foreach (var cat in searchCategories)
 						{
 							var isCatActive = !string.IsNullOrWhiteSpace(categoryId) && int.TryParse(categoryId, out var cid) && cid == cat.Id;
-							<partial name="_CategoryPill" model='new VaultShop.Models.ViewModels.CategoryPillVM { Id = cat.Id, Name = cat.Name, ImageUrl = cat.ImageUrl, Slug = cleanedSlug, IsActive = isCatActive }' />
+							<partial name="_CategoryPill" model='new VaultShop.Models.ViewModels.CategoryPillVM { Id = cat.Id, Name = cat.Name, ImageUrl = cat.ImageUrl, Slug = cat.Slug, CollectionSlug = cleanedSlug, IsActive = isCatActive }' />
 						}
 					</div>
 				</div>
@@ -114,7 +114,7 @@
 					<div class="card product-card p-3 shadow-sm rounded bg-secondary">
 						@if(primaryImage != null)
 						{
-							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded" aria-label="@product.Name">
+							<a asp-action="Details" asp-route-productId="@product.Id" asp-route-slug="@product.Slug" class="product-card__image-link rounded" aria-label="@product.Name">
 								<img src="@primaryImage.ImageUrl" class="product-card__image" alt="@product.Name" />
 								@if (product.StockQuantity == 0)
 								{
@@ -123,7 +123,7 @@
 							</a>
 						}else
 						{
-							<a asp-action="Details" asp-route-productId="@product.Id" class="product-card__image-link rounded" aria-label="@product.Name">
+							<a asp-action="Details" asp-route-productId="@product.Id" asp-route-slug="@product.Slug" class="product-card__image-link rounded" aria-label="@product.Name">
 								<img src="https://placehold.co/500x600/png" class="product-card__image" alt="@product.Name" />
 								@if (product.StockQuantity == 0)
 								{
@@ -139,7 +139,7 @@
 							}
 							<h2 class="card-title h5 text-primary mb-2">@product.Name</h2>
 							<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
-							<a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
+							<a asp-action="Details" asp-route-productId="@product.Id" asp-route-slug="@product.Slug" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 								@Localizer["Details"]
 							</a>
 						</div>

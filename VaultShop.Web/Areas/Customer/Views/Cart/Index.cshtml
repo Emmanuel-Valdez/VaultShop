@@ -31,7 +31,7 @@
 						var imageAlt = primaryImage is null ? $"No product image available for {item.Product.Name}" : item.Product.Name;
 						<div class="row border-bottom pb-3 gy-3">
 							<div class="col-3 col-sm-2 col-lg-1 text-center py-2">
-								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" class="product-card__image-link rounded">
+								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" asp-route-slug="@item.Product.Slug" class="product-card__image-link rounded">
 									<img src="@imageUrl" class="product-card__image" alt="@imageAlt" />
 								</a>
 							</div>
@@ -40,7 +40,7 @@
 								{
 									<p class="product-card__meta mb-1">@item.Product.Category.Name</p>
 								}
-								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" class="text-decoration-none">
+								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" asp-route-slug="@item.Product.Slug" class="text-decoration-none">
 									<h5 class="text-uppercase" ><strong>@item.Product.Name</strong></h5>
 								</a>
 								<div class="d-none d-md-block small">@Html.Raw(item.Product.Description)</div>

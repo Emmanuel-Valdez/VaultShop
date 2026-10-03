@@ -198,4 +198,10 @@
   <data name="NoKeywordsYet" xml:space="preserve">
     <value>No collections yet. Create them in the Keywords section.</value>
   </data>
+  <data name="Slug" xml:space="preserve">
+    <value>Slug</value>
+  </data>
+  <data name="SlugHelp" xml:space="preserve">
+    <value>Leave blank to generate it automatically from the name.</value>
+  </data>
 </root>

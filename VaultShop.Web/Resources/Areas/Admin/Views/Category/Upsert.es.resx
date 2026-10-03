@@ -153,4 +153,10 @@
   <data name="NoImage" xml:space="preserve">
     <value>No hay imagen cargada. La tienda mostrará una letra de respaldo.</value>
   </data>
+  <data name="Slug" xml:space="preserve">
+    <value>Slug</value>
+  </data>
+  <data name="SlugHelp" xml:space="preserve">
+    <value>Dejalo vacío para generarlo automáticamente desde el nombre.</value>
+  </data>
 </root>

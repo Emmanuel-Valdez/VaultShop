@@ -25,6 +25,14 @@
 							</div>
 							<span asp-validation-for="Product.Name" class="text-danger"></span>
 						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Product.Slug" class="form-control" placeholder="Slug" data-val="false" />
+								<label asp-for="Product.Slug" class="ms-2 text-muted">@Localizer["Slug"]</label>
+							</div>
+							<div class="form-text">@Localizer["SlugHelp"]</div>
+							<span asp-validation-for="Product.Slug" class="text-danger"></span>
+						</div>
 						<div class="formform-floating py-2 col-12">
 							<label asp-for="Product.Description" class="ms-2 text-muted ">@Localizer["Description"]</label>
 							<textarea asp-for="Product.Description" class="form-control border-0 shadow js-rich-text"></textarea>
