@@ -44,14 +44,16 @@ namespace VaultShop.Controllers
             // product-slugs 3.1: the Customer area segment is part of the matching route, so a
             // /Home/... loc would 404. Canonical product URL is id + slug; categories use the
             // Search?categoryId=&cslug= form (their "detail page" is the filtered search).
+            // seo-canonical-hreflang 3.1: home is listed in the form internal links and the
+            // canonical tag use, and the filter-less Search is gone — it 302s to Index, and a
+            // sitemap loc that redirects is not a page.
             var staticPages = new (string Url, string Priority, string Changefreq)[]
             {
-                (Url: $"{baseUrl}/{culture}/", Priority: "1.0", Changefreq: "daily"),
+                (Url: $"{baseUrl}/{culture}/Customer/Home/Index", Priority: "1.0", Changefreq: "daily"),
                 (Url: $"{baseUrl}/{culture}/Customer/Home/AboutUs", Priority: "0.8", Changefreq: "monthly"),
                 (Url: $"{baseUrl}/{culture}/Customer/Home/FAQs", Priority: "0.8", Changefreq: "monthly"),
                 (Url: $"{baseUrl}/{culture}/Customer/Home/Privacy", Priority: "0.7", Changefreq: "monthly"),
                 (Url: $"{baseUrl}/{culture}/Customer/Home/TakeCare", Priority: "0.7", Changefreq: "monthly"),
-                (Url: $"{baseUrl}/{culture}/Customer/Home/Search", Priority: "0.9", Changefreq: "weekly"),
             };
 
             var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";

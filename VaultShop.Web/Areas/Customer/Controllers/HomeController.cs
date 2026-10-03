@@ -341,21 +341,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 		public IActionResult SetLanguage(string culture, string returnUrl)
 		{
-			if ((returnUrl.Contains("es-AR") || returnUrl.Contains("en-US"))&& !string.IsNullOrEmpty(returnUrl))
-			{
-				if (returnUrl.Contains("es-AR"))
-				{
-					returnUrl=returnUrl.Replace("es-AR", culture);
-				}
-				else
-				{
-					returnUrl=returnUrl.Replace("en-US", culture);
-				}
-			}
-			if (returnUrl == "/")
-			{
-				returnUrl += culture;
-			}
+			// seo-canonical-hreflang 2.3: swap the culture segment only, so the path remainder and
+			// the full query string survive — including a culture token inside a query value.
+			returnUrl = CultureHelper.SwapCultureSegment(returnUrl, culture);
 			Response.Cookies.Append(
 				CookieRequestCultureProvider.DefaultCookieName,
 				CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),

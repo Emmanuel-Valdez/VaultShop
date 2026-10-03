@@ -12,6 +12,7 @@
 @inject IOptions<ThemeOptions> ThemeOptionsAccessor
 
 @{
+	var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
 	var branding = BrandingOptionsAccessor.Value;
 	var theme = ThemeOptionsAccessor.Value;
 	var hasTikTok = !string.IsNullOrWhiteSpace(SD.TikTokLink);
@@ -22,7 +23,7 @@
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@culture">
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -41,9 +42,12 @@
 
 		// product-slugs 3.1: a page can publish its canonical URL (slug form) via ViewData;
 		// default stays the visited path so every other page keeps today's behaviour.
-		var currentUrl = $"{SD.SiteUrl}{GetViewDataText("CanonicalUrl") ?? Context.Request.Path}";
-		var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
-		var alternateCulture = culture == "es-AR" ? "en-US" : "es-AR";
+		var canonicalPath = GetViewDataText("CanonicalUrl") ?? Context.Request.Path.Value;
+		var currentUrl = $"{SD.SiteUrl}{canonicalPath}";
+		// seo-canonical-hreflang 2.1: alternates come off the same canonical path with the culture
+		// segment swapped, so they can neither repeat it nor collapse onto one URL.
+		var esAlternate = $"{SD.SiteUrl}{CultureHelper.SwapCultureSegment(canonicalPath, "es-AR")}";
+		var enAlternate = $"{SD.SiteUrl}{CultureHelper.SwapCultureSegment(canonicalPath, "en-US")}";
 		var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 		var pageTitle = GetViewDataText("Title");
 		var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? branding.PublicName : $"{pageTitle} - {branding.PublicName}";
@@ -58,9 +62,9 @@
 	<meta name="robots" content="@robots" />
 	<meta name="request-verification-token" content="@antiforgeryToken" />
 	<link rel="canonical" href="@currentUrl" />
-	<link rel="alternate" hreflang="es-AR" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
-	<link rel="alternate" hreflang="en-US" href="@($"{SD.SiteUrl}/en-US{Context.Request.Path}")" />
-	<link rel="alternate" hreflang="x-default" href="@($"{SD.SiteUrl}/es-AR{Context.Request.Path}")" />
+	<link rel="alternate" hreflang="es-AR" href="@esAlternate" />
+	<link rel="alternate" hreflang="en-US" href="@enAlternate" />
+	<link rel="alternate" hreflang="x-default" href="@esAlternate" />
 
 	<meta property="og:title" content="@fullTitle" />
 	<meta property="og:description" content="@description" />
