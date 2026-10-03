@@ -4,7 +4,7 @@
 
 Makes product stock availability visible to shoppers before and during purchase decisions: out-of-stock products are signaled on product cards without opening the product page, the available quantity is shown on the detail page, and structured-data availability metadata matches reality for search engines.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Out-of-stock banner on product cards
 Storefront product cards on the Home and Search pages SHALL render a translucent "out of stock" banner over the card image when the product's stock quantity is zero. The banner MUST include localized text (not color or icon alone) and MUST NOT appear when stock is greater than zero.
