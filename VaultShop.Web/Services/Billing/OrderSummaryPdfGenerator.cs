@@ -120,9 +120,11 @@ namespace VaultShop.Web.Services.Billing
 						header.Cell().Element(CellStyle).AlignRight().Text(_localizer["LineTotalHeader"].Value);
 					});
 
-					foreach (var item in summary.Items)
-					{
-						table.Cell().Element(CellStyle).Text(item.ProductName);
+				foreach (var item in summary.Items)
+				{
+					// ponytail: inline label — the established .Text(string) pattern, no rich-text API needed.
+					table.Cell().Element(CellStyle).Text(
+						string.IsNullOrWhiteSpace(item.VariantLabel) ? item.ProductName : $"{item.ProductName} ({item.VariantLabel})");
 						table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("c", culture));
 						table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity.ToString());
 						table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("c", culture));

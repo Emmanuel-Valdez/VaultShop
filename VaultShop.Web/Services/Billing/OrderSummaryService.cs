@@ -65,12 +65,13 @@ namespace VaultShop.Web.Services.Billing
 				PickupAgencyAddress = o.PickupAgencyAddress,
 				PickupAgencyHours = o.PickupAgencyHours,
 
-				Items = details.Select(d => new OrderSummaryItemViewModel
-				{
-					ProductName = d.Product?.Name ?? string.Empty,
-					UnitPrice = d.Price,
-					Quantity = d.Count,
-				}).ToList(),
+			Items = details.Select(d => new OrderSummaryItemViewModel
+			{
+				ProductName = d.Product?.Name ?? string.Empty,
+				VariantLabel = d.VariantLabel,
+				UnitPrice = d.Price,
+				Quantity = d.Count,
+			}).ToList(),
 
 				OrderTotal = o.OrderTotal,
 			};

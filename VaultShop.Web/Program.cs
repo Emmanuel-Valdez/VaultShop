@@ -42,6 +42,7 @@ using VaultShopRateLimiterOptions = VaultShop.Web.Services.RateLimiting.RateLimi
 using VaultShop.Web.Services.RichText;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
+using VaultShop.Web.Services.ProductVariants;
 
 
 DotNetEnv.Env.Load();
@@ -235,6 +236,7 @@ builder.Services.AddHealthChecks()
 	.AddCheck<StorageHealthCheck>("storage");
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IBranchLookupService, BranchLookupService>();
+builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
 builder.Services.AddHttpClient("GitHub", client =>
 {
 	client.BaseAddress = new Uri("https://api.github.com/");

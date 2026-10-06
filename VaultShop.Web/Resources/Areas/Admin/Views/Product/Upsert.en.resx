@@ -204,4 +204,7 @@
   <data name="SlugHelp" xml:space="preserve">
     <value>Leave blank to generate it automatically from the name.</value>
   </data>
+  <data name="ManageVariants" xml:space="preserve">
+    <value>Manage variants</value>
+  </data>
 </root>

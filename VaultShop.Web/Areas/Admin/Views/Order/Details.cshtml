@@ -412,6 +412,10 @@
 											<div class="col-8">
 
 												<h6 class="my-0 text-primary">@detail.Product.Name</h6>
+											@if (!string.IsNullOrWhiteSpace(detail.VariantLabel))
+											{
+												<small class="text-muted">@detail.VariantLabel</small><br />
+											}
 												<small class="text-muted">@Localizer["Price"] : @detail.Price.ToString("c")</small><br />
 												<small class="text-muted">@Localizer["Quantity"] : @detail.Count</small>
 											</div>

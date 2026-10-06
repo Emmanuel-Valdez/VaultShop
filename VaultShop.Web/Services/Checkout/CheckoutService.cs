@@ -3,6 +3,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
+using VaultShop.Web.Services.ProductVariants;
 using static VaultShop.Web.Services.Checkout.ICheckoutService;
 
 namespace VaultShop.Web.Services.Checkout
@@ -11,11 +12,13 @@ namespace VaultShop.Web.Services.Checkout
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly ILogger<CheckoutService> _logger;
+		private readonly IProductVariantService _variantService;
 
-		public CheckoutService(IUnitOfWork unitOfWork, ILogger<CheckoutService> logger)
+		public CheckoutService(IUnitOfWork unitOfWork, ILogger<CheckoutService> logger, IProductVariantService variantService)
 		{
 			_unitOfWork = unitOfWork;
 			_logger = logger;
+			_variantService = variantService;
 		}
 
 		public CheckoutSummaryResult BuildSummary(string userId, bool useWholesalePrice)
@@ -28,11 +31,11 @@ namespace VaultShop.Web.Services.Checkout
 				};
 			}
 
-			var shoppingCartVM = new ShoppingCartVM()
-			{
-				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product"),
-				OrderHeader = new()
-			};
+		var shoppingCartVM = new ShoppingCartVM()
+		{
+			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Variant.Values.Value.VariantOptionType"),
+			OrderHeader = new()
+		};
 
 			shoppingCartVM.ShoppingCartList = RemoveShoppingCartsOutdated(userId,
 												shoppingCartVM.ShoppingCartList);
@@ -186,48 +189,69 @@ namespace VaultShop.Web.Services.Checkout
 			}
 
 		bool insufficientStock = false;
+		bool variantUnavailable = false;
 		try
 		{
-			_unitOfWork.ExecuteInTransaction(() =>
+		_unitOfWork.ExecuteInTransaction(() =>
+		{
+			// ponytail: pre-read fast path only — the conditional write below is the real guard.
+			var groups = shoppingCartVM.ShoppingCartList.GroupBy(c => c.ProductId).ToList();
+			var totals = groups.ToDictionary(g => g.Key, g => g.Sum(c => c.Count));
+			foreach (var group in groups)
 			{
-				// Validate every line against a fresh tracked read BEFORE writing anything,
-				// so a single failing line leaves no order/stock side-effects.
-				foreach (var cart in shoppingCartVM.ShoppingCartList)
+				var product = _unitOfWork.Product.Get(p => p.Id == group.Key, tracked: true);
+				if (product == null || totals[group.Key] > product.StockQuantity)
 				{
-					var product = _unitOfWork.Product.Get(p => p.Id == cart.ProductId, tracked: true);
-					if (product == null || cart.Count > product.StockQuantity)
+					insufficientStock = true;
+					return;
+				}
+				foreach (var cart in group)
+				{
+					cart.Product = product;
+					// A variant disabled after being added must fail checkout (design.md:60);
+					// the line stays intact for the shopper to fix, deletes are blocked at the source.
+					// Variant-less lines skip: legacy products have nothing to re-resolve.
+					if (cart.VariantId.HasValue &&
+						!_variantService.ValidateVariantForProduct(group.Key, cart.VariantId).IsValid)
 					{
-						insufficientStock = true;
+						variantUnavailable = true;
 						return;
 					}
-					cart.Product = product;
 				}
+			}
 
-				// ponytail: single-transaction re-read + decrement, no row lock — under high
-				// contention upgrade to SELECT FOR UPDATE or a RowVersion on Product.
-				foreach (var cart in shoppingCartVM.ShoppingCartList)
+			// product-variants-hardening 1.1: conditional relative decrement per product.
+			// An absolute write of a pre-read value loses a last-unit race (READ COMMITTED);
+			// UPDATE ... WHERE StockQuantity >= total makes the loser fail here instead of overselling.
+			foreach (var group in groups)
+			{
+				if (_unitOfWork.Product.DecrementStockIfSufficient(group.Key, totals[group.Key]) == 0)
 				{
-					cart.Product.StockQuantity -= cart.Count;
-					_unitOfWork.Product.Update(cart.Product);
+					insufficientStock = true;
+					return;
 				}
+			}
 
-				_unitOfWork.OrderHeader.Add(shoppingCartVM.OrderHeader);
-				_unitOfWork.Save();
-				_logger.LogInformation("Created order {OrderId} during checkout. UserId: {UserId}, CartItemCount: {CartItemCount}, OrderTotal: {OrderTotal}, PaymentStatus: {PaymentStatus}", shoppingCartVM.OrderHeader.Id, userId, shoppingCartVM.ShoppingCartList.Count(), shoppingCartVM.OrderHeader.OrderTotal, shoppingCartVM.OrderHeader.PaymentStatus);
+			_unitOfWork.OrderHeader.Add(shoppingCartVM.OrderHeader);
+			_unitOfWork.Save();
+			_logger.LogInformation("Created order {OrderId} during checkout. UserId: {UserId}, CartItemCount: {CartItemCount}, OrderTotal: {OrderTotal}, PaymentStatus: {PaymentStatus}", shoppingCartVM.OrderHeader.Id, userId, shoppingCartVM.ShoppingCartList.Count(), shoppingCartVM.OrderHeader.OrderTotal, shoppingCartVM.OrderHeader.PaymentStatus);
 
-				foreach (var cart in shoppingCartVM.ShoppingCartList)
+			foreach (var cart in shoppingCartVM.ShoppingCartList)
+			{
+				OrderDetail orderDetail = new()
 				{
-					OrderDetail orderDetail = new()
-					{
-						ProductId = cart.ProductId,
-						OrderHeaderId = shoppingCartVM.OrderHeader.Id,
-						Price = cart.Price,
-						Count = cart.Count
-					};
-					_unitOfWork.OrderDetail.Add(orderDetail);
-				}
-				_unitOfWork.Save();
-			});
+					ProductId = cart.ProductId,
+					OrderHeaderId = shoppingCartVM.OrderHeader.Id,
+					Price = cart.Price,
+					Count = cart.Count,
+					// product-variants 5.3: frozen label captured like Price; renames never propagate.
+					VariantId = cart.VariantId,
+					VariantLabel = cart.VariantId.HasValue ? _variantService.BuildVariantLabel(cart.VariantId.Value) : null,
+				};
+				_unitOfWork.OrderDetail.Add(orderDetail);
+			}
+			_unitOfWork.Save();
+		});
 		}
 		catch (DbUpdateException ex)
 		{
@@ -241,6 +265,16 @@ namespace VaultShop.Web.Services.Checkout
 				return new CheckoutCreateOrderResult
 				{
 					InsufficientStock = true,
+					ShoppingCartVM = shoppingCartVM,
+					ApplicationUser = applicationUser,
+				};
+			}
+
+			if (variantUnavailable)
+			{
+				return new CheckoutCreateOrderResult
+				{
+					VariantUnavailable = true,
 					ShoppingCartVM = shoppingCartVM,
 					ApplicationUser = applicationUser,
 				};
@@ -270,7 +304,7 @@ namespace VaultShop.Web.Services.Checkout
 				_unitOfWork.ShoppingCart.RemoveRange(cartsToRemove);
 				_unitOfWork.Save();
 			}
-			return _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product");
+			return _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Variant.Values.Value.VariantOptionType");
 		}
 
 		private bool HasDeletedCompany(ApplicationUser applicationUser)

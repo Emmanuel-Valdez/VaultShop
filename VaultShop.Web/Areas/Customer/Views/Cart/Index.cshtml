@@ -43,6 +43,7 @@
 								<a asp-action="Details" asp-controller="Home" asp-route-productId="@item.Product.Id" asp-route-slug="@item.Product.Slug" class="text-decoration-none">
 									<h5 class="text-uppercase" ><strong>@item.Product.Name</strong></h5>
 								</a>
+								<partial name="_VariantLabel" model="item" />
 								<div class="d-none d-md-block small">@Html.Raw(item.Product.Description)</div>
 							</div>
 							<div class="col-12 col-lg-5 row text-center align-items-center gy-2">

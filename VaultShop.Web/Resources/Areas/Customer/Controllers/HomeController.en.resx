@@ -171,6 +171,15 @@
   <data name="SearchNoMatches" xml:space="preserve">
     <value>There are no matches for your search.</value>
   </data>
+  <data name="VariantInvalid" xml:space="preserve">
+    <value>That combination is not valid for this product.</value>
+  </data>
+  <data name="VariantRequired" xml:space="preserve">
+    <value>Choose one option of each type to add to cart.</value>
+  </data>
+  <data name="VariantUnavailable" xml:space="preserve">
+    <value>That combination is no longer available.</value>
+  </data>
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>

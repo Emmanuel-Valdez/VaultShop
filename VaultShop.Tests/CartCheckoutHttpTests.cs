@@ -392,7 +392,7 @@ public class CartCheckoutHttpTests
         using var factory = new CustomWebApplicationFactory();
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        // No login � empty POST, no token needed (auth challenge fires before antiforgery)
+        // No login — empty POST, no token needed (auth challenge fires before antiforgery)
         var response = await client.PostAsync(
             "/en-US/Customer/Cart/Summary",
             new FormUrlEncodedContent(new Dictionary<string, string>()));

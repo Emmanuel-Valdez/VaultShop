@@ -790,11 +790,20 @@ namespace VaultShop.DataAccess.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VariantLabel")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderHeaderId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("VariantId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -1127,6 +1136,42 @@ namespace VaultShop.DataAccess.Migrations
                     b.ToTable("ProductKeywords");
                 });
 
+            modelBuilder.Entity("VaultShop.Models.ProductVariant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductVariants");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.ProductVariantValue", b =>
+                {
+                    b.Property<int>("VariantId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ValueId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("VariantId", "ValueId");
+
+                    b.HasIndex("ValueId");
+
+                    b.ToTable("ProductVariantValues");
+                });
+
             modelBuilder.Entity("VaultShop.Models.ShoppingCart", b =>
                 {
                     b.Property<int>("Id")
@@ -1145,13 +1190,70 @@ namespace VaultShop.DataAccess.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("VariantId");
+
                     b.ToTable("ShoppingCarts");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.VariantOptionType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("VariantOptionTypes");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.VariantOptionValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("VariantOptionTypeId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VariantOptionTypeId");
+
+                    b.HasIndex("ProductId", "VariantOptionTypeId");
+
+                    b.ToTable("VariantOptionValues");
                 });
 
             modelBuilder.Entity("VaultShop.Models.ApplicationUser", b =>
@@ -1379,9 +1481,16 @@ namespace VaultShop.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VaultShop.Models.ProductVariant", "Variant")
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("OrderHeader");
 
                     b.Navigation("Product");
+
+                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("VaultShop.Models.OrderHeader", b =>
@@ -1442,6 +1551,36 @@ namespace VaultShop.DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("VaultShop.Models.ProductVariant", b =>
+                {
+                    b.HasOne("VaultShop.Models.Product", "Product")
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.ProductVariantValue", b =>
+                {
+                    b.HasOne("VaultShop.Models.VariantOptionValue", "Value")
+                        .WithMany("VariantValues")
+                        .HasForeignKey("ValueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VaultShop.Models.ProductVariant", "Variant")
+                        .WithMany("Values")
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Value");
+
+                    b.Navigation("Variant");
+                });
+
             modelBuilder.Entity("VaultShop.Models.ShoppingCart", b =>
                 {
                     b.HasOne("VaultShop.Models.ApplicationUser", "ApplicationUser")
@@ -1456,9 +1595,35 @@ namespace VaultShop.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VaultShop.Models.ProductVariant", "Variant")
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Product");
+
+                    b.Navigation("Variant");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.VariantOptionValue", b =>
+                {
+                    b.HasOne("VaultShop.Models.Product", "Product")
+                        .WithMany("VariantValues")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VaultShop.Models.VariantOptionType", "VariantOptionType")
+                        .WithMany("Values")
+                        .HasForeignKey("VariantOptionTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("VariantOptionType");
                 });
 
             modelBuilder.Entity("VaultShop.Models.ApplicationUser", b =>
@@ -1509,6 +1674,25 @@ namespace VaultShop.DataAccess.Migrations
                     b.Navigation("Keywords");
 
                     b.Navigation("ProductImages");
+
+                    b.Navigation("VariantValues");
+
+                    b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.ProductVariant", b =>
+                {
+                    b.Navigation("Values");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.VariantOptionType", b =>
+                {
+                    b.Navigation("Values");
+                });
+
+            modelBuilder.Entity("VaultShop.Models.VariantOptionValue", b =>
+                {
+                    b.Navigation("VariantValues");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,12 @@
+@model ShoppingCart
+@* product-variants-hardening 3.1: same "Type: Value, ..." shape as BuildVariantLabel; renders nothing when the line has no variant. *@
+@if (Model.Variant is not null)
+{
+	var label = string.Join(", ", Model.Variant.Values
+		.OrderBy(vv => vv.Value.VariantOptionTypeId)
+		.Select(vv => $"{vv.Value.VariantOptionType.Name}: {vv.Value.Value}"));
+	if (!string.IsNullOrWhiteSpace(label))
+	{
+		<small class="text-muted d-block">@label</small>
+	}
+}

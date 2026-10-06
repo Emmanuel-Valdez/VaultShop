@@ -5,6 +5,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Checkout;
+using VaultShop.Web.Services.ProductVariants;
 
 namespace VaultShop.Web.Tests
 {
@@ -134,14 +135,14 @@ namespace VaultShop.Web.Tests
 
 			var result = service.CreateOrder("user-1", new OrderHeader(), useWholesalePrice: false);
 
-			Assert.False(result.InsufficientStock);
-			Assert.Equal(3, carts[0].Product.StockQuantity);
-			Assert.Equal(2, carts[1].Product.StockQuantity);
-			unitOfWork.ProductMock.Verify(x => x.Update(It.IsAny<Product>()), Times.Exactly(2));
-		}
+		Assert.False(result.InsufficientStock);
+		Assert.Equal(3, carts[0].Product.StockQuantity);
+		Assert.Equal(2, carts[1].Product.StockQuantity);
+		unitOfWork.ProductMock.Verify(x => x.DecrementStockIfSufficient(It.IsAny<int>(), It.IsAny<int>()), Times.Exactly(2));
+	}
 
-		[Fact]
-		public void CreateOrder_InsufficientStock_ReturnsFlagAndNoSideEffects()
+	[Fact]
+	public void CreateOrder_InsufficientStock_ReturnsFlagAndNoSideEffects()
 		{
 			var carts = new[]
 			{
@@ -155,11 +156,11 @@ namespace VaultShop.Web.Tests
 
 			Assert.True(result.InsufficientStock);
 			Assert.Null(result.OrderId);
-			// First line was valid but nothing may persist: no order, no details, no saves, no decrement.
-			unitOfWork.OrderHeaderMock.Verify(x => x.Add(It.IsAny<OrderHeader>()), Times.Never);
-			unitOfWork.OrderDetailMock.Verify(x => x.Add(It.IsAny<OrderDetail>()), Times.Never);
-			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
-			unitOfWork.ProductMock.Verify(x => x.Update(It.IsAny<Product>()), Times.Never);
+		// First line was valid but nothing may persist: no order, no details, no saves, no decrement.
+		unitOfWork.OrderHeaderMock.Verify(x => x.Add(It.IsAny<OrderHeader>()), Times.Never);
+		unitOfWork.OrderDetailMock.Verify(x => x.Add(It.IsAny<OrderDetail>()), Times.Never);
+		unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+		unitOfWork.ProductMock.Verify(x => x.DecrementStockIfSufficient(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
 			Assert.Equal(5, carts[0].Product.StockQuantity);
 			Assert.Equal(1, carts[1].Product.StockQuantity);
 		}
@@ -179,13 +180,37 @@ namespace VaultShop.Web.Tests
 
 			var result = service.CreateOrder("user-1", new OrderHeader { PaymentMethod = SD.PaymentMethodBankTransfer }, useWholesalePrice: false);
 
-			Assert.False(result.InsufficientStock);
-			Assert.Equal(3, carts[0].Product.StockQuantity);
-			unitOfWork.ProductMock.Verify(x => x.Update(It.IsAny<Product>()), Times.Once);
+		Assert.False(result.InsufficientStock);
+		Assert.Equal(3, carts[0].Product.StockQuantity);
+		unitOfWork.ProductMock.Verify(x => x.DecrementStockIfSufficient(10, 2), Times.Once);
 		}
 
-		[Fact]
-		public void CreateOrder_OrderDetailCreationFails_RethrowsException()
+	[Fact]
+	public void CreateOrder_ConditionalWriteReportsZero_ReturnsInsufficientStock()
+	{
+		// product-variants-hardening 1.2: pre-read passes (2 ≤ 5) but the pool was consumed
+		// concurrently, so the conditional write affects 0 rows. Fails if checkout ever
+		// reverts to an absolute write of the pre-read value.
+		var carts = new[]
+		{
+			CreateCart("user-1", productId: 10, count: 2, retailPrice: 100m, wholesalePrice: 70m, stockQuantity: 5)
+		};
+		var unitOfWork = CreateUnitOfWork(carts, [CreateUser("user-1")]);
+		unitOfWork.ProductMock
+			.Setup(x => x.DecrementStockIfSufficient(It.IsAny<int>(), It.IsAny<int>()))
+			.Returns(0);
+		var service = CreateService(unitOfWork.Mock.Object);
+
+		var result = service.CreateOrder("user-1", new OrderHeader(), useWholesalePrice: false);
+
+		Assert.True(result.InsufficientStock);
+		Assert.Null(result.OrderId);
+		unitOfWork.OrderHeaderMock.Verify(x => x.Add(It.IsAny<OrderHeader>()), Times.Never);
+		unitOfWork.OrderDetailMock.Verify(x => x.Add(It.IsAny<OrderDetail>()), Times.Never);
+	}
+
+	[Fact]
+	public void CreateOrder_OrderDetailCreationFails_RethrowsException()
 		{
 			var carts = new[]
 			{
@@ -199,7 +224,7 @@ namespace VaultShop.Web.Tests
 
 		private static CheckoutService CreateService(IUnitOfWork unitOfWork)
 		{
-			return new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance);
+			return new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance, Mock.Of<IProductVariantService>());
 		}
 
 		private static TestUnitOfWork CreateUnitOfWork(
@@ -235,12 +260,26 @@ namespace VaultShop.Web.Tests
 					It.IsAny<bool>()))
 				.Returns((Expression<Func<Company, bool>> filter, string? _, bool _) => companyList.SingleOrDefault(filter.Compile()));
 
-			testUnitOfWork.ProductMock
-				.Setup(x => x.Get(
-					It.IsAny<Expression<Func<Product, bool>>>(),
-					It.IsAny<string?>(),
-					It.IsAny<bool>()))
-				.Returns((Expression<Func<Product, bool>> filter, string? _, bool _) => productList.SingleOrDefault(filter.Compile()));
+		testUnitOfWork.ProductMock
+			.Setup(x => x.Get(
+				It.IsAny<Expression<Func<Product, bool>>>(),
+				It.IsAny<string?>(),
+				It.IsAny<bool>()))
+			.Returns((Expression<Func<Product, bool>> filter, string? _, bool _) => productList.SingleOrDefault(filter.Compile()));
+
+		// product-variants-hardening 1.1: mirror the conditional-write semantics on the in-memory list.
+		testUnitOfWork.ProductMock
+			.Setup(x => x.DecrementStockIfSufficient(It.IsAny<int>(), It.IsAny<int>()))
+			.Returns((int productId, int total) =>
+			{
+				var product = productList.SingleOrDefault(p => p.Id == productId);
+				if (product == null || product.StockQuantity < total)
+				{
+					return 0;
+				}
+				product.StockQuantity -= total;
+				return 1;
+			});
 
 			testUnitOfWork.OrderHeaderMock
 				.Setup(x => x.Add(It.IsAny<OrderHeader>()))

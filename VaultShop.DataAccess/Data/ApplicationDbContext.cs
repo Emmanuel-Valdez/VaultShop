@@ -41,6 +41,10 @@ namespace VaultShop.DataAccess.Data
 		public DbSet<ProductKeyword> ProductKeywords { get; set; }
 		public DbSet<KeywordImage> KeywordImages { get; set; }
 		public DbSet<PostalAgency> PostalAgencies { get; set; }
+		public DbSet<VariantOptionType> VariantOptionTypes { get; set; }
+		public DbSet<VariantOptionValue> VariantOptionValues { get; set; }
+		public DbSet<ProductVariant> ProductVariants { get; set; }
+		public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -111,6 +115,26 @@ namespace VaultShop.DataAccess.Data
 		modelBuilder.Entity<PostalAgency>()
 			.HasIndex(p => new { p.ProvinceCode, p.Locality })
 			.IncludeProperties(p => new { p.Code, p.Name });
+
+		// Product variants: generic option types, per-product values, explicit combinations.
+		modelBuilder.Entity<VariantOptionType>()
+			.HasIndex(t => t.Name)
+			.IsUnique();
+		modelBuilder.Entity<VariantOptionValue>()
+			.HasIndex(v => new { v.ProductId, v.VariantOptionTypeId });
+		modelBuilder.Entity<ProductVariantValue>()
+			.HasKey(pv => new { pv.VariantId, pv.ValueId });
+		// Deleting a variant keeps history: carts/orders keep rows with null variant.
+		modelBuilder.Entity<ShoppingCart>()
+			.HasOne(s => s.Variant)
+			.WithMany()
+			.HasForeignKey(s => s.VariantId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<OrderDetail>()
+			.HasOne(o => o.Variant)
+			.WithMany()
+			.HasForeignKey(o => o.VariantId)
+			.OnDelete(DeleteBehavior.SetNull);
 		}
 	}
 }

@@ -45,6 +45,11 @@ namespace VaultShop.DataAccess.Repository.IRepository
 
 		IFavoriteProductRepository FavoriteProduct { get; }
 
+		IVariantOptionTypeRepository VariantOptionType { get; }
+		IVariantOptionValueRepository VariantOptionValue { get; }
+		IProductVariantRepository ProductVariant { get; }
+		IProductVariantValueRepository ProductVariantValue { get; }
+
 
 		void Save();
 		void ExecuteInTransaction(Action operation);

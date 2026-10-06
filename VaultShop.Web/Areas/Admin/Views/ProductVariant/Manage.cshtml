@@ -1,0 +1,140 @@
+@using VaultShop.Web.Services.ProductVariants
+@model IProductVariantService.VariantAdminData
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-4">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary">@Localizer["Title", Model.Product.Name]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row g-4">
+			<div class="col-12 col-lg-5">
+				<div class="border rounded-3 p-3 bg-body-tertiary">
+					<h3 class="h5 text-primary">@Localizer["AddValue"]</h3>
+					<form asp-action="AddValue" method="post" class="row g-2">
+						@Html.AntiForgeryToken()
+						<input type="hidden" name="productId" value="@Model.Product.Id" />
+						<div class="col-12">
+							<label for="typeName" class="form-label">@Localizer["Type"]</label>
+							<input name="typeName" id="typeName" class="form-control" list="existingTypes" autocomplete="off" maxlength="100" required />
+							<datalist id="existingTypes">
+								@foreach (var typeName in Model.AllTypeNames)
+								{
+									<option value="@typeName"></option>
+								}
+							</datalist>
+							<div class="form-text">@Localizer["TypeHelp"]</div>
+						</div>
+						<div class="col-8">
+							<label for="value" class="form-label">@Localizer["Value"]</label>
+							<input name="value" id="value" class="form-control" maxlength="100" required />
+						</div>
+						<div class="col-4">
+							<label for="sortOrder" class="form-label">@Localizer["SortOrder"]</label>
+							<input name="sortOrder" id="sortOrder" class="form-control" type="number" value="0" />
+						</div>
+						<div class="col-12">
+							<button type="submit" class="btn btn-primary">@Localizer["Add"]</button>
+						</div>
+					</form>
+				</div>
+				<div class="border rounded-3 p-3 mt-3">
+					<h3 class="h5 text-primary">@Localizer["Values"]</h3>
+					@if (!Model.Types.Any())
+					{
+						<p class="text-muted mb-0">@Localizer["NoValuesYet"]</p>
+					}
+					@foreach (var group in Model.Types)
+					{
+						<div class="mb-2">
+							<strong>@group.TypeName</strong>
+							<ul class="list-group mt-1">
+								@foreach (var option in group.Values)
+								{
+									<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
+										<span>@option.Value <span class="text-muted small">#@option.SortOrder</span></span>
+										<form asp-action="DeleteValue" method="post" class="m-0">
+											@Html.AntiForgeryToken()
+											<input type="hidden" name="productId" value="@Model.Product.Id" />
+											<input type="hidden" name="valueId" value="@option.Id" />
+											<button type="submit" class="btn btn-outline-danger btn-sm" aria-label="@Localizer["Delete"]">
+												<i class="bi bi-trash-fill" aria-hidden="true"></i>
+											</button>
+										</form>
+									</li>
+								}
+							</ul>
+						</div>
+					}
+				</div>
+			</div>
+			<div class="col-12 col-lg-7">
+				<div class="border rounded-3 p-3 bg-body-tertiary">
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<h3 class="h5 text-primary mb-0">@Localizer["Combinations"] <span class="badge text-bg-secondary">@Model.Variants.Count</span></h3>
+						<form asp-action="Generate" method="post" class="m-0">
+							@Html.AntiForgeryToken()
+							<input type="hidden" name="productId" value="@Model.Product.Id" />
+							<button type="submit" class="btn btn-primary btn-sm">@Localizer["Generate"]</button>
+						</form>
+					</div>
+					@if (!Model.Variants.Any())
+					{
+						<p class="text-muted mb-0">@Localizer["NoCombinationsYet"]</p>
+					}
+					else
+					{
+						<div class="table-responsive">
+							<table class="table table-sm align-middle mb-0">
+								<thead>
+									<tr>
+										<th scope="col">@Localizer["Combination"]</th>
+										<th scope="col">@Localizer["Available"]</th>
+										<th scope="col"><span class="visually-hidden">@Localizer["Actions"]</span></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var row in Model.Variants)
+									{
+										<tr>
+											<td>@row.Label</td>
+											<td>
+												<form asp-action="SetAvailability" method="post" class="m-0">
+													@Html.AntiForgeryToken()
+													<input type="hidden" name="productId" value="@Model.Product.Id" />
+													<input type="hidden" name="variantId" value="@row.Variant.Id" />
+													<input type="hidden" name="isAvailable" value="@((!row.Variant.IsAvailable).ToString().ToLower())" />
+													<button type="submit" class="btn btn-sm @(row.Variant.IsAvailable ? "btn-outline-success" : "btn-outline-secondary")">
+														@(row.Variant.IsAvailable ? Localizer["Yes"] : Localizer["No"])
+													</button>
+												</form>
+											</td>
+											<td class="text-end">
+												<form asp-action="DeleteVariant" method="post" class="m-0">
+													@Html.AntiForgeryToken()
+													<input type="hidden" name="productId" value="@Model.Product.Id" />
+													<input type="hidden" name="variantId" value="@row.Variant.Id" />
+													<button type="submit" class="btn btn-outline-danger btn-sm" aria-label="@Localizer["Delete"]">
+														<i class="bi bi-trash-fill" aria-hidden="true"></i>
+													</button>
+												</form>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+				</div>
+				<div class="mt-3">
+					<a asp-area="Admin" asp-controller="Product" asp-action="Upsert" asp-route-id="@Model.Product.Id" class="btn btn-outline-primary border">
+						@Localizer["BackToProduct"]
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

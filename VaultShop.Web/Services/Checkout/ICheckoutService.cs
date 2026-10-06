@@ -24,6 +24,7 @@ namespace VaultShop.Web.Services.Checkout
 			public bool ShouldBlockUser { get; init; }
 			public bool OrderTotalInvalid { get; init; }
 			public bool InsufficientStock { get; init; }
+			public bool VariantUnavailable { get; init; }
 			public int? OrderId { get; init; }
 			public bool RequiresOnlinePayment { get; init; }
 			public ShoppingCartVM? ShoppingCartVM { get; init; }

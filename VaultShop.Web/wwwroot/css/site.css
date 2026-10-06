@@ -160,6 +160,17 @@ html {
     --bs-btn-hover-border-color: var(--theme-primary);
     --bs-btn-hover-color: #e8eaf2;
 }
+/* ponytail: --secondary is surface (#f7f8fa) in light mode → outline invisible. Re-anchor to primary + solid gray, like the .badge.bg-secondary fix */
+.btn-outline-secondary {
+    --bs-btn-color: var(--theme-primary);
+    --bs-btn-border-color: #6c757d;
+    --bs-btn-hover-bg: #6c757d;
+    --bs-btn-hover-border-color: #6c757d;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: #6c757d;
+    --bs-btn-active-border-color: #6c757d;
+    --bs-btn-active-color: #fff;
+}
 
 .btn-secondary {
     --bs-btn-bg: var(--theme-surface);
@@ -201,6 +212,10 @@ html {
     --bs-btn-hover-bg: #e8eaf2;
     --bs-btn-hover-border-color: var(--theme-accent);
     --bs-btn-hover-color: var(--theme-primary-dark);
+}
+[data-bs-theme=dark] .btn-outline-secondary {
+    --bs-btn-color: #e8eaf2;
+    --bs-btn-border-color: #9aa4b2;
 }
 
 /* ponytail: shrink cart count pill without enlarging hit-area; keep anchor 44px */

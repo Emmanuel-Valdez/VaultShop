@@ -64,6 +64,10 @@ namespace VaultShop.Models
 		[ValidateNever]
 		public List<ProductKeyword> Keywords { get; set; } = new();
 		[ValidateNever]
+		public List<VariantOptionValue> VariantValues { get; set; } = new();
+		[ValidateNever]
+		public List<ProductVariant> Variants { get; set; } = new();
+		[ValidateNever]
 		public FabricByProduct FabricByProduct { get; set; } = null!;
 		[ValidateNever]
 		public GarmentHardwareByProduct GarmentHardwareByProduct { get; set; } = null!;

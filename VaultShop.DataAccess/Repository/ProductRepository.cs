@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using VaultShop.DataAccess.Data;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
@@ -46,6 +47,13 @@ namespace VaultShop.DataAccess.Repository
         public void UpdateRange(IEnumerable<Product> obj)
         {
             _db.Products.UpdateRange(obj);
+        }
+
+        public int DecrementStockIfSufficient(int productId, int total)
+        {
+            return _db.Products
+                .Where(p => p.Id == productId && p.StockQuantity >= total)
+                .ExecuteUpdate(s => s.SetProperty(p => p.StockQuantity, p => p.StockQuantity - total));
         }
     }
 }

@@ -126,8 +126,14 @@
 						<tbody>
 							@foreach (var item in Model.Items)
 							{
-								<tr>
-									<td>@item.ProductName</td>
+							<tr>
+								<td>
+									@item.ProductName
+									@if (!string.IsNullOrWhiteSpace(item.VariantLabel))
+									{
+										<br /><small class="text-muted">@item.VariantLabel</small>
+									}
+								</td>
 									<td class="text-end">@item.UnitPrice.ToString("c")</td>
 									<td class="text-center">@item.Quantity</td>
 									<td class="text-end">@item.LineTotal.ToString("c")</td>

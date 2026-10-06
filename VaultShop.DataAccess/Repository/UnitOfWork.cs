@@ -36,7 +36,11 @@ namespace VaultShop.DataAccess.Repository
 		public IPercentageCostRepository PercentageCost { get; private set; }
 		public IPercentageCostWholesaleRepository PercentageCostWholesale { get; private set; }
         public IPercentageProfitRepository PercentageProfit { get; }
-		public IFavoriteProductRepository FavoriteProduct { get; private set; }
+        public IFavoriteProductRepository FavoriteProduct { get; private set; }
+		public IVariantOptionTypeRepository VariantOptionType { get; private set; }
+		public IVariantOptionValueRepository VariantOptionValue { get; private set; }
+		public IProductVariantRepository ProductVariant { get; private set; }
+		public IProductVariantValueRepository ProductVariantValue { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db) 
         {
@@ -66,6 +70,10 @@ namespace VaultShop.DataAccess.Repository
 			PercentageCostWholesale = new PercentageCostWholesaleRepository(_db);
             PercentageProfit= new PercentageProfitRepository(_db);
 			FavoriteProduct = new FavoriteProductRepository(_db);
+			VariantOptionType = new VariantOptionTypeRepository(_db);
+			VariantOptionValue = new VariantOptionValueRepository(_db);
+			ProductVariant = new ProductVariantRepository(_db);
+			ProductVariantValue = new ProductVariantValueRepository(_db);
 
 		}
 

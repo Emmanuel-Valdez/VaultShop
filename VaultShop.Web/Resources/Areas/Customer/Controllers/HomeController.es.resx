@@ -171,6 +171,15 @@
   <data name="SearchNoMatches" xml:space="preserve">
     <value>No existen coincidencias para tu búsqueda</value>
   </data>
+  <data name="VariantInvalid" xml:space="preserve">
+    <value>Esa combinación no es válida para este producto.</value>
+  </data>
+  <data name="VariantRequired" xml:space="preserve">
+    <value>Elegí una opción de cada tipo para agregar al carrito.</value>
+  </data>
+  <data name="VariantUnavailable" xml:space="preserve">
+    <value>Esa combinación ya no está disponible.</value>
+  </data>
   <data name="Yes" xml:space="preserve">
     <value>Si</value>
   </data>

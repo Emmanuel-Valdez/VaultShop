@@ -62,11 +62,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				return Unauthorized();
 			}
-			ShoppingCartVM = new()
-			{
-				ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product.Category,Product.ProductImages"),
-				OrderHeader = new()
-			};
+		ShoppingCartVM = new()
+		{
+			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product.Category,Product.ProductImages,Variant.Values.Value.VariantOptionType"),
+			OrderHeader = new()
+		};
 			RemoveShoppingCartsOutdated(userId);
 			var useWholesale = PricingHelper.ShouldUseWholesale(User, HttpContext);
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
@@ -89,8 +89,8 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 					_unitOfWork.ShoppingCart.Remove(cart);
 				}
 			}
-			_unitOfWork.Save();
-			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages");
+		_unitOfWork.Save();
+		ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages,Variant.Values.Value.VariantOptionType");
 			HttpContext.Session.SetInt32(SD.SessionCart, ShoppingCartVM.ShoppingCartList.Count());
 
 		}
@@ -255,6 +255,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			if (result.InsufficientStock)
 			{
 				TempData["error"] = _localizer["NotEnoughStock"].Value;
+				return RedirectToAction(nameof(Index));
+			}
+			if (result.VariantUnavailable)
+			{
+				TempData["error"] = _localizer["VariantNoLongerAvailable"].Value;
 				return RedirectToAction(nameof(Index));
 			}
 
@@ -504,8 +509,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			}
 
 		// ponytail: guard at write edges only, not cart read (design.md decision 2)
+		// product-variants 4.3: Plus compares the product total across sibling variant lines + 1.
 		var product = _unitOfWork.Product.Get(u => u.Id == cartFromDb.ProductId && !u.IsDeleted && u.IsAvailableInStore);
-		if (product == null || cartFromDb.Count + 1 > product.StockQuantity)
+		var productCartTotal = _unitOfWork.ShoppingCart
+			.GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId && u.ProductId == cartFromDb.ProductId).Sum(c => c.Count);
+		if (product == null || productCartTotal + 1 > product.StockQuantity)
 		{
 			TempData["error"] = _localizer["NotEnoughStock"].Value;
 			return RedirectToAction(nameof(Index));

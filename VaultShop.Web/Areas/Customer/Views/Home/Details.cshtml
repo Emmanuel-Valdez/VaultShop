@@ -1,7 +1,9 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Options
+@using System.Text.Json
 @using VaultShop.Web.Services.Branding
 @using VaultShop.Web.Services.Pricing
+@using VaultShop.Web.Services.ProductVariants
 @model ShoppingCart
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -43,6 +45,13 @@
 	<div class="product-detail card shadow-sm border-0 mt-4 mb-4 bg-secondary">
 		<input asp-for="@Model.ApplicationUserId" hidden />
 		<input asp-for="@Model.ProductId" hidden />
+		@{
+			var variantSelection = ViewData["VariantSelection"] as IProductVariantService.VariantSelectionData;
+			if (variantSelection != null)
+			{
+				<input asp-for="@Model.VariantId" type="hidden" id="variantId" value="" />
+			}
+		}
 		<div class="card-body p-3 p-lg-4">
 			<a asp-action="Index" class="btn btn-outline-primary bg-gradient fw-semibold btn-sm text-uppercase mb-4">
 				<small>@Localizer["BackToHome"]</small>
@@ -141,6 +150,27 @@
 							@Html.Raw(Model.Product.Description)
 						</div>
 
+						@if (variantSelection != null)
+						{
+							<div class="product-detail__variants mb-4" data-variant-picker>
+								@foreach (var type in variantSelection.Types)
+								{
+									<div class="mb-3">
+										<label class="form-label" for="variant-type-@type.TypeId">@type.TypeName</label>
+										<select class="form-select" id="variant-type-@type.TypeId" data-variant-selector="@type.TypeId" required>
+											<option value="">@Localizer["SelectVariantOption"]</option>
+											@foreach (var option in type.Values)
+											{
+												<option value="@option.Id">@option.Value</option>
+											}
+										</select>
+									</div>
+								}
+								<p class="text-danger small d-none" role="alert" data-variant-unavailable>@Localizer["VariantCombinationUnavailable"]</p>
+							</div>
+							<script type="application/json" id="variant-combinations">@Html.Raw(JsonSerializer.Serialize(variantSelection.Variants.Select(v => new { id = v.Variant.Id, available = v.Variant.IsAvailable, values = v.Variant.Values.Select(vv => vv.ValueId).OrderBy(x => x) })))</script>
+						}
+
 						<div class="product-detail__purchase">
 							<div class="product-detail__stepper" role="group" aria-label="@Localizer["Count"]" data-stock="@Model.Product.StockQuantity">
 								<button type="button" class="product-detail__step product-detail__step--minus" data-quantity-step="-1" aria-label="@Localizer["DecreaseQuantity"]">
@@ -228,6 +258,38 @@
 			input.addEventListener('input', update);
 			update();
 		})();
+		@if (ViewData["VariantSelection"] is IProductVariantService.VariantSelectionData)
+		{
+			<text>
+		// product-variants 3.1: map the selected value-tuple to a VariantId; no default, the add
+		// button stays disabled until an available combination resolves. Server re-validates.
+		(function () {
+			var picker = document.querySelector('[data-variant-picker]');
+			if (!picker) return;
+			var data = document.getElementById('variant-combinations');
+			var combos = data ? JSON.parse(data.textContent) : [];
+			var selects = Array.prototype.slice.call(picker.querySelectorAll('[data-variant-selector]'));
+			var hidden = document.getElementById('variantId');
+			var addButton = document.querySelector('.product-detail__add-button[type="submit"]');
+			var unavailableMsg = picker.querySelector('[data-variant-unavailable]');
+			var resolve = function () {
+				var selected = selects.map(function (s) { return parseInt(s.value, 10); });
+				if (selected.some(isNaN)) return null;
+				var key = selected.slice().sort().join(',');
+				return combos.find(function (c) { return c.values.slice().sort().join(',') === key; }) || null;
+			};
+			var update = function () {
+				var match = resolve();
+				var ok = !!match && match.available;
+				if (hidden) hidden.value = ok ? match.id : '';
+				if (addButton) addButton.disabled = !ok;
+				if (unavailableMsg) unavailableMsg.classList.toggle('d-none', !!match && match.available);
+			};
+			selects.forEach(function (s) { s.addEventListener('change', update); });
+			update();
+		})();
+			</text>
+		}
 	</script>
 }
 

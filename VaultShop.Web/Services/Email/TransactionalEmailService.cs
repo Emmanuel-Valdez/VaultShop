@@ -71,7 +71,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
         var items = details.Select(d => new OrderItemLine(
             d.Product?.Name ?? $"Product #{d.ProductId}",
             d.Count,
-            d.Price.ToString("C")));
+            d.Price.ToString("C"),
+            d.VariantLabel));
 
         var total = order.OrderTotal.ToString("C");
 

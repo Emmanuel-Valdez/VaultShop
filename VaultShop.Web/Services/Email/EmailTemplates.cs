@@ -26,7 +26,8 @@ public static class EmailTemplates
             : $"Order #{orderId} confirmed - {storeName}";
 
         var itemsHtml = string.Join("", items.Select(i =>
-            $"<tr><td style='padding:8px;border-bottom:1px solid #eee;'>{i.ProductName}</td>" +
+            $"<tr><td style='padding:8px;border-bottom:1px solid #eee;'>{i.ProductName}" +
+            (string.IsNullOrWhiteSpace(i.VariantLabel) ? string.Empty : $"<br><small style='color:#666;'>{i.VariantLabel}</small>") + "</td>" +
             $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:center;'>{i.Quantity}</td>" +
             $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:right;'>{i.Price}</td></tr>"));
 
@@ -416,4 +417,4 @@ public static class EmailTemplates
     }
 }
 
-public sealed record OrderItemLine(string ProductName, int Quantity, string Price);
+public sealed record OrderItemLine(string ProductName, int Quantity, string Price, string? VariantLabel = null);

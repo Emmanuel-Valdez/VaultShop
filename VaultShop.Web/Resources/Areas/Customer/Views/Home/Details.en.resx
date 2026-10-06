@@ -159,6 +159,12 @@
   <data name="OutOfStock" xml:space="preserve">
     <value>Out of stock</value>
   </data>
+  <data name="SelectVariantOption" xml:space="preserve">
+    <value>Choose an option</value>
+  </data>
+  <data name="VariantCombinationUnavailable" xml:space="preserve">
+    <value>That combination is not available</value>
+  </data>
   <data name="StockAvailable" xml:space="preserve">
     <value>{0} available</value>
   </data>

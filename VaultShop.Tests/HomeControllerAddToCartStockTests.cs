@@ -19,6 +19,7 @@ using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pagination;
+using VaultShop.Web.Services.ProductVariants;
 
 namespace VaultShop.Web.Tests
 {
@@ -177,15 +178,26 @@ namespace VaultShop.Web.Tests
 			productMock.Setup(p => p.Get(It.IsAny<Expression<Func<Product, bool>>>(), null, false))
 				.Returns(new Product { Id = 1, StockQuantity = stockQuantity, IsDeleted = false, IsAvailableInStore = true });
 
-			if (existingCount > 0)
-				cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
-					.Returns(new ShoppingCart { ProductId = 1, Count = existingCount });
-			else
-				cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
-					.Returns((ShoppingCart?)null);
+		if (existingCount > 0)
+			cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
+				.Returns(new ShoppingCart { ProductId = 1, Count = existingCount });
+		else
+			cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
+				.Returns((ShoppingCart?)null);
+		// product-variants 4.1/4.2: Details POST sums sibling variant lines via GetAll.
+		var existingLines = existingCount > 0
+			? new List<ShoppingCart> { new() { ProductId = 1, Count = existingCount, ApplicationUserId = "user-1" } }
+			: new List<ShoppingCart>();
+		cartMock.Setup(c => c.GetAll(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
+			.Returns(existingLines);
 
 			var localizerMock = new Mock<IStringLocalizer<HomeController>>();
 			localizerMock.Setup(x => x[It.IsAny<string>()]).Returns((string name) => new LocalizedString(name, name));
+
+			// product-variants 3.3: variant-less product → validation passes, behavior unchanged.
+			var variantMock = new Mock<IProductVariantService>();
+			variantMock.Setup(v => v.ValidateVariantForProduct(It.IsAny<int>(), It.IsAny<int?>()))
+				.Returns(IProductVariantService.VariantValidationResult.Valid());
 
 			var httpContext = new DefaultHttpContext
 			{
@@ -197,7 +209,8 @@ namespace VaultShop.Web.Tests
 				NullLogger<HomeController>.Instance,
 				unitOfWorkMock.Object,
 				localizerMock.Object,
-				Options.Create(new PaginationOptions()))
+				Options.Create(new PaginationOptions()),
+				variantMock.Object)
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
@@ -214,11 +227,14 @@ namespace VaultShop.Web.Tests
 			unitOfWorkMock.SetupGet(u => u.Product).Returns(productMock.Object);
 			unitOfWorkMock.SetupGet(u => u.ShoppingCart).Returns(cartMock.Object);
 
-			var cart = new ShoppingCart { Id = 10, ProductId = 1, Count = cartCount, ApplicationUserId = "user-1" };
-			cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
-				.Returns(cart);
-			cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, true))
-				.Returns(cart);
+		var cart = new ShoppingCart { Id = 10, ProductId = 1, Count = cartCount, ApplicationUserId = "user-1" };
+		cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
+			.Returns(cart);
+		cartMock.Setup(c => c.Get(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, true))
+			.Returns(cart);
+		// product-variants 4.3: Plus sums sibling variant lines via GetAll.
+		cartMock.Setup(c => c.GetAll(It.IsAny<Expression<Func<ShoppingCart, bool>>>(), null, false))
+			.Returns(new List<ShoppingCart> { cart });
 
 			productMock.Setup(p => p.Get(It.IsAny<Expression<Func<Product, bool>>>(), null, false))
 				.Returns(new Product { Id = 1, StockQuantity = stockQuantity, IsDeleted = false, IsAvailableInStore = true });

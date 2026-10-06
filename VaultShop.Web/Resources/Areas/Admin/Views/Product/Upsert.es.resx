@@ -204,4 +204,7 @@
   <data name="SlugHelp" xml:space="preserve">
     <value>Dejalo vacío para generarlo automáticamente desde el nombre.</value>
   </data>
+  <data name="ManageVariants" xml:space="preserve">
+    <value>Gestionar variantes</value>
+  </data>
 </root>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="VariantValueAdded" xml:space="preserve">
+    <value>Value added successfully</value>
+  </data>
+  <data name="VariantValueDeleted" xml:space="preserve">
+    <value>Value deleted successfully</value>
+  </data>
+  <data name="CombinationsGenerated" xml:space="preserve">
+    <value>{0} combinations generated</value>
+  </data>
+  <data name="VariantAvailabilityUpdated" xml:space="preserve">
+    <value>Availability updated</value>
+  </data>
+  <data name="VariantDeleted" xml:space="preserve">
+    <value>Combination deleted successfully</value>
+  </data>
+  <data name="ProductNotFound" xml:space="preserve">
+    <value>Product not found</value>
+  </data>
+  <data name="VariantTypeRequired" xml:space="preserve">
+    <value>Type is required (max 100 characters)</value>
+  </data>
+  <data name="VariantValueRequired" xml:space="preserve">
+    <value>Value is required (max 100 characters)</value>
+  </data>
+  <data name="VariantValueAlreadyExists" xml:space="preserve">
+    <value>That value already exists for this type on this product</value>
+  </data>
+  <data name="VariantValueNotFound" xml:space="preserve">
+    <value>Value not found</value>
+  </data>
+  <data name="VariantValueReferenced" xml:space="preserve">
+    <value>Cannot delete: the value is used by at least one combination. Remove them first.</value>
+  </data>
+  <data name="NoVariantValues" xml:space="preserve">
+    <value>Define at least one value before generating combinations</value>
+  </data>
+  <data name="VariantNotFound" xml:space="preserve">
+    <value>Combination not found</value>
+  </data>
+  <data name="VariantInvalid" xml:space="preserve">
+    <value>That combination does not belong to this product.</value>
+  </data>
+  <data name="VariantReferencedByCart" xml:space="preserve">
+    <value>Cannot delete: the combination is in a customer's cart.</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Unexpected error</value>
+  </data>
+</root>

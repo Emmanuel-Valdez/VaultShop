@@ -9,6 +9,7 @@ using VaultShop.Utility;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
 using VaultShop.Web.Services.Checkout;
+using VaultShop.Web.Services.ProductVariants;
 
 namespace VaultShop.Web.Tests
 {
@@ -193,7 +194,8 @@ namespace VaultShop.Web.Tests
 
 		private static CheckoutService CreateService(ApplicationDbContext context)
 		{
-			return new CheckoutService(new UnitOfWork(context), NullLogger<CheckoutService>.Instance);
+			var unitOfWork = new UnitOfWork(context);
+			return new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance, new ProductVariantService(unitOfWork));
 		}
 
 		private static SqliteConnection CreateOpenConnection()

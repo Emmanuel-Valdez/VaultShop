@@ -26,6 +26,11 @@ namespace VaultShop.Models
 		[ValidateNever]
 		public ApplicationUser ApplicationUser { get; set; } = null!;
 
+		public int? VariantId { get; set; }
+		[ForeignKey("VariantId")]
+		[ValidateNever]
+		public ProductVariant? Variant { get; set; }
+
 		[NotMapped]
 		public decimal Price { get; set; }
 		[NotMapped]

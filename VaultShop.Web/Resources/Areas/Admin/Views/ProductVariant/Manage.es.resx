@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Variantes de {0}</value>
+  </data>
+  <data name="AddValue" xml:space="preserve">
+    <value>Agregar valor</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="TypeHelp" xml:space="preserve">
+    <value>Elegí un tipo existente o escribí uno nuevo (ej. Casa, Talle, Color)</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Valor</value>
+  </data>
+  <data name="SortOrder" xml:space="preserve">
+    <value>Orden</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Agregar</value>
+  </data>
+  <data name="Values" xml:space="preserve">
+    <value>Valores</value>
+  </data>
+  <data name="NoValuesYet" xml:space="preserve">
+    <value>Todavía no hay valores para este producto</value>
+  </data>
+  <data name="Combinations" xml:space="preserve">
+    <value>Combinaciones</value>
+  </data>
+  <data name="Generate" xml:space="preserve">
+    <value>Generar combinaciones</value>
+  </data>
+  <data name="NoCombinationsYet" xml:space="preserve">
+    <value>Todavía no hay combinaciones. Definí valores y generá las combinaciones.</value>
+  </data>
+  <data name="Combination" xml:space="preserve">
+    <value>Combinación</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="BackToProduct" xml:space="preserve">
+    <value>Volver al producto</value>
+  </data>
+</root>

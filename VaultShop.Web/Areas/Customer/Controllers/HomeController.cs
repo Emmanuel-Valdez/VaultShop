@@ -12,6 +12,7 @@ using VaultShop.Models.Pagination;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Pagination;
+using VaultShop.Web.Services.ProductVariants;
 
 
 
@@ -26,13 +27,15 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer<HomeController> _localizer;
 		private readonly PaginationOptions _paginationOptions;
+		private readonly IProductVariantService _variantService;
 
-		public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, IStringLocalizer<HomeController> localizer, IOptions<PaginationOptions> paginationOptions)
+		public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, IStringLocalizer<HomeController> localizer, IOptions<PaginationOptions> paginationOptions, IProductVariantService variantService)
 		{
 			_localizer = localizer;
 			_logger = logger;
 			_unitOfWork = unitOfWork;
 			_paginationOptions = paginationOptions.Value;
+			_variantService = variantService;
 		}
 
 		public IActionResult Index(int pageNumber = 1)
@@ -127,9 +130,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				})
 				.OrderBy(c => c.Name)
 				.ToList();
-			ViewData["DetailCollections"] = detailCollections;
+		ViewData["DetailCollections"] = detailCollections;
+		// product-variants 3.1: null for variant-less products → no selectors (3.3).
+		ViewData["VariantSelection"] = _variantService.GetSelectionData(productId);
 
-			return View(cart);
+		return View(cart);
 		}
 
 		[HttpPost]
@@ -153,24 +158,33 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId });
 			}
 
-			var product = _unitOfWork.Product.Get(u => u.Id == shoppingCart.ProductId && u.IsDeleted == false && u.IsAvailableInStore == true);
-			if (product == null)
-			{
-				TempData["error"] = _localizer["ProductUnavailable"].Value;
-				return RedirectToAction(nameof(Index));
-			}
+		var product = _unitOfWork.Product.Get(u => u.Id == shoppingCart.ProductId && u.IsDeleted == false && u.IsAvailableInStore == true);
+		if (product == null)
+		{
+			TempData["error"] = _localizer["ProductUnavailable"].Value;
+			return RedirectToAction(nameof(Index));
+		}
 
-			// ponytail: guard at write edges only, not cart read (design.md decision 2)
-			var existingCartCount = _unitOfWork.ShoppingCart
-				.Get(u => u.ApplicationUserId == userId && u.ProductId == shoppingCart.ProductId)?.Count ?? 0;
-			if (existingCartCount + shoppingCart.Count > product.StockQuantity)
-			{
-				TempData["error"] = _localizer["NotEnoughStock"].Value;
-				return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId, slug = product.Slug });
-			}
+		// product-variants 3.2: explicit selection of every type required; no default, no base-product purchase.
+		var variantValidation = _variantService.ValidateVariantForProduct(shoppingCart.ProductId, shoppingCart.VariantId);
+		if (!variantValidation.IsValid)
+		{
+			TempData["error"] = _localizer[variantValidation.ErrorKey ?? "VariantInvalid"].Value;
+			return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId, slug = product.Slug });
+		}
 
-			ShoppingCart? cartFromDb = _unitOfWork.ShoppingCart
-				.Get(u => u.ApplicationUserId == userId && u.ProductId == shoppingCart.ProductId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true);
+		// ponytail: guard at write edges only, not cart read (design.md decision 2)
+		// product-variants 4.1/4.2: identity is (user, product, variant); stock sums sibling variant lines.
+		var existingCartCount = _unitOfWork.ShoppingCart
+			.GetAll(u => u.ApplicationUserId == userId && u.ProductId == shoppingCart.ProductId).Sum(c => c.Count);
+		if (existingCartCount + shoppingCart.Count > product.StockQuantity)
+		{
+			TempData["error"] = _localizer["NotEnoughStock"].Value;
+			return RedirectToAction(nameof(Details), new { productId = shoppingCart.ProductId, slug = product.Slug });
+		}
+
+		ShoppingCart? cartFromDb = _unitOfWork.ShoppingCart
+			.Get(u => u.ApplicationUserId == userId && u.ProductId == shoppingCart.ProductId && u.VariantId == shoppingCart.VariantId && u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true);
 			if (cartFromDb != null)
 			{
 				cartFromDb.Count += shoppingCart.Count;

@@ -71,6 +71,7 @@
 									<li class="list-group-item d-flex justify-content-between">
 										<div>
 											<h6 class="my-0">@details.Product.Name</h6>
+											<partial name="_VariantLabel" model="details" />
 											<small class="text-muted">@Localizer["Quantity"]: @details.Count</small>
 										</div>
 										<span class="fw-semibold">@((details.Price * details.Count).ToString("c")) </span>

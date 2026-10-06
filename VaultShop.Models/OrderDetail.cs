@@ -26,6 +26,14 @@ namespace VaultShop.Models
         public int Count { get; set; }
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal Price { get; set; }
+
+		public int? VariantId { get; set; }
+		[ForeignKey("VariantId")]
+		[ValidateNever]
+		public ProductVariant? Variant { get; set; }
+
+		[MaxLength(2000)]
+		public string? VariantLabel { get; set; }
         
     }
 }
