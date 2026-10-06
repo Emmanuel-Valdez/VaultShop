@@ -1,0 +1,113 @@
+## Purpose
+
+Gives the store standard 2026 discount mechanics — direct sale prices, coupon codes, automatic quantity promotions (2x1, 3x2), collection-scoped offers, and payment-method discounts — with clear stacking rules and full order traceability.
+
+## ADDED Requirements
+
+### Requirement: Product direct offer price with date window
+
+A product MAY carry an optional sale price per price list (retail offer, wholesale offer) with an optional start/end date. When the offer is active, the effective base price is the offer price and the original price is shown struck-through.
+
+#### Scenario: Active retail offer applies
+- **WHEN** a product has retail price 10000 and an active retail offer 8000 within its date window
+- **THEN** a retail viewer sees 8000 with 10000 struck-through
+
+#### Scenario: Expired offer ignored
+- **WHEN** the offer end date is in the past
+- **THEN** the viewer sees the regular price and no strikethrough is shown
+
+#### Scenario: No offer means no badge
+- **WHEN** a product has no offer price set
+- **THEN** only the regular price is shown
+
+### Requirement: Coupon codes with validation and re-validation
+
+The system SHALL support coupon codes giving either percentage-off or fixed-amount-off the order subtotal, with optional minimum subtotal, date window, and max total uses. At most ONE coupon applies per order. The coupon is validated when applied to the cart and re-validated at order creation; an invalid coupon at creation blocks its discount but never blocks the order itself (order proceeds undiscounted with a localized notice).
+
+#### Scenario: Percentage coupon applies
+- **WHEN** a shopper applies valid code `BIENVENIDA10` (10% off, min subtotal 20000) to a 50000 subtotal cart
+- **THEN** the cart shows a 5000 discount line with the code
+
+#### Scenario: Fixed coupon capped at subtotal
+- **WHEN** a 15000 fixed coupon applies to a 10000 subtotal
+- **THEN** the discount is capped so the subtotal never goes negative
+
+#### Scenario: Expired coupon rejected
+- **WHEN** a shopper applies an expired or over-used coupon
+- **THEN** a localized error is shown and no discount is applied
+
+#### Scenario: Coupon re-validated at order creation
+- **WHEN** a coupon valid at apply time is expired or exhausted before checkout completes
+- **THEN** the order is created without that discount and the shopper sees a localized notice
+
+### Requirement: Automatic BxGy quantity promotions
+
+The system SHALL support automatic buy-X-get-Y promotions (e.g. 2x1 = buy 2 get 1 free, 3x2 = buy 3 get 1 free, second unit 50% off) scoped to a product, category, keyword collection, or whole store, with a date window. Evaluation grants the free/discounted units to the cheapest eligible units first. No code is required. Mixed products within the scope combine; same-SKU-only is a per-promotion option.
+
+#### Scenario: 2x1 grants cheapest unit free
+- **WHEN** a 2x1 promotion covers products A and B and the cart has A 100, A 100, B 60
+- **THEN** the B 60 unit is free and the discount motive names the promotion
+
+#### Scenario: 3x2 grants one free per three
+- **WHEN** a 3x2 promotion covers a product and the cart has 3 units at 100 each
+- **THEN** one unit is free (200 payable) with the promotion motive
+
+#### Scenario: Second unit half price
+- **WHEN** a "second unit 50% off" promotion applies and the cart has 2 units at 100 each
+- **THEN** the discount is 50 with the promotion motive
+
+#### Scenario: Out-of-window promotion ignored
+- **WHEN** the promotion date window is not active
+- **THEN** no automatic discount is applied
+
+### Requirement: Collection-scoped percentage offers
+
+A percentage-off rule MAY target a Keyword collection and/or a Category with a date window. Eligible lines receive the percentage off their effective price.
+
+#### Scenario: Collection offer applies to member product
+- **WHEN** a 20% collection offer covers keyword 7 and the cart has a product of keyword 7 at 10000
+- **THEN** the line discount is 2000 with the collection offer motive
+
+#### Scenario: Non-member product unaffected
+- **WHEN** the cart has a product outside the targeted collection/category
+- **THEN** that line receives no collection discount
+
+### Requirement: Payment-method percentage discount
+
+A percentage discount MAY be configured per payment method (starting with bank transfer, e.g. -10%). It applies to the payment-discount-eligible subtotal AFTER line-level specific discounts, and it stacks with the single winning specific discount.
+
+#### Scenario: Transfer discount stacks on sale price
+- **WHEN** a line costs 8000 after its specific discount and the transfer discount is 10%
+- **THEN** choosing bank transfer adds an 8000 * 10% = 800 order-level payment discount
+
+#### Scenario: Online methods without discount add nothing
+- **WHEN** the shopper pays with a method that has no configured discount
+- **THEN** no payment-method discount line appears
+
+### Requirement: Non-stacking rule for specific discounts with best-price-wins
+
+At most ONE specific discount (direct offer, coupon share, BxGy share, collection offer) SHALL apply to the same line/subtotal portion: the system evaluates all eligible specific discounts and applies the one yielding the lowest payable amount. The payment-method discount stacks on top of that winner. Wholesale (Company role or wholesale preview) lines are excluded from specific discounts by default unless a promotion explicitly opts in.
+
+#### Scenario: Best specific discount wins
+- **WHEN** a line is eligible for both a 20% direct offer and a 25% collection offer
+- **THEN** only the 25% discount applies to that line
+
+#### Scenario: Coupon and auto-promo do not combine on same subtotal
+- **WHEN** a cart is eligible for both a 10% coupon and a BxGy benefit
+- **THEN** the order applies whichever yields the lower payable subtotal, never both
+
+#### Scenario: Wholesale excluded by default
+- **WHEN** a Company user checks out and a retail-only promotion is active
+- **THEN** no specific discount applies unless the promotion explicitly includes wholesale
+
+### Requirement: Discount traceability frozen on the order
+
+Every order SHALL freeze its discount breakdown: coupon code used, promotion ids applied, per-line discount motive and amount, order-level discount totals. Later edits to promotions or coupons SHALL NOT rewrite past orders. Discount lines SHALL appear in admin order details, customer order view, confirmation emails, and PDF/HTML summaries.
+
+#### Scenario: Order freezes promotion snapshot
+- **WHEN** an order is created with a BxGy benefit and a transfer discount
+- **THEN** the order stores both motives and amounts and they survive later promotion edits
+
+#### Scenario: Discount visible everywhere the order is shown
+- **WHEN** viewing an already-created discounted order in admin, customer history, email, or PDF
+- **THEN** each discount line with its motive and amount is visible
