@@ -48,7 +48,7 @@ namespace VaultShop.Web.Tests
 			db.SaveChanges();
 		}
 
-		private static int SeedShippedPickupOrder(CustomWebApplicationFactory factory)
+		private static int SeedShippedPickupOrder(CustomWebApplicationFactory factory, string? paymentDiscountMotive = null)
 		{
 			using var scope = factory.Services.CreateScope();
 			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -72,6 +72,8 @@ namespace VaultShop.Web.Tests
 				PickupAgencyName = "Sucursal Vieja",
 				PickupAgencyAddress = "Vieja 1, Capital, Mendoza M5500",
 				PickupAgencyHours = "LUN A VIE 9 A 18",
+				PaymentDiscountTotal = 10m,
+				PaymentDiscountMotive = paymentDiscountMotive,
 			};
 			db.OrderHeaders.Add(order);
 			db.SaveChanges();
@@ -121,6 +123,24 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			Assert.Contains("Sucursal Vieja", html);
 			Assert.Contains($"{hoursLabel}: LUN A VIE 9 A 18", html);
+		}
+
+		[Theory]
+		[InlineData("en-US", "Details")]
+		[InlineData("es-AR", "Summary")]
+		public async Task OrderSurfaces_RenderFrozenPaymentDiscountMotive(string culture, string page)
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedShippedPickupOrder(factory, paymentDiscountMotive: "Transferencia -10%");
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/{culture}/Admin/Order/{page}?orderId={orderId}");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.Contains("Transferencia -10%", html);
 		}
 
 		[Fact]

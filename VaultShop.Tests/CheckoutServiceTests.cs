@@ -5,6 +5,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Checkout;
+using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
 
 namespace VaultShop.Web.Tests
@@ -224,19 +225,23 @@ namespace VaultShop.Web.Tests
 
 		private static CheckoutService CreateService(IUnitOfWork unitOfWork)
 		{
-			return new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance, Mock.Of<IProductVariantService>());
+			return new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance, Mock.Of<IProductVariantService>(), new DiscountEvaluator());
 		}
 
 		private static TestUnitOfWork CreateUnitOfWork(
 			IEnumerable<ShoppingCart> shoppingCarts,
 			IEnumerable<ApplicationUser> users,
 			IEnumerable<Company>? companies = null,
-			bool throwWhenAddingOrderDetail = false)
+			bool throwWhenAddingOrderDetail = false,
+			IEnumerable<Coupon>? coupons = null,
+			IEnumerable<Promotion>? promotions = null)
 		{
 			var testUnitOfWork = new TestUnitOfWork();
 			var shoppingCartList = shoppingCarts.ToList();
 			var userList = users.ToList();
 			var companyList = (companies ?? []).ToList();
+			var couponList = (coupons ?? []).ToList();
+			var promotionList = (promotions ?? []).ToList();
 			var productList = shoppingCartList.Select(cart => cart.Product).ToList();
 
 			testUnitOfWork.ShoppingCartMock
@@ -312,6 +317,29 @@ namespace VaultShop.Web.Tests
 			testUnitOfWork.Mock.Setup(x => x.OrderDetail).Returns(testUnitOfWork.OrderDetailMock.Object);
 			testUnitOfWork.Mock.Setup(x => x.Product).Returns(testUnitOfWork.ProductMock.Object);
 
+			testUnitOfWork.CouponMock
+				.Setup(x => x.GetAll(
+					It.IsAny<Expression<Func<Coupon, bool>>>(),
+					It.IsAny<string?>(),
+					It.IsAny<bool>()))
+				.Returns((Expression<Func<Coupon, bool>>? filter, string? _, bool _) =>
+					filter is null ? couponList : couponList.Where(filter.Compile()).ToList());
+			testUnitOfWork.CouponMock
+				.Setup(x => x.Get(
+					It.IsAny<Expression<Func<Coupon, bool>>>(),
+					It.IsAny<string?>(),
+					It.IsAny<bool>()))
+				.Returns((Expression<Func<Coupon, bool>> filter, string? _, bool _) => couponList.SingleOrDefault(filter.Compile()));
+			testUnitOfWork.PromotionMock
+				.Setup(x => x.GetAll(
+					It.IsAny<Expression<Func<Promotion, bool>>>(),
+					It.IsAny<string?>(),
+					It.IsAny<bool>()))
+				.Returns((Expression<Func<Promotion, bool>>? filter, string? _, bool _) =>
+					filter is null ? promotionList : promotionList.Where(filter.Compile()).ToList());
+			testUnitOfWork.Mock.Setup(x => x.Coupon).Returns(testUnitOfWork.CouponMock.Object);
+			testUnitOfWork.Mock.Setup(x => x.Promotion).Returns(testUnitOfWork.PromotionMock.Object);
+
 			return testUnitOfWork;
 		}
 
@@ -319,6 +347,7 @@ namespace VaultShop.Web.Tests
 		{
 			return new ShoppingCart
 			{
+				Id = productId,
 				ApplicationUserId = userId,
 				ProductId = productId,
 				Count = count,
@@ -363,6 +392,8 @@ namespace VaultShop.Web.Tests
 			public Mock<IProductRepository> ProductMock { get; } = new();
 			public Mock<IOrderHeaderRepository> OrderHeaderMock { get; } = new();
 			public Mock<IOrderDetailRepository> OrderDetailMock { get; } = new();
+			public Mock<ICouponRepository> CouponMock { get; } = new();
+			public Mock<IPromotionRepository> PromotionMock { get; } = new();
 			public List<OrderHeader> AddedOrderHeaders { get; } = [];
 			public List<OrderDetail> AddedOrderDetails { get; } = [];
 		}

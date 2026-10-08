@@ -94,6 +94,18 @@ namespace VaultShop.Web.Tests
 			Assert.Contains("no informa", PdfTextExtractor.Extract(pdf));
 		}
 
+		[Fact]
+		public void Generate_WithPaymentDiscount_ShowsFrozenMotive()
+		{
+			var summary = CreateSampleSummary();
+			summary.PaymentDiscountTotal = 380m;
+			summary.PaymentDiscountMotive = "Transferencia -10%";
+
+			var pdf = CreateGenerator().Generate(summary);
+
+			Assert.Contains("Transferencia -10%", PdfTextExtractor.Extract(pdf));
+		}
+
 		private static OrderSummaryPdfGenerator CreateGenerator()
 		{
 			var localizerMock = new Mock<IStringLocalizer<OrderSummaryPdfGenerator>>();

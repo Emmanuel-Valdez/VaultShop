@@ -19,6 +19,7 @@ using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pagination;
+using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
 
 namespace VaultShop.Web.Tests
@@ -210,7 +211,8 @@ namespace VaultShop.Web.Tests
 				unitOfWorkMock.Object,
 				localizerMock.Object,
 				Options.Create(new PaginationOptions()),
-				variantMock.Object)
+				variantMock.Object,
+				Mock.Of<IStorefrontPricingService>())
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

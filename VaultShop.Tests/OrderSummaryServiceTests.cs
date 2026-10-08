@@ -151,6 +151,23 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(9999m, result.OrderTotal);
 		}
 
+		[Fact]
+		public void GetSummary_TransferOrder_MapsFrozenPaymentMotive()
+		{
+			var order = CreateCustomerOrder();
+			order.PaymentDiscountTotal = 380m;
+			order.PaymentDiscountMotive = "Transferencia -10%";
+			var details = CreateCustomerOrderDetails();
+			var unitOfWork = CreateUnitOfWork(order, details, [CreateUser("user-1")]);
+			var service = new OrderSummaryService(unitOfWork.Object, new OrderAccessPolicy(unitOfWork.Object));
+
+			var result = service.GetSummary(order.Id, CreatePrincipal("user-1"));
+
+			Assert.NotNull(result);
+			Assert.Equal(380m, result.PaymentDiscountTotal);
+			Assert.Equal("Transferencia -10%", result.PaymentDiscountMotive);
+		}
+
 		private static OrderHeader CreateCustomerOrder()
 		{
 			return new OrderHeader

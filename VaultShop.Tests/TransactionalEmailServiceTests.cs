@@ -254,6 +254,19 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Theory]
+		[InlineData("es-AR")]
+		[InlineData("en-US")]
+		public void OrderConfirmation_PaymentDiscount_ShowsFrozenMotive(string cultureName)
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo(cultureName),
+				discountsTotal: "$10", paymentDiscountTotal: "$5", couponCode: "BIENVENIDA10",
+				paymentDiscountMotive: "Transferencia -10%");
+
+			Assert.Contains("Transferencia -10%:</strong> -$5", content.Body);
+		}
+
+		[Theory]
 		[InlineData("es-AR", "en camino a la sucursal", "Código de seguimiento:")]
 		[InlineData("en-US", "on its way to the", "Tracking number:")]
 		public void ShippingConfirmation_PickupOrder_UsesInTransitCopy(
