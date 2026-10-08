@@ -41,6 +41,7 @@ namespace VaultShop.Utility
 
 		public const string SessionCart = "SessionShoppingCart";
 		public const string AdminPreviewMode = "AdminPreviewMode";
+		public const string SessionCouponCode = "SessionCouponCode";
 
 		public const int CompanyPaymentDueDays = 5;
 

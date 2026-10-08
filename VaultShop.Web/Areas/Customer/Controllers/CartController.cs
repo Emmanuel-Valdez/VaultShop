@@ -64,20 +64,80 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			}
 		ShoppingCartVM = new()
 		{
-			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product.Category,Product.ProductImages,Variant.Values.Value.VariantOptionType"),
+			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId , includeProperties: "Product.Category,Product.ProductImages,Product.Keywords,Variant.Values.Value.VariantOptionType"),
 			OrderHeader = new()
 		};
 			RemoveShoppingCartsOutdated(userId);
 			var useWholesale = PricingHelper.ShouldUseWholesale(User, HttpContext);
-			foreach (var cart in ShoppingCartVM.ShoppingCartList)
+			// descuentos-promociones: single evaluation stamps line display fields + header totals.
+			var couponCode = HttpContext.Session.GetString(SD.SessionCouponCode);
+			var evaluation = _checkoutService.EvaluateCart(ShoppingCartVM.ShoppingCartList, useWholesale, couponCode, null);
+			if (!string.IsNullOrEmpty(couponCode) && evaluation.CouponState == CouponEvaluationState.Rejected)
 			{
-				cart.Price = useWholesale ? cart.Product.FinalWholesalePrice : cart.Product.FinalRetailPrice;
-				ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
+				HttpContext.Session.Remove(SD.SessionCouponCode);
+				TempData["error"] = CouponErrorMessage(evaluation.CouponRejectionReason);
+				evaluation = _checkoutService.EvaluateCart(ShoppingCartVM.ShoppingCartList, useWholesale, null, null);
 			}
-		
+			ShoppingCartVM.OrderHeader.OrderTotal = evaluation.Total;
+			ShoppingCartVM.OrderHeader.CouponCode = evaluation.AppliedCouponCode;
+			ShoppingCartVM.OrderHeader.DiscountTotal = evaluation.SpecificDiscountTotal;
+			ShoppingCartVM.OrderHeader.PaymentDiscountTotal = evaluation.PaymentDiscountTotal;
+			ViewData["CouponSuperseded"] = evaluation.CouponState == CouponEvaluationState.Superseded;
 
 			return View(ShoppingCartVM);
 		}
+
+		[HttpPost]
+		public IActionResult ApplyCoupon(string? couponCode)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (string.IsNullOrEmpty(userId))
+			{
+				return Unauthorized();
+			}
+
+			var code = couponCode?.Trim();
+			if (string.IsNullOrEmpty(code))
+			{
+				return RedirectToAction(nameof(Index));
+			}
+
+			var carts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Keywords");
+			var evaluation = _checkoutService.EvaluateCart(carts, PricingHelper.ShouldUseWholesale(User, HttpContext), code, null);
+			switch (evaluation.CouponState)
+			{
+				case CouponEvaluationState.Applied:
+					HttpContext.Session.SetString(SD.SessionCouponCode, evaluation.AppliedCouponCode ?? code);
+					TempData["success"] = _localizer["CouponApplied"].Value;
+					break;
+				case CouponEvaluationState.Superseded:
+					HttpContext.Session.SetString(SD.SessionCouponCode, code);
+					TempData["warning"] = _localizer["CouponSuperseded"].Value;
+					break;
+				default:
+					TempData["error"] = CouponErrorMessage(evaluation.CouponRejectionReason);
+					break;
+			}
+			return RedirectToAction(nameof(Index));
+		}
+
+		[HttpPost]
+		public IActionResult RemoveCoupon()
+		{
+			HttpContext.Session.Remove(SD.SessionCouponCode);
+			TempData["success"] = _localizer["CouponRemoved"].Value;
+			return RedirectToAction(nameof(Index));
+		}
+
+		private string CouponErrorMessage(CouponRejectionReason reason) => reason switch
+		{
+			CouponRejectionReason.NotFound => _localizer["CouponNotFound"].Value,
+			CouponRejectionReason.Inactive => _localizer["CouponInactive"].Value,
+			CouponRejectionReason.Expired => _localizer["CouponExpired"].Value,
+			CouponRejectionReason.MaxUsesReached => _localizer["CouponMaxUses"].Value,
+			CouponRejectionReason.BelowMinimumSubtotal => _localizer["CouponBelowMinimum"].Value,
+			_ => _localizer["CouponInvalid"].Value,
+		};
 		private void RemoveShoppingCartsOutdated(string userId)
 		{
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
@@ -90,7 +150,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				}
 			}
 		_unitOfWork.Save();
-		ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages,Variant.Values.Value.VariantOptionType");
+		ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages,Product.Keywords,Variant.Values.Value.VariantOptionType");
 			HttpContext.Session.SetInt32(SD.SessionCart, ShoppingCartVM.ShoppingCartList.Count());
 
 		}
@@ -104,7 +164,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				return Unauthorized();
 			}
 
-			var result = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
+			var result = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode());
 
 			if (!result.IsAuthorized)
 			{
@@ -181,7 +241,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 		if (!ModelState.IsValid)
 		{
-			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
+			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode(), ShoppingCartVM.OrderHeader.PaymentMethod);
 			PopulatePaymentMethodViewData();
 			return View(RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM));
 		}
@@ -191,7 +251,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		if (agency is null)
 		{
 			ModelState.AddModelError("OrderHeader.PickupAgencyCode", _localizer["PickupAgencyRequired"].Value);
-			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext));
+			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode(), ShoppingCartVM.OrderHeader.PaymentMethod);
 			if (summaryResult.IsCartEmpty)
 			{
 				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
@@ -231,7 +291,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 				}
 			}
 
-			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, useWholesalePrice);
+			var result = _checkoutService.CreateOrder(userId, ShoppingCartVM.OrderHeader, useWholesalePrice, SessionCouponCode());
 
 			if (!result.IsAuthorized)
 			{
@@ -269,6 +329,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			}
 
 			var orderId = result.OrderId.Value;
+
+			// descuentos-promociones: coupon is single-use per order; drop it either way.
+			HttpContext.Session.Remove(SD.SessionCouponCode);
+			if (result.CouponDroppedAtCreation)
+			{
+				TempData["warning"] = _localizer["CouponDroppedAtCreation"].Value;
+			}
 
 			// ponytail: wholesale admin already notified at creation; paid transition skips duplicate
 			if (isCompanyCheckout)
@@ -572,6 +639,12 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_unitOfWork.Save();
 
 			return RedirectToAction(nameof(Index));
+		}
+
+		private string? SessionCouponCode()
+		{
+			var code = HttpContext.Session.GetString(SD.SessionCouponCode);
+			return string.IsNullOrWhiteSpace(code) ? null : code;
 		}
 
 		private bool UserCanAccessCart(ShoppingCart shoppingCart)

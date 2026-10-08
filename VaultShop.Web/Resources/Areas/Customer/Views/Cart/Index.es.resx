@@ -126,4 +126,34 @@
   <data name="Summary" xml:space="preserve">
     <value>Resumen</value>
   </data>
+  <data name="CouponLabel" xml:space="preserve">
+    <value>Cupón de descuento</value>
+  </data>
+  <data name="CouponPlaceholder" xml:space="preserve">
+    <value>Código, ej. BIENVENIDA10</value>
+  </data>
+  <data name="ApplyCoupon" xml:space="preserve">
+    <value>Aplicar</value>
+  </data>
+  <data name="RemoveCoupon" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="AppliedCoupon" xml:space="preserve">
+    <value>Cupón aplicado</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discounts" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="SupersededNote" xml:space="preserve">
+    <value>Otra promoción te da un mejor precio por ahora.</value>
+  </data>
+  <data name="OfferBadge" xml:space="preserve">
+    <value>Oferta</value>
+  </data>
+  <data name="CouponBadge" xml:space="preserve">
+    <value>Cupón </value>
+  </data>
 </root>

@@ -1,4 +1,5 @@
 ﻿@model ShoppingCartVM
+@using VaultShop.Web.Services.Pricing
 <form method="post" class="checkout-summary">
 	@Html.AntiForgeryToken()
 	<br />
@@ -73,8 +74,40 @@
 											<h6 class="my-0">@details.Product.Name</h6>
 											<partial name="_VariantLabel" model="details" />
 											<small class="text-muted">@Localizer["Quantity"]: @details.Count</small>
+											@if (details.DiscountAmount > 0)
+											{
+												<div>
+													<s class="text-muted small">@((details.OriginalPrice * details.Count).ToString("c"))</s>
+													<span class="badge bg-success ms-1">@DiscountMotives.Badge(details.DiscountMotive, Localizer["OfferBadge"].Value, Localizer["CouponBadge"].Value)</span>
+												</div>
+											}
 										</div>
 										<span class="fw-semibold">@((details.Price * details.Count).ToString("c")) </span>
+									</li>
+								}
+
+								@if (!string.IsNullOrEmpty(Model.OrderHeader.CouponCode))
+								{
+									<li class="list-group-item d-flex justify-content-between">
+										<span>@Localizer["Coupon"]: @Model.OrderHeader.CouponCode</span>
+									</li>
+								}
+								@if (Model.OrderHeader.DiscountTotal > 0)
+								{
+									<li class="list-group-item d-flex justify-content-between">
+										<span>@Localizer["Subtotal"]</span>
+										<span>@((Model.OrderHeader.OrderTotal + Model.OrderHeader.DiscountTotal + Model.OrderHeader.PaymentDiscountTotal).ToString("c"))</span>
+									</li>
+									<li class="list-group-item d-flex justify-content-between text-success">
+										<span>@Localizer["Discounts"]</span>
+										<span>-@Model.OrderHeader.DiscountTotal.ToString("c")</span>
+									</li>
+								}
+								@if (Model.OrderHeader.PaymentDiscountTotal > 0)
+								{
+									<li class="list-group-item d-flex justify-content-between text-success">
+										<span>@Model.OrderHeader.PaymentDiscountMotive</span>
+										<span>-@Model.OrderHeader.PaymentDiscountTotal.ToString("c")</span>
 									</li>
 								}
 

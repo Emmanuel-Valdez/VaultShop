@@ -1,4 +1,5 @@
 ﻿@model ShoppingCartVM
+@using VaultShop.Web.Services.Pricing
 
 <form method="post">
 	@Html.AntiForgeryToken()
@@ -52,6 +53,13 @@
 										@item.Price.ToString("c")
 										<span class="text-muted">&nbsp;x&nbsp;</span>@item.Count
 									</h6>
+									@if (item.DiscountAmount > 0)
+									{
+										<div>
+											<s class="text-muted small">@((item.OriginalPrice * item.Count).ToString("c"))</s>
+											<span class="badge bg-success ms-1">@DiscountMotives.Badge(item.DiscountMotive, Localizer["OfferBadge"].Value, Localizer["CouponBadge"].Value)</span>
+										</div>
+									}
 								</div>
 								<div class="col-8 col-sm-5 pt-2">
 									<div class="btn-group" role="group">
@@ -73,10 +81,43 @@
 					}
 				</div>
 			</div>
+			<div class="row mb-3">
+				<div class="col-12 col-md-6 offset-md-3">
+					@if (string.IsNullOrEmpty(Model.OrderHeader.CouponCode))
+					{
+						<div class="input-group">
+							<input type="text" name="couponCode" class="form-control" placeholder="@Localizer["CouponPlaceholder"]" aria-label="@Localizer["CouponLabel"]" autocomplete="off" />
+							<button type="submit" asp-action="ApplyCoupon" class="btn btn-outline-primary">@Localizer["ApplyCoupon"]</button>
+						</div>
+					}
+					else
+					{
+						<div class="d-flex justify-content-between align-items-center">
+							<span class="small"><strong>@Localizer["AppliedCoupon"]:</strong> @Model.OrderHeader.CouponCode</span>
+							<button type="submit" asp-action="RemoveCoupon" class="btn btn-sm btn-outline-secondary">@Localizer["RemoveCoupon"]</button>
+						</div>
+					}
+					@if (ViewData["CouponSuperseded"] is true)
+					{
+						<p class="small text-muted mt-1 mb-0">@Localizer["SupersededNote"]</p>
+					}
+				</div>
+			</div>
 			<div class="card-footer border-0">
 				<div class="row">
 					<div class="col-md-4 offset-md-4">
 						<ul class="list-group mb-4">
+							@if (Model.OrderHeader.DiscountTotal > 0)
+							{
+								<li class="d-flex justify-content-between align-items-center">
+									<span>@Localizer["Subtotal"]</span>
+									<span>@((Model.OrderHeader.OrderTotal + Model.OrderHeader.DiscountTotal).ToString("c"))</span>
+								</li>
+								<li class="d-flex justify-content-between align-items-center text-success">
+									<span>@Localizer["Discounts"]</span>
+									<span>-@Model.OrderHeader.DiscountTotal.ToString("c")</span>
+								</li>
+							}
 							<li class="d-flex justify-content-between align-items-center">
 								<h5 class=" fw-semibold text-uppercase"> Total</h5>
 								<h4 class=" fw-bolder">@Model.OrderHeader.OrderTotal.ToString("c") </h4>

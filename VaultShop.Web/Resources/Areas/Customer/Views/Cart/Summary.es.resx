@@ -195,4 +195,19 @@
   <data name="PickupFreeShipping" xml:space="preserve">
     <value>Envío gratis a sucursal</value>
   </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discounts" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="Coupon" xml:space="preserve">
+    <value>Cupón</value>
+  </data>
+  <data name="OfferBadge" xml:space="preserve">
+    <value>Oferta</value>
+  </data>
+  <data name="CouponBadge" xml:space="preserve">
+    <value>Cupón </value>
+  </data>
 </root>

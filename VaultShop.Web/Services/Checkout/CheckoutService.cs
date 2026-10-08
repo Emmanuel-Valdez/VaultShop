@@ -3,6 +3,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
 using static VaultShop.Web.Services.Checkout.ICheckoutService;
 
@@ -13,15 +14,87 @@ namespace VaultShop.Web.Services.Checkout
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly ILogger<CheckoutService> _logger;
 		private readonly IProductVariantService _variantService;
+		private readonly IDiscountEvaluator _discountEvaluator;
 
-		public CheckoutService(IUnitOfWork unitOfWork, ILogger<CheckoutService> logger, IProductVariantService variantService)
+		public CheckoutService(IUnitOfWork unitOfWork, ILogger<CheckoutService> logger, IProductVariantService variantService, IDiscountEvaluator discountEvaluator)
 		{
 			_unitOfWork = unitOfWork;
 			_logger = logger;
 			_variantService = variantService;
+			_discountEvaluator = discountEvaluator;
 		}
 
-		public CheckoutSummaryResult BuildSummary(string userId, bool useWholesalePrice)
+		public DiscountEvaluation EvaluateCart(IEnumerable<ShoppingCart> carts, bool useWholesalePrice, string? couponCode, string? paymentMethod)
+		{
+			var list = carts.ToList();
+			// ponytail: coupon/promotion tables stay tiny; load once and let the
+			// evaluator apply windows/validity so display, summary, and creation agree.
+			var coupons = _unitOfWork.Coupon.GetAll().ToList();
+			var promotions = _unitOfWork.Promotion.GetAll(p => p.IsActive).ToList();
+			var evaluation = _discountEvaluator.Evaluate(new DiscountEvaluationRequest
+			{
+				Lines = list.Select(c => new DiscountLineRequest
+				{
+					LineKey = c.Id,
+					ProductId = c.ProductId,
+					CategoryId = c.Product.CategoryId,
+					KeywordIds = c.Product.Keywords?.Select(k => k.KeywordId).ToList() ?? new List<int>(),
+					Count = c.Count,
+					RetailPrice = c.Product.FinalRetailPrice,
+					WholesalePrice = c.Product.FinalWholesalePrice,
+					SaleRetailPrice = c.Product.SaleRetailPrice,
+					SaleWholesalePrice = c.Product.SaleWholesalePrice,
+					SaleFromUtc = c.Product.SaleFromUtc,
+					SaleToUtc = c.Product.SaleToUtc
+				}).ToList(),
+				UseWholesalePrice = useWholesalePrice,
+				CouponCode = couponCode,
+				Coupons = coupons,
+				Promotions = promotions,
+				PaymentMethod = paymentMethod,
+				UtcNow = DateTime.UtcNow
+			});
+			// ponytail: keyed by cart id (unique per row); first-wins tolerates
+			// keyless in-memory doubles sharing the default id.
+			var byKey = evaluation.Lines.GroupBy(l => l.LineKey)
+				.ToDictionary(g => g.Key, g => g.First());
+			// ponytail: whole-cent units; remainder absorbed by last line of same product.
+			foreach (var group in list
+				.Where(c => byKey.ContainsKey(c.Id))
+				.OrderBy(c => c.Id)
+				.GroupBy(c => c.ProductId))
+			{
+				var ordered = group.ToList();
+				var groupEffective = ordered.Sum(c => byKey[c.Id].EffectiveTotal);
+				var assigned = 0m;
+				for (var gi = 0; gi < ordered.Count; gi++)
+				{
+					var cart = ordered[gi];
+					var evaluated = byKey[cart.Id];
+					cart.OriginalPrice = evaluated.BaseUnitPrice;
+					cart.DiscountAmount = evaluated.DiscountAmount;
+					cart.DiscountMotive = evaluated.DiscountMotive;
+					if (cart.Count <= 0)
+					{
+						cart.Price = 0m;
+						continue;
+					}
+					if (gi < ordered.Count - 1)
+					{
+						cart.Price = Math.Round(evaluated.EffectiveTotal / cart.Count, 2, MidpointRounding.AwayFromZero);
+						assigned += cart.Price * cart.Count;
+					}
+					else
+					{
+						var remaining = groupEffective - assigned;
+						cart.Price = Math.Round(remaining / cart.Count, 2, MidpointRounding.AwayFromZero);
+					}
+				}
+			}
+			return evaluation;
+		}
+
+		public CheckoutSummaryResult BuildSummary(string userId, bool useWholesalePrice, string? couponCode = null, string? paymentMethod = null)
 		{
 			if (string.IsNullOrEmpty(userId))
 			{
@@ -33,7 +106,7 @@ namespace VaultShop.Web.Services.Checkout
 
 		var shoppingCartVM = new ShoppingCartVM()
 		{
-			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Variant.Values.Value.VariantOptionType"),
+			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Keywords,Variant.Values.Value.VariantOptionType"),
 			OrderHeader = new()
 		};
 
@@ -76,21 +149,19 @@ namespace VaultShop.Web.Services.Checkout
 			shoppingCartVM.OrderHeader.PostalCode = applicationUser.PostalCode ?? string.Empty;
 			shoppingCartVM.OrderHeader.Name = shoppingCartVM.OrderHeader.ApplicationUser.Name;
 
-			foreach (var cart in shoppingCartVM.ShoppingCartList)
-			{
-				cart.Price = GetPrice(cart, useWholesalePrice);
-				shoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
-			}
+			var evaluation = EvaluateCart(shoppingCartVM.ShoppingCartList, useWholesalePrice, couponCode, paymentMethod);
+			StampDiscountHeader(shoppingCartVM.OrderHeader, evaluation);
 
 			return new CheckoutSummaryResult
 			{
 				ApplicationUser = applicationUser,
 				ShoppingCartVM = shoppingCartVM,
+				Discounts = evaluation
 			};
 		}
 
 		public CheckoutCreateOrderResult CreateOrder(string userId,
-			OrderHeader postedOrderHeader, bool useWholesalePrice)
+			OrderHeader postedOrderHeader, bool useWholesalePrice, string? couponCode = null)
 		{
 			if (string.IsNullOrEmpty(userId))
 			{
@@ -106,7 +177,7 @@ namespace VaultShop.Web.Services.Checkout
 					u.ApplicationUserId == userId &&
 					u.Product.IsDeleted == false &&
 					u.Product.IsAvailableInStore == true,
-					includeProperties: "Product"),
+					includeProperties: "Product,Product.Keywords"),
 				OrderHeader = postedOrderHeader
 			};
 
@@ -139,13 +210,10 @@ namespace VaultShop.Web.Services.Checkout
 
 			shoppingCartVM.OrderHeader.ApplicationUserId = userId;
 			shoppingCartVM.OrderHeader.OrderDate = DateTime.UtcNow;
-			shoppingCartVM.OrderHeader.OrderTotal = 0;
 
-			foreach (var cart in shoppingCartVM.ShoppingCartList)
-			{
-				cart.Price = GetPrice(cart, useWholesalePrice);
-				shoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
-			}
+			var evaluation = EvaluateCart(shoppingCartVM.ShoppingCartList, useWholesalePrice,
+				couponCode, shoppingCartVM.OrderHeader.PaymentMethod);
+			StampDiscountHeader(shoppingCartVM.OrderHeader, evaluation);
 
 			if (shoppingCartVM.OrderHeader.OrderTotal <= 0)
 			{
@@ -190,10 +258,23 @@ namespace VaultShop.Web.Services.Checkout
 
 		bool insufficientStock = false;
 		bool variantUnavailable = false;
+		bool couponDropped = false;
 		try
 		{
 		_unitOfWork.ExecuteInTransaction(() =>
 		{
+			// descuentos-promociones: coupon re-validated at creation with the
+			// tracked row; a lost race proceeds undiscounted, never blocked.
+			if (evaluation.AppliedCouponCode is not null)
+			{
+				var trackedCoupon = _unitOfWork.Coupon.Get(c => c.Code == evaluation.AppliedCouponCode);
+				if (trackedCoupon is null || _unitOfWork.Coupon.TryIncrementUses(trackedCoupon.Id) == 0)
+				{
+					couponDropped = true;
+					evaluation = EvaluateCart(shoppingCartVM.ShoppingCartList, useWholesalePrice, null, shoppingCartVM.OrderHeader.PaymentMethod);
+					StampDiscountHeader(shoppingCartVM.OrderHeader, evaluation);
+				}
+			}
 			// ponytail: pre-read fast path only — the conditional write below is the real guard.
 			var groups = shoppingCartVM.ShoppingCartList.GroupBy(c => c.ProductId).ToList();
 			var totals = groups.ToDictionary(g => g.Key, g => g.Sum(c => c.Count));
@@ -244,6 +325,10 @@ namespace VaultShop.Web.Services.Checkout
 					OrderHeaderId = shoppingCartVM.OrderHeader.Id,
 					Price = cart.Price,
 					Count = cart.Count,
+					// descuentos-promociones: frozen breakdown, survives later promotion edits.
+					OriginalPrice = cart.OriginalPrice,
+					DiscountAmount = cart.DiscountAmount,
+					DiscountMotive = cart.DiscountMotive,
 					// product-variants 5.3: frozen label captured like Price; renames never propagate.
 					VariantId = cart.VariantId,
 					VariantLabel = cart.VariantId.HasValue ? _variantService.BuildVariantLabel(cart.VariantId.Value) : null,
@@ -284,16 +369,24 @@ namespace VaultShop.Web.Services.Checkout
 			{
 				OrderId = shoppingCartVM.OrderHeader.Id,
 				RequiresOnlinePayment = requiresOnlinePayment,
+				// Stale session coupon (expired/exhausted since applied) also surfaces the notice.
+				CouponDroppedAtCreation = couponDropped ||
+					(!string.IsNullOrWhiteSpace(couponCode) && evaluation.CouponState == CouponEvaluationState.Rejected),
 				ShoppingCartVM = shoppingCartVM,
 				ApplicationUser = applicationUser,
 			};
 		}
 
-		private decimal GetPrice(ShoppingCart shoppingCart, bool useWholesalePrice)
+		private static void StampDiscountHeader(OrderHeader header, DiscountEvaluation evaluation)
 		{
-			return useWholesalePrice
-			? shoppingCart.Product.FinalWholesalePrice
-			: shoppingCart.Product.FinalRetailPrice;
+			header.OrderTotal = evaluation.Total;
+			header.CouponCode = evaluation.AppliedCouponCode;
+			header.DiscountTotal = evaluation.SpecificDiscountTotal;
+			header.PaymentDiscountTotal = evaluation.PaymentDiscountTotal;
+			header.PaymentDiscountMotive = evaluation.PaymentDiscountMotive;
+			header.AppliedPromotionIds = evaluation.AppliedPromotionIds.Count > 0
+				? string.Join(",", evaluation.AppliedPromotionIds)
+				: null;
 		}
 
 		private IEnumerable<ShoppingCart> RemoveShoppingCartsOutdated(string userId, IEnumerable<ShoppingCart> shoppingCarts)
@@ -304,7 +397,7 @@ namespace VaultShop.Web.Services.Checkout
 				_unitOfWork.ShoppingCart.RemoveRange(cartsToRemove);
 				_unitOfWork.Save();
 			}
-			return _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Variant.Values.Value.VariantOptionType");
+			return _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Keywords,Variant.Values.Value.VariantOptionType");
 		}
 
 		private bool HasDeletedCompany(ApplicationUser applicationUser)

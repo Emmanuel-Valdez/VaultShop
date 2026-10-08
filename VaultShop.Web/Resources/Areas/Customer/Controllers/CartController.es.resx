@@ -135,4 +135,34 @@
   <data name="PickupAgencyRequired" xml:space="preserve">
     <value>Seleccioná una sucursal de Correo Argentino para continuar.</value>
   </data>
+  <data name="CouponApplied" xml:space="preserve">
+    <value>Cupón aplicado.</value>
+  </data>
+  <data name="CouponRemoved" xml:space="preserve">
+    <value>Cupón eliminado.</value>
+  </data>
+  <data name="CouponSuperseded" xml:space="preserve">
+    <value>Cupón guardado, pero otra promoción te da un mejor precio.</value>
+  </data>
+  <data name="CouponDroppedAtCreation" xml:space="preserve">
+    <value>El cupón ya no era válido al confirmar y no se aplicó. La orden se creó sin descuento.</value>
+  </data>
+  <data name="CouponNotFound" xml:space="preserve">
+    <value>Ese código de cupón no existe.</value>
+  </data>
+  <data name="CouponInactive" xml:space="preserve">
+    <value>Ese cupón no está activo.</value>
+  </data>
+  <data name="CouponExpired" xml:space="preserve">
+    <value>Ese cupón venció.</value>
+  </data>
+  <data name="CouponMaxUses" xml:space="preserve">
+    <value>Ese cupón ya alcanzó su límite de usos.</value>
+  </data>
+  <data name="CouponBelowMinimum" xml:space="preserve">
+    <value>Tu carrito no alcanza el mínimo para ese cupón.</value>
+  </data>
+  <data name="CouponInvalid" xml:space="preserve">
+    <value>Ese cupón no es válido.</value>
+  </data>
 </root>

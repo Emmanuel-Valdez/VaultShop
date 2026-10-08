@@ -135,4 +135,34 @@
   <data name="PickupAgencyRequired" xml:space="preserve">
     <value>Select a Correo Argentino branch to continue.</value>
   </data>
+  <data name="CouponApplied" xml:space="preserve">
+    <value>Coupon applied.</value>
+  </data>
+  <data name="CouponRemoved" xml:space="preserve">
+    <value>Coupon removed.</value>
+  </data>
+  <data name="CouponSuperseded" xml:space="preserve">
+    <value>Coupon saved, but another promotion gives you a better price.</value>
+  </data>
+  <data name="CouponDroppedAtCreation" xml:space="preserve">
+    <value>The coupon was no longer valid at checkout and was not applied. The order was created without the discount.</value>
+  </data>
+  <data name="CouponNotFound" xml:space="preserve">
+    <value>That coupon code does not exist.</value>
+  </data>
+  <data name="CouponInactive" xml:space="preserve">
+    <value>That coupon is not active.</value>
+  </data>
+  <data name="CouponExpired" xml:space="preserve">
+    <value>That coupon has expired.</value>
+  </data>
+  <data name="CouponMaxUses" xml:space="preserve">
+    <value>That coupon has reached its usage limit.</value>
+  </data>
+  <data name="CouponBelowMinimum" xml:space="preserve">
+    <value>Your cart does not reach the minimum for that coupon.</value>
+  </data>
+  <data name="CouponInvalid" xml:space="preserve">
+    <value>That coupon is not valid.</value>
+  </data>
 </root>
