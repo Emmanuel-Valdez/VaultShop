@@ -1,4 +1,5 @@
 @model OrderVM
+@using VaultShop.Web.Services.Pricing
 @{
 	var canManageOrder = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
 	var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -416,6 +417,11 @@
 											{
 												<small class="text-muted">@detail.VariantLabel</small><br />
 											}
+											@if (detail.DiscountAmount > 0)
+											{
+												<small class="text-muted"><s>@((detail.OriginalPrice * detail.Count).ToString("c"))</s></small>
+												<span class="badge bg-success ms-1">@DiscountMotives.Badge(detail.DiscountMotive, Localizer["OfferBadge"].Value, Localizer["CouponBadge"].Value)</span><br />
+											}
 												<small class="text-muted">@Localizer["Price"] : @detail.Price.ToString("c")</small><br />
 												<small class="text-muted">@Localizer["Quantity"] : @detail.Count</small>
 											</div>
@@ -425,16 +431,24 @@
 										</div>
 									</li>
 								}
-								<li class="list-group-item bg-primary">
-									<div class="row container">
-										<div class="col-6">
-											<h5 class="text-white">@Localizer["Total"] </h5>
-										</div>
-										<div class="col-6 text-end">
-											<h5 class="text-white">@Model.OrderHeader.OrderTotal.ToString("c")</h5>
-										</div>
+							<li class="list-group-item bg-primary">
+								<div class="row container">
+									<div class="col-6">
+										@if (Model.OrderHeader.DiscountTotal > 0)
+										{
+											<p class="text-white mb-1">@Localizer["Discounts"]@(!string.IsNullOrWhiteSpace(Model.OrderHeader.CouponCode) ? $" ({Model.OrderHeader.CouponCode})" : ""): -@Model.OrderHeader.DiscountTotal.ToString("c")</p>
+										}
+										@if (Model.OrderHeader.PaymentDiscountTotal > 0)
+										{
+											<p class="text-white mb-1">@(Model.OrderHeader.PaymentDiscountMotive ?? Localizer["PaymentDiscount"].Value): -@Model.OrderHeader.PaymentDiscountTotal.ToString("c")</p>
+										}
+										<h5 class="text-white">@Localizer["Total"] </h5>
 									</div>
-								</li>
+									<div class="col-6 text-end">
+										<h5 class="text-white">@Model.OrderHeader.OrderTotal.ToString("c")</h5>
+									</div>
+								</div>
+							</li>
 							</ul>
 							@if (canPayNow)
 							{

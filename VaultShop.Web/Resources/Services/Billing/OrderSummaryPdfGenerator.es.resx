@@ -106,6 +106,12 @@
   <data name="TotalLabel" xml:space="preserve">
     <value>Total</value>
   </data>
+  <data name="DiscountsLabel" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="PaymentDiscountLabel" xml:space="preserve">
+    <value>Descuento por pago</value>
+  </data>
   <data name="NonFiscalLegend" xml:space="preserve">
     <value>DOCUMENTO NO VÁLIDO COMO FACTURA NI COMO COMPROBANTE FISCAL.</value>
   </data>

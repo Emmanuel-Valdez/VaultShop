@@ -318,6 +318,18 @@
   <data name="Total" xml:space="preserve">
     <value>TOTAL</value>
   </data>
+  <data name="Discounts" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="PaymentDiscount" xml:space="preserve">
+    <value>Descuento por pago</value>
+  </data>
+  <data name="OfferBadge" xml:space="preserve">
+    <value>Oferta</value>
+  </data>
+  <data name="CouponBadge" xml:space="preserve">
+    <value>Cupón </value>
+  </data>
   <data name="TerminalOrderReadOnlyMessage" xml:space="preserve">
     <value>Las ordenes terminales son de solo lectura para cambios de preparacion y envio.</value>
   </data>

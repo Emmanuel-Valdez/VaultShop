@@ -123,14 +123,37 @@ namespace VaultShop.Web.Services.Billing
 				foreach (var item in summary.Items)
 				{
 					// ponytail: inline label — the established .Text(string) pattern, no rich-text API needed.
-					table.Cell().Element(CellStyle).Text(
-						string.IsNullOrWhiteSpace(item.VariantLabel) ? item.ProductName : $"{item.ProductName} ({item.VariantLabel})");
-						table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("c", culture));
-						table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity.ToString());
-						table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("c", culture));
+					table.Cell().Element(CellStyle).Column(c =>
+					{
+						c.Item().Text(
+							string.IsNullOrWhiteSpace(item.VariantLabel) ? item.ProductName : $"{item.ProductName} ({item.VariantLabel})");
+						if (item.HasDiscount)
+							c.Item().Text($"{item.DiscountMotive}: -{item.DiscountAmount.ToString("c", culture)}").FontSize(9);
+					});
+					if (item.HasDiscount)
+					{
+						table.Cell().Element(CellStyle).AlignRight().Column(c =>
+						{
+							c.Item().Text($"({(item.OriginalPrice * item.Quantity).ToString("c", culture)})").FontSize(9);
+							c.Item().Text(item.UnitPrice.ToString("c", culture));
+						});
 					}
+					else
+					{
+						table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("c", culture));
+					}
+					table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity.ToString());
+					table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("c", culture));
+				}
 				});
 
+				if (summary.DiscountTotal > 0)
+				{
+					var coupon = string.IsNullOrWhiteSpace(summary.CouponCode) ? string.Empty : $" ({summary.CouponCode})";
+					column.Item().AlignRight().Text($"{_localizer["DiscountsLabel"].Value}{coupon}: -{summary.DiscountTotal.ToString("c", culture)}");
+				}
+				if (summary.PaymentDiscountTotal > 0)
+					column.Item().AlignRight().Text($"{summary.PaymentDiscountMotive ?? _localizer["PaymentDiscountLabel"].Value}: -{summary.PaymentDiscountTotal.ToString("c", culture)}");
 				column.Item().AlignRight().Text($"{_localizer["TotalLabel"].Value}: {summary.OrderTotal.ToString("c", culture)}").Bold().FontSize(14);
 
 				column.Item().PaddingTop(16).LineHorizontal(1).LineColor("#999999");

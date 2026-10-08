@@ -18,7 +18,9 @@ public static class EmailTemplates
         string? bankTransferRecipientName = null, string? bankTransferBankName = null,
         string? whatsAppNumber = null, DateOnly? paymentDueDate = null, bool isCompanyWholesale = false,
         string? deliveryType = null, string? pickupAgencyName = null, string? pickupAgencyCode = null,
-        string? pickupAgencyAddress = null, string? pickupAgencyHours = null)
+        string? pickupAgencyAddress = null, string? pickupAgencyHours = null,
+        string? discountsTotal = null, string? paymentDiscountTotal = null, string? couponCode = null,
+        string? paymentDiscountMotive = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -27,9 +29,21 @@ public static class EmailTemplates
 
         var itemsHtml = string.Join("", items.Select(i =>
             $"<tr><td style='padding:8px;border-bottom:1px solid #eee;'>{i.ProductName}" +
-            (string.IsNullOrWhiteSpace(i.VariantLabel) ? string.Empty : $"<br><small style='color:#666;'>{i.VariantLabel}</small>") + "</td>" +
+            (string.IsNullOrWhiteSpace(i.VariantLabel) ? string.Empty : $"<br><small style='color:#666;'>{i.VariantLabel}</small>") +
+            (string.IsNullOrWhiteSpace(i.DiscountMotive) ? string.Empty : $"<br><small style='color:#1e7e34;'>{WebUtility.HtmlEncode(i.DiscountMotive)}</small>") + "</td>" +
             $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:center;'>{i.Quantity}</td>" +
-            $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:right;'>{i.Price}</td></tr>"));
+            $"<td style='padding:8px;border-bottom:1px solid #eee;text-align:right;'>" +
+            (string.IsNullOrWhiteSpace(i.OriginalPrice) ? i.Price : $"<s style='color:#666;'>{i.OriginalPrice}</s><br>{i.Price}") + "</td></tr>"));
+
+        // ponytail: frozen header totals; only rendered when the order actually has discounts.
+        var discountsHtml = string.Empty;
+        if (!string.IsNullOrWhiteSpace(discountsTotal))
+        {
+            var coupon = string.IsNullOrWhiteSpace(couponCode) ? string.Empty : $" ({WebUtility.HtmlEncode(couponCode)})";
+            discountsHtml += $"<p><strong>{Translate("Discounts", culture)}{coupon}:</strong> -{discountsTotal}</p>";
+        }
+        if (!string.IsNullOrWhiteSpace(paymentDiscountTotal))
+            discountsHtml += $"<p><strong>{WebUtility.HtmlEncode(paymentDiscountMotive ?? Translate("PaymentDiscount", culture))}:</strong> -{paymentDiscountTotal}</p>";
 
         var greeting = isSpanish ? $"Gracias, {customerName}!" : $"Thanks, {customerName}!";
         var orderNumberText = isSpanish ? $"Pedido N° {orderId}" : $"Order #{orderId}";
@@ -131,6 +145,7 @@ public static class EmailTemplates
 <tbody>{itemsHtml}</tbody>
 </table>
 <hr style='border:none;border-top:1px solid #eee;'>
+{discountsHtml}
 <p style='font-size:18px;'><strong>{totalLabel}:</strong> {orderTotal}</p>
 {wholesaleHtml}
 {bankTransferHtml}
@@ -233,7 +248,7 @@ public static class EmailTemplates
         DateOnly? paymentDueDate = null, decimal? orderTotalValue = null,
         string? bankTransferCbu = null, string? bankTransferAlias = null,
         string? bankTransferRecipientName = null, string? bankTransferBankName = null,
-        string? whatsAppNumber = null)
+        string? whatsAppNumber = null, string? discountsTotal = null, string? paymentDiscountTotal = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -244,6 +259,15 @@ public static class EmailTemplates
         var message = isSpanish
             ? $"El cliente {customerName} realizó el pedido N° {orderId} por {orderTotal}. Método de pago: {paymentMethodText}."
             : $"Customer {customerName} placed order #{orderId} for {orderTotal}. Payment method: {paymentMethodText}.";
+        if (!string.IsNullOrWhiteSpace(discountsTotal) || !string.IsNullOrWhiteSpace(paymentDiscountTotal))
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(discountsTotal))
+                parts.Add($"{Translate("Discounts", culture)}: -{discountsTotal}");
+            if (!string.IsNullOrWhiteSpace(paymentDiscountTotal))
+                parts.Add($"{Translate("PaymentDiscount", culture)}: -{paymentDiscountTotal}");
+            message += isSpanish ? $" Incluye {string.Join("; ", parts)}." : $" Includes {string.Join("; ", parts)}.";
+        }
         if (isCompanyDelayedPayment)
         {
             message += isSpanish
@@ -392,6 +416,8 @@ public static class EmailTemplates
             "Product" => isSpanish ? "Producto" : "Product",
             "Qty" => isSpanish ? "Cant." : "Qty",
             "Price" => isSpanish ? "Precio" : "Price",
+            "Discounts" => isSpanish ? "Descuentos" : "Discounts",
+            "PaymentDiscount" => isSpanish ? "Descuento por pago" : "Payment discount",
             "BankTransferInstructionsTitle" => isSpanish ? "Datos para transferir" : "Bank transfer details",
             "BankTransferInstructionsBody" => isSpanish ? "Cuando realices la transferencia, ingresá a tu pedido y avisános desde el botón correspondiente." : "After you send the transfer, open your order and let us know using the confirmation button.",
             "BankTransferCbuLabel" => "CBU",
@@ -417,4 +443,4 @@ public static class EmailTemplates
     }
 }
 
-public sealed record OrderItemLine(string ProductName, int Quantity, string Price, string? VariantLabel = null);
+public sealed record OrderItemLine(string ProductName, int Quantity, string Price, string? VariantLabel = null, string? OriginalPrice = null, string? DiscountMotive = null);

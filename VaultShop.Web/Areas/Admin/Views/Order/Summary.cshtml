@@ -1,4 +1,5 @@
 @model OrderSummaryViewModel
+@using VaultShop.Web.Services.Pricing
 @{
 	ViewData["Title"] = Localizer["OrderSummaryTitle"];
 }
@@ -133,14 +134,38 @@
 									{
 										<br /><small class="text-muted">@item.VariantLabel</small>
 									}
+									@if (item.HasDiscount)
+									{
+										<br /><span class="badge bg-success">@DiscountMotives.Badge(item.DiscountMotive, Localizer["OfferBadge"].Value, Localizer["CouponBadge"].Value)</span>
+									}
 								</td>
-									<td class="text-end">@item.UnitPrice.ToString("c")</td>
+									<td class="text-end">
+										@if (item.HasDiscount)
+										{
+											<s class="text-muted small">@((item.OriginalPrice * item.Quantity).ToString("c"))</s><br />
+										}
+										@item.UnitPrice.ToString("c")
+									</td>
 									<td class="text-center">@item.Quantity</td>
 									<td class="text-end">@item.LineTotal.ToString("c")</td>
 								</tr>
 							}
 						</tbody>
 						<tfoot>
+							@if (Model.DiscountTotal > 0)
+							{
+								<tr>
+									<th colspan="3" class="text-end">@Localizer["DiscountsLabel"]@(!string.IsNullOrWhiteSpace(Model.CouponCode) ? $" ({Model.CouponCode})" : "")</th>
+									<th class="text-end text-success">-@Model.DiscountTotal.ToString("c")</th>
+								</tr>
+							}
+							@if (Model.PaymentDiscountTotal > 0)
+							{
+								<tr>
+									<th colspan="3" class="text-end">@(Model.PaymentDiscountMotive ?? Localizer["PaymentDiscountLabel"].Value)</th>
+									<th class="text-end text-success">-@Model.PaymentDiscountTotal.ToString("c")</th>
+								</tr>
+							}
 							<tr>
 								<th colspan="3" class="text-end">@Localizer["TotalLabel"]</th>
 								<th class="text-end">@Model.OrderTotal.ToString("c")</th>

@@ -118,6 +118,18 @@
   <data name="TotalLabel" xml:space="preserve">
     <value>Total</value>
   </data>
+  <data name="DiscountsLabel" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="PaymentDiscountLabel" xml:space="preserve">
+    <value>Descuento por pago</value>
+  </data>
+  <data name="OfferBadge" xml:space="preserve">
+    <value>Oferta</value>
+  </data>
+  <data name="CouponBadge" xml:space="preserve">
+    <value>Cupón </value>
+  </data>
   <data name="NonFiscalLegend" xml:space="preserve">
     <value>DOCUMENTO NO VÁLIDO COMO FACTURA NI COMO COMPROBANTE FISCAL.</value>
   </data>

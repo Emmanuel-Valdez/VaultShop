@@ -5,6 +5,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Branding;
+using VaultShop.Web.Services.Pricing;
 
 namespace VaultShop.Web.Services.Email;
 
@@ -68,11 +69,17 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             .GetAll(d => d.OrderHeaderId == orderId, includeProperties: "Product")
             .ToList();
 
+        var emailCulture = Thread.CurrentThread.CurrentUICulture;
+        var emailSpanish = emailCulture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var items = details.Select(d => new OrderItemLine(
             d.Product?.Name ?? $"Product #{d.ProductId}",
             d.Count,
             d.Price.ToString("C"),
-            d.VariantLabel));
+            d.VariantLabel,
+            d.DiscountAmount > 0 ? (d.OriginalPrice * d.Count).ToString("C") : null,
+            d.DiscountAmount > 0
+                ? DiscountMotives.Badge(d.DiscountMotive, emailSpanish ? "Oferta" : "Offer", emailSpanish ? "Cupón " : "Coupon ")
+                : null));
 
         var total = order.OrderTotal.ToString("C");
 
@@ -102,7 +109,11 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.PickupAgencyName,
             order.PickupAgencyCode,
             order.PickupAgencyAddress,
-            order.PickupAgencyHours);
+            order.PickupAgencyHours,
+            order.DiscountTotal > 0 ? order.DiscountTotal.ToString("C") : null,
+            order.PaymentDiscountTotal > 0 ? order.PaymentDiscountTotal.ToString("C") : null,
+            order.CouponCode,
+            order.PaymentDiscountMotive);
 
         // already claimed, so onSuccess is no-op (timestamp persisted via conditional UPDATE)
         await TrySendEmailAsync(orderId, userEmail, content,
@@ -227,7 +238,9 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             _bankTransferAlias,
             _bankTransferRecipientName,
             _bankTransferBankName,
-            _branding.WhatsAppNumber);
+            _branding.WhatsAppNumber,
+            order.DiscountTotal > 0 ? order.DiscountTotal.ToString("C") : null,
+            order.PaymentDiscountTotal > 0 ? order.PaymentDiscountTotal.ToString("C") : null);
 
         await TrySendEmailAsync(orderId, _adminEmail, content,
             () => { },

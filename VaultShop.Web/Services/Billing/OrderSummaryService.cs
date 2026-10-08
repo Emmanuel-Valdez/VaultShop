@@ -71,8 +71,15 @@ namespace VaultShop.Web.Services.Billing
 				VariantLabel = d.VariantLabel,
 				UnitPrice = d.Price,
 				Quantity = d.Count,
+				OriginalPrice = d.OriginalPrice,
+				DiscountAmount = d.DiscountAmount,
+				DiscountMotive = d.DiscountMotive,
 			}).ToList(),
 
+				CouponCode = o.CouponCode,
+				DiscountTotal = o.DiscountTotal,
+				PaymentDiscountTotal = o.PaymentDiscountTotal,
+				PaymentDiscountMotive = o.PaymentDiscountMotive,
 				OrderTotal = o.OrderTotal,
 			};
 		}
