@@ -76,7 +76,18 @@ else
 									<p class="product-card__meta mb-1">@product.Category.Name</p>
 								}
 								<h3 class="card-title h6 text-primary mb-2">@product.Name</h3>
+								@{
+								var discountDisplay = ViewData["DiscountDisplay"] as IReadOnlyDictionary<int, VaultShop.Web.Services.Pricing.ProductDisplayPrice>;
+								var display = discountDisplay != null && discountDisplay.TryGetValue(product.Id, out var displayPrice) ? displayPrice : null;
+							}
+							@if (display != null)
+							{
+								<partial name="_DiscountPrice" model="display" />
+							}
+							else
+							{
 								<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
+							}
 								<a asp-action="Details" asp-route-productId="@product.Id" asp-route-slug="@product.Slug" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 									@Localizer["Details"]
 								</a>
@@ -140,7 +151,18 @@ else
 								<p class="product-card__meta mb-1">@product.Category.Name</p>
 							}
 							<h3 class="card-title h6 text-primary mb-2">@product.Name</h3>
-							<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
+							@{
+								var discountDisplay = ViewData["DiscountDisplay"] as IReadOnlyDictionary<int, VaultShop.Web.Services.Pricing.ProductDisplayPrice>;
+								var display = discountDisplay != null && discountDisplay.TryGetValue(product.Id, out var displayPrice) ? displayPrice : null;
+							}
+							@if (display != null)
+							{
+								<partial name="_DiscountPrice" model="display" />
+							}
+							else
+							{
+								<p class="product-price h5 mb-3"><span>@PricingHelper.GetPrice(product, User, Context).ToString("c")</span></p>
+							}
 							<a asp-action="Details" asp-route-productId="@product.Id" asp-route-slug="@product.Slug" class="btn btn-primary bg-gradient border-0 w-100 mt-auto">
 								@Localizer["Details"]
 							</a>

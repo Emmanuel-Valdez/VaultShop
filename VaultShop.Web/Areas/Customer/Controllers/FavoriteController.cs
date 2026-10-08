@@ -5,6 +5,7 @@ using System.Security.Claims;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
+using VaultShop.Web.Services.Pricing;
 
 namespace VaultShop.Web.Areas.Customer.Controllers
 {
@@ -15,11 +16,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly ILogger<HomeController> _logger;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IStringLocalizer _localizer;
-		public FavoriteController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, IStringLocalizer<FavoriteController> localizer)
+		private readonly IStorefrontPricingService _displayPricing;
+		public FavoriteController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, IStringLocalizer<FavoriteController> localizer, IStorefrontPricingService displayPricing)
 		{
 			_localizer = localizer;
 			_logger = logger;
 			_unitOfWork = unitOfWork;
+			_displayPricing = displayPricing;
 		}
 		
 		public IActionResult Index()
@@ -32,12 +35,15 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			IEnumerable<FavoriteProduct> FavoriteProductList = _unitOfWork.FavoriteProduct
 					.GetAll(u => u.Product.IsDeleted == false && u.Product.IsAvailableInStore == true && userId == u.ApplicationUserId
-					, includeProperties: "Product");
+					, includeProperties: "Product,Product.Category,Product.Keywords");
 			IEnumerable<ProductImage> productImages = _unitOfWork.ProductImage.GetAll();
 			foreach (var item in FavoriteProductList)
 			{
 				item.Product.ProductImages = productImages.Where(u => u.ProductId == item.Product.Id).ToList();
 			}
+
+			// descuentos-promociones 4.1: display mode for the rendered rows.
+			ViewData["DiscountDisplay"] = _displayPricing.GetDisplayPrices(FavoriteProductList.Select(f => f.Product), PricingHelper.ShouldUseWholesale(User, HttpContext));
 
 			return View(FavoriteProductList);
 		}

@@ -1,0 +1,24 @@
+@using VaultShop.Web.Services.Pricing
+@model ProductDisplayPrice
+@{
+	// ponytail: one badge renderer for every storefront surface; motives from the
+	// evaluator are Spanish ("Oferta", "Cupón X"), promotion names pass through.
+	var badge = DiscountMotives.Badge(Model.Motive, Localizer["OfferBadge"].Value, Localizer["CouponBadge"].Value);
+}
+@if (Model.HasDiscount)
+{
+	<p class="product-price h5 mb-1"><s class="text-muted fw-normal">@Model.BasePrice.ToString("c")</s> <span>@Model.EffectivePrice.ToString("c")</span></p>
+	if (!string.IsNullOrWhiteSpace(badge))
+	{
+		<p class="mb-3"><span class="badge bg-success">@badge</span></p>
+	}
+}
+else
+{
+	<p class="product-price h5 mb-1"><span>@Model.EffectivePrice.ToString("c")</span></p>
+	if (!string.IsNullOrWhiteSpace(badge))
+	{
+		@* BxGy coverage: badge with no strikethrough — the discount lands in the cart. *@
+		<p class="mb-3"><span class="badge bg-success">@badge</span></p>
+	}
+}

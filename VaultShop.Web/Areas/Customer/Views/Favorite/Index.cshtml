@@ -55,11 +55,22 @@
 								<p><small>@Html.Raw(item.Product.Description)</small></p>
 							</div>
 							<div class="col-12  col-lg-5 text-center row">
+								@{
+									var discountDisplay = ViewData["DiscountDisplay"] as IReadOnlyDictionary<int, VaultShop.Web.Services.Pricing.ProductDisplayPrice>;
+									var display = discountDisplay != null && discountDisplay.TryGetValue(item.Product.Id, out var displayPrice) ? displayPrice : null;
+								}
 								<div class="col-4 text-sm-right pt-2 pt-md-4">
-									<h6 class="fw-semibold">
-										@PricingHelper.GetPrice(item.Product, User, Context).ToString("c")
+									@if (display != null)
+									{
+										<partial name="_DiscountPrice" model="display" />
+									}
+									else
+									{
+										<h6 class="fw-semibold">
+											@PricingHelper.GetPrice(item.Product, User, Context).ToString("c")
 
-									</h6>
+										</h6>
+									}
 								</div>
 
 								<div a class="col-3 col-sm-4 col-lg-2 offset-lg-1 text-right pt-2">

@@ -12,6 +12,7 @@ using VaultShop.Models.Pagination;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Pagination;
+using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
 
 
@@ -28,14 +29,16 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly IStringLocalizer<HomeController> _localizer;
 		private readonly PaginationOptions _paginationOptions;
 		private readonly IProductVariantService _variantService;
+		private readonly IStorefrontPricingService _displayPricing;
 
-		public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, IStringLocalizer<HomeController> localizer, IOptions<PaginationOptions> paginationOptions, IProductVariantService variantService)
+		public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, IStringLocalizer<HomeController> localizer, IOptions<PaginationOptions> paginationOptions, IProductVariantService variantService, IStorefrontPricingService displayPricing)
 		{
 			_localizer = localizer;
 			_logger = logger;
 			_unitOfWork = unitOfWork;
 			_paginationOptions = paginationOptions.Value;
 			_variantService = variantService;
+			_displayPricing = displayPricing;
 		}
 
 		public IActionResult Index(int pageNumber = 1)
@@ -61,6 +64,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				return RedirectToAction(nameof(Index), new { pageNumber = pagedProducts.TotalPages });
 			}
+
+			// descuentos-promociones 4.1: same evaluator as cart, display mode (one unit, no coupon).
+			ViewData["DiscountDisplay"] = _displayPricing.GetDisplayPrices(productList, PricingHelper.ShouldUseWholesale(User, HttpContext));
 
 			return View(new HomeIndexVM
 			{
@@ -133,6 +139,8 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		ViewData["DetailCollections"] = detailCollections;
 		// product-variants 3.1: null for variant-less products → no selectors (3.3).
 		ViewData["VariantSelection"] = _variantService.GetSelectionData(productId);
+		// descuentos-promociones 4.1: display mode for the single product.
+		ViewData["DiscountDisplay"] = _displayPricing.GetDisplayPrices(new[] { product }, PricingHelper.ShouldUseWholesale(User, HttpContext));
 
 		return View(cart);
 		}
@@ -349,6 +357,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			{
 				ViewData["ActiveCategory"] = products.Select(p => p.Category).FirstOrDefault(c => c != null && c.Id == categoryId.Value);
 			}
+
+			// descuentos-promociones 4.1: display mode for the rendered page.
+			ViewData["DiscountDisplay"] = _displayPricing.GetDisplayPrices(pagedProducts.ToList(), PricingHelper.ShouldUseWholesale(User, HttpContext));
 
 			return View(pagedProducts);
 		}
