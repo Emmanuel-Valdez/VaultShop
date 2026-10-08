@@ -235,6 +235,8 @@ builder.Services.AddHealthChecks()
 	.AddDbContextCheck<ApplicationDbContext>(name: "database")
 	.AddCheck<StorageHealthCheck>("storage");
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<IDiscountEvaluator, DiscountEvaluator>();
+builder.Services.AddScoped<IStorefrontPricingService, StorefrontPricingService>();
 builder.Services.AddScoped<IBranchLookupService, BranchLookupService>();
 builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
 builder.Services.AddHttpClient("GitHub", client =>
