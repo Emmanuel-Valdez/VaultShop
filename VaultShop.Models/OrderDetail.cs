@@ -27,6 +27,17 @@ namespace VaultShop.Models
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal Price { get; set; }
 
+		// descuentos-promociones: frozen discount breakdown per line.
+		// OriginalPrice = pre-discount unit price; Price stays the effective price.
+		[Column(TypeName = "decimal(18, 2)")]
+		public decimal OriginalPrice { get; set; } = 0;
+
+		[Column(TypeName = "decimal(18, 2)")]
+		public decimal DiscountAmount { get; set; } = 0;
+
+		[MaxLength(200)]
+		public string? DiscountMotive { get; set; }
+
 		public int? VariantId { get; set; }
 		[ForeignKey("VariantId")]
 		[ValidateNever]

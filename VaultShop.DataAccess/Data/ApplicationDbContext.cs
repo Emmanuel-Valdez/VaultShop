@@ -45,6 +45,8 @@ namespace VaultShop.DataAccess.Data
 		public DbSet<VariantOptionValue> VariantOptionValues { get; set; }
 		public DbSet<ProductVariant> ProductVariants { get; set; }
 		public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
+		public DbSet<Coupon> Coupons { get; set; }
+		public DbSet<Promotion> Promotions { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -134,6 +136,26 @@ namespace VaultShop.DataAccess.Data
 			.HasOne(o => o.Variant)
 			.WithMany()
 			.HasForeignKey(o => o.VariantId)
+			.OnDelete(DeleteBehavior.SetNull);
+		// descuentos-promociones: coupon codes are unique; scope FKs keep history
+		// (deleting a promotion keeps past orders, which freeze ids/motives).
+		modelBuilder.Entity<Coupon>()
+			.HasIndex(c => c.Code)
+			.IsUnique();
+		modelBuilder.Entity<Promotion>()
+			.HasOne(p => p.Product)
+			.WithMany()
+			.HasForeignKey(p => p.ProductId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<Promotion>()
+			.HasOne(p => p.Category)
+			.WithMany()
+			.HasForeignKey(p => p.CategoryId)
+			.OnDelete(DeleteBehavior.SetNull);
+		modelBuilder.Entity<Promotion>()
+			.HasOne(p => p.Keyword)
+			.WithMany()
+			.HasForeignKey(p => p.KeywordId)
 			.OnDelete(DeleteBehavior.SetNull);
 		}
 	}

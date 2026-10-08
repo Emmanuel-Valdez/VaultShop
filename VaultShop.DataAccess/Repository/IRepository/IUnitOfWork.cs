@@ -49,6 +49,8 @@ namespace VaultShop.DataAccess.Repository.IRepository
 		IVariantOptionValueRepository VariantOptionValue { get; }
 		IProductVariantRepository ProductVariant { get; }
 		IProductVariantValueRepository ProductVariantValue { get; }
+		ICouponRepository Coupon { get; }
+		IPromotionRepository Promotion { get; }
 
 
 		void Save();

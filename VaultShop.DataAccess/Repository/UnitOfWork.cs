@@ -41,6 +41,8 @@ namespace VaultShop.DataAccess.Repository
 		public IVariantOptionValueRepository VariantOptionValue { get; private set; }
 		public IProductVariantRepository ProductVariant { get; private set; }
 		public IProductVariantValueRepository ProductVariantValue { get; private set; }
+		public ICouponRepository Coupon { get; private set; }
+		public IPromotionRepository Promotion { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db) 
         {
@@ -74,6 +76,8 @@ namespace VaultShop.DataAccess.Repository
 			VariantOptionValue = new VariantOptionValueRepository(_db);
 			ProductVariant = new ProductVariantRepository(_db);
 			ProductVariantValue = new ProductVariantValueRepository(_db);
+			Coupon = new CouponRepository(_db);
+			Promotion = new PromotionRepository(_db);
 
 		}
 

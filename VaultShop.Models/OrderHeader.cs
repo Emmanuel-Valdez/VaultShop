@@ -37,6 +37,24 @@ namespace VaultShop.Models
 		public string? SessionId { get; set; }
 		public string? PaymentIntentId { get; set; }
 
+		// descuentos-promociones: frozen discount breakdown. Zero/empty = no discount.
+		[MaxLength(50)]
+		public string? CouponCode { get; set; }
+
+		[Column(TypeName = "decimal(18, 2)")]
+		public decimal DiscountTotal { get; set; } = 0;
+
+		[Column(TypeName = "decimal(18, 2)")]
+		public decimal PaymentDiscountTotal { get; set; } = 0;
+
+		// CSV of applied promotion ids, frozen at creation.
+		[MaxLength(500)]
+		public string? AppliedPromotionIds { get; set; }
+
+		// descuentos-promociones: frozen motive for the payment-method line.
+		[MaxLength(120)]
+		public string? PaymentDiscountMotive { get; set; }
+
 		
 		public DateTime? OrderConfirmationEmailSentUtc { get; set; }
 		public DateTime? PaymentReceiptEmailSentUtc { get; set; }

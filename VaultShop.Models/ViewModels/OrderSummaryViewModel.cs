@@ -31,6 +31,10 @@ namespace VaultShop.Models.ViewModels
 		public string? PickupAgencyHours { get; set; }
 
 		public List<OrderSummaryItemViewModel> Items { get; set; } = new();
+		public string? CouponCode { get; set; }
+		public decimal DiscountTotal { get; set; }
+		public decimal PaymentDiscountTotal { get; set; }
+		public string? PaymentDiscountMotive { get; set; }
 		public decimal OrderTotal { get; set; }
 	}
 
@@ -41,5 +45,9 @@ namespace VaultShop.Models.ViewModels
 		public decimal UnitPrice { get; set; }
 		public int Quantity { get; set; }
 		public decimal LineTotal => UnitPrice * Quantity;
+		public decimal OriginalPrice { get; set; }
+		public decimal DiscountAmount { get; set; }
+		public string? DiscountMotive { get; set; }
+		public bool HasDiscount => DiscountAmount > 0;
 	}
 }

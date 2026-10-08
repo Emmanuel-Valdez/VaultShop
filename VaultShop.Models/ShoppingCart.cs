@@ -33,6 +33,13 @@ namespace VaultShop.Models
 
 		[NotMapped]
 		public decimal Price { get; set; }
+		// descuentos-promociones: display fields populated by CheckoutService.EvaluateCart.
+		[NotMapped]
+		public decimal OriginalPrice { get; set; }
+		[NotMapped]
+		public decimal DiscountAmount { get; set; }
+		[NotMapped]
+		public string? DiscountMotive { get; set; }
 		[NotMapped]
 		public bool IsFavorite { get; set; } = false;
 		[NotMapped]

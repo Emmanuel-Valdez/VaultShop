@@ -39,6 +39,20 @@ namespace VaultShop.Models
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal FinalWholesalePrice { get; set; }
 
+        // Direct offer price (descuentos-promociones): optional sale price per price
+        // list with an optional UTC date window. Null = no offer.
+        [LocalizedRange(1, 1000000, "Sale price must be between 1 and 1000000.", "El precio de oferta debe estar entre 1 y 1000000.")]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? SaleRetailPrice { get; set; }
+
+        [LocalizedRange(1, 1000000, "Sale price must be between 1 and 1000000.", "El precio de oferta debe estar entre 1 y 1000000.")]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? SaleWholesalePrice { get; set; }
+
+        public DateTime? SaleFromUtc { get; set; }
+
+        public DateTime? SaleToUtc { get; set; }
+
         public bool IsAvailableInStore { get; set; } = false;
         public bool IsFeatured { get; set; } = false;
         public int FeaturedSortOrder { get; set; } = 0;
