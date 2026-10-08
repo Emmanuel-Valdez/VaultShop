@@ -207,4 +207,22 @@
   <data name="ManageVariants" xml:space="preserve">
     <value>Gestionar variantes</value>
   </data>
+  <data name="OfferSection" xml:space="preserve">
+    <value>Precio de oferta (opcional)</value>
+  </data>
+  <data name="OfferHelp" xml:space="preserve">
+    <value>Dejalo vacío para no ofertar. La oferta debe ser menor al precio base. Las fechas son hora local; fechas vacías significan oferta siempre activa.</value>
+  </data>
+  <data name="SaleRetailPrice" xml:space="preserve">
+    <value>Precio oferta minorista</value>
+  </data>
+  <data name="SaleWholesalePrice" xml:space="preserve">
+    <value>Precio oferta mayorista</value>
+  </data>
+  <data name="SaleFrom" xml:space="preserve">
+    <value>Oferta desde</value>
+  </data>
+  <data name="SaleTo" xml:space="preserve">
+    <value>Oferta hasta</value>
+  </data>
 </root>

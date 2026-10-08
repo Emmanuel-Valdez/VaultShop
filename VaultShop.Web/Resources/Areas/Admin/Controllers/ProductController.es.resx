@@ -153,4 +153,10 @@
   <data name="SlugAlreadyExists" xml:space="preserve">
     <value>Este slug ya está en uso por otro producto activo.</value>
   </data>
+  <data name="OfferPriceMustBeLower" xml:space="preserve">
+    <value>La oferta debe ser menor al precio base.</value>
+  </data>
+  <data name="OfferEndBeforeStart" xml:space="preserve">
+    <value>El fin de la oferta debe ser posterior a su inicio.</value>
+  </data>
 </root>

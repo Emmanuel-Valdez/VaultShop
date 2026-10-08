@@ -73,6 +73,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 				productVM.SelectedKeywordIds = product.Keywords.Select(k => k.KeywordId).ToList();
 				productVM.Product = product;
+				productVM.Product.SaleFromUtc = OfferToLocal(productVM.Product.SaleFromUtc);
+				productVM.Product.SaleToUtc = OfferToLocal(productVM.Product.SaleToUtc);
 				return View(productVM);
 			}
 		}
@@ -83,6 +85,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			ModelState.Remove("Product.Description");
 
 			ApplySlug(productVM.Product);
+			ValidateOffer(productVM.Product);
 
 			if (!ModelState.IsValid)
 			{
@@ -92,6 +95,9 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			try
 			{
 				var isNewProduct = productVM.Product.Id == 0;
+
+				productVM.Product.SaleFromUtc = OfferToUtc(productVM.Product.SaleFromUtc);
+				productVM.Product.SaleToUtc = OfferToUtc(productVM.Product.SaleToUtc);
 
 				if (productVM.Product.Id == 0)
 				{
@@ -115,6 +121,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 						ModelState.AddModelError("files", error);
 					}
 
+					productVM.Product.SaleFromUtc = OfferToLocal(productVM.Product.SaleFromUtc);
+					productVM.Product.SaleToUtc = OfferToLocal(productVM.Product.SaleToUtc);
 					PopulateProductFormData(productVM);
 					return View(productVM);
 				}
@@ -162,6 +170,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			{
 				TempData["error"] = _localizer["UnexpectedError"].Value;
 				_logger.LogError(ex, "Unexpected error while saving product {ProductId} and processing product image uploads.", productVM.Product.Id);
+				productVM.Product.SaleFromUtc = OfferToLocal(productVM.Product.SaleFromUtc);
+				productVM.Product.SaleToUtc = OfferToLocal(productVM.Product.SaleToUtc);
 				PopulateProductFormData(productVM);
 				return View(productVM);
 			}
@@ -183,6 +193,37 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				ModelState.AddModelError("Product.Slug", _localizer["SlugAlreadyExists"].Value);
 			}
 		}
+
+		private void ValidateOffer(Product product)
+		{
+			if (product.SaleRetailPrice.HasValue
+				&& (product.SaleRetailPrice.Value <= 0 || product.SaleRetailPrice.Value >= product.FinalRetailPrice))
+			{
+				ModelState.AddModelError("Product.SaleRetailPrice", _localizer["OfferPriceMustBeLower"].Value);
+			}
+			if (product.SaleWholesalePrice.HasValue
+				&& (product.SaleWholesalePrice.Value <= 0
+					|| (product.FinalWholesalePrice > 0 && product.SaleWholesalePrice.Value >= product.FinalWholesalePrice)))
+			{
+				ModelState.AddModelError("Product.SaleWholesalePrice", _localizer["OfferPriceMustBeLower"].Value);
+			}
+			if (product.SaleFromUtc.HasValue && product.SaleToUtc.HasValue
+				&& product.SaleFromUtc.Value > product.SaleToUtc.Value)
+			{
+				ModelState.AddModelError("Product.SaleToUtc", _localizer["OfferEndBeforeStart"].Value);
+			}
+		}
+
+		// ponytail: datetime-local posts server-local wall time; evaluator compares UTC.
+		private static DateTime? OfferToUtc(DateTime? value)
+			=> value.HasValue
+				? TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(value.Value, DateTimeKind.Unspecified), TimeZoneInfo.Local)
+				: null;
+
+		private static DateTime? OfferToLocal(DateTime? value)
+			=> value.HasValue
+				? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+				: null;
 
 		private void PopulateProductFormData(ProductVM productVM)
 		{

@@ -207,4 +207,22 @@
   <data name="ManageVariants" xml:space="preserve">
     <value>Manage variants</value>
   </data>
+  <data name="OfferSection" xml:space="preserve">
+    <value>Offer price (optional)</value>
+  </data>
+  <data name="OfferHelp" xml:space="preserve">
+    <value>Leave empty for no offer. The offer price must be lower than the base price. Dates are local time; empty dates mean the offer is always active.</value>
+  </data>
+  <data name="SaleRetailPrice" xml:space="preserve">
+    <value>Offer retail price</value>
+  </data>
+  <data name="SaleWholesalePrice" xml:space="preserve">
+    <value>Offer wholesale price</value>
+  </data>
+  <data name="SaleFrom" xml:space="preserve">
+    <value>Offer from</value>
+  </data>
+  <data name="SaleTo" xml:space="preserve">
+    <value>Offer until</value>
+  </data>
 </root>

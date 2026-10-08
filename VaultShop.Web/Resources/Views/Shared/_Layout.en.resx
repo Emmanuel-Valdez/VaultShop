@@ -126,6 +126,12 @@
   <data name="Company" xml:space="preserve">
     <value>Company</value>
   </data>
+  <data name="Coupons" xml:space="preserve">
+    <value>Coupons</value>
+  </data>
+  <data name="Promotions" xml:space="preserve">
+    <value>Promotions</value>
+  </data>
   <data name="Contact" xml:space="preserve">
     <value>Contact</value>
   </data>

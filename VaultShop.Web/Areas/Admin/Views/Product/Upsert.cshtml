@@ -69,6 +69,47 @@
 							<span asp-validation-for="Product.FinalRetailPrice" class="text-danger"></span>
 						</div>
 
+						<div class="border rounded-3 p-3 mb-3">
+							<h5 class="text-muted mb-1">@Localizer["OfferSection"]</h5>
+							<div class="form-text mb-3">@Localizer["OfferHelp"]</div>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<div class="input-group shadow-sm">
+										<span class="input-group-text text-dark">$</span>
+										<div class="form-floating">
+											<input asp-for="Product.SaleRetailPrice" class="form-control" type="number" min="1" step="0.01" placeholder="SaleRetailPrice" />
+											<label asp-for="Product.SaleRetailPrice" class="ms-2 text-muted">@Localizer["SaleRetailPrice"]</label>
+										</div>
+									</div>
+									<span asp-validation-for="Product.SaleRetailPrice" class="text-danger"></span>
+								</div>
+								<div class="col-md-6">
+									<div class="input-group shadow-sm">
+										<span class="input-group-text text-dark">$</span>
+										<div class="form-floating">
+											<input asp-for="Product.SaleWholesalePrice" class="form-control" type="number" min="1" step="0.01" placeholder="SaleWholesalePrice" />
+											<label asp-for="Product.SaleWholesalePrice" class="ms-2 text-muted">@Localizer["SaleWholesalePrice"]</label>
+										</div>
+									</div>
+									<span asp-validation-for="Product.SaleWholesalePrice" class="text-danger"></span>
+								</div>
+								<div class="col-md-6">
+									<div class="form-floating shadow-sm">
+										<input asp-for="Product.SaleFromUtc" class="form-control" type="datetime-local" placeholder="SaleFrom" />
+										<label asp-for="Product.SaleFromUtc" class="ms-2 text-muted">@Localizer["SaleFrom"]</label>
+									</div>
+									<span asp-validation-for="Product.SaleFromUtc" class="text-danger"></span>
+								</div>
+								<div class="col-md-6">
+									<div class="form-floating shadow-sm">
+										<input asp-for="Product.SaleToUtc" class="form-control" type="datetime-local" placeholder="SaleTo" />
+										<label asp-for="Product.SaleToUtc" class="ms-2 text-muted">@Localizer["SaleTo"]</label>
+									</div>
+									<span asp-validation-for="Product.SaleToUtc" class="text-danger"></span>
+								</div>
+							</div>
+						</div>
+
 						<div class="py-3 col-12">
 							<label asp-for="Product.ProductImages" class="form-label fw-semibold">@Localizer["ProductImages"]</label>
 							<input type="file" name="files" class="form-control shadow-sm" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
