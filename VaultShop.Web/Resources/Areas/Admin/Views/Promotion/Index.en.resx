@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="PromotionList" xml:space="preserve">
+    <value>Promotion list</value>
+  </data>
+  <data name="CreatePromotion" xml:space="preserve">
+    <value>Create promotion</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Scope</value>
+  </data>
+  <data name="Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="ValidUntil" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+</root>

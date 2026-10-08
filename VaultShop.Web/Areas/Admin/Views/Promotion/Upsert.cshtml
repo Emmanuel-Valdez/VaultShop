@@ -1,0 +1,200 @@
+@model PromotionVM
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary"> @(Model.Promotion.Id != 0 ? Localizer["Update"] : Localizer["Create"]) @Localizer["Promotion"]</h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+
+		<form method="post">
+			@Html.AntiForgeryToken()
+			<input asp-for="Promotion.Id" hidden />
+			<div class="border p-3 ">
+				<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+				<div class="mb-3">
+					<div class="form-floating mb-3 col-md-12 shadow">
+						<input asp-for="Promotion.Name" class="form-control" placeholder="Name" />
+						<label asp-for="Promotion.Name" class="ms-2 text-muted">@Localizer["Name"]</label>
+					</div>
+					<span asp-validation-for="Promotion.Name" class="text-danger"></span>
+				</div>
+				<div class="row g-3">
+					<div class="col-md-6">
+						<div class="form-floating shadow">
+							<select asp-for="Promotion.Kind" asp-items="Html.GetEnumSelectList<PromotionKind>()" class="form-select" id="Promotion_Kind"></select>
+							<label asp-for="Promotion.Kind" class="ms-2 text-muted">@Localizer["Kind"]</label>
+						</div>
+						<span asp-validation-for="Promotion.Kind" class="text-danger"></span>
+					</div>
+					<div class="col-md-6">
+						<div class="form-floating shadow">
+							<select asp-for="Promotion.Scope" asp-items="Html.GetEnumSelectList<PromotionScope>()" class="form-select" id="Promotion_Scope"></select>
+							<label asp-for="Promotion.Scope" class="ms-2 text-muted">@Localizer["Scope"]</label>
+						</div>
+						<span asp-validation-for="Promotion.Scope" class="text-danger"></span>
+					</div>
+				</div>
+				<div class="row g-3 mt-1" id="scopeTargetRow">
+					<div class="col-md-4" data-scope-for="Product">
+						<div class="form-floating shadow">
+							<select asp-for="Promotion.ProductId" asp-items="Model.ProductList" class="form-select">
+								<option value="">--</option>
+							</select>
+							<label asp-for="Promotion.ProductId" class="ms-2 text-muted">@Localizer["Product"]</label>
+						</div>
+						<span asp-validation-for="Promotion.ProductId" class="text-danger"></span>
+					</div>
+					<div class="col-md-4" data-scope-for="Category">
+						<div class="form-floating shadow">
+							<select asp-for="Promotion.CategoryId" asp-items="Model.CategoryList" class="form-select">
+								<option value="">--</option>
+							</select>
+							<label asp-for="Promotion.CategoryId" class="ms-2 text-muted">@Localizer["Category"]</label>
+						</div>
+						<span asp-validation-for="Promotion.CategoryId" class="text-danger"></span>
+					</div>
+					<div class="col-md-4" data-scope-for="Keyword">
+						<div class="form-floating shadow">
+							<select asp-for="Promotion.KeywordId" asp-items="Model.KeywordList" class="form-select">
+								<option value="">--</option>
+							</select>
+							<label asp-for="Promotion.KeywordId" class="ms-2 text-muted">@Localizer["Collection"]</label>
+						</div>
+						<span asp-validation-for="Promotion.KeywordId" class="text-danger"></span>
+					</div>
+				</div>
+				<div class="row g-3 mt-1" data-kind-for="BxGy">
+					<div class="col-md-4">
+						<div class="form-floating shadow">
+							<input asp-for="Promotion.BuyQty" class="form-control" type="number" min="1" step="1" placeholder="BuyQty" />
+							<label asp-for="Promotion.BuyQty" class="ms-2 text-muted">@Localizer["BuyQty"]</label>
+						</div>
+						<span asp-validation-for="Promotion.BuyQty" class="text-danger"></span>
+					</div>
+					<div class="col-md-4">
+						<div class="form-floating shadow">
+							<input asp-for="Promotion.GetQty" class="form-control" type="number" min="1" step="1" placeholder="GetQty" />
+							<label asp-for="Promotion.GetQty" class="ms-2 text-muted">@Localizer["GetQty"]</label>
+						</div>
+						<span asp-validation-for="Promotion.GetQty" class="text-danger"></span>
+					</div>
+					<div class="col-md-4">
+						<div class="input-group shadow">
+							<span class="input-group-text text-dark">%</span>
+							<div class="form-floating">
+								<input asp-for="Promotion.GetDiscountPercent" class="form-control" type="number" min="1" max="100" step="0.01" placeholder="GetDiscountPercent" />
+								<label asp-for="Promotion.GetDiscountPercent" class="ms-2 text-muted">@Localizer["GetDiscountPercent"]</label>
+							</div>
+						</div>
+						<span asp-validation-for="Promotion.GetDiscountPercent" class="text-danger"></span>
+					</div>
+					<div class="col-12">
+						<div class="form-text">@Localizer["BxGyHelp"]</div>
+					</div>
+				</div>
+				<div class="row g-3 mt-1" data-kind-for="PercentOff PaymentMethodDiscount">
+					<div class="col-md-6">
+						<div class="input-group shadow">
+							<span class="input-group-text text-dark">%</span>
+							<div class="form-floating">
+								<input asp-for="Promotion.DiscountPercent" class="form-control" type="number" min="1" max="100" step="0.01" placeholder="DiscountPercent" />
+								<label asp-for="Promotion.DiscountPercent" class="ms-2 text-muted">@Localizer["DiscountPercent"]</label>
+							</div>
+						</div>
+						<span asp-validation-for="Promotion.DiscountPercent" class="text-danger"></span>
+					</div>
+					<div class="col-md-6" data-kind-for="PaymentMethodDiscount">
+						<div class="form-floating shadow">
+							<select asp-for="Promotion.PaymentMethod" asp-items="Model.PaymentMethodList" class="form-select">
+								<option value="">--</option>
+							</select>
+							<label asp-for="Promotion.PaymentMethod" class="ms-2 text-muted">@Localizer["PaymentMethod"]</label>
+						</div>
+						<span asp-validation-for="Promotion.PaymentMethod" class="text-danger"></span>
+					</div>
+				</div>
+				<div class="row g-3 mt-1">
+					<div class="col-md-6" data-kind-for="BxGy">
+						<div class="form-check form-switch py-2">
+							<input asp-for="Promotion.SameSkuOnly" class="form-check-input" role="switch" />
+							<label asp-for="Promotion.SameSkuOnly" class="form-check-label ms-2">@Localizer["SameSkuOnly"]</label>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-check form-switch py-2">
+							<input asp-for="Promotion.IncludeWholesale" class="form-check-input" role="switch" />
+							<label asp-for="Promotion.IncludeWholesale" class="form-check-label ms-2">@Localizer["IncludeWholesale"]</label>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-floating shadow">
+							<input asp-for="Promotion.ValidFromUtc" class="form-control" type="datetime-local" placeholder="ValidFrom" />
+							<label asp-for="Promotion.ValidFromUtc" class="ms-2 text-muted">@Localizer["ValidFrom"]</label>
+						</div>
+						<span asp-validation-for="Promotion.ValidFromUtc" class="text-danger"></span>
+					</div>
+					<div class="col-md-6">
+						<div class="form-floating shadow">
+							<input asp-for="Promotion.ValidToUtc" class="form-control" type="datetime-local" placeholder="ValidTo" />
+							<label asp-for="Promotion.ValidToUtc" class="ms-2 text-muted">@Localizer["ValidTo"]</label>
+						</div>
+						<span asp-validation-for="Promotion.ValidToUtc" class="text-danger"></span>
+					</div>
+				</div>
+				<div class="form-check form-switch py-2 col-12">
+					<input asp-for="Promotion.IsActive" class="form-check-input" role="switch" />
+					<label asp-for="Promotion.IsActive" class="form-check-label ms-2">@Localizer["Active"]</label>
+				</div>
+				<div class="row mt-3">
+					<div class="col-6 col-md-3">
+						@if (Model.Promotion.Id != 0)
+						{
+							<button type="submit" class="btn btn-primary form-control">@Localizer["Update"]</button>
+						}
+						else
+						{
+							<button type="submit" class="btn btn-primary form-control">@Localizer["Create"]</button>
+						}
+					</div>
+					<div class="col-6 col-md-3">
+						<a asp-controller="Promotion" asp-action="Index" class="btn btn-outline-primary border form-control">
+							@Localizer["BackToList"]
+						</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+	<script>
+		// ponytail: progressive enhancement — irrelevant sections hide, server still validates everything.
+		document.addEventListener('DOMContentLoaded', function () {
+			var kindEl = document.getElementById('Promotion_Kind');
+			var scopeEl = document.getElementById('Promotion_Scope');
+			function apply() {
+				var kind = kindEl.options[kindEl.selectedIndex].text;
+				var scope = scopeEl.options[scopeEl.selectedIndex].text;
+				document.querySelectorAll('[data-kind-for]').forEach(function (el) {
+					el.style.display = el.getAttribute('data-kind-for').split(' ').indexOf(kind) >= 0 ? '' : 'none';
+				});
+				document.querySelectorAll('[data-scope-for]').forEach(function (el) {
+					el.style.display = el.getAttribute('data-scope-for') === scope ? '' : 'none';
+				});
+				document.getElementById('scopeTargetRow').style.display = scope === 'Store' ? 'none' : '';
+			}
+			kindEl.addEventListener('change', apply);
+			scopeEl.addEventListener('change', apply);
+			apply();
+		});
+	</script>
+}

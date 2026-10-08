@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Promotion" xml:space="preserve">
+    <value>Promotion</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Scope</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Collection</value>
+  </data>
+  <data name="BuyQty" xml:space="preserve">
+    <value>Take X</value>
+  </data>
+  <data name="GetQty" xml:space="preserve">
+    <value>Pay Y</value>
+  </data>
+  <data name="GetDiscountPercent" xml:space="preserve">
+    <value>Discount on Y (100 = free)</value>
+  </data>
+  <data name="BxGyHelp" xml:space="preserve">
+    <value>Take X, pay Y (group X+Y). 2x1 = take 2, pay 1. 3x2 = take 3, pay 2. Second unit 50% off = take 2, pay 1 at 50% off.</value>
+  </data>
+  <data name="DiscountPercent" xml:space="preserve">
+    <value>Discount %</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Payment method</value>
+  </data>
+  <data name="SameSkuOnly" xml:space="preserve">
+    <value>Same product only (no mixing)</value>
+  </data>
+  <data name="IncludeWholesale" xml:space="preserve">
+    <value>Also applies to wholesale</value>
+  </data>
+  <data name="ValidFrom" xml:space="preserve">
+    <value>Valid from</value>
+  </data>
+  <data name="ValidTo" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="BackToList" xml:space="preserve">
+    <value>Back to List</value>
+  </data>
+</root>

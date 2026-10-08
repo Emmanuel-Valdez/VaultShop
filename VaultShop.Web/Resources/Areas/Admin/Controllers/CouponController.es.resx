@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="CouponCreatedSuccesfully" xml:space="preserve">
+    <value>Cupón creado correctamente.</value>
+  </data>
+  <data name="CouponEditedSuccesfully" xml:space="preserve">
+    <value>Cupón actualizado correctamente.</value>
+  </data>
+  <data name="CouponCodeExists" xml:space="preserve">
+    <value>Otro cupón ya usa este código.</value>
+  </data>
+  <data name="PercentValueRange" xml:space="preserve">
+    <value>El porcentaje debe estar entre 1 y 100.</value>
+  </data>
+  <data name="FixedValuePositive" xml:space="preserve">
+    <value>El monto fijo debe ser mayor a cero.</value>
+  </data>
+  <data name="MinSubtotalNegative" xml:space="preserve">
+    <value>El subtotal mínimo no puede ser negativo.</value>
+  </data>
+  <data name="MaxUsesRange" xml:space="preserve">
+    <value>El máximo de usos debe ser al menos 1.</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>El fin debe ser posterior al inicio.</value>
+  </data>
+  <data name="ErrorWhileDeleting" xml:space="preserve">
+    <value>Error al borrar.</value>
+  </data>
+  <data name="DeleteSuccesfully" xml:space="preserve">
+    <value>Borrado correctamente.</value>
+  </data>
+</root>

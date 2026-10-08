@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="PromotionCreatedSuccesfully" xml:space="preserve">
+    <value>Promoción creada correctamente.</value>
+  </data>
+  <data name="PromotionEditedSuccesfully" xml:space="preserve">
+    <value>Promoción actualizada correctamente.</value>
+  </data>
+  <data name="BuyQtyRange" xml:space="preserve">
+    <value>La cantidad de compra debe ser al menos 1.</value>
+  </data>
+  <data name="GetQtyRange" xml:space="preserve">
+    <value>La cantidad de regalo debe ser al menos 1.</value>
+  </data>
+  <data name="PercentRange" xml:space="preserve">
+    <value>El porcentaje debe estar entre 1 y 100.</value>
+  </data>
+  <data name="PaymentMethodRequired" xml:space="preserve">
+    <value>Elegí un método de pago válido.</value>
+  </data>
+  <data name="ScopeTargetRequired" xml:space="preserve">
+    <value>Elegí el producto, categoría o colección alcanzado.</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>El fin debe ser posterior al inicio.</value>
+  </data>
+  <data name="ErrorWhileDeleting" xml:space="preserve">
+    <value>Error al borrar.</value>
+  </data>
+  <data name="DeleteSuccesfully" xml:space="preserve">
+    <value>Borrado correctamente.</value>
+  </data>
+</root>

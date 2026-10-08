@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Coupon" xml:space="preserve">
+    <value>Coupon</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value (% or fixed amount)</value>
+  </data>
+  <data name="MinSubtotal" xml:space="preserve">
+    <value>Minimum subtotal (optional)</value>
+  </data>
+  <data name="MaxUses" xml:space="preserve">
+    <value>Max uses (optional)</value>
+  </data>
+  <data name="ValidFrom" xml:space="preserve">
+    <value>Valid from</value>
+  </data>
+  <data name="ValidTo" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="UsesSoFar" xml:space="preserve">
+    <value>Used {0} times so far.</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="BackToList" xml:space="preserve">
+    <value>Back to List</value>
+  </data>
+</root>

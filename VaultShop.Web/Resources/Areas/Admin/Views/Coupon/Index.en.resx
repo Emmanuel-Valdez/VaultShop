@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="CouponList" xml:space="preserve">
+    <value>Coupon list</value>
+  </data>
+  <data name="CreateCoupon" xml:space="preserve">
+    <value>Create coupon</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Uses" xml:space="preserve">
+    <value>Uses</value>
+  </data>
+  <data name="ValidUntil" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+</root>

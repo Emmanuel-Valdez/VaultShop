@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Update" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="Promotion" xml:space="preserve">
+    <value>Promoción</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Alcance</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>Colección</value>
+  </data>
+  <data name="BuyQty" xml:space="preserve">
+    <value>Llevá X</value>
+  </data>
+  <data name="GetQty" xml:space="preserve">
+    <value>Pagá Y</value>
+  </data>
+  <data name="GetDiscountPercent" xml:space="preserve">
+    <value>% de descuento sobre Y (100 = gratis)</value>
+  </data>
+  <data name="BxGyHelp" xml:space="preserve">
+    <value>Llevá X, pagá Y (grupo X+Y). 2x1 = llevá 2, pagá 1. 3x2 = llevá 3, pagá 2. Segunda unidad 50% off = llevá 2, pagá 1 al 50%.</value>
+  </data>
+  <data name="DiscountPercent" xml:space="preserve">
+    <value>% de descuento</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Método de pago</value>
+  </data>
+  <data name="SameSkuOnly" xml:space="preserve">
+    <value>Solo mismo producto (sin combinar)</value>
+  </data>
+  <data name="IncludeWholesale" xml:space="preserve">
+    <value>También aplica a mayorista</value>
+  </data>
+  <data name="ValidFrom" xml:space="preserve">
+    <value>Válida desde</value>
+  </data>
+  <data name="ValidTo" xml:space="preserve">
+    <value>Válida hasta</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activa</value>
+  </data>
+  <data name="BackToList" xml:space="preserve">
+    <value>Volver a Lista</value>
+  </data>
+</root>
