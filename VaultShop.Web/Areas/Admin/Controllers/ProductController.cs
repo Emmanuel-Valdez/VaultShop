@@ -8,6 +8,7 @@ using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
 using VaultShop.Web.Services.ImageStorage;
+using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductImages;
 using VaultShop.Web.Services.RichText;
 
@@ -73,8 +74,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 				productVM.SelectedKeywordIds = product.Keywords.Select(k => k.KeywordId).ToList();
 				productVM.Product = product;
-				productVM.Product.SaleFromUtc = OfferToLocal(productVM.Product.SaleFromUtc);
-				productVM.Product.SaleToUtc = OfferToLocal(productVM.Product.SaleToUtc);
+				productVM.Product.SaleFromUtc = OfferTimeZone.ToLocal(productVM.Product.SaleFromUtc);
+				productVM.Product.SaleToUtc = OfferTimeZone.ToLocal(productVM.Product.SaleToUtc);
 				return View(productVM);
 			}
 		}
@@ -96,8 +97,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			{
 				var isNewProduct = productVM.Product.Id == 0;
 
-				productVM.Product.SaleFromUtc = OfferToUtc(productVM.Product.SaleFromUtc);
-				productVM.Product.SaleToUtc = OfferToUtc(productVM.Product.SaleToUtc);
+				productVM.Product.SaleFromUtc = OfferTimeZone.ToUtc(productVM.Product.SaleFromUtc);
+				productVM.Product.SaleToUtc = OfferTimeZone.ToUtc(productVM.Product.SaleToUtc);
 
 				if (productVM.Product.Id == 0)
 				{
@@ -121,8 +122,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 						ModelState.AddModelError("files", error);
 					}
 
-					productVM.Product.SaleFromUtc = OfferToLocal(productVM.Product.SaleFromUtc);
-					productVM.Product.SaleToUtc = OfferToLocal(productVM.Product.SaleToUtc);
+					productVM.Product.SaleFromUtc = OfferTimeZone.ToLocal(productVM.Product.SaleFromUtc);
+					productVM.Product.SaleToUtc = OfferTimeZone.ToLocal(productVM.Product.SaleToUtc);
 					PopulateProductFormData(productVM);
 					return View(productVM);
 				}
@@ -170,8 +171,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			{
 				TempData["error"] = _localizer["UnexpectedError"].Value;
 				_logger.LogError(ex, "Unexpected error while saving product {ProductId} and processing product image uploads.", productVM.Product.Id);
-				productVM.Product.SaleFromUtc = OfferToLocal(productVM.Product.SaleFromUtc);
-				productVM.Product.SaleToUtc = OfferToLocal(productVM.Product.SaleToUtc);
+				productVM.Product.SaleFromUtc = OfferTimeZone.ToLocal(productVM.Product.SaleFromUtc);
+				productVM.Product.SaleToUtc = OfferTimeZone.ToLocal(productVM.Product.SaleToUtc);
 				PopulateProductFormData(productVM);
 				return View(productVM);
 			}
@@ -214,17 +215,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 		}
 
-		// ponytail: datetime-local posts server-local wall time; evaluator compares UTC.
-		private static DateTime? OfferToUtc(DateTime? value)
-			=> value.HasValue
-				? TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(value.Value, DateTimeKind.Unspecified), TimeZoneInfo.Local)
-				: null;
-
-		private static DateTime? OfferToLocal(DateTime? value)
-			=> value.HasValue
-				? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-				: null;
-
+		// oferta-huso-horario-ar: admin wall time is Argentina; see OfferTimeZone.
 		private void PopulateProductFormData(ProductVM productVM)
 		{
 			productVM.CategoryList = _unitOfWork.Category.GetAll(u => u.IsDeleted == false).Select(u => new SelectListItem

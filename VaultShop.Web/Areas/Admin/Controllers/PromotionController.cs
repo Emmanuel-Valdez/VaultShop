@@ -6,6 +6,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Pricing;
 
 namespace VaultShop.Web.Areas.Admin.Controllers
 {
@@ -37,8 +38,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			var promotion = _unitOfWork.Promotion.Get(u => u.Id == id);
 			if (promotion == null)
 				return NotFound();
-			promotion.ValidFromUtc = OfferToLocal(promotion.ValidFromUtc);
-			promotion.ValidToUtc = OfferToLocal(promotion.ValidToUtc);
+			promotion.ValidFromUtc = OfferTimeZone.ToLocal(promotion.ValidFromUtc);
+			promotion.ValidToUtc = OfferTimeZone.ToLocal(promotion.ValidToUtc);
 			promotionVM.Promotion = promotion;
 			return View(promotionVM);
 		}
@@ -54,8 +55,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 
 			var promotion = promotionVM.Promotion;
-			promotion.ValidFromUtc = OfferToUtc(promotion.ValidFromUtc);
-			promotion.ValidToUtc = OfferToUtc(promotion.ValidToUtc);
+			promotion.ValidFromUtc = OfferTimeZone.ToUtc(promotion.ValidFromUtc);
+			promotion.ValidToUtc = OfferTimeZone.ToUtc(promotion.ValidToUtc);
 			if (promotion.Scope == PromotionScope.Store)
 			{
 				promotion.ProductId = null;
@@ -156,17 +157,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			};
 		}
 
-		// ponytail: datetime-local posts server-local wall time; evaluator compares UTC.
-		private static DateTime? OfferToUtc(DateTime? value)
-			=> value.HasValue
-				? TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(value.Value, DateTimeKind.Unspecified), TimeZoneInfo.Local)
-				: null;
-
-		private static DateTime? OfferToLocal(DateTime? value)
-			=> value.HasValue
-				? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-				: null;
-
+		// oferta-huso-horario-ar: admin wall time is Argentina; see OfferTimeZone.
 		#region API CALLS
 		[HttpGet]
 		public IActionResult GetAll()
