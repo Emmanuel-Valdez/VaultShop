@@ -12,6 +12,36 @@
 			</button>
 		</li>
 		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="offers-tab" data-bs-toggle="tab" data-bs-target="#offers"
+					type="button" role="tab" aria-controls="offers" aria-selected="false">
+				Ofertas
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="promotions-tab" data-bs-toggle="tab" data-bs-target="#promotions"
+					type="button" role="tab" aria-controls="promotions" aria-selected="false">
+				Promociones
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="coupons-tab" data-bs-toggle="tab" data-bs-target="#coupons"
+					type="button" role="tab" aria-controls="coupons" aria-selected="false">
+				Cupones
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="variants-tab" data-bs-toggle="tab" data-bs-target="#variants"
+					type="button" role="tab" aria-controls="variants" aria-selected="false">
+				Variantes
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="collections-tab" data-bs-toggle="tab" data-bs-target="#collections"
+					type="button" role="tab" aria-controls="collections" aria-selected="false">
+				Colecciones
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
 			<button class="nav-link" id="costs-tab" data-bs-toggle="tab" data-bs-target="#costs"
 					type="button" role="tab" aria-controls="costs" aria-selected="false">
 				Costos
@@ -28,6 +58,21 @@
 		<div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
 			<partial name="_HelpProducts" />
 			
+		</div>
+		<div class="tab-pane fade" id="offers" role="tabpanel" aria-labelledby="offers-tab">
+			<partial name="_HelpOffers" />
+		</div>
+		<div class="tab-pane fade" id="promotions" role="tabpanel" aria-labelledby="promotions-tab">
+			<partial name="_HelpPromotions" />
+		</div>
+		<div class="tab-pane fade" id="coupons" role="tabpanel" aria-labelledby="coupons-tab">
+			<partial name="_HelpCoupons" />
+		</div>
+		<div class="tab-pane fade" id="variants" role="tabpanel" aria-labelledby="variants-tab">
+			<partial name="_HelpVariants" />
+		</div>
+		<div class="tab-pane fade" id="collections" role="tabpanel" aria-labelledby="collections-tab">
+			<partial name="_HelpCollections" />
 		</div>
 		<div class="tab-pane fade" id="costs" role="tabpanel" aria-labelledby="costs-tab">
 			<partial name="_HelpCosts" />

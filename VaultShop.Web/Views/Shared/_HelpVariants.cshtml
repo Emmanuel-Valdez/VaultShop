@@ -1,0 +1,36 @@
+<div class="accordion" id="variantsAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingVariantManage">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVariantManage" aria-expanded="true" aria-controls="collapseVariantManage">
+				Gestionar variantes de un producto
+			</button>
+		</h2>
+		<div id="collapseVariantManage" class="accordion-collapse collapse show" aria-labelledby="headingVariantManage" data-bs-parent="#variantsAccordion">
+			<div class="accordion-body">
+				<strong>Desde Gestión de Contenido / Producto, editá el producto y abrí "Gestionar variantes".</strong>
+				<ol>
+					<li>Agregá un <strong>tipo</strong> (por ejemplo Talle o Color) y sus <strong>valores</strong> (S, M, L). Podés reutilizar tipos existentes.</li>
+					<li>Generá las <strong>combinaciones</strong>: cada combinación lleva su propio stock.</li>
+					<li>No se puede borrar una variante que todavía esté en carritos activos: primero debe desaparecer de esos carritos.</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingVariantStore">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVariantStore" aria-expanded="false" aria-controls="collapseVariantStore">
+				Cómo lo ve el cliente
+			</button>
+		</h2>
+		<div id="collapseVariantStore" class="accordion-collapse collapse" aria-labelledby="headingVariantStore" data-bs-parent="#variantsAccordion">
+			<div class="accordion-body">
+				<ol>
+					<li>El cliente elige una opción por tipo, sin valor preseleccionado. Las opciones que no combinan con lo ya elegido se deshabilitan solas.</li>
+					<li>El aviso de combinación no disponible aparece solo cuando ya eligió todos los valores.</li>
+					<li>Un producto con variantes pero sin combinaciones disponibles no aparece en inicio ni búsqueda, y su detalle no muestra agregar al carrito. Marcar favorito no exige elegir variante.</li>
+					<li>Si una variante se vuelve inválida, el carrito la quita al abrirse; el checkout la rechaza aunque entre a último momento.</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>

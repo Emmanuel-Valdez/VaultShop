@@ -1,0 +1,20 @@
+<div class="accordion" id="offersAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingOfferForm">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOfferForm" aria-expanded="true" aria-controls="collapseOfferForm">
+				Precio de oferta por producto
+			</button>
+		</h2>
+		<div id="collapseOfferForm" class="accordion-collapse collapse show" aria-labelledby="headingOfferForm" data-bs-parent="#offersAccordion">
+			<div class="accordion-body">
+				<strong>Se carga en Gestión de Contenido / Producto, al crear o editar, dentro de la sección "Oferta".</strong>
+				<ol>
+					<li>Precio de oferta minorista y mayorista (opcionales, entre 1 y 1000000). Cada uno debe quedar por debajo del precio final de su mismo canal o el guardado falla.</li>
+					<li>Ventana "desde / hasta" (opcional). La hora que ingresás se interpreta como hora de Argentina. Con fechas vacías la oferta queda siempre activa mientras tenga precio.</li>
+					<li>Decimales: en español usá coma (<strong>8000,50</strong>); en inglés usá punto (<strong>8000.50</strong>).</li>
+					<li>La oferta se guarda con el producto y persiste al actualizar: al volver a editar verás los cuatro valores (precios y fechas) como los dejaste.</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>

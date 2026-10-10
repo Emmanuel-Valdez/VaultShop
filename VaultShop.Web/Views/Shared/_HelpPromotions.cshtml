@@ -1,0 +1,37 @@
+<div class="accordion" id="promotionsAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingPromoKinds">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePromoKinds" aria-expanded="true" aria-controls="collapsePromoKinds">
+				Tipos de promoción
+			</button>
+		</h2>
+		<div id="collapsePromoKinds" class="accordion-collapse collapse show" aria-labelledby="headingPromoKinds" data-bs-parent="#promotionsAccordion">
+			<div class="accordion-body">
+				<strong>Se crean en Gestión de Contenido / Promociones.</strong>
+				<ol>
+					<li><strong>Llevá X / Pagá Y:</strong> cantidad que se lleva y cantidad que recibe descuento con su porcentaje (100 = gratis). 2x1 es llevá 1, traé 1 al 100%. "Solo mismo SKU" agrupa por producto; apagado combina productos del alcance.</li>
+					<li><strong>Porcentaje:</strong> descuento % sobre el alcance elegido.</li>
+					<li><strong>Descuento por medio de pago:</strong> descuento % que solo aplica al medio de pago seleccionado (por ejemplo transferencia).</li>
+					<li>Los rótulos de tipo y alcance se muestran en tu idioma, pero lo guardado no cambia.</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingPromoScope">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePromoScope" aria-expanded="false" aria-controls="collapsePromoScope">
+				Alcance, vigencia y mayoristas
+			</button>
+		</h2>
+		<div id="collapsePromoScope" class="accordion-collapse collapse" aria-labelledby="headingPromoScope" data-bs-parent="#promotionsAccordion">
+			<div class="accordion-body">
+				<ol>
+					<li><strong>Alcance:</strong> Tienda, Producto, Categoría o Colección. Solo se usa el selector del alcance elegido; con Tienda no se elige nada.</li>
+					<li><strong>Incluir mayoristas:</strong> apagado por defecto, las líneas mayoristas quedan excluidas. Prendelo solo si la promo también vale para mayoristas.</li>
+					<li><strong>Vigencia "desde / hasta"</strong> (opcional, hora de Argentina) e interruptor <strong>Activa</strong>. Apagada o fuera de vigencia no aplica.</li>
+					<li>Porcentajes con decimales: en español usá coma (<strong>10,50</strong>); en inglés usá punto (<strong>10.50</strong>).</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>
