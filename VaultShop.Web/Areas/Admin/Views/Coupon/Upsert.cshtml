@@ -25,7 +25,10 @@
 				<div class="row g-3">
 					<div class="col-md-6">
 						<div class="form-floating shadow">
-							<select asp-for="DiscountType" asp-items="Html.GetEnumSelectList<CouponDiscountType>()" class="form-select"></select>
+							<select asp-for="DiscountType" class="form-select">
+								<option value="@nameof(CouponDiscountType.Percent)">@Localizer["TypePercent"]</option>
+								<option value="@nameof(CouponDiscountType.FixedAmount)">@Localizer["TypeFixedAmount"]</option>
+							</select>
 							<label asp-for="DiscountType" class="ms-2 text-muted">@Localizer["Type"]</label>
 						</div>
 						<span asp-validation-for="DiscountType" class="text-danger"></span>
@@ -34,7 +37,7 @@
 						<div class="input-group shadow">
 							<span class="input-group-text text-dark">$ / %</span>
 							<div class="form-floating">
-								<input asp-for="Value" class="form-control" type="number" min="0" step="0.01" placeholder="Value" />
+								<input asp-for="Value" class="form-control" type="text" inputmode="decimal" placeholder="Value" />
 								<label asp-for="Value" class="ms-2 text-muted">@Localizer["Value"]</label>
 							</div>
 						</div>
@@ -44,7 +47,7 @@
 						<div class="input-group shadow">
 							<span class="input-group-text text-dark">$</span>
 							<div class="form-floating">
-								<input asp-for="MinSubtotal" class="form-control" type="number" min="0" step="0.01" placeholder="MinSubtotal" />
+								<input asp-for="MinSubtotal" class="form-control" type="text" inputmode="decimal" placeholder="MinSubtotal" />
 								<label asp-for="MinSubtotal" class="ms-2 text-muted">@Localizer["MinSubtotal"]</label>
 							</div>
 						</div>

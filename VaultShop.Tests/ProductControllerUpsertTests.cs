@@ -178,6 +178,48 @@ public class ProductControllerUpsertTests
         uow.Mock.Verify(u => u.Save(), Times.AtLeastOnce);
     }
 
+    // oferta-decimales-variantes 1.2 — offer at or above the same-channel final price is rejected
+    [Theory]
+    [InlineData(1200.0)] // equal to FinalRetailPrice
+    [InlineData(1500.0)] // above FinalRetailPrice
+    public async Task Upsert_Post_OfferAtOrAboveRetailPrice_IsRejected(double saleRetailPrice)
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.SaleRetailPrice = (decimal)saleRetailPrice;
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<ViewResult>(result);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.Contains(controller.ModelState.Keys, k => k == "Product.SaleRetailPrice");
+        uow.ProductMock.Verify(p => p.Add(It.IsAny<Product>()), Times.Never);
+        uow.Mock.Verify(u => u.Save(), Times.Never);
+    }
+
+    // oferta-decimales-variantes 1.2 — offer end before start is rejected
+    [Fact]
+    public async Task Upsert_Post_OfferEndBeforeStart_IsRejected()
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.SaleRetailPrice = 900m;
+        vm.Product.SaleFromUtc = new DateTime(2026, 5, 2);
+        vm.Product.SaleToUtc = new DateTime(2026, 5, 1);
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<ViewResult>(result);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.Contains(controller.ModelState.Keys, k => k == "Product.SaleToUtc");
+        uow.ProductMock.Verify(p => p.Add(It.IsAny<Product>()), Times.Never);
+        uow.Mock.Verify(u => u.Save(), Times.Never);
+    }
+
     // 6.1 — edit page lists active keywords and pre-checks the product's current selection
     [Fact]
     public void Upsert_Get_Edit_PopulatesSelectedKeywordIds()

@@ -15,6 +15,7 @@ using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pricing;
+using VaultShop.Web.Services.ProductVariants;
 using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Areas.Customer.Controllers
@@ -36,12 +37,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly IConfiguration _configuration;
 		private readonly OrderAccessPolicy _orderAccessPolicy;
 		private readonly IBranchLookupService _branchLookup;
+		private readonly IProductVariantService _variantService;
 		// ponytail: must match BranchCascadePickerVM.IdPrefix — failed POSTs reselect province/locality from these form fields.
 		private const string BranchPickerPrefix = "branchPicker";
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
 			ILogger<CartController> logger, ICheckoutService checkoutService, IServiceProvider paymentSessionServiceProvider,
 			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration, OrderAccessPolicy orderAccessPolicy,
-			IBranchLookupService branchLookup)
+			IBranchLookupService branchLookup, IProductVariantService variantService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -54,6 +56,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_configuration = configuration;
 			_orderAccessPolicy = orderAccessPolicy;
 			_branchLookup = branchLookup;
+			_variantService = variantService;
 		}
 		public IActionResult Index()
 		{
@@ -138,19 +141,18 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			CouponRejectionReason.BelowMinimumSubtotal => _localizer["CouponBelowMinimum"].Value,
 			_ => _localizer["CouponInvalid"].Value,
 		};
-		private void RemoveShoppingCartsOutdated(string userId)
+private void RemoveShoppingCartsOutdated(string userId)
 		{
 			foreach (var cart in ShoppingCartVM.ShoppingCartList)
 			{
-				if (cart.Product.IsAvailableInStore == false || cart.Product.IsDeleted == true)
+				if (cart.Product.IsAvailableInStore == false || cart.Product.IsDeleted == true
+					|| !_variantService.ValidateVariantForProduct(cart.ProductId, cart.VariantId).IsValid)
 				{
-					HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart
-						.GetAll(u => u.ApplicationUserId == cart.ApplicationUserId).Count() - 1);
 					_unitOfWork.ShoppingCart.Remove(cart);
 				}
 			}
-		_unitOfWork.Save();
-		ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages,Product.Keywords,Variant.Values.Value.VariantOptionType");
+			_unitOfWork.Save();
+			ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product.Category,Product.ProductImages,Product.Keywords,Variant.Values.Value.VariantOptionType");
 			HttpContext.Session.SetInt32(SD.SessionCart, ShoppingCartVM.ShoppingCartList.Count());
 
 		}

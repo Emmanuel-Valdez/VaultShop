@@ -181,7 +181,15 @@
 							<script type="application/json" id="variant-combinations">@Html.Raw(JsonSerializer.Serialize(variantSelection.Variants.Select(v => new { id = v.Variant.Id, available = v.Variant.IsAvailable, values = v.Variant.Values.Select(vv => vv.ValueId).OrderBy(x => x) })))</script>
 						}
 
-						<div class="product-detail__purchase">
+					@{
+						// oferta-decimales-variantes 3.4: variant shape with zero available
+						// combinations hides purchase but keeps favoriting.
+						var hasAvailableCombination = variantSelection == null
+							|| variantSelection.Variants.Any(v => v.Variant.IsAvailable);
+					}
+					<div class="product-detail__purchase">
+						@if (hasAvailableCombination)
+						{
 							<div class="product-detail__stepper" role="group" aria-label="@Localizer["Count"]" data-stock="@Model.Product.StockQuantity">
 								<button type="button" class="product-detail__step product-detail__step--minus" data-quantity-step="-1" aria-label="@Localizer["DecreaseQuantity"]">
 									<i class="bi bi-dash-lg" aria-hidden="true"></i>
@@ -191,36 +199,41 @@
 									<i class="bi bi-plus-lg" aria-hidden="true"></i>
 								</button>
 							</div>
-							<div class="product-detail__actions">
-								@if (Model.Product.StockQuantity == 0)
-								{
-									<button type="button" disabled class="btn btn-danger disabled bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
-										@Localizer["OutOfStock"]
-									</button>
-								}
-								else if (useWholesalePrice && Model.Product.FinalWholesalePrice == 0)
-								{
-									<button class="btn btn-danger disabled bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
-										@Localizer["TemporarilyUnavailable"]
-									</button>
-								}
-								else
-								{
-									<button type="submit" class="btn btn-primary bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
-										@Localizer["AddToCart"]
-									</button>
-								}
+						}
+						<div class="product-detail__actions">
+							@if (!hasAvailableCombination)
+							{
+								<p class="text-danger small mb-0" role="alert">@Localizer["VariantCombinationUnavailable"]</p>
+							}
+							else if (Model.Product.StockQuantity == 0)
+							{
+								<button type="button" disabled class="btn btn-danger disabled bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
+									@Localizer["OutOfStock"]
+								</button>
+							}
+							else if (useWholesalePrice && Model.Product.FinalWholesalePrice == 0)
+							{
+								<button class="btn btn-danger disabled bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
+									@Localizer["TemporarilyUnavailable"]
+								</button>
+							}
+							else
+							{
+								<button type="submit" class="btn btn-primary bg-gradient py-2 text-uppercase fw-semibold product-detail__add-button">
+									@Localizer["AddToCart"]
+								</button>
+							}
 								@if (SignInManager.IsSignedIn(User))
 								{
 									@if (Model.IsFavorite == false)
 									{
-										<button type="submit" class="btn btn-outline-primary fs-4 px-3" asp-action="Add" asp-controller="Favorite" aria-label="@Localizer["AddToFavorites"]">
+										<button type="submit" formnovalidate class="btn btn-outline-primary fs-4 px-3" asp-action="Add" asp-controller="Favorite" aria-label="@Localizer["AddToFavorites"]">
 											<i class="bi bi-balloon-heart"></i>
 										</button>
 									}
 									else
 									{
-										<button type="submit" class="btn btn-outline-primary fs-4 px-3" asp-action="RemoveFromProductDetails" asp-controller="Favorite" asp-route-favoriteId="@Model.FavoriteProductId" asp-route-productId="@Model.ProductId" aria-label="@Localizer["RemoveFromFavorites"]">
+										<button type="submit" formnovalidate class="btn btn-outline-primary fs-4 px-3" asp-action="RemoveFromProductDetails" asp-controller="Favorite" asp-route-favoriteId="@Model.FavoriteProductId" asp-route-productId="@Model.ProductId" aria-label="@Localizer["RemoveFromFavorites"]">
 											<i class="bi bi-balloon-heart-fill"></i>
 										</button>
 									}
@@ -271,33 +284,55 @@
 		@if (ViewData["VariantSelection"] is IProductVariantService.VariantSelectionData)
 		{
 			<text>
-		// product-variants 3.1: map the selected value-tuple to a VariantId; no default, the add
-		// button stays disabled until an available combination resolves. Server re-validates.
-		(function () {
-			var picker = document.querySelector('[data-variant-picker]');
-			if (!picker) return;
-			var data = document.getElementById('variant-combinations');
-			var combos = data ? JSON.parse(data.textContent) : [];
-			var selects = Array.prototype.slice.call(picker.querySelectorAll('[data-variant-selector]'));
-			var hidden = document.getElementById('variantId');
-			var addButton = document.querySelector('.product-detail__add-button[type="submit"]');
-			var unavailableMsg = picker.querySelector('[data-variant-unavailable]');
-			var resolve = function () {
-				var selected = selects.map(function (s) { return parseInt(s.value, 10); });
-				if (selected.some(isNaN)) return null;
-				var key = selected.slice().sort().join(',');
-				return combos.find(function (c) { return c.values.slice().sort().join(',') === key; }) || null;
-			};
-			var update = function () {
-				var match = resolve();
-				var ok = !!match && match.available;
-				if (hidden) hidden.value = ok ? match.id : '';
-				if (addButton) addButton.disabled = !ok;
-				if (unavailableMsg) unavailableMsg.classList.toggle('d-none', !!match && match.available);
-			};
-			selects.forEach(function (s) { s.addEventListener('change', update); });
-			update();
-		})();
+	// product-variants 3.1: map the selected value-tuple to a VariantId; no default, the add
+	// button stays disabled until an available combination resolves. Server re-validates.
+	// oferta-decimales-variantes 3.1: the unavailable message shows only on a complete
+	// selection whose combination is missing or unavailable. 3.2: option values that
+	// cannot form an available combination with the other current selections are disabled.
+	(function () {
+		var picker = document.querySelector('[data-variant-picker]');
+		if (!picker) return;
+		var data = document.getElementById('variant-combinations');
+		var combos = data ? JSON.parse(data.textContent) : [];
+		var selects = Array.prototype.slice.call(picker.querySelectorAll('[data-variant-selector]'));
+		var hidden = document.getElementById('variantId');
+		var addButton = document.querySelector('.product-detail__add-button[type="submit"]');
+		var unavailableMsg = picker.querySelector('[data-variant-unavailable]');
+		var resolve = function () {
+			var selected = selects.map(function (s) { return parseInt(s.value, 10); });
+			if (selected.some(isNaN)) return null;
+			var key = selected.slice().sort().join(',');
+			return combos.find(function (c) { return c.values.slice().sort().join(',') === key; }) || null;
+		};
+		var refreshOptions = function () {
+			selects.forEach(function (s) {
+				var others = [];
+				selects.forEach(function (o) {
+					if (o !== s && o.value !== '') others.push(parseInt(o.value, 10));
+				});
+				Array.prototype.forEach.call(s.options, function (opt) {
+					if (opt.value === '') return;
+					var v = parseInt(opt.value, 10);
+					var possible = combos.some(function (c) {
+						if (!c.available || c.values.indexOf(v) < 0) return false;
+						return others.every(function (ov) { return c.values.indexOf(ov) >= 0; });
+					});
+					opt.disabled = !possible;
+				});
+			});
+		};
+		var update = function () {
+			var complete = selects.every(function (s) { return s.value !== ''; });
+			var match = resolve();
+			var ok = !!match && match.available;
+			if (hidden) hidden.value = ok ? match.id : '';
+			if (addButton) addButton.disabled = !ok;
+			if (unavailableMsg) unavailableMsg.classList.toggle('d-none', !complete || ok);
+			refreshOptions();
+		};
+		selects.forEach(function (s) { s.addEventListener('change', update); });
+		update();
+	})();
 			</text>
 		}
 	</script>

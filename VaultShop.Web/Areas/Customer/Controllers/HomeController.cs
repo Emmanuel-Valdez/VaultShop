@@ -44,8 +44,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		public IActionResult Index(int pageNumber = 1)
 		{
 			var productList = _unitOfWork.Product
-				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages,Keywords.Keyword.Images")
+				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages,Keywords.Keyword.Images,Variants,VariantValues")
 				.OrderBy(u => u.Id)
+				.Where(IsSellable)
 				.ToList();
 			var featuredProducts = productList
 				.Where(u => u.IsFeatured)
@@ -283,8 +284,9 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			}
 
 			var products = _unitOfWork.Product
-				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages,Keywords.Keyword.Images")
+				.GetAll(u => u.IsDeleted == false && u.IsAvailableInStore == true, includeProperties: "Category,ProductImages,Keywords.Keyword.Images,Variants,VariantValues")
 				.OrderBy(u => u.Id)
+				.Where(IsSellable)
 				.ToList();
 
 			// ponytail: missing/soft-deleted ids filter down to an empty set here, no extra lookup needed.
@@ -363,6 +365,12 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 
 			return View(pagedProducts);
 		}
+
+		// oferta-decimales-variantes 3.4: variant shape with zero available combinations
+		// is not listed and cannot be purchased; favoriting still works. Variant-less
+		// products are unaffected.
+		private static bool IsSellable(Product p) =>
+			(p.Variants.Count == 0 && p.VariantValues.Count == 0) || p.Variants.Any(v => v.IsAvailable);
 
 		public IActionResult SetLanguage(string culture, string returnUrl)
 		{

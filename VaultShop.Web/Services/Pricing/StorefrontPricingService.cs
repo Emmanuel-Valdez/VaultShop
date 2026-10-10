@@ -13,7 +13,7 @@ public interface IStorefrontPricingService
 	IReadOnlyDictionary<int, ProductDisplayPrice> GetDisplayPrices(IEnumerable<Product> products, bool useWholesale);
 }
 
-public sealed record ProductDisplayPrice(decimal BasePrice, decimal EffectivePrice, string? Motive)
+public sealed record ProductDisplayPrice(decimal BasePrice, decimal EffectivePrice, string? Motive, DateTime? OfferEndUtc = null)
 {
 	public bool HasDiscount => EffectivePrice < BasePrice;
 	public bool HasBadge => !string.IsNullOrWhiteSpace(Motive);
@@ -84,10 +84,13 @@ public class StorefrontPricingService : IStorefrontPricingService
 				result[p.Id] = new ProductDisplayPrice(fallback, fallback, null);
 				continue;
 			}
-			var motive = line.DiscountAmount > 0
+		var motive = line.DiscountAmount > 0
 				? line.DiscountMotive
 				: FindCoveringBxGy(promotions, p, useWholesale, now)?.Name;
-			result[p.Id] = new ProductDisplayPrice(line.BaseUnitPrice, line.EffectiveTotal, motive);
+			// ponytail: surface the sale deadline only for the direct product offer;
+			// BxGy / promotion end dates arrive when the evaluator can attribute them.
+			var offerEnd = motive == DiscountEvaluator.OfferMotive ? p.SaleToUtc : (DateTime?)null;
+			result[p.Id] = new ProductDisplayPrice(line.BaseUnitPrice, line.EffectiveTotal, motive, offerEnd);
 		}
 		return result;
 	}

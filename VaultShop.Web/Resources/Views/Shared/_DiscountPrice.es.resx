@@ -64,4 +64,7 @@
   <data name="CouponBadge" xml:space="preserve">
     <value>Cupón </value>
   </data>
+  <data name="OfferEnd" xml:space="preserve">
+    <value>Válida hasta el {0:dd/MM HH:mm}</value>
+  </data>
 </root>

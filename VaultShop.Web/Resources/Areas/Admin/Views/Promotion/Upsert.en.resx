@@ -63,4 +63,25 @@
   <data name="BackToList" xml:space="preserve">
     <value>Back to List</value>
   </data>
+  <data name="KindBxGy" xml:space="preserve">
+    <value>Buy X, pay Y</value>
+  </data>
+  <data name="KindPercentOff" xml:space="preserve">
+    <value>Percent off</value>
+  </data>
+  <data name="KindPaymentMethodDiscount" xml:space="preserve">
+    <value>Payment method discount</value>
+  </data>
+  <data name="ScopeStore" xml:space="preserve">
+    <value>Store</value>
+  </data>
+  <data name="ScopeProduct" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="ScopeCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ScopeKeyword" xml:space="preserve">
+    <value>Collection</value>
+  </data>
 </root>

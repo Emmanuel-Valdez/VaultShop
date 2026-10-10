@@ -264,7 +264,8 @@ namespace VaultShop.Web.Tests
 			null!,
 			null!,
 			null!,
-			null!)
+			null!,
+			Mock.Of<IProductVariantService>())
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

@@ -38,6 +38,10 @@ namespace VaultShop.DataAccess.Repository
                 objFromDB.IsFeatured = obj.IsFeatured;
                 objFromDB.FeaturedSortOrder = obj.FeaturedSortOrder;
                 objFromDB.StockQuantity = obj.StockQuantity;
+                objFromDB.SaleRetailPrice = obj.SaleRetailPrice;
+                objFromDB.SaleWholesalePrice = obj.SaleWholesalePrice;
+                objFromDB.SaleFromUtc = obj.SaleFromUtc;
+                objFromDB.SaleToUtc = obj.SaleToUtc;
                 //if(obj.ImageUrl!= null)
                 //{
                 //    objFromDB.ImageUrl = obj.ImageUrl;

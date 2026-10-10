@@ -77,7 +77,7 @@
 									<div class="input-group shadow-sm">
 										<span class="input-group-text text-dark">$</span>
 										<div class="form-floating">
-											<input asp-for="Product.SaleRetailPrice" class="form-control" type="number" min="1" step="0.01" placeholder="SaleRetailPrice" />
+											<input asp-for="Product.SaleRetailPrice" class="form-control" type="text" inputmode="decimal" placeholder="SaleRetailPrice" />
 											<label asp-for="Product.SaleRetailPrice" class="ms-2 text-muted">@Localizer["SaleRetailPrice"]</label>
 										</div>
 									</div>
@@ -87,7 +87,7 @@
 									<div class="input-group shadow-sm">
 										<span class="input-group-text text-dark">$</span>
 										<div class="form-floating">
-											<input asp-for="Product.SaleWholesalePrice" class="form-control" type="number" min="1" step="0.01" placeholder="SaleWholesalePrice" />
+											<input asp-for="Product.SaleWholesalePrice" class="form-control" type="text" inputmode="decimal" placeholder="SaleWholesalePrice" />
 											<label asp-for="Product.SaleWholesalePrice" class="ms-2 text-muted">@Localizer["SaleWholesalePrice"]</label>
 										</div>
 									</div>

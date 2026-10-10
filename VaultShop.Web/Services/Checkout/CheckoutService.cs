@@ -391,7 +391,8 @@ namespace VaultShop.Web.Services.Checkout
 
 		private IEnumerable<ShoppingCart> RemoveShoppingCartsOutdated(string userId, IEnumerable<ShoppingCart> shoppingCarts)
 		{
-			var cartsToRemove = shoppingCarts.Where(cart => cart.Product.IsAvailableInStore == false || cart.Product.IsDeleted == true).ToList();
+			var cartsToRemove = shoppingCarts.Where(cart => cart.Product.IsAvailableInStore == false || cart.Product.IsDeleted == true
+				|| !_variantService.ValidateVariantForProduct(cart.ProductId, cart.VariantId).IsValid).ToList();
 			if (cartsToRemove.Any())
 			{
 				_unitOfWork.ShoppingCart.RemoveRange(cartsToRemove);

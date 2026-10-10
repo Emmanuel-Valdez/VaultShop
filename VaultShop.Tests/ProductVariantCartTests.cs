@@ -12,6 +12,7 @@ using VaultShop.DataAccess.Data;
 using VaultShop.DataAccess.Repository;
 using VaultShop.Models;
 using VaultShop.Web.Areas.Customer.Controllers;
+using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Pagination;
 using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
@@ -251,6 +252,63 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(variantB, remaining.VariantId);
 		}
 
+		[Fact]
+		public void CartIndex_NewlyUnavailableVariant_DropsLineAndKeepsSibling()
+		{
+			using var connection = CreateOpenConnection();
+			var options = CreateOptions(connection);
+			EnsureDatabaseCreated(options);
+			var (productId, variantA, variantB) = SeedVariantProduct(options, stockQuantity: 5);
+			SeedCartLine(options, productId, variantA, count: 1);
+			SeedCartLine(options, productId, variantB, count: 2);
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				Assert.True(new ProductVariantService(new UnitOfWork(context)).SetAvailability(productId, variantA, false).Success);
+			}
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				Assert.IsType<ViewResult>(CreateCartController(context).Index());
+			}
+
+			using var verificationContext = new ApplicationDbContext(options);
+			var remaining = Assert.Single(verificationContext.ShoppingCarts.AsNoTracking().Where(c => c.ApplicationUserId == "user-1"));
+			Assert.Equal(variantB, remaining.VariantId);
+			Assert.Equal(2, remaining.Count);
+		}
+
+		[Fact]
+		public void CheckoutSummary_NewlyUnavailableVariant_DropsLineBeforePricing()
+		{
+			using var connection = CreateOpenConnection();
+			var options = CreateOptions(connection);
+			EnsureDatabaseCreated(options);
+			var (productId, variantA, variantB) = SeedVariantProduct(options, stockQuantity: 5);
+			SeedCartLine(options, productId, variantA, count: 1);
+			SeedCartLine(options, productId, variantB, count: 2);
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				Assert.True(new ProductVariantService(new UnitOfWork(context)).SetAvailability(productId, variantA, false).Success);
+			}
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var unitOfWork = new UnitOfWork(context);
+				var service = new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance, new ProductVariantService(unitOfWork), new DiscountEvaluator());
+				var summary = service.BuildSummary("user-1", useWholesalePrice: false);
+
+				Assert.False(summary.IsCartEmpty);
+				var line = Assert.Single(summary.ShoppingCartVM!.ShoppingCartList);
+				Assert.Equal(variantB, line.VariantId);
+			}
+
+			using var verificationContext = new ApplicationDbContext(options);
+			var remaining = Assert.Single(verificationContext.ShoppingCarts.AsNoTracking().Where(c => c.ApplicationUserId == "user-1"));
+			Assert.Equal(variantB, remaining.VariantId);
+		}
+
 		private static HomeController CreateHomeController(ApplicationDbContext context)
 		{
 			var unitOfWork = new UnitOfWork(context);
@@ -288,18 +346,20 @@ namespace VaultShop.Web.Tests
 			};
 			httpContext.Session = Mock.Of<ISession>();
 
+			var variantService = new ProductVariantService(unitOfWork);
 			return new CartController(
 				unitOfWork,
 				localizerMock.Object,
 				null!,
 				NullLogger<CartController>.Instance,
+				new CheckoutService(unitOfWork, NullLogger<CheckoutService>.Instance, variantService, new DiscountEvaluator()),
 				null!,
 				null!,
 				null!,
 				null!,
 				null!,
 				null!,
-				null!)
+				variantService)
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

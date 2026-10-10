@@ -63,6 +63,71 @@ namespace VaultShop.Web.Tests
 	}
 
 	[Fact]
+	public void Update_PersistsOfferFields()
+	{
+		using var connection = CreateOpenConnection();
+		var options = CreateOptions(connection);
+		EnsureDatabaseCreated(options);
+
+		int productId;
+		int categoryId;
+		using (var context = new ApplicationDbContext(options))
+		{
+			var category = new Category { Name = "Test Category", AvgShippingCost = 0m };
+			var product = new Product
+			{
+				Name = "Original Name",
+				Description = "Product used by repository tests.",
+				MaxExpectation = 10,
+				Category = category,
+				ListPrice = 100m,
+				FinalRetailPrice = 100m,
+				FinalWholesalePrice = 80m,
+				IsDeleted = false,
+			};
+			context.Products.Add(product);
+			context.SaveChanges();
+			productId = product.Id;
+			categoryId = category.Id;
+		}
+
+		var saleFrom = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		var saleTo = new DateTime(2026, 1, 31, 0, 0, 0, DateTimeKind.Utc);
+
+		using (var context = new ApplicationDbContext(options))
+		{
+			var repo = new ProductRepository(context);
+			repo.Update(new Product
+			{
+				Id = productId,
+				Name = "Updated Name",
+				MaxExpectation = 15,
+				CategoryId = categoryId,
+				ListPrice = 110m,
+				FinalRetailPrice = 110m,
+				FinalWholesalePrice = 90m,
+				IsDeleted = false,
+				SaleRetailPrice = 80m,
+				SaleWholesalePrice = 60m,
+				SaleFromUtc = saleFrom,
+				SaleToUtc = saleTo,
+			});
+			context.SaveChanges();
+		}
+
+		using (var verificationContext = new ApplicationDbContext(options))
+		{
+			var product = Assert.Single(verificationContext.Products.AsNoTracking());
+			Assert.Equal(80m, product.SaleRetailPrice);
+			Assert.Equal(60m, product.SaleWholesalePrice);
+			Assert.NotNull(product.SaleFromUtc);
+			Assert.Equal(saleFrom.Ticks, product.SaleFromUtc!.Value.Ticks);
+			Assert.NotNull(product.SaleToUtc);
+			Assert.Equal(saleTo.Ticks, product.SaleToUtc!.Value.Ticks);
+		}
+	}
+
+	[Fact]
 	public void DecrementStockIfSufficient_CoveredTotal_DecrementsRelatively()
 	{
 		using var connection = CreateOpenConnection();

@@ -10,7 +10,14 @@
 	<p class="product-price h5 mb-1"><s class="text-muted fw-normal">@Model.BasePrice.ToString("c")</s> <span>@Model.EffectivePrice.ToString("c")</span></p>
 	if (!string.IsNullOrWhiteSpace(badge))
 	{
-		<p class="mb-3"><span class="badge bg-success">@badge</span></p>
+		<p class="mb-3">
+			<span class="badge bg-success">@badge</span>
+			@if (Model.OfferEndUtc is { } end)
+			{
+				<br />
+				<small class="text-muted"><i class="bi bi-clock" aria-hidden="true"></i> <time datetime="@end.ToString("yyyy-MM-ddTHH:mmZ")">@string.Format(Localizer["OfferEnd"].Value, end)</time></small>
+			}
+		</p>
 	}
 }
 else

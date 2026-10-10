@@ -39,4 +39,10 @@
   <data name="BackToList" xml:space="preserve">
     <value>Back to List</value>
   </data>
+  <data name="TypePercent" xml:space="preserve">
+    <value>Percent</value>
+  </data>
+  <data name="TypeFixedAmount" xml:space="preserve">
+    <value>Fixed amount</value>
+  </data>
 </root>

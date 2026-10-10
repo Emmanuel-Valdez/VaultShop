@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Net;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
@@ -268,7 +269,214 @@ namespace VaultShop.Web.Tests
 			Assert.Contains(labelB, body);
 		}
 
-		private static int SeedVariantProduct(CustomWebApplicationFactory factory)
+		// oferta-decimales-variantes 3.1 — the unavailable message starts hidden; the
+		// script only shows it on a complete selection whose combination is missing
+		// or unavailable.
+		[Fact]
+		public async Task Details_VariantProduct_HidesUnavailableMessageInitially()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var productId = SeedVariantProduct(factory);
+			var client = factory.CreateClient();
+
+			var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync($"/en-US/Customer/Home/Details/{productId}"));
+
+			var msg = Regex.Match(body, @"<p[^>]*data-variant-unavailable[^>]*>");
+			Assert.True(msg.Success, "expected the unavailable message element");
+			Assert.Contains("d-none", msg.Value);
+		}
+
+		[Fact]
+		public void PickerScript_ShowsMessageOnlyOnCompleteUnavailableSelection()
+		{
+			var view = ReadDetailsView();
+
+			Assert.Contains("selects.every(function (s) { return s.value !== ''; })", view);
+			Assert.Contains("unavailableMsg.classList.toggle('d-none', !complete || ok)", view);
+		}
+
+		// oferta-decimales-variantes 3.2 — impossible option values disable from the
+		// embedded combination JSON, with no server round-trip.
+		[Fact]
+		public void PickerScript_DisablesImpossibleOptionsFromCombinationJson()
+		{
+			var view = ReadDetailsView();
+
+			Assert.Contains("opt.disabled = !possible;", view);
+			Assert.Contains("if (!c.available || c.values.indexOf(v) < 0) return false;", view);
+			Assert.Contains("refreshOptions();", view);
+		}
+
+		// oferta-decimales-variantes 3.3 — the favorite button skips browser validation
+		// so empty variant selectors never block it; the server only needs the product id.
+		[Fact]
+		public async Task Details_VariantProduct_FavoriteButtonSkipsValidation()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var productId = SeedVariantProduct(factory);
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+			var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync($"/en-US/Customer/Home/Details/{productId}"));
+
+			var fav = Regex.Match(body, @"<button[^>]*Favorite/Add[^>]*>");
+			Assert.True(fav.Success, "expected the favorite button");
+			Assert.Contains("formnovalidate", fav.Value);
+		}
+
+		[Fact]
+		public async Task Favorite_Add_VariantProductWithoutSelection_Succeeds()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var productId = SeedVariantProduct(factory);
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+			var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, $"/en-US/Customer/Home/Details/{productId}");
+			var response = await client.PostAsync("/en-US/Customer/Favorite/Add", new FormUrlEncodedContent(new Dictionary<string, string>
+			{
+				["__RequestVerificationToken"] = token,
+				["productId"] = productId.ToString(),
+			}));
+
+			Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+			Assert.Contains($"/Customer/Home/Details/{productId}", response.Headers.Location!.ToString());
+
+			using var scope = factory.Services.CreateScope();
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			Assert.Single(db.FavoriteProducts.AsNoTracking().Where(f => f.ProductId == productId));
+		}
+
+		// oferta-decimales-variantes 3.4 — unsellable variant products leave home and
+		// search; variant-less products still list.
+		[Fact]
+		public async Task Index_OmitsUnsellableVariantProduct_ListsVariantLess()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			SeedListingPair(factory);
+			var client = factory.CreateClient();
+
+			var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync("/en-US/Customer/Home/Index"));
+
+			Assert.Contains("Mochila Lisa", body);
+			Assert.DoesNotContain("Mochila Fantasma", body);
+		}
+
+		[Fact]
+		public async Task Search_OmitsUnsellableVariantProduct_ListsVariantLess()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			SeedListingPair(factory);
+			var client = factory.CreateClient();
+
+			var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync("/en-US/Customer/Home/Search?searchString=Mochila"));
+
+			Assert.Contains("Mochila Lisa", body);
+			Assert.DoesNotContain("Mochila Fantasma", body);
+		}
+
+		// One category, one variant-less product, one unsellable variant product.
+		private static void SeedListingPair(CustomWebApplicationFactory factory)
+		{
+			using var scope = factory.Services.CreateScope();
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			var category = new Category { Name = "Mochilas", Slug = "mochilas", AvgShippingCost = 100m };
+			db.Categories.Add(category);
+			db.SaveChanges();
+			db.Products.Add(new Product
+			{
+				Name = "Mochila Lisa",
+				Slug = "mochila-lisa",
+				Description = "Mochila",
+				MaxExpectation = 10,
+				CategoryId = category.Id,
+				ListPrice = 100m,
+				FinalRetailPrice = 100m,
+				FinalWholesalePrice = 100m,
+				IsAvailableInStore = true,
+				IsDeleted = false,
+				StockQuantity = 10,
+			});
+			var ghost = new Product
+			{
+				Name = "Mochila Fantasma",
+				Slug = "mochila-fantasma",
+				Description = "Mochila",
+				MaxExpectation = 10,
+				CategoryId = category.Id,
+				ListPrice = 100m,
+				FinalRetailPrice = 100m,
+				FinalWholesalePrice = 100m,
+				IsAvailableInStore = true,
+				IsDeleted = false,
+				StockQuantity = 10,
+			};
+			db.Products.Add(ghost);
+			db.SaveChanges();
+
+			var variants = scope.ServiceProvider.GetRequiredService<IProductVariantService>();
+			Assert.True(variants.AddValue(ghost.Id, "Casa", "Gryffindor", 0).Success);
+			Assert.True(variants.AddValue(ghost.Id, "Tamaño", "15\"", 0).Success);
+			Assert.Equal(1, variants.GenerateCombinations(ghost.Id).CreatedCount);
+			foreach (var v in db.ProductVariants.Where(v => v.ProductId == ghost.Id))
+				v.IsAvailable = false;
+			db.SaveChanges();
+		}
+
+		// oferta-decimales-variantes 3.4 — direct detail hides add-to-cart but keeps
+		// the unavailable notice; favoriting the unsellable product still works.
+		[Fact]
+		public async Task Details_UnsellableVariantProduct_HidesAddToCart()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var productId = SeedUnsellableVariantProduct(factory);
+			var client = factory.CreateClient();
+
+			var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync($"/en-US/Customer/Home/Details/{productId}"));
+
+			Assert.Empty(Regex.Matches(body, @"<[a-z/!][^>]*product-detail__stepper"));
+			Assert.Empty(Regex.Matches(body, @"<[a-z/!][^>]*product-detail__add-button"));
+			Assert.Contains("That combination is not available", body);
+		}
+
+		[Fact]
+		public async Task Favorite_Add_UnsellableVariantProduct_Succeeds()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var productId = SeedUnsellableVariantProduct(factory);
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+			var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, $"/en-US/Customer/Home/Details/{productId}");
+			var response = await client.PostAsync("/en-US/Customer/Favorite/Add", new FormUrlEncodedContent(new Dictionary<string, string>
+			{
+				["__RequestVerificationToken"] = token,
+				["productId"] = productId.ToString(),
+			}));
+
+			Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+
+			using var scope = factory.Services.CreateScope();
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			Assert.Single(db.FavoriteProducts.AsNoTracking().Where(f => f.ProductId == productId));
+		}
+
+		private static string ReadDetailsView() =>
+			File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+				"..", "..", "..", "..", "VaultShop.Web", "Areas", "Customer", "Views", "Home", "Details.cshtml")));
+
+		private static int SeedUnsellableVariantProduct(CustomWebApplicationFactory factory)
+		{
+			var productId = SeedVariantProduct(factory, "Mochila Fantasma", "mochila-fantasma");
+			using var scope = factory.Services.CreateScope();
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			foreach (var v in db.ProductVariants.Where(v => v.ProductId == productId))
+				v.IsAvailable = false;
+			db.SaveChanges();
+			return productId;
+		}
+
+		private static int SeedVariantProduct(CustomWebApplicationFactory factory, string name = "Mochila HP", string slug = "mochila-hp")
 		{
 			using var scope = factory.Services.CreateScope();
 			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -277,8 +485,8 @@ namespace VaultShop.Web.Tests
 			db.SaveChanges();
 			var product = new Product
 			{
-				Name = "Mochila HP",
-				Slug = "mochila-hp",
+				Name = name,
+				Slug = slug,
 				Description = "Mochila",
 				MaxExpectation = 10,
 				CategoryId = category.Id,

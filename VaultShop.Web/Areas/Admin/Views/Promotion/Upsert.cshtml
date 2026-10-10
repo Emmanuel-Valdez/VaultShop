@@ -25,14 +25,23 @@
 				<div class="row g-3">
 					<div class="col-md-6">
 						<div class="form-floating shadow">
-							<select asp-for="Promotion.Kind" asp-items="Html.GetEnumSelectList<PromotionKind>()" class="form-select" id="Promotion_Kind"></select>
+							<select asp-for="Promotion.Kind" class="form-select" id="Promotion_Kind">
+								<option value="@nameof(PromotionKind.BxGy)">@Localizer["KindBxGy"]</option>
+								<option value="@nameof(PromotionKind.PercentOff)">@Localizer["KindPercentOff"]</option>
+								<option value="@nameof(PromotionKind.PaymentMethodDiscount)">@Localizer["KindPaymentMethodDiscount"]</option>
+							</select>
 							<label asp-for="Promotion.Kind" class="ms-2 text-muted">@Localizer["Kind"]</label>
 						</div>
 						<span asp-validation-for="Promotion.Kind" class="text-danger"></span>
 					</div>
 					<div class="col-md-6">
 						<div class="form-floating shadow">
-							<select asp-for="Promotion.Scope" asp-items="Html.GetEnumSelectList<PromotionScope>()" class="form-select" id="Promotion_Scope"></select>
+							<select asp-for="Promotion.Scope" class="form-select" id="Promotion_Scope">
+								<option value="@nameof(PromotionScope.Store)">@Localizer["ScopeStore"]</option>
+								<option value="@nameof(PromotionScope.Product)">@Localizer["ScopeProduct"]</option>
+								<option value="@nameof(PromotionScope.Category)">@Localizer["ScopeCategory"]</option>
+								<option value="@nameof(PromotionScope.Keyword)">@Localizer["ScopeKeyword"]</option>
+							</select>
 							<label asp-for="Promotion.Scope" class="ms-2 text-muted">@Localizer["Scope"]</label>
 						</div>
 						<span asp-validation-for="Promotion.Scope" class="text-danger"></span>
@@ -86,7 +95,7 @@
 						<div class="input-group shadow">
 							<span class="input-group-text text-dark">%</span>
 							<div class="form-floating">
-								<input asp-for="Promotion.GetDiscountPercent" class="form-control" type="number" min="1" max="100" step="0.01" placeholder="GetDiscountPercent" />
+								<input asp-for="Promotion.GetDiscountPercent" class="form-control" type="text" inputmode="decimal" placeholder="GetDiscountPercent" />
 								<label asp-for="Promotion.GetDiscountPercent" class="ms-2 text-muted">@Localizer["GetDiscountPercent"]</label>
 							</div>
 						</div>
@@ -101,7 +110,7 @@
 						<div class="input-group shadow">
 							<span class="input-group-text text-dark">%</span>
 							<div class="form-floating">
-								<input asp-for="Promotion.DiscountPercent" class="form-control" type="number" min="1" max="100" step="0.01" placeholder="DiscountPercent" />
+								<input asp-for="Promotion.DiscountPercent" class="form-control" type="text" inputmode="decimal" placeholder="DiscountPercent" />
 								<label asp-for="Promotion.DiscountPercent" class="ms-2 text-muted">@Localizer["DiscountPercent"]</label>
 							</div>
 						</div>
@@ -182,8 +191,8 @@
 			var kindEl = document.getElementById('Promotion_Kind');
 			var scopeEl = document.getElementById('Promotion_Scope');
 			function apply() {
-				var kind = kindEl.options[kindEl.selectedIndex].text;
-				var scope = scopeEl.options[scopeEl.selectedIndex].text;
+				var kind = kindEl.value;
+				var scope = scopeEl.value;
 				document.querySelectorAll('[data-kind-for]').forEach(function (el) {
 					el.style.display = el.getAttribute('data-kind-for').split(' ').indexOf(kind) >= 0 ? '' : 'none';
 				});
