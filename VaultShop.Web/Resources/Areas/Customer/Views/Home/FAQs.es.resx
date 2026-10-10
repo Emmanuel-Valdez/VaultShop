@@ -219,4 +219,10 @@
   <data name="Answer10" xml:space="preserve">
     <value>Elegí la sucursal al momento de comprar (provincia, localidad y sucursal) y revisá su horario en la confirmación de tu pedido. Te avisamos por email cuando el pedido esté en camino a la sucursal, con el código de seguimiento. Tenés 5 días hábiles para retirarlo presentando tu DNI y el número de seguimiento. Si no lo retirás en ese plazo, el paquete vuelve al remitente y el reenvío tiene costo.</value>
   </data>
+  <data name="Question11" xml:space="preserve">
+    <value>11. ¿Se pueden combinar los descuentos?</value>
+  </data>
+  <data name="Answer11" xml:space="preserve">
+    <value>Los descuentos específicos no se combinan: siempre se aplica el mejor precio (oferta, cupón, promoción o combo). El descuento por medio de pago sí se suma sobre ese mejor precio.</value>
+  </data>
 </root>

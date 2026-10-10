@@ -17,5 +17,19 @@ namespace VaultShop.Web.Tests
 			Assert.Contains(questionFragment, html, StringComparison.OrdinalIgnoreCase);
 			Assert.Contains(policyFragment, html, StringComparison.OrdinalIgnoreCase);
 		}
+
+		[Theory]
+		[InlineData("es-AR", "¿Se pueden combinar los descuentos?", "El descuento por medio de pago")]
+		[InlineData("en-US", "Can discounts be combined?", "payment-method discount does stack")]
+		public async Task FAQs_RendersStackingItem(string culture, string questionFragment, string answerFragment)
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var html = await client.GetStringAsync($"/{culture}/Customer/Home/FAQs");
+
+			Assert.Contains(questionFragment, html, StringComparison.OrdinalIgnoreCase);
+			Assert.Contains(answerFragment, html, StringComparison.OrdinalIgnoreCase);
+		}
 	}
 }

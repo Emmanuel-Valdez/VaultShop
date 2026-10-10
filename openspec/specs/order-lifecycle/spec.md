@@ -120,3 +120,11 @@ Concurrent checkouts consuming the last use of a limited coupon SHALL grant the 
 #### Scenario: Last-use race grants one order
 - **WHEN** two checkouts race for the final use of a coupon with one remaining use
 - **THEN** exactly one order carries the coupon discount and the other is created undiscounted with the coupon-dropped notice
+
+### Requirement: Charged session amount equals the frozen order total
+
+The amount submitted to the online payment session SHALL equal the frozen `OrderTotal` persisted on the order header, including any payment-method discount. Any per-line split used for the session request SHALL sum exactly to that total and SHALL NOT alter persisted `OrderDetail` rows.
+
+#### Scenario: Charged amount matches the header
+- **WHEN** an order is created with a payment-method discount and proceeds to Stripe/MP
+- **THEN** the charged session amount equals the persisted `OrderTotal` and the persisted line rows are unchanged

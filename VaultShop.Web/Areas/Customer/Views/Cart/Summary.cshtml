@@ -105,15 +105,15 @@
 								}
 								@if (Model.OrderHeader.PaymentDiscountTotal > 0)
 								{
-									<li class="list-group-item d-flex justify-content-between text-success">
-										<span>@Model.OrderHeader.PaymentDiscountMotive</span>
-										<span>-@Model.OrderHeader.PaymentDiscountTotal.ToString("c")</span>
+									<li id="paymentDiscountRow" class="list-group-item d-flex justify-content-between text-success">
+										<span id="paymentDiscountMotive">@Model.OrderHeader.PaymentDiscountMotive</span>
+										<span id="paymentDiscountAmount">-@Model.OrderHeader.PaymentDiscountTotal.ToString("c")</span>
 									</li>
 								}
 
-								<li class="list-group-item d-flex justify-content-between bg-secondary">
+								<li id="orderTotalRow" class="list-group-item d-flex justify-content-between bg-secondary">
 									<strong class="text-primary">@Localizer["Total"] </strong>
-									<strong class="text-primary">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
+									<strong class="text-primary" id="orderTotalValue">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
 									
 								</li>
 
@@ -130,6 +130,18 @@
 					</div>
                     @if (!User.IsInRole(SD.Role_Company))
                     {
+                        var paymentDiscountPercents = ViewData["PaymentDiscountPercents"] as Dictionary<string, decimal> ?? new();
+                        var paymentMethodLabels = new Dictionary<string, string>
+                        {
+                            [SD.PaymentMethodStripe] = Localizer["PayWithStripe"].Value,
+                            [SD.PaymentMethodBankTransfer] = Localizer["PayByBankTransfer"].Value,
+                            [SD.PaymentMethodMercadoPago] = Localizer["PayWithMercadoPago"].Value,
+                        };
+                        // descuento-medio-de-pago §2: localized offer note per method (e.g. "−10% paying by bank transfer").
+                        string Pct(decimal p) => p == Math.Truncate(p) ? ((int)p).ToString() : p.ToString("0.##");
+                        var paymentDiscountNotes = paymentDiscountPercents
+                            .Where(kv => kv.Value > 0 && paymentMethodLabels.ContainsKey(kv.Key))
+                            .ToDictionary(kv => kv.Key, kv => string.Format(Localizer["PaymentMethodOfferNote"].Value, Pct(kv.Value), paymentMethodLabels[kv.Key]));
                         var paymentMethodPicker = new PaymentMethodPickerVM
                         {
                             FieldName = "OrderHeader.PaymentMethod",
@@ -149,7 +161,9 @@
                             BankTransferCbu = ViewData["BankTransferCbu"] as string ?? string.Empty,
                             BankTransferAlias = ViewData["BankTransferAlias"] as string ?? string.Empty,
                             BankTransferRecipientName = ViewData["BankTransferRecipientName"] as string ?? string.Empty,
-                            BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty
+                            BankTransferBankName = ViewData["BankTransferBankName"] as string ?? string.Empty,
+                            PaymentDiscountPercents = paymentDiscountPercents,
+                            PaymentDiscountNotes = paymentDiscountNotes
                         };
 
                         <div class="row g-4 mt-2">
@@ -199,6 +213,48 @@
 	@{
 		<partial name="_ValidationScriptsPartial" />
 	}
+	<script>
+		// descuento-medio-de-pago §2: choosing a method re-evaluates the summary server-side
+		// and updates the discount row + final total before Place Order.
+		(function () {
+			var totalsUrl = '@Url.Action("SummaryTotals", "Cart", new { area = "Customer" })';
+			var total = document.getElementById('orderTotalValue');
+
+			function ensureRow() {
+				var existing = document.getElementById('paymentDiscountRow');
+				if (existing) return existing;
+				var totalRow = document.getElementById('orderTotalRow');
+				if (!totalRow) return null;
+				var li = document.createElement('li');
+				li.id = 'paymentDiscountRow';
+				li.className = 'list-group-item d-flex justify-content-between text-success';
+				li.innerHTML = '<span id="paymentDiscountMotive"></span><span id="paymentDiscountAmount"></span>';
+				totalRow.parentNode.insertBefore(li, totalRow);
+				return li;
+			}
+
+			document.querySelectorAll('input[name="checkoutPaymentMethodChoice"]').forEach(function (radio) {
+				radio.addEventListener('change', function () {
+					fetch(totalsUrl + '?paymentMethod=' + encodeURIComponent(radio.value), { headers: { 'Accept': 'application/json' } })
+						.then(function (res) { return res.ok ? res.json() : null; })
+						.then(function (data) {
+							if (!data || !total) return;
+							total.textContent = data.orderTotal;
+							if (data.hasPaymentDiscount) {
+								var row = ensureRow();
+								if (!row) return;
+								row.classList.remove('d-none');
+								document.getElementById('paymentDiscountMotive').textContent = data.paymentDiscountMotive;
+								document.getElementById('paymentDiscountAmount').textContent = '-' + data.paymentDiscountTotal;
+							} else {
+								var current = document.getElementById('paymentDiscountRow');
+								if (current) current.classList.add('d-none');
+							}
+						});
+				});
+			});
+		})();
+	</script>
 }
 
 

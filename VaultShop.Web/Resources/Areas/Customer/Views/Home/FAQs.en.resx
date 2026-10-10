@@ -219,4 +219,10 @@
   <data name="Answer10" xml:space="preserve">
     <value>Choose the branch at checkout (province, locality, and branch) and check its hours in your order confirmation. We email you when the order is on its way to the branch, with the tracking number. You have 5 business days to pick it up with your ID and tracking number. Unclaimed parcels are returned to the sender and reshipping is charged.</value>
   </data>
+  <data name="Question11" xml:space="preserve">
+    <value>11. Can discounts be combined?</value>
+  </data>
+  <data name="Answer11" xml:space="preserve">
+    <value>Specific discounts never combine: the best price always wins (offer, coupon, promotion, or bundle). The payment-method discount does stack on top of that best price.</value>
+  </data>
 </root>

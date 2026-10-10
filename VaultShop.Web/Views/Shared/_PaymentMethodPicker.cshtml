@@ -50,6 +50,10 @@
                     }
                 </span>
                 <span class="payment-method-picker__label">@method.Label</span>
+                @if (Model.PaymentDiscountPercents.TryGetValue(method.Value, out var offerPct) && offerPct > 0)
+                {
+                    <span class="badge bg-success payment-method-picker__offer">−@offerPct%</span>
+                }
                 <span class="payment-method-picker__selected" aria-hidden="true">&#10003;</span>
             </label>
         }
@@ -75,6 +79,15 @@
     </div>
 }
 
+@* descuento-medio-de-pago §2: current offer note per method, visible for the selected method only. *@
+@foreach (var method in enabledMethods)
+{
+    if (Model.PaymentDiscountNotes.TryGetValue(method.Value, out var offerNote))
+    {
+        <div class="alert alert-success mt-2 payment-method-offer-note @(selectedPaymentMethod == method.Value ? "" : "d-none")" data-payment-method-note="@method.Value" role="status">@offerNote</div>
+    }
+}
+
 @if (enabledMethods.Count > 1)
 {
     <script>
@@ -83,11 +96,13 @@
             var methodRadios = document.querySelectorAll('input[name="@choiceFieldName"]');
             var bankTransferRadio = document.querySelector('input[name="@choiceFieldName"][value="@SD.PaymentMethodBankTransfer"]');
             var details = document.getElementById('@bankTransferDetailsId');
+            var offerNotes = document.querySelectorAll('[data-payment-method-note]');
 
             function updateSelection() {
                 var selected = document.querySelector('input[name="@choiceFieldName"]:checked');
                 if (hiddenInput && selected) { hiddenInput.value = selected.value; }
                 if (details && bankTransferRadio) { details.classList.toggle('d-none', !bankTransferRadio.checked); }
+                offerNotes.forEach(function (note) { note.classList.toggle('d-none', !selected || note.getAttribute('data-payment-method-note') !== selected.value); });
             }
 
             methodRadios.forEach(function (radio) { radio.addEventListener('change', updateSelection); });

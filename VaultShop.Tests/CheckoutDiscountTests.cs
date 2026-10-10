@@ -255,6 +255,60 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(header.OrderTotal, details.Sum(d => d.Price * d.Count));
 		}
 
+		[Fact]
+		public void SessionLines_WithTransferDiscount_SumExactlyToOrderTotal()
+		{
+			var options = CreateOptions(CreateOpenConnection());
+			EnsureDatabaseCreated(options);
+			SeedProduct(options, price: 10000m);
+			AddProductWithCart(options, "Second Product", price: 3333m, count: 3);
+			SeedPaymentPromo(options, "BankTransfer", 10m);
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var service = CreateService(context);
+				var result = service.CreateOrder("user-1",
+					new OrderHeader { PaymentMethod = SD.PaymentMethodBankTransfer },
+					useWholesalePrice: false);
+
+				var header = result.ShoppingCartVM!.OrderHeader;
+				Assert.Equal(1999.90m, header.PaymentDiscountTotal);
+				Assert.Equal(17999.10m, header.OrderTotal);
+				var lines = service.BuildPaymentSessionLineItems(result.ShoppingCartVM!);
+				Assert.Equal(2, lines.Count);
+				Assert.Equal(header.OrderTotal, lines.Sum(l => l.UnitPrice * l.Quantity));
+				Assert.True(lines.Sum(l => l.UnitPrice * l.Quantity) < 19999m);
+			}
+
+			// Persisted rows keep pre-payment unit prices; only the session request is prorated.
+			using var verify = new ApplicationDbContext(options);
+			var details = verify.OrderDetails.AsNoTracking().ToList().OrderBy(d => d.Price).ToList();
+			Assert.Equal(2, details.Count);
+			Assert.Equal(3333m, details[0].Price);
+			Assert.Equal(10000m, details[1].Price);
+		}
+
+		[Fact]
+		public void SessionLines_WithoutPaymentDiscount_MatchCartLinesExactly()
+		{
+			var options = CreateOptions(CreateOpenConnection());
+			EnsureDatabaseCreated(options);
+			SeedProduct(options, price: 10000m);
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var service = CreateService(context);
+				var result = service.CreateOrder("user-1",
+					new OrderHeader { PaymentMethod = SD.PaymentMethodStripe },
+					useWholesalePrice: false);
+
+				var line = Assert.Single(service.BuildPaymentSessionLineItems(result.ShoppingCartVM!));
+				Assert.Equal("Discounted Product", line.ProductName);
+				Assert.Equal(10000m, line.UnitPrice);
+				Assert.Equal(1, line.Quantity);
+			}
+		}
+
 		private static CheckoutService CreateService(ApplicationDbContext context)
 		{
 			var unitOfWork = new UnitOfWork(context);
@@ -318,6 +372,30 @@ namespace VaultShop.Web.Tests
 				PaymentMethod = paymentMethod,
 				DiscountPercent = percent,
 				IsActive = true
+			});
+			context.SaveChanges();
+		}
+
+		private static void AddProductWithCart(DbContextOptions<ApplicationDbContext> options,
+			string name, decimal price, int count)
+		{
+			using var context = new ApplicationDbContext(options);
+			var product = new Product
+			{
+				Name = name,
+				Description = "Extra line for session proration tests.",
+				MaxExpectation = 10,
+				CategoryId = context.Categories.Select(c => c.Id).First(),
+				ListPrice = price,
+				FinalRetailPrice = price,
+				FinalWholesalePrice = price - 30m,
+				IsAvailableInStore = true,
+				StockQuantity = 10,
+			};
+			context.Products.Add(product);
+			context.ShoppingCarts.Add(new ShoppingCart
+			{
+				ApplicationUserId = "user-1", Product = product, Count = count
 			});
 			context.SaveChanges();
 		}

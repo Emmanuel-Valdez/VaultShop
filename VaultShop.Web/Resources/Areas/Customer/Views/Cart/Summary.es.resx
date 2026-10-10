@@ -210,4 +210,7 @@
   <data name="CouponBadge" xml:space="preserve">
     <value>Cupón </value>
   </data>
+  <data name="PaymentMethodOfferNote" xml:space="preserve">
+    <value>Ahorrás {0}% pagando con {1}.</value>
+  </data>
 </root>

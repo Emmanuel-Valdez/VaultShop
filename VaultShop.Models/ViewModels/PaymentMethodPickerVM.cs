@@ -23,5 +23,10 @@ namespace VaultShop.Models.ViewModels
         public string BankTransferAlias { get; set; } = string.Empty;
         public string BankTransferRecipientName { get; set; } = string.Empty;
         public string BankTransferBankName { get; set; } = string.Empty;
+
+        // descuento-medio-de-pago §2: best active payment-method discount percent per method value.
+        public Dictionary<string, decimal> PaymentDiscountPercents { get; set; } = new();
+        // Preformatted localized note per method value, shown for the selected method only.
+        public Dictionary<string, string> PaymentDiscountNotes { get; set; } = new();
     }
 }

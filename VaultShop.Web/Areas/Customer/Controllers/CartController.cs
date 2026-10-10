@@ -186,6 +186,42 @@ private void RemoveShoppingCartsOutdated(string userId)
 		return View(result.ShoppingCartVM);
 	}
 
+	// descuento-medio-de-pago §2: method-change re-evaluation for the Summary page.
+	// Reuses BuildSummary with the posted method; the client updates the discount
+	// row and final total before Place Order.
+	[HttpGet]
+	public IActionResult SummaryTotals(string? paymentMethod)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		if (string.IsNullOrEmpty(userId))
+		{
+			return Unauthorized();
+		}
+
+		var result = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode(), paymentMethod);
+		if (!result.IsAuthorized || result.ShoppingCartVM is null)
+		{
+			return Unauthorized();
+		}
+		if (result.ShouldBlockUser)
+		{
+			return Forbid();
+		}
+		if (result.IsCartEmpty)
+		{
+			return NotFound();
+		}
+
+		var header = result.ShoppingCartVM.OrderHeader;
+		return Json(new
+		{
+			hasPaymentDiscount = header.PaymentDiscountTotal > 0,
+			paymentDiscountMotive = header.PaymentDiscountMotive,
+			paymentDiscountTotal = header.PaymentDiscountTotal.ToString("c"),
+			orderTotal = header.OrderTotal.ToString("c"),
+		});
+	}
+
 	// ponytail: deterministic cascade Provincia → Localidad → Sucursal; branch rows are public data, cacheable, and shared by checkout + admin correction.
 	[HttpGet]
 	[AllowAnonymous]
@@ -366,7 +402,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 				{
 					session = GetPaymentSessionService(result.ShoppingCartVM.OrderHeader).CreateCheckoutSession(new PaymentSessionRequest(
 						orderId,
-						result.ShoppingCartVM.ShoppingCartList.Select(item => new PaymentSessionLineItem(item.Product.Name, item.Price, item.Count)),
+						_checkoutService.BuildPaymentSessionLineItems(result.ShoppingCartVM),
 						successUrl,
 						domain + "customer/cart/index",
 						result.ShoppingCartVM.OrderHeader.PaymentMethod == SD.PaymentMethodMercadoPago
@@ -434,7 +470,22 @@ private void RemoveShoppingCartsOutdated(string userId)
 			ViewData["StripeEnabled"] = _configuration.GetValue("Payments:StripeEnabled", true);
 			ViewData["MercadoPagoEnabled"] = _configuration.GetValue("Payments:MercadoPagoEnabled", false);
 			ViewData["ShowDemoNotice"] = _configuration.GetValue("Storefront:ShowDemoNotice", true);
+			ViewData["PaymentDiscountPercents"] = ActivePaymentDiscountPercents();
 			PopulateBankTransferViewData();
+		}
+
+		// descuento-medio-de-pago §2: best active payment-method discount percent per
+		// method, so the picker announces each method's current offer. Never throws.
+		private Dictionary<string, decimal> ActivePaymentDiscountPercents()
+		{
+			var now = DateTime.UtcNow;
+			return _unitOfWork.Promotion.GetAll(p => p.Kind == PromotionKind.PaymentMethodDiscount && p.IsActive)
+				.AsEnumerable()
+				.Where(p => !string.IsNullOrWhiteSpace(p.PaymentMethod)
+					&& (!p.ValidFromUtc.HasValue || now >= p.ValidFromUtc.Value)
+					&& (!p.ValidToUtc.HasValue || now <= p.ValidToUtc.Value))
+				.GroupBy(p => p.PaymentMethod!)
+				.ToDictionary(g => g.Key, g => g.Max(p => p.DiscountPercent), StringComparer.OrdinalIgnoreCase);
 		}
 
 	// ponytail: cascade rehydration — posted province/locality reseed the picker's options server-side so a failed

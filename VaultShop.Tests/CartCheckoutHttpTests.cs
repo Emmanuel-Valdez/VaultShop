@@ -101,6 +101,50 @@ public class CartCheckoutHttpTests
         Assert.DoesNotContain("OrderHeader.PaymentMethod", html);
     }
 
+    [Fact]
+    public async Task Summary_WithTransferPromo_AnnouncesDiscountOnTransferCardOnly()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        SeedPaymentPromo(factory, SD.PaymentMethodBankTransfer, 10m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync("/en-US/Customer/Cart/Summary");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        // Badge renders once — on the transfer card, not on Stripe.
+        Assert.Contains("−10%", html);
+        Assert.Equal(2, html.Split("payment-method-picker__offer").Length);
+        Assert.DoesNotContain("data-payment-method-note=\"Stripe\"", html);
+        // Transfer note renders hidden until the method is selected.
+        Assert.Contains("Save 10% paying with Pay by bank transfer.", html);
+        Assert.Contains("payment-method-offer-note d-none\" data-payment-method-note=\"BankTransfer\"", html);
+    }
+
+    [Fact]
+    public async Task Summary_WithStripePromo_ShowsNoteForSelectedMethodOnly()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        SeedPaymentPromo(factory, SD.PaymentMethodStripe, 10m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync("/en-US/Customer/Cart/Summary");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        // Stripe is the default-selected method, so its note is visible...
+        Assert.Contains("payment-method-offer-note \" data-payment-method-note=\"Stripe\"", html);
+        // ...while the transfer card carries no badge and no note.
+        Assert.DoesNotContain("data-payment-method-note=\"BankTransfer\"", html);
+        Assert.Equal(2, html.Split("payment-method-picker__offer").Length);
+    }
+
     [Theory]
     [InlineData("es-AR", "Elegí la sucursal de retiro", "Provincia", "Seleccioná una provincia")]
     [InlineData("en-US", "Choose your pickup branch", "Province", "Select a province")]
@@ -553,6 +597,55 @@ public class CartCheckoutHttpTests
             form["branchPickerLocality"] = locality;
         }
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
+    }
+
+    [Fact]
+    public async Task SummaryTotals_WithTransferMethod_ReturnsDiscountAndLowerTotal()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 2, retailPrice: 100m, wholesalePrice: 70m);
+        SeedPaymentPromo(factory, SD.PaymentMethodBankTransfer, 10m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var json = await client.GetStringAsync("/en-US/Customer/Cart/SummaryTotals?paymentMethod=BankTransfer");
+
+        Assert.Contains("\"hasPaymentDiscount\":true", json);
+        Assert.Contains("\"paymentDiscountTotal\":\"$20.00\"", json);
+        Assert.Contains("\"orderTotal\":\"$180.00\"", json);
+    }
+
+    [Fact]
+    public async Task SummaryTotals_WithStripeMethod_ReturnsNoDiscountAndFullTotal()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 2, retailPrice: 100m, wholesalePrice: 70m);
+        SeedPaymentPromo(factory, SD.PaymentMethodBankTransfer, 10m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var json = await client.GetStringAsync("/en-US/Customer/Cart/SummaryTotals?paymentMethod=Stripe");
+
+        Assert.Contains("\"hasPaymentDiscount\":false", json);
+        Assert.Contains("\"orderTotal\":\"$200.00\"", json);
+    }
+
+    private static void SeedPaymentPromo(WebApplicationFactory<Program> factory, string paymentMethod, decimal percent)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Promotions.Add(new Promotion
+        {
+            Name = $"{paymentMethod} -{percent}%",
+            Kind = PromotionKind.PaymentMethodDiscount,
+            Scope = PromotionScope.Store,
+            PaymentMethod = paymentMethod,
+            DiscountPercent = percent,
+            IsActive = true,
+        });
+        db.SaveChanges();
     }
 
     private static void SeedProductAndCart(WebApplicationFactory<Program> factory, string email, int count, decimal retailPrice, decimal wholesalePrice, int stockQuantity = 100)

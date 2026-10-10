@@ -1,5 +1,6 @@
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
+using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pricing;
 
 namespace VaultShop.Web.Services.Checkout
@@ -8,6 +9,8 @@ namespace VaultShop.Web.Services.Checkout
 	{
 		CheckoutSummaryResult BuildSummary(string userId, bool useWholesalePrice, string? couponCode = null, string? paymentMethod = null);
 		CheckoutCreateOrderResult CreateOrder(string userId, OrderHeader postedOrderHeader, bool useWholesalePrice, string? couponCode = null);
+		// descuento-medio-de-pago §1: session-only line items prorated to OrderTotal.
+		IReadOnlyList<PaymentSessionLineItem> BuildPaymentSessionLineItems(ShoppingCartVM vm);
 
 		// descuentos-promociones: single funnel for cart display + summary + order
 		// creation. Loads active coupons/promotions, evaluates, and stamps the

@@ -3,6 +3,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
 using static VaultShop.Web.Services.Checkout.ICheckoutService;
@@ -388,6 +389,42 @@ namespace VaultShop.Web.Services.Checkout
 				? string.Join(",", evaluation.AppliedPromotionIds)
 				: null;
 		}
+
+		// descuento-medio-de-pago §1: session-only proration of the header-level
+		// payment discount across lines (whole cents, remainder on the largest
+		// line so the request sums exactly to OrderTotal). Persisted
+		// OrderDetail rows and the header stay untouched.
+		public IReadOnlyList<PaymentSessionLineItem> BuildPaymentSessionLineItems(ShoppingCartVM vm)
+		{
+			var lines = vm.ShoppingCartList.ToList();
+			var discount = vm.OrderHeader.PaymentDiscountTotal;
+			var payables = lines.Select(c => c.Price * c.Count).ToList();
+			if (discount <= 0 || payables.Sum() <= 0)
+				return lines.Select(c => new PaymentSessionLineItem(c.Product.Name, c.Price, c.Count)).ToList();
+			// ponytail: nominal shares sum exactly (remainder on largest), mirroring ProrateCoupon.
+			var payBase = payables.Sum();
+			var largest = 0;
+			for (var i = 1; i < lines.Count; i++)
+				if (payables[i] > payables[largest]) largest = i;
+			var shares = new decimal[lines.Count];
+			var assigned = 0m;
+			for (var i = 0; i < lines.Count; i++)
+			{
+				if (i == largest) continue;
+				shares[i] = Round(payables[i] * discount / payBase);
+				assigned += shares[i];
+			}
+			shares[largest] = discount - assigned;
+			var units = new decimal[lines.Count];
+			for (var i = 0; i < lines.Count; i++)
+				units[i] = lines[i].Count <= 0 ? 0m : Round((payables[i] - shares[i]) / lines[i].Count);
+			// ponytail: per-unit rounding can drift a cent; absorb the residual on the largest line.
+			var residual = vm.OrderHeader.OrderTotal - units.Select((u, i) => u * lines[i].Count).Sum();
+			units[largest] += residual;
+			return lines.Select((c, i) => new PaymentSessionLineItem(c.Product.Name, units[i], c.Count)).ToList();
+		}
+
+		private static decimal Round(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
 
 		private IEnumerable<ShoppingCart> RemoveShoppingCartsOutdated(string userId, IEnumerable<ShoppingCart> shoppingCarts)
 		{
