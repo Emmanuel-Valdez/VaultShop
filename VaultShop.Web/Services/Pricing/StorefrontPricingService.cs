@@ -53,38 +53,22 @@ public class StorefrontPricingService : IStorefrontPricingService
 		if (list.Count == 0) return result;
 		var now = DateTime.UtcNow;
 		var promotions = _unitOfWork.Promotion.GetAll(p => p.IsActive).ToList();
-		var evaluation = _discounts.Evaluate(new DiscountEvaluationRequest
-		{
-			Lines = list.Select(p => new DiscountLineRequest
-			{
-				LineKey = p.Id,
-				ProductId = p.Id,
-				CategoryId = p.CategoryId,
-				KeywordIds = p.Keywords?.Select(k => k.KeywordId).ToList() ?? new List<int>(),
-				Count = 1,
-				RetailPrice = p.FinalRetailPrice,
-				WholesalePrice = p.FinalWholesalePrice,
-				SaleRetailPrice = p.SaleRetailPrice,
-				SaleWholesalePrice = p.SaleWholesalePrice,
-				SaleFromUtc = p.SaleFromUtc,
-				SaleToUtc = p.SaleToUtc
-			}).ToList(),
-			UseWholesalePrice = useWholesale,
-			Coupons = Array.Empty<Coupon>(),
-			Promotions = promotions,
-			UtcNow = now
-		});
-		// ponytail: keyed by product id (one line per product); first-wins tolerates dupes.
-		var byProduct = evaluation.Lines.GroupBy(l => l.ProductId).ToDictionary(g => g.Key, g => g.First());
+		// Each product evaluated in isolation (Count = 1): BxGy needs ≥2 units to
+		// grant, so a lone unit can never be combo-discounted on a listing. Direct
+		// offers and collection offers are per-line and still apply. Shared
+		// active-promotions query reused across evaluations — no extra round trips.
 		foreach (var p in list)
 		{
-			if (!byProduct.TryGetValue(p.Id, out var line))
+			var evaluation = _discounts.Evaluate(new DiscountEvaluationRequest
 			{
-				var fallback = useWholesale ? p.FinalWholesalePrice : p.FinalRetailPrice;
-				result[p.Id] = new ProductDisplayPrice(fallback, fallback, null);
-				continue;
-			}
-		var motive = line.DiscountAmount > 0
+				Lines = new[] { ToLine(p) },
+				UseWholesalePrice = useWholesale,
+				Coupons = Array.Empty<Coupon>(),
+				Promotions = promotions,
+				UtcNow = now
+			});
+			var line = evaluation.Lines.Single();
+			var motive = line.DiscountAmount > 0
 				? line.DiscountMotive
 				: FindCoveringBxGy(promotions, p, useWholesale, now)?.Name;
 			// ponytail: surface the sale deadline only for the direct product offer;
@@ -95,11 +79,21 @@ public class StorefrontPricingService : IStorefrontPricingService
 		return result;
 	}
 
+	private static DiscountLineRequest ToLine(Product p) => new()
+	{
+		LineKey = p.Id,
+		ProductId = p.Id,
+		CategoryId = p.CategoryId,
+		KeywordIds = p.Keywords?.Select(k => k.KeywordId).ToList() ?? new List<int>(),
+		Count = 1,
+		RetailPrice = p.FinalRetailPrice,
+		WholesalePrice = p.FinalWholesalePrice,
+		SaleRetailPrice = p.SaleRetailPrice,
+		SaleWholesalePrice = p.SaleWholesalePrice,
+		SaleFromUtc = p.SaleFromUtc,
+		SaleToUtc = p.SaleToUtc
+	};
+
 	private static Promotion? FindCoveringBxGy(List<Promotion> promotions, Product p, bool useWholesale, DateTime now)
-		=> promotions.FirstOrDefault(promo => DiscountEvaluator.IsGrantableBxGy(promo, useWholesale, now, new DiscountLineRequest
-		{
-			ProductId = p.Id,
-			CategoryId = p.CategoryId,
-			KeywordIds = p.Keywords?.Select(k => k.KeywordId).ToList() ?? new List<int>()
-		}));
+		=> promotions.FirstOrDefault(promo => DiscountEvaluator.IsGrantableBxGy(promo, useWholesale, now, ToLine(p)));
 }
