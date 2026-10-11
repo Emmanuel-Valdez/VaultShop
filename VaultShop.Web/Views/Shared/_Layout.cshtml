@@ -153,8 +153,11 @@
 											<a class="dropdown-item " asp-area="Admin" asp-controller="Product" asp-action="Index">@Localizer["Product"]</a>
 										</li>
 										<li class="nav-item ">
-											<a class="dropdown-item " asp-area="Admin" asp-controller="Keyword" asp-action="Index">@Localizer["Keywords"]</a>
-										</li>
+										<a class="dropdown-item " asp-area="Admin" asp-controller="Keyword" asp-action="Index">@Localizer["Keywords"]</a>
+									</li>
+									<li class="nav-item ">
+										<a class="dropdown-item " asp-area="Admin" asp-controller="Banner" asp-action="Index">@Localizer["Banners"]</a>
+									</li>
 									<li class="nav-item ">
 										<a class="dropdown-item " asp-area="Admin" asp-controller="Company" asp-action="Index">@Localizer["Company"]</a>
 									</li>
@@ -446,6 +449,7 @@
 	<script src="~/js/richTextEditor.js" asp-append-version="true"></script>
 	<script src="~/js/collectionChips.js" asp-append-version="true"></script>
 	<script src="~/js/collectionHero.js" asp-append-version="true"></script>
+	<script src="~/js/homeBanner.js" asp-append-version="true"></script>
 
 	@await RenderSectionAsync("Scripts", required: false)
 </body>

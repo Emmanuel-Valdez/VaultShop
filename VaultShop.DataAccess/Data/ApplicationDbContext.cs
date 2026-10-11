@@ -47,6 +47,8 @@ namespace VaultShop.DataAccess.Data
 		public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
 		public DbSet<Coupon> Coupons { get; set; }
 		public DbSet<Promotion> Promotions { get; set; }
+		public DbSet<Banner> Banners { get; set; }
+		public DbSet<BannerImage> BannerImages { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -83,10 +85,15 @@ namespace VaultShop.DataAccess.Data
 			modelBuilder.Entity<ProductKeyword>()
 				.HasIndex(pk => pk.KeywordId);
 
-			// A keyword can have at most one chip and one cover image.
-			modelBuilder.Entity<KeywordImage>()
-				.HasIndex(i => new { i.KeywordId, i.Kind })
-				.IsUnique();
+		// A keyword can have at most one chip and one cover image.
+		modelBuilder.Entity<KeywordImage>()
+			.HasIndex(i => new { i.KeywordId, i.Kind })
+			.IsUnique();
+
+		// A banner can have at most one image per kind (Master/Medium/Small/Mobile).
+		modelBuilder.Entity<BannerImage>()
+			.HasIndex(i => new { i.BannerId, i.Kind })
+			.IsUnique();
 
 		// Slug uniqueness only among active keywords, so soft-deleted slugs can be reused.
 		modelBuilder.Entity<Keyword>()

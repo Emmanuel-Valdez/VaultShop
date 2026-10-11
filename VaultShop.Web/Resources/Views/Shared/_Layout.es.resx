@@ -165,6 +165,9 @@
   <data name="Keywords" xml:space="preserve">
     <value>Colecciones</value>
   </data>
+  <data name="Banners" xml:space="preserve">
+    <value>Banners</value>
+  </data>
   <data name="FixedCost" xml:space="preserve">
     <value>Costo Fijo</value>
   </data>

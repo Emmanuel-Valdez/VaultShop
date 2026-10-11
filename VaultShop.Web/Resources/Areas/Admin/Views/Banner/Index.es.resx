@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title" xml:space="preserve">
+    <value>Lista de banners</value>
+  </data>
+  <data name="CreateBanner" xml:space="preserve">
+    <value>Crear banner</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Portada</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Diseño</value>
+  </data>
+  <data name="LinkTarget" xml:space="preserve">
+    <value>Enlace</value>
+  </data>
+  <data name="SortOrder" xml:space="preserve">
+    <value>Orden</value>
+  </data>
+  <data name="IsActive" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+</root>

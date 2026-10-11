@@ -8,6 +8,7 @@ namespace VaultShop.Models.ViewModels
 		public IEnumerable<Product> FeaturedProducts { get; set; } = [];
 		public IEnumerable<Category> Categories { get; set; } = [];
 		public List<CollectionChipVM> Collections { get; set; } = [];
+		public List<BannerSlideVM> Banners { get; set; } = [];
 
 		// Single in-memory pass over the already-loaded visible product list (design D7):
 		// counter = distinct in-stock products per keyword; chip image from the keyword's Chip image.

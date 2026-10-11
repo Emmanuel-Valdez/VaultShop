@@ -30,4 +30,25 @@
   <data name="DeleteSuccesfully" xml:space="preserve">
     <value>Borrado correctamente.</value>
   </data>
+  <data name="PromotionKind_BxGy" xml:space="preserve">
+    <value>2x1</value>
+  </data>
+  <data name="PromotionKind_PercentOff" xml:space="preserve">
+    <value>Porcentaje de descuento</value>
+  </data>
+  <data name="PromotionKind_PaymentMethodDiscount" xml:space="preserve">
+    <value>Descuento por medio de pago</value>
+  </data>
+  <data name="PromotionScope_Store" xml:space="preserve">
+    <value>Tienda</value>
+  </data>
+  <data name="PromotionScope_Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="PromotionScope_Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="PromotionScope_Keyword" xml:space="preserve">
+    <value>Colección</value>
+  </data>
 </root>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="CoverImageRequired" xml:space="preserve">
+    <value>Se requiere una imagen de portada para un banner nuevo.</value>
+  </data>
+  <data name="BannerSavedImageFailed" xml:space="preserve">
+    <value>Banner guardado, pero falló la subida de imagen. Podés reintentar editándolo.</value>
+  </data>
+  <data name="BannerCreatedSuccess" xml:space="preserve">
+    <value>Banner creado exitosamente</value>
+  </data>
+  <data name="BannerEditedSuccess" xml:space="preserve">
+    <value>Banner actualizado exitosamente</value>
+  </data>
+  <data name="DeletedSuccessfully" xml:space="preserve">
+    <value>Imagen eliminada correctamente</value>
+  </data>
+  <data name="DeleteSuccesfully" xml:space="preserve">
+    <value>Borrado Correcto</value>
+  </data>
+  <data name="ErrorWhileDeleting" xml:space="preserve">
+    <value>Error Durante el Borrado</value>
+  </data>
+  <data name="Layout_Crossed" xml:space="preserve">
+    <value>Cruzado</value>
+  </data>
+  <data name="Layout_ImageLed" xml:space="preserve">
+    <value>Con imagen protagonista</value>
+  </data>
+  <data name="TextColor_BrandLight" xml:space="preserve">
+    <value>Color de marca claro</value>
+  </data>
+  <data name="TextColor_BrandDark" xml:space="preserve">
+    <value>Color de marca oscuro</value>
+  </data>
+  <data name="TextColor_White" xml:space="preserve">
+    <value>Blanco</value>
+  </data>
+  <data name="TextColor_Black" xml:space="preserve">
+    <value>Negro</value>
+  </data>
+  <data name="TargetKind_Store" xml:space="preserve">
+    <value>Tienda</value>
+  </data>
+  <data name="TargetKind_Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="TargetKind_Collection" xml:space="preserve">
+    <value>Colección</value>
+  </data>
+  <data name="TargetKind_Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Group_Categories" xml:space="preserve">
+    <value>Categorías</value>
+  </data>
+  <data name="Group_Collections" xml:space="preserve">
+    <value>Colecciones</value>
+  </data>
+  <data name="Group_Products" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+</root>

@@ -108,7 +108,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				{
 					c.Id,
 					c.Code,
-					Type = c.DiscountType.ToString(),
+					Type = _localizer[$"CouponType_{c.DiscountType}"].Value,
 					c.Value,
 					c.MinSubtotal,
 					c.MaxUses,

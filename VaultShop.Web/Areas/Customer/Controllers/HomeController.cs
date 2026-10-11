@@ -11,6 +11,7 @@ using VaultShop.Models;
 using VaultShop.Models.Pagination;
 using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
+using VaultShop.Web.Services.Banners;
 using VaultShop.Web.Services.Pagination;
 using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
@@ -69,14 +70,62 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			// descuentos-promociones 4.1: same evaluator as cart, display mode (one unit, no coupon).
 			ViewData["DiscountDisplay"] = _displayPricing.GetDisplayPrices(productList, PricingHelper.ShouldUseWholesale(User, HttpContext));
 
-			return View(new HomeIndexVM
-			{
-				Products = pagedProducts,
-				FeaturedProducts = featuredProducts,
-				Categories = categories,
-				Collections = HomeIndexVM.ComputeCollections(productList)
-			});
+		return View(new HomeIndexVM
+		{
+			Products = pagedProducts,
+			FeaturedProducts = featuredProducts,
+			Categories = categories,
+			Collections = HomeIndexVM.ComputeCollections(productList),
+			Banners = LoadBannerSlides()
+		});
+	}
+
+	// home-banners 4.1: active only, SortOrder ascending with Id tiebreak; targets resolved server-side.
+	private List<BannerSlideVM> LoadBannerSlides()
+	{
+		return _unitOfWork.Banner
+			.GetAll(u => u.IsActive, includeProperties: "Images")
+			.OrderBy(u => u.SortOrder)
+			.ThenBy(u => u.Id)
+			.Select(ResolveBannerSlide)
+			.ToList();
+	}
+
+	private BannerSlideVM ResolveBannerSlide(Banner banner)
+	{
+		var slide = new BannerSlideVM { Banner = banner };
+		if (!banner.TargetId.HasValue)
+		{
+			ApplyLink(slide, BannerLinkResolver.Resolve(banner));
+			return slide;
 		}
+		Category? category = null;
+		Keyword? keyword = null;
+		Product? product = null;
+		switch (banner.TargetKind)
+		{
+			case BannerTargetKind.Category:
+				category = _unitOfWork.Category.Get(c => c.Id == banner.TargetId.Value);
+				break;
+			case BannerTargetKind.Collection:
+				keyword = _unitOfWork.Keyword.Get(k => k.Id == banner.TargetId.Value);
+				break;
+			case BannerTargetKind.Product:
+				product = _unitOfWork.Product.Get(p => p.Id == banner.TargetId.Value);
+				break;
+		}
+		ApplyLink(slide, BannerLinkResolver.Resolve(banner, category, keyword, product));
+		return slide;
+	}
+
+	private static void ApplyLink(BannerSlideVM slide, BannerTargetLink? link)
+	{
+		if (link == null) return;
+		slide.LinkAction = link.Action;
+		slide.LinkController = link.Controller;
+		slide.LinkArea = link.Area;
+		slide.LinkRouteValues = link.RouteValues;
+	}
 
 
 		public IActionResult Details(int productId, string? slug = null)

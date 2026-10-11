@@ -168,8 +168,8 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				{
 					p.Id,
 					p.Name,
-					Kind = p.Kind.ToString(),
-					Scope = p.Scope.ToString(),
+					Kind = _localizer[$"PromotionKind_{p.Kind}"].Value,
+					Scope = _localizer[$"PromotionScope_{p.Scope}"].Value,
 					Target = p.Scope == PromotionScope.Product ? p.Product!.Name
 						: p.Scope == PromotionScope.Category ? p.Category!.Name
 						: p.Scope == PromotionScope.Keyword ? p.Keyword!.Name

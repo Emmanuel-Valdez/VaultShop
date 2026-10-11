@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Update" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="Banner" xml:space="preserve">
+    <value>Banner</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Diseño</value>
+  </data>
+  <data name="TextColor" xml:space="preserve">
+    <value>Color de texto</value>
+  </data>
+  <data name="LinkTarget" xml:space="preserve">
+    <value>Destino del enlace</value>
+  </data>
+  <data name="LinkTargetEntity" xml:space="preserve">
+    <value>Destino específico</value>
+  </data>
+  <data name="NoLinkTarget" xml:space="preserve">
+    <value>Inicio de la tienda (sin destino específico)</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Título</value>
+  </data>
+  <data name="Hook" xml:space="preserve">
+    <value>Gancho</value>
+  </data>
+  <data name="Body" xml:space="preserve">
+    <value>Cuerpo</value>
+  </data>
+  <data name="CallToAction" xml:space="preserve">
+    <value>Llamado a la acción</value>
+  </data>
+  <data name="AltText" xml:space="preserve">
+    <value>Texto alternativo</value>
+  </data>
+  <data name="SortOrder" xml:space="preserve">
+    <value>Orden</value>
+  </data>
+  <data name="IsActive" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="CoverImage" xml:space="preserve">
+    <value>Imagen de portada</value>
+  </data>
+  <data name="CoverImageHelp" xml:space="preserve">
+    <value>JPG, PNG o WebP, máx. 10 MB. Horizontal ~2.67:1 (p. ej. 1905x714).</value>
+  </data>
+  <data name="MobileImage" xml:space="preserve">
+    <value>Imagen móvil (opcional)</value>
+  </data>
+  <data name="MobileImageHelp" xml:space="preserve">
+    <value>Opcional vertical 4:5 (p. ej. 1200x1500; mínimo 600x750). Si falta, la portada se recorta con CSS.</value>
+  </data>
+  <data name="BackToList" xml:space="preserve">
+    <value>Volver a Lista</value>
+  </data>
+  <data name="BannerImages" xml:space="preserve">
+    <value>Imágenes del banner</value>
+  </data>
+  <data name="CoverImageCurrent" xml:space="preserve">
+    <value>Portada actual</value>
+  </data>
+  <data name="MobileImageCurrent" xml:space="preserve">
+    <value>Imagen móvil actual</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>Eliminar imagen</value>
+  </data>
+  <data name="NoCoverImage" xml:space="preserve">
+    <value>Todavía no hay portada.</value>
+  </data>
+</root>

@@ -1,0 +1,128 @@
+@model List<BannerSlideVM>
+@* home-banners 4.2: full-bleed autoplaying carousel; controls only when more than one slide. *@
+@{
+	if (Model == null || Model.Count == 0) { return; }
+	var multiple = Model.Count > 1;
+	string LayoutClass(BannerLayout layout) => layout == BannerLayout.ImageLed ? "banner--layout-imageled" : "banner--layout-crossed";
+	string ColorClass(BannerTextColor color) => "banner--color-" + color.ToString().ToLowerInvariant();
+	string SlideLabel(Banner banner, int index)
+	{
+		// ponytail: LocalizedHtmlString.Value is raw (placeholders intact); format explicitly.
+		var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer["BannerSlide"].Value, index + 1, Model.Count);
+		return string.IsNullOrWhiteSpace(banner.Title) ? label : $"{label}: {banner.Title}";
+	}
+}
+<section aria-label="@Localizer["BannerCarousel"]" data-home-banner>
+	<div id="homeBannerCarousel" class="carousel slide banner u-breakout" data-bs-interval="6000" data-bs-pause="hover" data-home-banner-carousel>
+		@if (multiple)
+		{
+			<div class="carousel-indicators">
+				@for (var i = 0; i < Model.Count; i++)
+				{
+					<button type="button" data-bs-target="#homeBannerCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : null)" aria-current="@(i == 0 ? "true" : null)" aria-label="@Localizer["BannerSlide", i + 1, Model.Count]"></button>
+				}
+			</div>
+		}
+		<div class="carousel-inner">
+			@for (var i = 0; i < Model.Count; i++)
+			{
+				var slide = Model[i];
+				var banner = slide.Banner;
+				var master = banner.Images.FirstOrDefault(x => x.Kind == BannerImageKind.Master)?.ImageUrl;
+				var medium = banner.Images.FirstOrDefault(x => x.Kind == BannerImageKind.Medium)?.ImageUrl;
+				var small = banner.Images.FirstOrDefault(x => x.Kind == BannerImageKind.Small)?.ImageUrl;
+				// master is optional (partial density sets); the box always falls back to the largest variant available.
+				var coverUrl = master ?? medium ?? small;
+				var mobile = banner.Images.FirstOrDefault(x => x.Kind == BannerImageKind.Mobile)?.ImageUrl;
+				var artDirected = banner.Layout == BannerLayout.ImageLed && !string.IsNullOrWhiteSpace(mobile);
+				var fullSet = !string.IsNullOrWhiteSpace(master) && !string.IsNullOrWhiteSpace(medium) && !string.IsNullOrWhiteSpace(small);
+				var alt = !string.IsNullOrWhiteSpace(banner.AltText) ? banner.AltText : banner.Title ?? string.Empty;
+				var eager = i == 0;
+				<div class="carousel-item @(i == 0 ? "active" : null) @LayoutClass(banner.Layout) @ColorClass(banner.TextColor)" role="group" aria-roledescription="slide" aria-label="@SlideLabel(banner, i)">
+					@if (slide.HasLink)
+					{
+						<a class="banner__slide-link" asp-area="@slide.LinkArea" asp-controller="@slide.LinkController" asp-action="@slide.LinkAction" asp-all-route-data="slide.LinkRouteValues">
+							@if (artDirected)
+							{
+								<picture>
+									<source media="(max-width: 991.98px)" srcset="@mobile" />
+									@if (fullSet)
+									{
+										<img src="@coverUrl" srcset="@small 768w, @medium 1280w, @master 1905w" sizes="100vw" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+									}
+									else
+									{
+										<img src="@coverUrl" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+									}
+								</picture>
+							}
+							else if (fullSet)
+							{
+								<img src="@coverUrl" srcset="@small 768w, @medium 1280w, @master 1905w" sizes="100vw" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+							}
+							else
+							{
+								<img src="@coverUrl" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+							}
+							<div class="banner__scrim" aria-hidden="true"></div>
+							<div class="banner__content">
+								@if (!string.IsNullOrWhiteSpace(banner.Title)) { <span class="banner__title">@banner.Title</span> }
+								@if (!string.IsNullOrWhiteSpace(banner.Hook)) { <span class="banner__hook">@banner.Hook</span> }
+								@if (!string.IsNullOrWhiteSpace(banner.Body)) { <span class="banner__body">@banner.Body</span> }
+								@if (!string.IsNullOrWhiteSpace(banner.CallToAction)) { <span class="banner__cta">@banner.CallToAction</span> }
+							</div>
+						</a>
+					}
+					else
+					{
+						<div class="banner__slide-link">
+							@if (artDirected)
+							{
+								<picture>
+									<source media="(max-width: 991.98px)" srcset="@mobile" />
+									@if (fullSet)
+									{
+										<img src="@coverUrl" srcset="@small 768w, @medium 1280w, @master 1905w" sizes="100vw" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+									}
+									else
+									{
+										<img src="@coverUrl" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+									}
+								</picture>
+							}
+							else if (fullSet)
+							{
+								<img src="@coverUrl" srcset="@small 768w, @medium 1280w, @master 1905w" sizes="100vw" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+							}
+							else
+							{
+								<img src="@coverUrl" alt="@alt" class="banner__image" fetchpriority="@(eager ? "high" : null)" loading="@(eager ? "eager" : "lazy")" decoding="async" />
+							}
+							<div class="banner__scrim" aria-hidden="true"></div>
+							<div class="banner__content">
+								@if (!string.IsNullOrWhiteSpace(banner.Title)) { <span class="banner__title">@banner.Title</span> }
+								@if (!string.IsNullOrWhiteSpace(banner.Hook)) { <span class="banner__hook">@banner.Hook</span> }
+								@if (!string.IsNullOrWhiteSpace(banner.Body)) { <span class="banner__body">@banner.Body</span> }
+								@if (!string.IsNullOrWhiteSpace(banner.CallToAction)) { <span class="banner__cta">@banner.CallToAction</span> }
+							</div>
+						</div>
+					}
+				</div>
+			}
+		</div>
+		@if (multiple)
+		{
+			<button class="carousel-control-prev" type="button" data-bs-target="#homeBannerCarousel" data-bs-slide="prev">
+				<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+				<span class="visually-hidden">@Localizer["BannerPrevious"]</span>
+			</button>
+			<button class="carousel-control-next" type="button" data-bs-target="#homeBannerCarousel" data-bs-slide="next">
+				<span class="carousel-control-next-icon" aria-hidden="true"></span>
+				<span class="visually-hidden">@Localizer["BannerNext"]</span>
+			</button>
+			<button type="button" class="banner__pause" data-banner-pause aria-pressed="false" aria-label="@Localizer["BannerPause"]" data-label-pause="@Localizer["BannerPause"]" data-label-play="@Localizer["BannerPlay"]">
+				<i class="bi bi-pause-fill" aria-hidden="true"></i>
+			</button>
+		}
+	</div>
+</section>

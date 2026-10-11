@@ -1,0 +1,212 @@
+@model BannerVM
+@using VaultShop.Models
+
+<div class="card shadow border-0 my-4">
+	<div class="card-header bg-primary bg-gradient ml-0 py-3">
+		<div class="row">
+			<div class="col-12 text-center">
+				<h2 class="text-secondary"> @(Model.Banner.Id != 0 ? Localizer["Update"] : Localizer["Create"]) @Localizer["Banner"] </h2>
+			</div>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<div class="row g-4">
+			<div class="col-12 col-lg-8">
+				<form method="post" enctype="multipart/form-data">
+					@Html.AntiForgeryToken()
+					<input asp-for="Banner.Id" hidden />
+					<div class="border rounded-3 p-3 bg-body-tertiary">
+						<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+						<div class="row">
+							<div class="mb-3 col-md-6">
+								<label asp-for="Banner.Layout" class="form-label fw-semibold">@Localizer["Layout"]</label>
+								<select asp-for="Banner.Layout" asp-items="Model.LayoutList" class="form-select shadow"></select>
+								<span asp-validation-for="Banner.Layout" class="text-danger"></span>
+							</div>
+							<div class="mb-3 col-md-6">
+								<label asp-for="Banner.TextColor" class="form-label fw-semibold">@Localizer["TextColor"]</label>
+								<select asp-for="Banner.TextColor" asp-items="Model.TextColorList" class="form-select shadow"></select>
+								<span asp-validation-for="Banner.TextColor" class="text-danger"></span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="mb-3 col-md-6">
+								<label asp-for="Banner.TargetKind" class="form-label fw-semibold">@Localizer["LinkTarget"]</label>
+								<select asp-for="Banner.TargetKind" asp-items="Model.TargetKindList" class="form-select shadow"></select>
+								<span asp-validation-for="Banner.TargetKind" class="text-danger"></span>
+							</div>
+							<div class="mb-3 col-md-6">
+								<label asp-for="Banner.TargetId" class="form-label fw-semibold">@Localizer["LinkTargetEntity"]</label>
+								<select asp-for="Banner.TargetId" asp-items="Model.TargetOptions" class="form-select shadow">
+									<option value="">-- @Localizer["NoLinkTarget"] --</option>
+								</select>
+								<span asp-validation-for="Banner.TargetId" class="text-danger"></span>
+							</div>
+						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Banner.Title" class="form-control" placeholder="Title" />
+								<label asp-for="Banner.Title" class="ms-2 text-muted">@Localizer["Title"]</label>
+							</div>
+							<span asp-validation-for="Banner.Title" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Banner.Hook" class="form-control" placeholder="Hook" />
+								<label asp-for="Banner.Hook" class="ms-2 text-muted">@Localizer["Hook"]</label>
+							</div>
+							<span asp-validation-for="Banner.Hook" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<textarea asp-for="Banner.Body" class="form-control" placeholder="Body" style="height:100px"></textarea>
+								<label asp-for="Banner.Body" class="ms-2 text-muted">@Localizer["Body"]</label>
+							</div>
+							<span asp-validation-for="Banner.Body" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Banner.CallToAction" class="form-control" placeholder="CallToAction" />
+								<label asp-for="Banner.CallToAction" class="ms-2 text-muted">@Localizer["CallToAction"]</label>
+							</div>
+							<span asp-validation-for="Banner.CallToAction" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<div class="form-floating mb-3 col-md-12 shadow">
+								<input asp-for="Banner.AltText" class="form-control" placeholder="AltText" />
+								<label asp-for="Banner.AltText" class="ms-2 text-muted">@Localizer["AltText"]</label>
+							</div>
+							<span asp-validation-for="Banner.AltText" class="text-danger"></span>
+						</div>
+						<div class="row">
+							<div class="mb-3 col-md-6">
+								<div class="form-floating mb-3 shadow">
+									<input asp-for="Banner.SortOrder" type="number" class="form-control" placeholder="SortOrder" />
+									<label asp-for="Banner.SortOrder" class="ms-2 text-muted">@Localizer["SortOrder"]</label>
+								</div>
+								<span asp-validation-for="Banner.SortOrder" class="text-danger"></span>
+							</div>
+							<div class="mb-3 col-md-6">
+								<div class="form-check form-switch py-2">
+									<input asp-for="Banner.IsActive" class="form-check-input" role="switch" />
+									<label asp-for="Banner.IsActive" class="form-check-label ms-2">@Localizer["IsActive"]</label>
+								</div>
+							</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label fw-semibold">@Localizer["CoverImage"]</label>
+							<input type="file" name="coverFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<div class="form-text">@Localizer["CoverImageHelp"]</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label fw-semibold">@Localizer["MobileImage"]</label>
+							<input type="file" name="mobileFile" class="form-control shadow-sm" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+							<div class="form-text">@Localizer["MobileImageHelp"]</div>
+						</div>
+						<div class="row mt-3">
+							<div class="col-6 col-md-3">
+								@if (Model.Banner.Id != 0)
+								{
+									<button type="submit" class="btn btn-primary form-control">@Localizer["Update"]</button>
+								}
+								else
+								{
+									<button type="submit" class="btn btn-primary form-control">@Localizer["Create"]</button>
+								}
+							</div>
+							<div class="col-6 col-md-3">
+								<a asp-controller="Banner" asp-action="Index" class="btn btn-outline-primary border form-control">
+									@Localizer["BackToList"]
+								</a>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			@if (Model.Banner.Id != 0)
+			{
+				<div class="col-12 col-lg-4">
+					<div class="border rounded-3 p-3 h-100">
+						<h3 class="h5 mb-3 text-primary">@Localizer["BannerImages"]</h3>
+						@{
+							var cover = Model.Banner.Images.FirstOrDefault(i => i.Kind == BannerImageKind.Master)
+								?? Model.Banner.Images.FirstOrDefault(i => i.Kind == BannerImageKind.Medium)
+								?? Model.Banner.Images.FirstOrDefault(i => i.Kind == BannerImageKind.Small);
+							var mobile = Model.Banner.Images.FirstOrDefault(i => i.Kind == BannerImageKind.Mobile);
+						}
+						@if (cover != null)
+						{
+							<div class="border rounded-3 p-2 mb-3 text-center">
+								<img src="@cover.ImageUrl" class="w-100 rounded mb-2" style="max-height:160px; object-fit:cover" alt="@Localizer["CoverImageCurrent"]" />
+								<span class="badge bg-secondary d-block mb-2">@Localizer["CoverImageCurrent"]</span>
+								<form method="post" asp-action="DeleteImage" class="w-100">
+									@Html.AntiForgeryToken()
+									<input type="hidden" name="imageId" value="@cover.Id" />
+									<button type="submit" class="btn btn-outline-danger btn-sm w-100">
+										<i class="bi bi-trash-fill"></i> @Localizer["DeleteImage"]
+									</button>
+								</form>
+							</div>
+						}
+						else
+						{
+							<div class="empty-state rounded-3 p-4 text-center text-muted mb-3">
+								<i class="bi bi-image fs-2 d-block mb-2" aria-hidden="true"></i>
+								@Localizer["NoCoverImage"]
+							</div>
+						}
+						@if (mobile != null)
+						{
+							<div class="border rounded-3 p-2 mb-3 text-center">
+								<img src="@mobile.ImageUrl" class="rounded mb-2" style="max-height:160px; object-fit:cover" alt="@Localizer["MobileImageCurrent"]" />
+								<span class="badge bg-secondary d-block mb-2">@Localizer["MobileImageCurrent"]</span>
+								<form method="post" asp-action="DeleteImage" class="w-100">
+									@Html.AntiForgeryToken()
+									<input type="hidden" name="imageId" value="@mobile.Id" />
+									<button type="submit" class="btn btn-outline-danger btn-sm w-100">
+										<i class="bi bi-trash-fill"></i> @Localizer["DeleteImage"]
+									</button>
+								</form>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>
+
+
+@section Scripts {
+	@{
+		<partial name="_ValidationScriptsPartial" />
+	}
+	<script>
+		// home-banners A5: the target picker only ever offers options of the chosen kind.
+		(function () {
+			const kind = document.getElementById('Banner_TargetKind');
+			const target = document.getElementById('Banner_TargetId');
+			if (!kind || !target) { return; }
+			// Optgroups are emitted in fixed order Categories, Collections, Products
+			// (see BannerController.PopulateFormData), matching kinds 1, 2, 3.
+			const groups = [...target.querySelectorAll('optgroup')];
+			function sync() {
+				const value = Number(kind.value);
+				if (value === 0) { // Store carries no entity
+					target.value = '';
+					target.disabled = true;
+					return;
+				}
+				target.disabled = false;
+				if (groups.length === 0) { return; }
+				const keepIndex = value - 1;
+				groups.forEach((g, i) => { g.style.display = i === keepIndex ? '' : 'none'; });
+				if (target.value && ![...groups[keepIndex].querySelectorAll('option')].some(o => o.value === target.value)) {
+					target.value = '';
+				}
+			}
+			kind.addEventListener('change', () => { target.value = ''; sync(); });
+			sync();
+		})();
+	</script>
+}

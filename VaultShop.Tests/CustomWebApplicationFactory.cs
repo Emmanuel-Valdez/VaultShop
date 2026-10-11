@@ -11,6 +11,7 @@ using VaultShop.DataAccess.Data;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Payments;
+using VaultShop.Web.Services.ImageStorage;
 
 namespace VaultShop.Web.Tests
 {
@@ -51,6 +52,9 @@ namespace VaultShop.Web.Tests
                 services.RemoveAll<IStripeCheckoutSessionClient>();
                 services.AddScoped<IStripeCheckoutSessionClient, FakeStripeCheckoutSessionClient>();
 
+                services.RemoveAll<IImageStorageService>();
+                services.AddScoped<IImageStorageService, StubImageStorageService>();
+
                 using var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -83,6 +87,26 @@ namespace VaultShop.Web.Tests
             public Session Get(string sessionId) => new() { Id = sessionId, PaymentStatus = "unpaid" };
 
             public Session Expire(string sessionId) => new() { Id = sessionId };
+        }
+
+        // In-memory upload target: HTTP tests exercise the full pipeline (validation, crops, DB)
+        // without writing files to the repo's wwwroot. Delete is a no-op; keys never truly exist.
+        private sealed class StubImageStorageService : IImageStorageService
+        {
+            public Task<StoredImage> SaveObjectAsync(ImageStorageSaveRequest request, CancellationToken cancellationToken = default)
+            {
+                var fileName = $"{Guid.NewGuid():N}.jpg";
+                return Task.FromResult(new StoredImage(
+                    $"https://example.test/{request.Prefix}/{fileName}",
+                    $"{request.Prefix}/{fileName}",
+                    fileName,
+                    request.ContentType,
+                    request.SizeBytes,
+                    "Stub"));
+            }
+
+            public Task DeleteObjectAsync(DeleteObjectRequest request, CancellationToken cancellationToken = default)
+                => Task.CompletedTask;
         }
     }
 

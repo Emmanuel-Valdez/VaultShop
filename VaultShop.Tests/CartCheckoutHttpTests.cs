@@ -38,7 +38,8 @@ public class CartCheckoutHttpTests
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("<h1 class=\"storefront-display-heading display-6 text-primary mb-2\">UkiyoStudio</h1>", html);
+        Assert.Contains("<meta property=\"og:site_name\" content=\"UkiyoStudio\"", html);
+        Assert.Contains("UkiyoStudio", html);
         Assert.DoesNotContain("href=\"\"", html);
     }
 

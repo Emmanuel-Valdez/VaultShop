@@ -30,4 +30,10 @@
   <data name="DeleteSuccesfully" xml:space="preserve">
     <value>Deleted successfully.</value>
   </data>
+  <data name="CouponType_Percent" xml:space="preserve">
+    <value>Percent</value>
+  </data>
+  <data name="CouponType_FixedAmount" xml:space="preserve">
+    <value>Fixed amount</value>
+  </data>
 </root>

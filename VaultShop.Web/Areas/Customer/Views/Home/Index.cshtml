@@ -1,10 +1,6 @@
 ﻿@model HomeIndexVM
-@using Microsoft.Extensions.Options
-@using VaultShop.Web.Services.Branding
 @using VaultShop.Web.Services.Pricing
-@inject IOptions<BrandingOptions> BrandingOptionsAccessor
 @{
-	var branding = BrandingOptionsAccessor.Value;
     ViewData["Title"] = Localizer["Home"];
     ViewData["Description"] = Localizer["MetaDescription"];
     ViewData["Keywords"] = Localizer["MetaKeywords"];
@@ -13,23 +9,10 @@
     var featuredProducts = Model?.FeaturedProducts.ToList() ?? new List<Product>();
     IEnumerable<Category> categories = Model?.Categories ?? [];
     var collections = Model?.Collections ?? [];
+    var banners = Model?.Banners ?? [];
 }
 
-<section class="storefront-section">
-	<div class="row align-items-center g-3 mb-4">
-		<div class="col-lg-8">
-			<p class="product-card__meta mb-1">@Localizer["Home"]</p>
-			<h1 class="storefront-display-heading display-6 text-primary mb-2">@branding.PublicName</h1>
-			<p class="lead text-muted mb-0">@string.Format(Localizer["HomePurposeText"].Value, branding.PublicName)</p>
-		</div>
-		<div class="col-lg-4">
-			<div class="home-value-banner rounded-3 p-3 h-100">
-				<p class="product-card__meta mb-1">@Localizer["ValueBannerLabel"]</p>
-				<p class="fw-semibold mb-0">@Localizer["ValueBannerText"]</p>
-			</div>
-		</div>
-	</div>
-</section>
+<partial name="_HomeBanner" model="banners" />
 
 @if (!products.Any())
 {

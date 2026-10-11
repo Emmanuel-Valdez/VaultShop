@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="BannerCarousel" xml:space="preserve">
+    <value>Banners destacados</value>
+  </data>
+  <data name="BannerSlide" xml:space="preserve">
+    <value>Diapositiva {0} de {1}</value>
+  </data>
+  <data name="BannerPrevious" xml:space="preserve">
+    <value>Anterior</value>
+  </data>
+  <data name="BannerNext" xml:space="preserve">
+    <value>Siguiente</value>
+  </data>
+  <data name="BannerPause" xml:space="preserve">
+    <value>Pausar carrusel</value>
+  </data>
+  <data name="BannerPlay" xml:space="preserve">
+    <value>Reanudar carrusel</value>
+  </data>
+</root>
