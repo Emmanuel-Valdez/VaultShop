@@ -57,11 +57,35 @@
   <data name="MobileImageHelp" xml:space="preserve">
     <value>Opcional vertical 4:5 (p. ej. 1200x1500; mínimo 600x750). Si falta, la portada se recorta con CSS.</value>
   </data>
+  <data name="MobileImageLayoutHint" xml:space="preserve">
+    <value>Solo se usa en el diseño "Con imagen protagonista"; los demás recortan la portada en móvil.</value>
+  </data>
   <data name="BackToList" xml:space="preserve">
     <value>Volver a Lista</value>
   </data>
   <data name="BannerImages" xml:space="preserve">
     <value>Imágenes del banner</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="PreviewDesktop" xml:space="preserve">
+    <value>Escritorio</value>
+  </data>
+  <data name="PreviewMobile" xml:space="preserve">
+    <value>Móvil</value>
+  </data>
+  <data name="SafeZoneHint" xml:space="preserve">
+    <value>Dibuje un rectángulo sobre la vista de escritorio para mantener el texto dentro de esa área. La misma área se aplica a la composición móvil.</value>
+  </data>
+  <data name="SafeZoneReset" xml:space="preserve">
+    <value>Sin zona segura</value>
+  </data>
+  <data name="SafeZoneEditor" xml:space="preserve">
+    <value>Rectángulo de zona segura. Las flechas lo mueven, mayús más flechas lo redimensionan.</value>
+  </data>
+  <data name="NoPreviewImage" xml:space="preserve">
+    <value>Seleccione una imagen de portada para ver la vista previa.</value>
   </data>
   <data name="CoverImageCurrent" xml:space="preserve">
     <value>Portada actual</value>

@@ -99,6 +99,44 @@ public class BannerRenderTests
 		Assert.Contains("src=\"https://example.test/medium.jpg\"", carousel);
 	}
 
+	[Fact]
+	public async Task Index_SafeZone_EmitsInsetVars()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		Seed(factory, new Banner
+		{
+			Title = "T",
+			SortOrder = 1,
+			IsActive = true,
+			SafeZoneLeft = 0.1m,
+			SafeZoneTop = 0.2m,
+			SafeZoneWidth = 0.5m,
+			SafeZoneHeight = 0.4m,
+		});
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+		var html = await client.GetStringAsync("/en-US/Customer/Home/Index");
+		var carousel = html.Substring(html.IndexOf("data-home-banner", StringComparison.Ordinal));
+
+		Assert.Contains("--banner-safe-top:20%", carousel);
+		Assert.Contains("--banner-safe-right:40%", carousel);
+		Assert.Contains("--banner-safe-bottom:40%", carousel);
+		Assert.Contains("--banner-safe-left:10%", carousel);
+	}
+
+	[Fact]
+	public async Task Index_NoSafeZone_EmitsNoInsetVars()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		Seed(factory, new Banner { Title = "T", SortOrder = 1, IsActive = true });
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+		var html = await client.GetStringAsync("/en-US/Customer/Home/Index");
+		var carousel = html.Substring(html.IndexOf("data-home-banner", StringComparison.Ordinal));
+
+		Assert.DoesNotContain("--banner-safe-", carousel);
+	}
+
 	private static void Seed(CustomWebApplicationFactory factory, Banner banner, bool withMobile = false, bool withMaster = true)
 	{
 		using var scope = factory.Services.CreateScope();

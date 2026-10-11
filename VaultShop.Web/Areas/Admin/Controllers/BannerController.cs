@@ -59,11 +59,27 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			var obj = bannerVM.Banner;
 			var isNew = obj.Id == 0;
 
-			// Store target carries no entity; a stale picker value must not persist.
-			if (obj.TargetKind == BannerTargetKind.Store)
-			{
-				obj.TargetId = null;
-			}
+		// Store target carries no entity; a stale picker value must not persist.
+		if (obj.TargetKind == BannerTargetKind.Store)
+		{
+			obj.TargetId = null;
+		}
+
+		// Safe zone is all-or-nothing: empty clears a prior rect; partial or
+		// out-of-bounds is rejected before any persistence (spec).
+		var safeZone = new decimal?[] { obj.SafeZoneLeft, obj.SafeZoneTop, obj.SafeZoneWidth, obj.SafeZoneHeight };
+		var safeZoneSet = safeZone.Count(v => v.HasValue);
+		if (safeZoneSet == 0)
+		{
+			obj.SafeZoneLeft = obj.SafeZoneTop = obj.SafeZoneWidth = obj.SafeZoneHeight = null;
+		}
+		else if (safeZoneSet < 4
+			|| safeZone.Any(v => v!.Value < 0 || v!.Value > 1)
+			|| obj.SafeZoneLeft!.Value + obj.SafeZoneWidth!.Value > 1
+			|| obj.SafeZoneTop!.Value + obj.SafeZoneHeight!.Value > 1)
+		{
+			ModelState.AddModelError("", _localizer["SafeZoneInvalid"].Value);
+		}
 
 			// Validate before any persistence: a rejected upload leaves the banner untouched (spec).
 			if (coverFile is { Length: > 0 })

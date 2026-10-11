@@ -57,11 +57,35 @@
   <data name="MobileImageHelp" xml:space="preserve">
     <value>Optional portrait 4:5 (e.g. 1200x1500; at least 600x750). When absent the cover is cropped with CSS.</value>
   </data>
+  <data name="MobileImageLayoutHint" xml:space="preserve">
+    <value>Used only by the "Image-led" layout. Other layouts crop the cover for mobile.</value>
+  </data>
   <data name="BackToList" xml:space="preserve">
     <value>Back to List</value>
   </data>
   <data name="BannerImages" xml:space="preserve">
     <value>Banner images</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Live preview</value>
+  </data>
+  <data name="PreviewDesktop" xml:space="preserve">
+    <value>Desktop</value>
+  </data>
+  <data name="PreviewMobile" xml:space="preserve">
+    <value>Mobile</value>
+  </data>
+  <data name="SafeZoneHint" xml:space="preserve">
+    <value>Draw a rectangle on the desktop preview to keep the text inside it. The same area applies to the mobile composition.</value>
+  </data>
+  <data name="SafeZoneReset" xml:space="preserve">
+    <value>No safe zone</value>
+  </data>
+  <data name="SafeZoneEditor" xml:space="preserve">
+    <value>Safe-zone rectangle. Arrow keys move it, shift plus arrows resize it.</value>
+  </data>
+  <data name="NoPreviewImage" xml:space="preserve">
+    <value>Choose a cover image to see the preview.</value>
   </data>
   <data name="CoverImageCurrent" xml:space="preserve">
     <value>Current cover</value>

@@ -36,9 +36,17 @@
 				var mobile = banner.Images.FirstOrDefault(x => x.Kind == BannerImageKind.Mobile)?.ImageUrl;
 				var artDirected = banner.Layout == BannerLayout.ImageLed && !string.IsNullOrWhiteSpace(mobile);
 				var fullSet = !string.IsNullOrWhiteSpace(master) && !string.IsNullOrWhiteSpace(medium) && !string.IsNullOrWhiteSpace(small);
-				var alt = !string.IsNullOrWhiteSpace(banner.AltText) ? banner.AltText : banner.Title ?? string.Empty;
-				var eager = i == 0;
-				<div class="carousel-item @(i == 0 ? "active" : null) @LayoutClass(banner.Layout) @ColorClass(banner.TextColor)" role="group" aria-roledescription="slide" aria-label="@SlideLabel(banner, i)">
+			var alt = !string.IsNullOrWhiteSpace(banner.AltText) ? banner.AltText : banner.Title ?? string.Empty;
+			var eager = i == 0;
+			// Optional safe zone: confine the overlay inside the normalized rect via CSS vars; no rect keeps the fixed-rail fallback.
+			string? safeZoneStyle = null;
+			if (banner.SafeZoneLeft.HasValue && banner.SafeZoneTop.HasValue && banner.SafeZoneWidth.HasValue && banner.SafeZoneHeight.HasValue)
+			{
+				var invariant = System.Globalization.CultureInfo.InvariantCulture;
+				string Pct(decimal v) => v.ToString("0.###", invariant) + "%";
+				safeZoneStyle = $"--banner-safe-top:{Pct(banner.SafeZoneTop.Value * 100)}; --banner-safe-right:{Pct((1 - (banner.SafeZoneLeft.Value + banner.SafeZoneWidth.Value)) * 100)}; --banner-safe-bottom:{Pct((1 - (banner.SafeZoneTop.Value + banner.SafeZoneHeight.Value)) * 100)}; --banner-safe-left:{Pct(banner.SafeZoneLeft.Value * 100)}";
+			}
+			<div class="carousel-item @(i == 0 ? "active" : null) @LayoutClass(banner.Layout) @ColorClass(banner.TextColor)" role="group" aria-roledescription="slide" aria-label="@SlideLabel(banner, i)" style="@safeZoneStyle">
 					@if (slide.HasLink)
 					{
 						<a class="banner__slide-link" asp-area="@slide.LinkArea" asp-controller="@slide.LinkController" asp-action="@slide.LinkAction" asp-all-route-data="slide.LinkRouteValues">

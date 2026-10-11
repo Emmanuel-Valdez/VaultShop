@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VaultShop.Models
 {
@@ -56,6 +57,22 @@ namespace VaultShop.Models
 		public int SortOrder { get; set; } = 0;
 
 		public bool IsActive { get; set; } = true;
+
+		[Range(0, 1)]
+		[Column(TypeName = "decimal(4,3)")]
+		public decimal? SafeZoneLeft { get; set; }
+
+		[Range(0, 1)]
+		[Column(TypeName = "decimal(4,3)")]
+		public decimal? SafeZoneTop { get; set; }
+
+		[Range(0, 1)]
+		[Column(TypeName = "decimal(4,3)")]
+		public decimal? SafeZoneWidth { get; set; }
+
+		[Range(0, 1)]
+		[Column(TypeName = "decimal(4,3)")]
+		public decimal? SafeZoneHeight { get; set; }
 
 		[ValidateNever]
 		public List<BannerImage> Images { get; set; } = new();

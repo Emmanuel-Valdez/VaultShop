@@ -257,6 +257,18 @@ namespace VaultShop.DataAccess.Migrations
                     b.Property<int>("Layout")
                         .HasColumnType("integer");
 
+                    b.Property<decimal?>("SafeZoneHeight")
+                        .HasColumnType("decimal(4,3)");
+
+                    b.Property<decimal?>("SafeZoneLeft")
+                        .HasColumnType("decimal(4,3)");
+
+                    b.Property<decimal?>("SafeZoneTop")
+                        .HasColumnType("decimal(4,3)");
+
+                    b.Property<decimal?>("SafeZoneWidth")
+                        .HasColumnType("decimal(4,3)");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 

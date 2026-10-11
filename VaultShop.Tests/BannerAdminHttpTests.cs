@@ -43,6 +43,13 @@ public class BannerAdminHttpTests
 		Assert.Contains("Banner_TargetId", html);
 		Assert.Contains("Banner_SortOrder", html);
 		Assert.Contains("Banner_IsActive", html);
+		// Live preview panel with the safe-zone editor (works for new banners too).
+		Assert.Contains("data-banner-preview", html);
+		Assert.Contains("bannerPreview.js", html);
+		Assert.Contains("Banner_SafeZoneLeft", html);
+		Assert.Contains("Banner_SafeZoneTop", html);
+		Assert.Contains("Banner_SafeZoneWidth", html);
+		Assert.Contains("Banner_SafeZoneHeight", html);
 	}
 
 	[Fact]
@@ -152,6 +159,154 @@ public class BannerAdminHttpTests
 		Assert.Contains("Categor\\u00EDa", json);
 	}
 
+	[Fact]
+	public async Task Upsert_ValidRect_RoundTripsThroughPostAndReload()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Admin/Banner/Upsert");
+		using var form = BaseBannerForm("0", token);
+		form.Add(new StringContent("0.100"), "Banner.SafeZoneLeft");
+		form.Add(new StringContent("0.200"), "Banner.SafeZoneTop");
+		form.Add(new StringContent("0.500"), "Banner.SafeZoneWidth");
+		form.Add(new StringContent("0.400"), "Banner.SafeZoneHeight");
+		var cover = new ByteArrayContent(CreateCoverPngBytes());
+		cover.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+		form.Add(cover, "coverFile", "cover.png");
+
+		var response = await client.PostAsync("/en-US/Admin/Banner/Upsert", form);
+
+		Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+		int bannerId;
+		using (var scope = factory.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			var banner = db.Banners.Single(b => b.Title == "Zona");
+			Assert.Equal(0.100m, banner.SafeZoneLeft);
+			Assert.Equal(0.200m, banner.SafeZoneTop);
+			Assert.Equal(0.500m, banner.SafeZoneWidth);
+			Assert.Equal(0.400m, banner.SafeZoneHeight);
+			bannerId = banner.Id;
+		}
+
+		var reload = await client.GetAsync($"/en-US/Admin/Banner/Upsert?id={bannerId}");
+		var html = await reload.Content.ReadAsStringAsync();
+		Assert.Equal(HttpStatusCode.OK, reload.StatusCode);
+		Assert.Contains("--banner-safe-top:20%", html);
+		Assert.Contains("--banner-safe-left:10%", html);
+	}
+
+	[Fact]
+	public async Task Upsert_PartialRect_FailsValidationAndDoesNotPersist()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Admin/Banner/Upsert");
+		using var form = BaseBannerForm("0", token);
+		form.Add(new StringContent("0.100"), "Banner.SafeZoneLeft");
+		form.Add(new StringContent("0.200"), "Banner.SafeZoneTop");
+		var cover = new ByteArrayContent(CreateCoverPngBytes());
+		cover.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+		form.Add(cover, "coverFile", "cover.png");
+
+		var response = await client.PostAsync("/en-US/Admin/Banner/Upsert", form);
+		var html = await response.Content.ReadAsStringAsync();
+
+		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+		Assert.Contains("safe zone", html, StringComparison.OrdinalIgnoreCase);
+		using (var scope = factory.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			Assert.Empty(db.Banners.Where(b => b.Title == "Zona"));
+		}
+	}
+
+	[Fact]
+	public async Task Upsert_OutOfBoundsRect_FailsValidationAndDoesNotPersist()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Admin/Banner/Upsert");
+		using var form = BaseBannerForm("0", token);
+		form.Add(new StringContent("0.800"), "Banner.SafeZoneLeft");
+		form.Add(new StringContent("0.100"), "Banner.SafeZoneTop");
+		form.Add(new StringContent("0.500"), "Banner.SafeZoneWidth");
+		form.Add(new StringContent("0.100"), "Banner.SafeZoneHeight");
+		var cover = new ByteArrayContent(CreateCoverPngBytes());
+		cover.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+		form.Add(cover, "coverFile", "cover.png");
+
+		var response = await client.PostAsync("/en-US/Admin/Banner/Upsert", form);
+		var html = await response.Content.ReadAsStringAsync();
+
+		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+		Assert.Contains("safe zone", html, StringComparison.OrdinalIgnoreCase);
+		using (var scope = factory.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			Assert.Empty(db.Banners.Where(b => b.Title == "Zona"));
+		}
+	}
+
+	[Fact]
+	public async Task Upsert_EmptyRect_ClearsPriorValue()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		var bannerId = SeedBanner(factory);
+		using (var scope = factory.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			var banner = db.Banners.Single(b => b.Id == bannerId);
+			banner.SafeZoneLeft = 0.1m;
+			banner.SafeZoneTop = 0.2m;
+			banner.SafeZoneWidth = 0.5m;
+			banner.SafeZoneHeight = 0.4m;
+			db.SaveChanges();
+		}
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, $"/en-US/Admin/Banner/Upsert?id={bannerId}");
+		using var form = BaseBannerForm(bannerId.ToString(), token);
+		form.Add(new StringContent(""), "Banner.SafeZoneLeft");
+		form.Add(new StringContent(""), "Banner.SafeZoneTop");
+		form.Add(new StringContent(""), "Banner.SafeZoneWidth");
+		form.Add(new StringContent(""), "Banner.SafeZoneHeight");
+
+		var response = await client.PostAsync("/en-US/Admin/Banner/Upsert", form);
+
+		Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+		using (var scope = factory.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			var banner = db.Banners.Single(b => b.Id == bannerId);
+			Assert.Null(banner.SafeZoneLeft);
+			Assert.Null(banner.SafeZoneTop);
+			Assert.Null(banner.SafeZoneWidth);
+			Assert.Null(banner.SafeZoneHeight);
+		}
+	}
+
+	private static MultipartFormDataContent BaseBannerForm(string id, string token, string layout = "Crossed")
+	{
+		var form = new MultipartFormDataContent();
+		form.Add(new StringContent(id), "Banner.Id");
+		form.Add(new StringContent("Zona"), "Banner.Title");
+		form.Add(new StringContent(layout), "Banner.Layout");
+		form.Add(new StringContent("White"), "Banner.TextColor");
+		form.Add(new StringContent("Store"), "Banner.TargetKind");
+		form.Add(new StringContent("0"), "Banner.SortOrder");
+		form.Add(new StringContent("true"), "Banner.IsActive");
+		form.Add(new StringContent(token), "__RequestVerificationToken");
+		return form;
+	}
+
 	private static int SeedBanner(CustomWebApplicationFactory factory)
 	{
 		using var scope = factory.Services.CreateScope();
@@ -170,8 +325,46 @@ public class BannerAdminHttpTests
 			SizeBytes = 10,
 			StorageProvider = "Local",
 		});
+		db.BannerImages.Add(new BannerImage
+		{
+			BannerId = banner.Id,
+			Kind = BannerImageKind.Mobile,
+			ImageUrl = "https://example.test/mobile.jpg",
+			ObjectKey = "banners/banner-1/mobile.jpg",
+			FileName = "mobile.jpg",
+			ContentType = "image/jpeg",
+			SizeBytes = 10,
+			StorageProvider = "Local",
+		});
 		db.SaveChanges();
 		return banner.Id;
+	}
+
+	// banner-preview-safe-zone 5.6: switching a Crossed banner with a mobile asset to ImageLed
+	// persists and the storefront home emits the art-directed <picture> + mobile <source>.
+	[Fact]
+	public async Task Upsert_CrossedToImageLed_PersistsLayoutAndHomeEmitsMobileSource()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		var bannerId = SeedBanner(factory);
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, $"/en-US/Admin/Banner/Upsert?id={bannerId}");
+		using var form = BaseBannerForm(bannerId.ToString(), token, layout: "ImageLed");
+
+		var response = await client.PostAsync("/en-US/Admin/Banner/Upsert", form);
+
+		Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+		using (var scope = factory.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			Assert.Equal(BannerLayout.ImageLed, db.Banners.Single(b => b.Id == bannerId).Layout);
+		}
+
+		var html = await client.GetStringAsync("/en-US/Customer/Home/Index");
+		Assert.Contains("<picture>", html);
+		Assert.Contains("(max-width: 991.98px)", html);
 	}
 
 	private static byte[] CreateCoverPngBytes()

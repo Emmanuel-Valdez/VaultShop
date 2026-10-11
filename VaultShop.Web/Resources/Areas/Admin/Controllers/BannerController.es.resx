@@ -3,6 +3,9 @@
   <data name="CoverImageRequired" xml:space="preserve">
     <value>Se requiere una imagen de portada para un banner nuevo.</value>
   </data>
+  <data name="SafeZoneInvalid" xml:space="preserve">
+    <value>La zona segura debe estar completamente dibujada dentro de la imagen (los cuatro valores entre 0 y 1, dentro de los límites).</value>
+  </data>
   <data name="BannerSavedImageFailed" xml:space="preserve">
     <value>Banner guardado, pero falló la subida de imagen. Podés reintentar editándolo.</value>
   </data>

@@ -358,8 +358,12 @@ public class BannerControllerTests
 			destination.AltText = source.AltText;
 			destination.TargetKind = source.TargetKind;
 			destination.TargetId = source.TargetId;
-			destination.SortOrder = source.SortOrder;
-			destination.IsActive = source.IsActive;
+		destination.SortOrder = source.SortOrder;
+		destination.IsActive = source.IsActive;
+		destination.SafeZoneLeft = source.SafeZoneLeft;
+		destination.SafeZoneTop = source.SafeZoneTop;
+		destination.SafeZoneWidth = source.SafeZoneWidth;
+		destination.SafeZoneHeight = source.SafeZoneHeight;
 		}
 	}
 }
