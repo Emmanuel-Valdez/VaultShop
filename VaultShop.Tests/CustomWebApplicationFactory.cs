@@ -47,7 +47,7 @@ namespace VaultShop.Web.Tests
                 services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
                 _connection = new SqliteConnection("Data Source=:memory:");
                 _connection.Open();
-                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection).AddInterceptors(QueryCounter));
+                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection, o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)).AddInterceptors(QueryCounter));
 
                 services.RemoveAll<IStripeCheckoutSessionClient>();
                 services.AddScoped<IStripeCheckoutSessionClient, FakeStripeCheckoutSessionClient>();
