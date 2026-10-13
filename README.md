@@ -232,7 +232,7 @@ For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on 
 dotnet test VaultShop.sln   # 707 tests — dotnet build --no-restore clean
 ```
 
-Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview, branch cascade API, seeded province list, pickup branch correction, shipped-order freeze.
+Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview, home banners (layouts, desktop-only safe zone, allowlisted targets, autoplay/a11y) + banner admin CRUD/validation, branch cascade API, seeded province list, pickup branch correction, shipped-order freeze.
 
 ## Deployment Direction
 
