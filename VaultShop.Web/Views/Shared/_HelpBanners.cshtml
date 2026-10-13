@@ -1,0 +1,40 @@
+<div class="accordion" id="bannersAccordion">
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingBannerManage">
+			<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBannerManage" aria-expanded="true" aria-controls="collapseBannerManage">
+				Crear banners
+			</button>
+		</h2>
+		<div id="collapseBannerManage" class="accordion-collapse collapse show" aria-labelledby="headingBannerManage" data-bs-parent="#bannersAccordion">
+			<div class="accordion-body">
+				<strong>Se crean en Gestión de Contenido / Banners.</strong>
+				<ol>
+					<li>Haz clic en "Crear Banner" y completá <strong>Título</strong> (máx. 120), <strong>Gancho</strong> (máx. 200), <strong>Cuerpo</strong> (máx. 500) y <strong>Llamado a la acción</strong> (máx. 60, por ejemplo "Ver todo"). Los cuatro son opcionales, pero sin imagen de portada no hay vista previa.</li>
+					<li>Elegí el <strong>Diseño</strong>: "Cruzado" reparte texto y gancho en dos columnas; "Con imagen protagonista" pone el texto en un riel izquierdo sobre la foto, con el motivo a la derecha.</li>
+					<li>Elegí el <strong>Color de texto</strong>: el sistema ajusta solo el velo sobre la foto para mantener el contraste.</li>
+					<li>Elegí el <strong>Destino del enlace</strong> (Tienda, Categoría, Colección o Producto) y, si corresponde, el <strong>Destino específico</strong>. Con Tienda el banner lleva al inicio sin destino específico.</li>
+					<li><strong>Orden</strong>: número menor aparece antes; a igual orden desempata por fecha de creación. <strong>Activo</strong> publica u oculta el banner: solo los activos salen en el carrusel del inicio.</li>
+					<li>Completá el <strong>Texto alternativo</strong> (máx. 200) para accesibilidad; si lo dejás vacío se usa el título.</li>
+					<li>Haz clic en crear cuando la información sea la correcta o en "Volver a Lista" si quieres salir sin guardar. Para editar o eliminar usá los botones <i class="bi bi-pencil-square"></i> y <i class="bi bi-trash-fill"></i> de la lista.</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item">
+		<h2 class="accordion-header" id="headingBannerImages">
+			<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBannerImages" aria-expanded="false" aria-controls="collapseBannerImages">
+				Imágenes, vista previa y zona segura
+			</button>
+		</h2>
+		<div id="collapseBannerImages" class="accordion-collapse collapse" aria-labelledby="headingBannerImages" data-bs-parent="#bannersAccordion">
+			<div class="accordion-body">
+				<ol>
+					<li><strong>Imagen de portada</strong>: archivo .jpg, .png o .webp de hasta 10 MB, horizontal ~2.67:1 (por ejemplo 1905x714). Al editar podés ver la portada actual o eliminarla.</li>
+					<li><strong>Imagen móvil (opcional)</strong>: vertical 4:5 (por ejemplo 1200x1500, mínimo 600x750). Solo se usa en el diseño "Con imagen protagonista"; en los demás la portada se recorta con CSS en móvil.</li>
+					<li>La <strong>vista previa</strong> de escritorio y móvil se actualiza sola mientras completás el formulario, sin guardar. Si todavía no hay portada verás un aviso en su lugar.</li>
+					<li><strong>Zona segura</strong>: dibujá un rectángulo sobre la vista de escritorio para mantener el texto dentro de esa área, siempre dentro de la imagen. Solo aplica a escritorio; en móvil se usa siempre la composición propia de cada diseño. Con el botón "Sin zona segura" la volvés a quitar. Las flechas lo mueven, mayús más flechas lo redimensionan.</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>

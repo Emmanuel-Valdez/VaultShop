@@ -1,8 +1,18 @@
 var dataTable;
 let translations = {};
 $(document).ready(function () {
-    loadDataTable();
+    loadTranslations().finally(loadDataTable);
 });
+function loadTranslations() {
+    return fetch(`/${culture}/customer/home/GetTranslations`)
+        .then(response => response.json())
+        .then(data => {
+            translations = data;
+        })
+        .catch(() => {
+            translations = {};
+        });
+}
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/${culture}/admin/banner/getall` },
@@ -29,9 +39,11 @@ function loadDataTable() {
             {
                 data: 'isActive',
                 "render": function (data) {
+                    var yesText = translations.yes || translations.Yes || "Sí";
+                    var noText = translations.no || translations.No || "No";
                     return data
-                        ? `<span class="badge bg-success">${translations.Yes || ''}</span>`
-                        : `<span class="badge bg-secondary">${translations.No || ''}</span>`;
+                        ? `<span class="badge bg-success">${yesText}</span>`
+                        : `<span class="badge bg-secondary">${noText}</span>`;
                 },
                 "width": "8%"
             },
@@ -55,17 +67,6 @@ function loadDataTable() {
         }
     });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    fetch(`/${culture}/customer/home/GetTranslations`)
-        .then(response => response.json())
-        .then(data => {
-            translations = data;
-            console.log(translations)
-        });
-});
-
-
 
 function Delete(url) {
 

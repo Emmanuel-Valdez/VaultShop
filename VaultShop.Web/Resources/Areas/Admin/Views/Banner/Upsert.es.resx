@@ -76,7 +76,7 @@
     <value>Móvil</value>
   </data>
   <data name="SafeZoneHint" xml:space="preserve">
-    <value>Dibuje un rectángulo sobre la vista de escritorio para mantener el texto dentro de esa área. La misma área se aplica a la composición móvil.</value>
+    <value>Dibuje un rectángulo sobre la vista de escritorio para mantener el texto dentro de esa área. Solo aplica a escritorio; en móvil se usa siempre la composición propia de cada diseño.</value>
   </data>
   <data name="SafeZoneReset" xml:space="preserve">
     <value>Sin zona segura</value>

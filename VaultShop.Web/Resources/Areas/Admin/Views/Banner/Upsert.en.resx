@@ -76,7 +76,7 @@
     <value>Mobile</value>
   </data>
   <data name="SafeZoneHint" xml:space="preserve">
-    <value>Draw a rectangle on the desktop preview to keep the text inside it. The same area applies to the mobile composition.</value>
+    <value>Draw a rectangle on the desktop preview to keep the text inside it. Desktop-only; mobile always uses each layout's own composition.</value>
   </data>
   <data name="SafeZoneReset" xml:space="preserve">
     <value>No safe zone</value>

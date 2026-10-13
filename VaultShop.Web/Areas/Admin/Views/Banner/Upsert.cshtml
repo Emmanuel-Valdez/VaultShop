@@ -183,7 +183,7 @@
 				<div class="col-12 col-lg-4">
 					<div class="border rounded-3 p-3 h-100">
 						<h3 class="h5 mb-3 text-primary">@Localizer["PreviewMobile"]</h3>
-						<div class="banner-preview__frame @previewMobileAspect @previewLayoutClass @previewColorClass banner-preview--mobile" data-preview-frame="mobile" style="@previewFrameVars">
+						<div class="banner-preview__frame @previewMobileAspect @previewLayoutClass @previewColorClass banner-preview--mobile" data-preview-frame="mobile">
 							<img class="banner__image" data-preview-mobile-img src="@previewMobileFrameUrl" alt="@previewAlt" @(previewMobileFrameUrl == null ? "hidden" : null) />
 							<div class="banner__scrim" aria-hidden="true"></div>
 							<div class="banner__content">
@@ -192,8 +192,7 @@
 								<span class="banner__body" data-preview-mobile-body @(string.IsNullOrWhiteSpace(Model.Banner.Body) ? "hidden" : null)>@Model.Banner.Body</span>
 								<span class="banner__cta" data-preview-mobile-cta @(string.IsNullOrWhiteSpace(Model.Banner.CallToAction) ? "hidden" : null)>@Model.Banner.CallToAction</span>
 							</div>
-							<div class="banner-preview__safezone" data-safezone-mirror aria-hidden="true" style="@previewRectStyle" @(previewHasRect ? null : "hidden")></div>
-							<div class="empty-state rounded-3 p-4 text-center text-muted" data-preview-mobile-empty @(previewMobileFrameUrl == null ? null : "hidden")>
+						<div class="empty-state rounded-3 p-4 text-center text-muted" data-preview-mobile-empty @(previewMobileFrameUrl == null ? null : "hidden")>
 								<i class="bi bi-image fs-2 d-block mb-2" aria-hidden="true"></i>
 								@Localizer["NoPreviewImage"]
 							</div>

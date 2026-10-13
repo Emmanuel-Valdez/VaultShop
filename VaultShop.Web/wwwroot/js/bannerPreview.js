@@ -1,7 +1,8 @@
 // banner-preview-safe-zone 3.x: admin live preview + safe-zone editor. Plain DOM + Pointer Events.
 // Reads the Upsert form state, paints desktop/mobile preview frames, and lets the admin
 // draw/move/resize one normalized rectangle on the desktop frame. Writes 3-decimal
-// [0,1] values to the Banner.SafeZone* hidden inputs; mirrors the rect on the mobile frame.
+// [0,1] values to the Banner.SafeZone* hidden inputs. The zone is desktop-only: the
+// mobile frame always uses the per-layout default geometry.
 (function () {
     var root = document.querySelector('[data-banner-preview]');
     if (!root) return;
@@ -70,26 +71,24 @@
     }
 
     function paintRect() {
+        if (mirrorEl) mirrorEl.hidden = true; // safe zone is desktop-only
+        if (!rectEl || !desktop) return;
         var show = !!rect;
-        [[rectEl, desktop], [mirrorEl, mobile]].forEach(function (pair) {
-            var el = pair[0], frame = pair[1];
-            if (!el || !frame) return;
-            el.hidden = !show;
-            if (!show) {
-                ['--banner-safe-top', '--banner-safe-right', '--banner-safe-bottom', '--banner-safe-left']
-                    .forEach(function (v) { frame.style.removeProperty(v); });
-                return;
-            }
-            el.style.left = pct(rect.l);
-            el.style.top = pct(rect.t);
-            el.style.width = pct(rect.w);
-            el.style.height = pct(rect.h);
-            // Same vars the storefront uses, so the preview content confines exactly like the home page.
-            frame.style.setProperty('--banner-safe-top', pct(rect.t));
-            frame.style.setProperty('--banner-safe-right', pct(1 - (rect.l + rect.w)));
-            frame.style.setProperty('--banner-safe-bottom', pct(1 - (rect.t + rect.h)));
-            frame.style.setProperty('--banner-safe-left', pct(rect.l));
-        });
+        rectEl.hidden = !show;
+        if (!show) {
+            ['--banner-safe-top', '--banner-safe-right', '--banner-safe-bottom', '--banner-safe-left']
+                .forEach(function (v) { desktop.style.removeProperty(v); });
+            return;
+        }
+        rectEl.style.left = pct(rect.l);
+        rectEl.style.top = pct(rect.t);
+        rectEl.style.width = pct(rect.w);
+        rectEl.style.height = pct(rect.h);
+        // Same vars the storefront uses, so the desktop preview confines exactly like the home page.
+        desktop.style.setProperty('--banner-safe-top', pct(rect.t));
+        desktop.style.setProperty('--banner-safe-right', pct(1 - (rect.l + rect.w)));
+        desktop.style.setProperty('--banner-safe-bottom', pct(1 - (rect.t + rect.h)));
+        desktop.style.setProperty('--banner-safe-left', pct(rect.l));
     }
 
     function setText(base, value) {

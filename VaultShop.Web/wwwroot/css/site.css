@@ -1347,6 +1347,7 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
 .banner--layout-crossed .banner__hook { grid-area: hook; align-self: center; }
 /* ImageLed desktop: left text rail over full-bleed image, subject clear on the right */
 .banner--layout-imageled .banner__content { display: flex; flex-direction: column; justify-content: center; gap: 0.75rem; width: 40%; padding-left: clamp(1rem, 6vw, 5rem); padding-right: 1rem; }
+.banner--layout-imageled .banner__cta { align-self: flex-start; width: fit-content; max-width: 100%; }
 
 .banner__title { font-family: "Playfair Display", serif; font-size: clamp(1.6rem, 3.4vw, 2.6rem); font-weight: 700; line-height: 1.1; text-wrap: balance; }
 .banner__hook { font-size: clamp(1.1rem, 2.2vw, 1.6rem); font-weight: 600; line-height: 1.2; text-wrap: balance; }
@@ -1357,9 +1358,11 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
 @media (max-width: 991.98px) {
     .carousel-item.banner--layout-crossed,
     .carousel-item.banner--layout-imageled { aspect-ratio: 4 / 5; }
+    /* safe zone is desktop-only: mobile always uses the per-layout default geometry below. */
+    .banner .banner__content { top: 0; right: 0; bottom: 0; left: 0; }
     .banner--layout-crossed .banner__content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; text-align: center; padding: 1.25rem 1rem 3.5rem; }
     .banner--layout-crossed .banner__cta { margin-top: 0.5rem; width: 100%; max-width: 22rem; text-align: center; }
-    .banner--layout-imageled .banner__content { width: auto; right: var(--banner-safe-right, 0); justify-content: flex-start; padding: 1.25rem 1rem 3.5rem; }
+    .banner--layout-imageled .banner__content { width: auto; justify-content: flex-start; padding: 1.25rem 1rem 3.5rem; }
     .banner--layout-imageled .banner__title { text-align: left; }
     .banner--layout-imageled .banner__cta { margin-top: auto; align-self: flex-start; }
 }
@@ -1374,7 +1377,9 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
 .banner-preview__mobile--imageled { aspect-ratio: 4 / 5; }
 .banner-preview--mobile.banner--layout-crossed .banner__content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; text-align: center; padding: 1rem 0.75rem; }
 .banner-preview--mobile.banner--layout-crossed .banner__cta { margin-top: 0.5rem; width: 100%; max-width: 22rem; text-align: center; }
-.banner-preview--mobile.banner--layout-imageled .banner__content { width: auto; right: var(--banner-safe-right, 0); justify-content: flex-start; padding: 1rem 0.75rem; }
+/* safe zone is desktop-only: the mobile preview always uses the per-layout default geometry. */
+.banner-preview--mobile .banner__content { top: 0; right: 0; bottom: 0; left: 0; }
+.banner-preview--mobile.banner--layout-imageled .banner__content { width: auto; justify-content: flex-start; padding: 1rem 0.75rem; }
 .banner-preview--mobile.banner--layout-imageled .banner__cta { margin-top: auto; align-self: flex-start; }
 .banner-preview__editor { position: absolute; inset: 0; z-index: 2; cursor: crosshair; touch-action: none; }
 .banner-preview__safezone { position: absolute; border: 2px dashed #fff; outline: 2px solid rgba(0, 0, 0, 0.55); background: rgba(255, 255, 255, 0.08); }
