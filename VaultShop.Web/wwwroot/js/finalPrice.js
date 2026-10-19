@@ -121,21 +121,19 @@ function loadDataTable() {
                     extend: 'colvis',
                     text: `${translations.columns}`,
                     titleAttr: `${translations.columnsVisibility}`,
+                    align: 'button-right'
                 }
             ],
         },
         columnDefs: [
             { responsivePriority: 1, targets: 0 },
-            { responsivePriority: 2, targets: 1 },
+            { responsivePriority: 2, targets: 6 },
             { responsivePriority: 3, targets: 7 },
-            { responsivePriority: 4, targets: 8 },
-            { responsivePriority: 5, targets: 9 },
-            { targets: 10, visible: false, searchable: true },
-            { targets: 6, visible: false },
-            { targets: 2, visible: false },
-            { targets: 3, visible: false },
-            { targets: 4, visible: false },
-            { targets: 5, visible: false }
+            { responsivePriority: 4, targets: 9 },
+            { responsivePriority: 5, targets: 8 },
+            { responsivePriority: 6, targets: 1 },
+            { targets: [1, 2, 3, 4, 5, 10], visible: false },
+            { targets: 10, searchable: true }
         ],
         responsive: {
             details: {
@@ -143,6 +141,19 @@ function loadDataTable() {
                 target: 'tr'
             }
         }
+    });
+
+    let resizeTimer;
+    $(window).on('resize.finalPrice', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+            if (dataTable) {
+                dataTable.columns.adjust();
+                if (dataTable.responsive) {
+                    dataTable.responsive.recalc();
+                }
+            }
+        }, 150);
     });
 }
 

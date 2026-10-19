@@ -1431,3 +1431,22 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
 .banner-preview__editor { position: absolute; inset: 0; z-index: 2; cursor: crosshair; touch-action: none; }
 .banner-preview__safezone { position: absolute; border: 2px dashed #fff; outline: 2px solid rgba(0, 0, 0, 0.55); background: rgba(255, 255, 255, 0.08); }
 .banner-preview__safezone-handle { position: absolute; right: -8px; bottom: -8px; width: 16px; height: 16px; background: #fff; border: 2px solid #000; border-radius: 50%; cursor: nwse-resize; }
+
+/* Keep colvis dropdown visible even though the table wrapper clips overflow during resize.
+   :has() covers mouse interactions where :focus-within does not fire. */
+.final-prices-dashboard__table:focus-within,
+.final-prices-dashboard__table:has(.dt-button-collection) {
+    overflow: visible;
+}
+
+/* Colvis dropdown: scroll vertically instead of being cut off, and wrap long column labels. */
+.final-prices-dashboard__table .dt-button-collection {
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.final-prices-dashboard__table .dt-button-collection .dt-button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
