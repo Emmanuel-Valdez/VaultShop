@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
@@ -107,7 +108,7 @@ namespace VaultShop.Web.Services.Checkout
 
 		var shoppingCartVM = new ShoppingCartVM()
 		{
-			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Keywords,Variant.Values.Value.VariantOptionType"),
+			ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Category,Product.Keywords,Variant.Values.Value.VariantOptionType"),
 			OrderHeader = new()
 		};
 
@@ -153,11 +154,18 @@ namespace VaultShop.Web.Services.Checkout
 			var evaluation = EvaluateCart(shoppingCartVM.ShoppingCartList, useWholesalePrice, couponCode, paymentMethod);
 			StampDiscountHeader(shoppingCartVM.OrderHeader, evaluation);
 
+			// envio-gratis-o-cargo 3.1/3.2: the charge is added after discounts so no coupon,
+			// promotion or payment-method discount can touch it (design decision 3).
+			var shipping = GetShippingQuote(shoppingCartVM.ShoppingCartList, useWholesalePrice);
+			shoppingCartVM.OrderHeader.ShippingCharge = shipping.Charge;
+			shoppingCartVM.OrderHeader.OrderTotal += shipping.Charge;
+
 			return new CheckoutSummaryResult
 			{
 				ApplicationUser = applicationUser,
 				ShoppingCartVM = shoppingCartVM,
-				Discounts = evaluation
+				Discounts = evaluation,
+				Shipping = shipping
 			};
 		}
 
@@ -178,7 +186,7 @@ namespace VaultShop.Web.Services.Checkout
 					u.ApplicationUserId == userId &&
 					u.Product.IsDeleted == false &&
 					u.Product.IsAvailableInStore == true,
-					includeProperties: "Product,Product.Keywords"),
+					includeProperties: "Product,Product.Category,Product.Keywords"),
 				OrderHeader = postedOrderHeader
 			};
 
@@ -215,6 +223,41 @@ namespace VaultShop.Web.Services.Checkout
 			var evaluation = EvaluateCart(shoppingCartVM.ShoppingCartList, useWholesalePrice,
 				couponCode, shoppingCartVM.OrderHeader.PaymentMethod);
 			StampDiscountHeader(shoppingCartVM.OrderHeader, evaluation);
+
+			// envio-gratis-o-cargo 4.4: resolve and validate the modality before persisting.
+			// Null stays S for legacy callers and Company checkout.
+			var shipping = GetShippingQuote(shoppingCartVM.ShoppingCartList, useWholesalePrice);
+			var deliveryType = string.IsNullOrWhiteSpace(shoppingCartVM.OrderHeader.DeliveryType)
+				? SD.DeliveryTypePickup
+				: shoppingCartVM.OrderHeader.DeliveryType;
+			if (!GetAllowedDeliveryTypes(shoppingCartVM.OrderHeader.City, useWholesalePrice, shipping).Contains(deliveryType))
+			{
+				return new CheckoutCreateOrderResult
+				{
+					InvalidDeliveryModality = true,
+					ShoppingCartVM = shoppingCartVM,
+					ApplicationUser = applicationUser,
+				};
+			}
+
+			shoppingCartVM.OrderHeader.DeliveryType = deliveryType;
+			if (deliveryType != SD.DeliveryTypePickup)
+			{
+				// Motorcycle / vendor pickup carry no branch snapshot.
+				shoppingCartVM.OrderHeader.PickupAgencyCode = null;
+				shoppingCartVM.OrderHeader.PickupAgencyName = null;
+				shoppingCartVM.OrderHeader.PickupAgencyAddress = null;
+				shoppingCartVM.OrderHeader.PickupAgencyHours = PostalAgency.HoursUnknown;
+			}
+			shoppingCartVM.OrderHeader.DeliveryNote = deliveryType == SD.DeliveryTypeVendorPickup
+				? SD.VendorPickupDeliveryNote
+				: null;
+
+			// envio-gratis-o-cargo 3.2: freeze the charge onto the order and fold it into the
+			// charged total before the OrderTotal guard and before persistence. Vendor pickup is free.
+			var shippingCharge = deliveryType == SD.DeliveryTypeVendorPickup ? 0m : shipping.Charge;
+			shoppingCartVM.OrderHeader.ShippingCharge = shippingCharge;
+			shoppingCartVM.OrderHeader.OrderTotal += shippingCharge;
 
 			if (shoppingCartVM.OrderHeader.OrderTotal <= 0)
 			{
@@ -274,6 +317,8 @@ namespace VaultShop.Web.Services.Checkout
 					couponDropped = true;
 					evaluation = EvaluateCart(shoppingCartVM.ShoppingCartList, useWholesalePrice, null, shoppingCartVM.OrderHeader.PaymentMethod);
 					StampDiscountHeader(shoppingCartVM.OrderHeader, evaluation);
+					// envio-gratis-o-cargo 3.2: re-stamp drops the charge; add the frozen amount back.
+					shoppingCartVM.OrderHeader.OrderTotal += shoppingCartVM.OrderHeader.ShippingCharge;
 				}
 			}
 			// ponytail: pre-read fast path only — the conditional write below is the real guard.
@@ -378,6 +423,66 @@ namespace VaultShop.Web.Services.Checkout
 			};
 		}
 
+		// envio-gratis-o-cargo 3.1: one shipping quote per cart. The charge is the largest category
+		// average among the non-free lines, grossed up by the aggregate percentage costs and counted
+		// once (never per unit/line); any free line makes the whole order ship free. Wholesale
+		// (Company) orders and wholesale preview never carry a charge.
+		public ShippingQuote GetShippingQuote(IEnumerable<ShoppingCart> carts, bool useWholesalePrice)
+		{
+			var lines = carts.ToList();
+			if (useWholesalePrice || lines.Count == 0)
+			{
+				return new ShippingQuote(false, 0m, 0m);
+			}
+
+			var categoryAverages = lines.Select(cart => cart.Product.Category?.AvgShippingCost ?? 0m).ToList();
+			var largestAll = categoryAverages.Max();
+			var standardAmount = largestAll <= 0m ? 0m : GrossUpShipping(largestAll);
+			var anyFree = lines.Any(cart => cart.Product.FreeShipping);
+
+			if (anyFree || largestAll <= 0m)
+			{
+				return new ShippingQuote(anyFree, 0m, standardAmount);
+			}
+
+			var largestNonFree = lines
+				.Where(cart => !cart.Product.FreeShipping)
+				.Select(cart => cart.Product.Category?.AvgShippingCost ?? 0m)
+				.Max();
+			return new ShippingQuote(false, GrossUpShipping(largestNonFree), standardAmount);
+		}
+
+		// envio-gratis-o-cargo 4.2: Gran Mendoza is the only zone with modal delivery; a free
+		// cart hides vendor pickup so nothing free can be "arranged" unnecessarily.
+		public IReadOnlyList<string> GetAllowedDeliveryTypes(string? locality, bool useWholesalePrice, ShippingQuote quote)
+		{
+			if (useWholesalePrice)
+			{
+				return [SD.DeliveryTypePickup];
+			}
+
+			if (string.IsNullOrWhiteSpace(locality) || !SD.IsGranMendoza(locality))
+			{
+				return [SD.DeliveryTypePickup];
+			}
+
+			return quote.QualifiesForFreeShipping
+				? [SD.DeliveryTypeMotorcycle, SD.DeliveryTypePickup]
+				: [SD.DeliveryTypeMotorcycle, SD.DeliveryTypeVendorPickup, SD.DeliveryTypePickup];
+		}
+
+		private decimal GrossUpShipping(decimal amount)
+		{
+			// Same aggregate the price calculator uses; the charge must survive the percentage costs.
+			var percentage = _unitOfWork.PercentageCost.GetAll().Sum(percentageCost => percentageCost.Percentage);
+			if (percentage >= 100m)
+			{
+				throw new InvalidOperationException("Cannot calculate shipping charge: percentage must be less than 100%.");
+			}
+
+			return Round(amount / (1m - percentage / 100m));
+		}
+
 		private static void StampDiscountHeader(OrderHeader header, DiscountEvaluation evaluation)
 		{
 			header.OrderTotal = evaluation.Total;
@@ -397,31 +502,53 @@ namespace VaultShop.Web.Services.Checkout
 		public IReadOnlyList<PaymentSessionLineItem> BuildPaymentSessionLineItems(ShoppingCartVM vm)
 		{
 			var lines = vm.ShoppingCartList.ToList();
+			var shippingCharge = vm.OrderHeader.ShippingCharge;
+			// envio-gratis-o-cargo 3.3: the charge is a separate, non-discounted line, so the
+			// product lines only need to reconcile against the product portion of the total.
+			var productTotal = vm.OrderHeader.OrderTotal - shippingCharge;
 			var discount = vm.OrderHeader.PaymentDiscountTotal;
 			var payables = lines.Select(c => c.Price * c.Count).ToList();
+			List<PaymentSessionLineItem> items;
 			if (discount <= 0 || payables.Sum() <= 0)
-				return lines.Select(c => new PaymentSessionLineItem(c.Product.Name, c.Price, c.Count)).ToList();
-			// ponytail: nominal shares sum exactly (remainder on largest), mirroring ProrateCoupon.
-			var payBase = payables.Sum();
-			var largest = 0;
-			for (var i = 1; i < lines.Count; i++)
-				if (payables[i] > payables[largest]) largest = i;
-			var shares = new decimal[lines.Count];
-			var assigned = 0m;
-			for (var i = 0; i < lines.Count; i++)
 			{
-				if (i == largest) continue;
-				shares[i] = Round(payables[i] * discount / payBase);
-				assigned += shares[i];
+				items = lines.Select(c => new PaymentSessionLineItem(c.Product.Name, c.Price, c.Count)).ToList();
 			}
-			shares[largest] = discount - assigned;
-			var units = new decimal[lines.Count];
-			for (var i = 0; i < lines.Count; i++)
-				units[i] = lines[i].Count <= 0 ? 0m : Round((payables[i] - shares[i]) / lines[i].Count);
-			// ponytail: per-unit rounding can drift a cent; absorb the residual on the largest line.
-			var residual = vm.OrderHeader.OrderTotal - units.Select((u, i) => u * lines[i].Count).Sum();
-			units[largest] += residual;
-			return lines.Select((c, i) => new PaymentSessionLineItem(c.Product.Name, units[i], c.Count)).ToList();
+			else
+			{
+				// ponytail: nominal shares sum exactly (remainder on largest), mirroring ProrateCoupon.
+				var payBase = payables.Sum();
+				var largest = 0;
+				for (var i = 1; i < lines.Count; i++)
+					if (payables[i] > payables[largest]) largest = i;
+				var shares = new decimal[lines.Count];
+				var assigned = 0m;
+				for (var i = 0; i < lines.Count; i++)
+				{
+					if (i == largest) continue;
+					shares[i] = Round(payables[i] * discount / payBase);
+					assigned += shares[i];
+				}
+				shares[largest] = discount - assigned;
+				var units = new decimal[lines.Count];
+				for (var i = 0; i < lines.Count; i++)
+					units[i] = lines[i].Count <= 0 ? 0m : Round((payables[i] - shares[i]) / lines[i].Count);
+				// ponytail: per-unit rounding can drift a cent; absorb the residual on the largest line.
+				var residual = productTotal - units.Select((u, i) => u * lines[i].Count).Sum();
+				units[largest] += residual;
+				items = lines.Select((c, i) => new PaymentSessionLineItem(c.Product.Name, units[i], c.Count)).ToList();
+			}
+
+			if (shippingCharge > 0m)
+			{
+				// ponytail: inline es/en label, matching the email-template convention; a resx
+				// resource is only warranted if this line ever needs more than two strings.
+				var label = CultureInfo.CurrentCulture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase)
+					? "Envío"
+					: "Shipping";
+				items.Add(new PaymentSessionLineItem(label, shippingCharge, 1));
+			}
+
+			return items;
 		}
 
 		private static decimal Round(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
@@ -435,7 +562,7 @@ namespace VaultShop.Web.Services.Checkout
 				_unitOfWork.ShoppingCart.RemoveRange(cartsToRemove);
 				_unitOfWork.Save();
 			}
-			return _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Keywords,Variant.Values.Value.VariantOptionType");
+			return _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId, includeProperties: "Product,Product.Category,Product.Keywords,Variant.Values.Value.VariantOptionType");
 		}
 
 		private bool HasDeletedCompany(ApplicationUser applicationUser)

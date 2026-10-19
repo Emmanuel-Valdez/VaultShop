@@ -156,4 +156,10 @@
   <data name="CouponBadge" xml:space="preserve">
     <value>Cupón </value>
   </data>
+  <data name="ShippingLine" xml:space="preserve">
+    <value>Envío</value>
+  </data>
+  <data name="FreeShippingLine" xml:space="preserve">
+    <value>Envío gratis</value>
+  </data>
 </root>

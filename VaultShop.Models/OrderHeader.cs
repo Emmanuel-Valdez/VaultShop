@@ -25,6 +25,10 @@ namespace VaultShop.Models
 		[Column(TypeName = "decimal(18, 2)")]
 		public decimal OrderTotal { get; set; }
 
+		// Frozen shipping charge at creation (0 = free shipping). Part of OrderTotal.
+		[Column(TypeName = "decimal(18, 2)")]
+		public decimal ShippingCharge { get; set; } = 0;
+
 		public string? OrderStatus { get; set; }
 		public string? PaymentStatus { get; set; }
 		public string? PaymentMethod { get; set; }
@@ -85,8 +89,11 @@ namespace VaultShop.Models
 		[Display(Name = "CUIT")]
 		public string? CuitSnapshot { get; set; }
 
-		// correo-argentino pickup: null for pre-change orders
+		// correo-argentino pickup: null for pre-change orders. M = motorcycle, V = vendor-arranged pickup.
 		public string? DeliveryType { get; set; }
+		// Frozen wording for modal deliveries that have no branch (V records the Microcentro wording).
+		[MaxLength(300)]
+		public string? DeliveryNote { get; set; }
 		public string? PickupAgencyCode { get; set; }
 		public string? PickupAgencyName { get; set; }
 		public string? PickupAgencyAddress { get; set; }

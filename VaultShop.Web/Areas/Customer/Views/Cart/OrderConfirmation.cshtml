@@ -36,6 +36,39 @@
 			</div>
 			<br />
 		}
+		@if (!isCompanyWholesale && (Model.ShippingCharge > 0 || !string.IsNullOrWhiteSpace(Model.DeliveryType)))
+		{
+			// envio-gratis-o-cargo 6.1: frozen shipping charge + modality, from persisted values only.
+			var confirmationModality = Model.DeliveryType switch
+			{
+				SD.DeliveryTypePickup => Localizer["DeliveryTypeCorreoPickup"].Value,
+				SD.DeliveryTypeMotorcycle => Localizer["DeliveryTypeMotorcycle"].Value,
+				SD.DeliveryTypeVendorPickup => Localizer["DeliveryTypeVendorPickup"].Value,
+				_ => null
+			};
+			<div class="alert alert-info text-start d-inline-block" role="alert">
+				@if (!string.IsNullOrWhiteSpace(confirmationModality))
+				{
+					<div class="fw-semibold">@Localizer["DeliveryMethodTitle"]</div>
+					<div>@confirmationModality</div>
+				}
+				@if (!string.IsNullOrWhiteSpace(Model.DeliveryNote))
+				{
+					<div class="small">@Model.DeliveryNote</div>
+				}
+				<div class="mt-2">
+					@if (Model.ShippingCharge > 0)
+					{
+						<span>@Localizer["ShippingLine"]: <strong>@Model.ShippingCharge.ToString("c")</strong></span>
+					}
+					else
+					{
+						<span>@Localizer["FreeShippingLine"]</span>
+					}
+				</div>
+			</div>
+			<br />
+		}
 		@if (isCompanyWholesale)
 		{
 			<div class="alert @(isOverdue ? "alert-danger" : "alert-warning") text-start d-inline-block" role="alert">
@@ -58,7 +91,7 @@
 		{
 			if (transferAlreadyConfirmed)
 			{
-				<div class="alert alert-secondary text-start" role="alert">@Localizer["BankTransferAlreadyReportedMessage"]</div>
+				<div class="alert alert-info text-start" role="alert">@Localizer["BankTransferAlreadyReportedMessage"]</div>
 			}
 			else
 			{

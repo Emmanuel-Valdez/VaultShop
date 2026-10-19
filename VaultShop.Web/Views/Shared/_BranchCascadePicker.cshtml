@@ -2,6 +2,8 @@
 @{
 	var provinceId = $"{Model.IdPrefix}Province";
 	var localityId = $"{Model.IdPrefix}Locality";
+	var provinceSelectId = string.IsNullOrWhiteSpace(Model.ProvinceSelectId) ? provinceId : Model.ProvinceSelectId;
+	var localitySelectId = string.IsNullOrWhiteSpace(Model.LocalitySelectId) ? localityId : Model.LocalitySelectId;
 	var branchesId = $"{Model.IdPrefix}Branches";
 	var filterId = $"{Model.IdPrefix}Filter";
 	var statusId = $"{Model.IdPrefix}Status";
@@ -13,6 +15,9 @@
 	data-branches-url="@Model.BranchesUrl"
 	data-submit-button-id="@Model.SubmitButtonId"
 	data-required="@(Model.IsRequired ? "true" : "false")"
+	data-requires-branch="@(Model.RequiresBranch ? "true" : "false")"
+	data-province-select-id="@provinceSelectId"
+	data-locality-select-id="@localitySelectId"
 	data-text-loading-localities="@Localizer["LoadingLocalities"]"
 	data-text-loading-branches="@Localizer["LoadingBranches"]"
 	data-text-no-localities="@Localizer["NoLocalities"]"
@@ -22,26 +27,29 @@
 	data-selected-branch="@Model.SelectedBranchCode">
 	<fieldset>
 		<legend class="h6 mb-3">@Localizer["Legend"]</legend>
-		<div class="mb-3">
-			<label class="form-label" for="@provinceId">@Localizer["ProvinceLabel"]</label>
-			<select class="form-select" id="@provinceId" name="@provinceId" autocomplete="off">
-				<option value="">@Localizer["SelectProvince"]</option>
-				@foreach (var province in Model.Provinces)
-				{
-					<option value="@province.Code" selected="@(string.Equals(province.Code, Model.SelectedProvinceCode, StringComparison.OrdinalIgnoreCase))">@province.Name</option>
-				}
-			</select>
-		</div>
-		<div class="mb-3">
-			<label class="form-label" for="@localityId">@Localizer["LocalityLabel"]</label>
-			<select class="form-select" id="@localityId" name="@localityId" autocomplete="off" disabled="@(Model.Localities.Count == 0)">
-				<option value="">@Localizer["SelectLocality"]</option>
-				@foreach (var locality in Model.Localities)
-				{
-					<option value="@locality" selected="@(string.Equals(locality, Model.SelectedLocality, StringComparison.OrdinalIgnoreCase))">@locality</option>
-				}
-			</select>
-		</div>
+		@if (Model.ShowProvinceLocalitySelectors)
+		{
+			<div class="mb-3">
+				<label class="form-label" for="@provinceId">@Localizer["ProvinceLabel"]</label>
+				<select class="form-select" id="@provinceId" name="@provinceId" autocomplete="off">
+					<option value="">@Localizer["SelectProvince"]</option>
+					@foreach (var province in Model.Provinces)
+					{
+						<option value="@province.Code" selected="@(string.Equals(province.Code, Model.SelectedProvinceCode, StringComparison.OrdinalIgnoreCase))">@province.Name</option>
+					}
+				</select>
+			</div>
+			<div class="mb-3">
+				<label class="form-label" for="@localityId">@Localizer["LocalityLabel"]</label>
+				<select class="form-select" id="@localityId" name="@localityId" autocomplete="off" disabled="@(Model.Localities.Count == 0)">
+					<option value="">@Localizer["SelectLocality"]</option>
+					@foreach (var locality in Model.Localities)
+					{
+						<option value="@locality" selected="@(string.Equals(locality, Model.SelectedLocality, StringComparison.OrdinalIgnoreCase))">@locality</option>
+					}
+				</select>
+			</div>
+		}
 		<div class="mb-3 @(showFilter ? "" : "d-none")" data-filter-wrap>
 			<label class="form-label visually-hidden" for="@filterId">@Localizer["FilterBranches"]</label>
 			<input class="form-control" type="search" id="@filterId" placeholder="@Localizer["FilterBranches"]" autocomplete="off" />
@@ -70,8 +78,9 @@
 		var root = document.getElementById('@Model.IdPrefix');
 		if (!root || root.dataset.initialized) return;
 		root.dataset.initialized = 'true';
-		var provinceSelect = root.querySelector('#@provinceId');
-		var localitySelect = root.querySelector('#@localityId');
+		// Checkout passes external domicile selects (collapsed province → locality); admin uses the built-in ones.
+		var provinceSelect = document.getElementById('@provinceSelectId');
+		var localitySelect = document.getElementById('@localitySelectId');
 		var branches = root.querySelector('#@branchesId');
 		var filterWrap = root.querySelector('[data-filter-wrap]');
 		var filter = root.querySelector('#@filterId');
@@ -87,6 +96,10 @@
 		function updateSubmitGate() {
 			var submitBtn = submitButtonId ? document.getElementById(submitButtonId) : null;
 			if (!submitBtn || !branches) return;
+			if (root.dataset.requiresBranch === 'false') {
+				submitBtn.disabled = false;
+				return;
+			}
 			submitBtn.disabled = !branches.querySelector('input[name="' + fieldName + '"]:checked');
 		}
 
@@ -165,8 +178,13 @@
 			});
 		}
 
+		function provinceCode() {
+			// Checkout province options carry the catalog code in data-code; admin options use the code as value.
+			return provinceSelect.selectedOptions[0]?.dataset.code || provinceSelect.value;
+		}
+
 		provinceSelect.addEventListener('change', async function () {
-			var code = provinceSelect.value;
+			var code = provinceCode();
 			fillSelect(localitySelect, []);
 			localitySelect.disabled = true;
 			renderBranches([]);
@@ -176,7 +194,7 @@
 			status.textContent = root.dataset.textLoadingLocalities;
 			var url = root.dataset.localitiesUrl + '?provinceCode=' + encodeURIComponent(code);
 			var items = await fetchJson(url);
-			if (items === 'aborted' || provinceSelect.value !== code) return;
+			if (items === 'aborted' || provinceCode() !== code) return;
 			status.textContent = '';
 			if (!Array.isArray(items) || items.length === 0) {
 				status.textContent = root.dataset.textNoLocalities;
@@ -187,7 +205,7 @@
 		});
 
 		localitySelect.addEventListener('change', async function () {
-			var code = provinceSelect.value;
+			var code = provinceCode();
 			var locality = localitySelect.value;
 			renderBranches([]);
 			status.textContent = '';

@@ -40,7 +40,9 @@ namespace VaultShop.Web.Tests
 			var orderDetail = Assert.Single(verificationContext.OrderDetails.AsNoTracking());
 
 			Assert.Equal("user-1", orderHeader.ApplicationUserId);
-			Assert.Equal(200m, orderHeader.OrderTotal);
+			// envio-gratis-o-cargo 3.2: product total (2 × 100) + frozen charge (category avg 100).
+			Assert.Equal(300m, orderHeader.OrderTotal);
+			Assert.Equal(100m, orderHeader.ShippingCharge);
 			Assert.Equal(SD.PaymentStatusPending, orderHeader.PaymentStatus);
 			Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
 			Assert.Equal(orderHeader.Id, orderDetail.OrderHeaderId);

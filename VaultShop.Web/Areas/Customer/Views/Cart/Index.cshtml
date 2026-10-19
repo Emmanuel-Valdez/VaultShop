@@ -1,5 +1,13 @@
 ﻿@model ShoppingCartVM
 @using VaultShop.Web.Services.Pricing
+@using VaultShop.Web.Services.Checkout
+@{
+	// envio-gratis-o-cargo 5.1: shipping is a line of the total; a free cart shows the free label
+	// with the standard amount struck through and adds nothing (wholesale quotes are all-zero).
+	var shippingQuote = ViewData["ShippingQuote"] as ICheckoutService.ShippingQuote;
+	var shippingCharge = Model.OrderHeader.ShippingCharge;
+	var qualifiesFree = shippingQuote?.QualifiesForFreeShipping == true;
+}
 
 <form method="post">
 	@Html.AntiForgeryToken()
@@ -117,9 +125,23 @@
 									<span>-@Model.OrderHeader.DiscountTotal.ToString("c")</span>
 								</li>
 							}
+							@if (shippingCharge > 0)
+							{
+								<li class="d-flex justify-content-between align-items-center">
+									<span>@Localizer["ShippingLine"]</span>
+									<span>@shippingCharge.ToString("c")</span>
+								</li>
+							}
+							else if (qualifiesFree)
+							{
+								<li class="d-flex justify-content-between align-items-center">
+									<span>@Localizer["FreeShippingLine"]</span>
+									<span><s class="text-muted">@((shippingQuote?.StandardAmount ?? 0m).ToString("c"))</s></span>
+								</li>
+							}
 							<li class="d-flex justify-content-between align-items-center">
 								<h5 class=" fw-semibold text-uppercase"> Total</h5>
-								<h4 class=" fw-bolder">@Model.OrderHeader.OrderTotal.ToString("c") </h4>
+								<h4 class=" fw-bolder">@((Model.OrderHeader.OrderTotal + shippingCharge).ToString("c")) </h4>
 							</li>
 						</ul>
 					</div>

@@ -88,6 +88,14 @@
 					<p class="mb-1">@Model.ShippingStreetAddress</p>
 					<p class="mb-1">@Model.ShippingCity, @Model.ShippingState @Model.ShippingPostalCode</p>
 					<p class="mb-0">@Model.ShippingPhoneNumber</p>
+					@if (!string.IsNullOrWhiteSpace(Model.DeliveryType))
+					{
+						<p class="mb-1 mt-2 text-muted">@Localizer["DeliveryMethodTitle"]: @(Model.DeliveryType == SD.DeliveryTypePickup ? Localizer["DeliveryTypeCorreoPickup"] : Model.DeliveryType == SD.DeliveryTypeMotorcycle ? Localizer["DeliveryTypeMotorcycle"] : Localizer["DeliveryTypeVendorPickup"])</p>
+					}
+					@if (!string.IsNullOrWhiteSpace(Model.DeliveryNote))
+					{
+						<p class="mb-0 text-muted">@Model.DeliveryNote</p>
+					}
 				</div>
 			</div>
 		</div>
@@ -165,6 +173,13 @@
 									<th colspan="3" class="text-end">@(Model.PaymentDiscountMotive ?? Localizer["PaymentDiscountLabel"].Value)</th>
 									<th class="text-end text-success">-@Model.PaymentDiscountTotal.ToString("c")</th>
 								</tr>
+							}
+							@if (string.IsNullOrWhiteSpace(Model.CompanyName))
+							{
+							<tr>
+								<th colspan="3" class="text-end">@(Model.ShippingCharge > 0 ? Localizer["ShippingLine"] : Localizer["FreeShippingLine"])</th>
+								<th class="text-end">@(Model.ShippingCharge > 0 ? Model.ShippingCharge.ToString("c") : "")</th>
+							</tr>
 							}
 							<tr>
 								<th colspan="3" class="text-end">@Localizer["TotalLabel"]</th>

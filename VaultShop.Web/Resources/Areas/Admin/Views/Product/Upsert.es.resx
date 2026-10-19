@@ -120,6 +120,9 @@
   <data name="AvailableInStore" xml:space="preserve">
     <value>Disponible en tienda</value>
   </data>
+  <data name="FreeShipping" xml:space="preserve">
+    <value>Envío gratis (el precio incluye el envío)</value>
+  </data>
   <data name="FeaturedProduct" xml:space="preserve">
     <value>Producto destacado</value>
   </data>

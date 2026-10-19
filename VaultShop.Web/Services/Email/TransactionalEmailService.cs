@@ -113,7 +113,9 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.DiscountTotal > 0 ? order.DiscountTotal.ToString("C") : null,
             order.PaymentDiscountTotal > 0 ? order.PaymentDiscountTotal.ToString("C") : null,
             order.CouponCode,
-            order.PaymentDiscountMotive);
+            order.PaymentDiscountMotive,
+            order.ShippingCharge > 0 ? order.ShippingCharge.ToString("C") : null,
+            order.DeliveryNote);
 
         // already claimed, so onSuccess is no-op (timestamp persisted via conditional UPDATE)
         await TrySendEmailAsync(orderId, userEmail, content,

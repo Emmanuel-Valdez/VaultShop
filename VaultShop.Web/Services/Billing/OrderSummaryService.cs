@@ -60,6 +60,7 @@ namespace VaultShop.Web.Services.Billing
 				ShippingPhoneNumber = o.PhoneNumber,
 
 				DeliveryType = o.DeliveryType,
+				DeliveryNote = o.DeliveryNote,
 				PickupAgencyCode = o.PickupAgencyCode,
 				PickupAgencyName = o.PickupAgencyName,
 				PickupAgencyAddress = o.PickupAgencyAddress,
@@ -80,6 +81,7 @@ namespace VaultShop.Web.Services.Billing
 				DiscountTotal = o.DiscountTotal,
 				PaymentDiscountTotal = o.PaymentDiscountTotal,
 				PaymentDiscountMotive = o.PaymentDiscountMotive,
+				ShippingCharge = o.ShippingCharge,
 				OrderTotal = o.OrderTotal,
 			};
 		}

@@ -142,13 +142,16 @@
     <value>3. Do you ship orders?</value>
   </data>
   <data name="Answer3Item1" xml:space="preserve">
-    <value>Yes, we ship throughout Argentina through Correo Argentino, usually to the nearest branch.</value>
+    <value>Yes, we ship throughout Argentina through Correo Argentino, to the branch or postal unit you choose at checkout.</value>
   </data>
   <data name="Answer3Item2" xml:space="preserve">
-    <value>If you are in Greater Mendoza, we coordinate direct home delivery.</value>
+    <value>If you are in Greater Mendoza, we offer motorcycle home delivery and we confirm the address before dispatch.</value>
   </data>
   <data name="Answer3Item3" xml:space="preserve">
     <value>For now, we do not ship outside Argentina, although we would love to offer it in the future.</value>
+  </data>
+  <data name="Answer3Item4" xml:space="preserve">
+    <value>In Greater Mendoza, orders with a shipping charge can also arrange delivery with the seller at the Microcentro of Mendoza, with no shipping charge.</value>
   </data>
   <data name="Question4" xml:space="preserve">
     <value>4. How long does delivery take?</value>
@@ -157,7 +160,7 @@
     <value>After payment is confirmed, these are the estimated delivery times:</value>
   </data>
   <data name="Answer4Item1" xml:space="preserve">
-    <value>Greater Mendoza: between 36 and 96 hours.</value>
+    <value>Greater Mendoza (motorcycle home delivery or Correo pickup): between 36 and 96 hours.</value>
   </data>
   <data name="Answer4Item2" xml:space="preserve">
     <value>Rest of Argentina: between 3 and 7 business days, depending on the location and postal service.</value>
@@ -178,10 +181,10 @@
     <value>We accept these payment methods:</value>
   </data>
   <data name="Answer6Item1" xml:space="preserve">
-    <value>Credit and debit cards, with up to 3 interest-free installments when available.</value>
+    <value>Credit cards (Visa, Mastercard, American Express, Diners, Naranja, Cabal, Tarjeta Shopping, Cencosud, Argencard, CMR) and debit cards (Visa, Mastercard, Maestro, Cabal); interest-free installments subject to current promotions.</value>
   </data>
   <data name="Answer6Item2" xml:space="preserve">
-    <value>Bank transfer, with a 10% discount.</value>
+    <value>Bank transfer.</value>
   </data>
   <data name="Question7" xml:space="preserve">
     <value>7. Do you sell wholesale?</value>
@@ -224,5 +227,11 @@
   </data>
   <data name="Answer11" xml:space="preserve">
     <value>Specific discounts never combine: the best price always wins (offer, coupon, promotion, or bundle). The payment-method discount does stack on top of that best price.</value>
+  </data>
+  <data name="Question12" xml:space="preserve">
+    <value>12. How is the shipping cost calculated?</value>
+  </data>
+  <data name="Answer12" xml:space="preserve">
+    <value>If your cart includes at least one product with free shipping, shipping is free. Otherwise a single shipping charge applies, calculated once per order from the products' categories, regardless of the number of units or products. Wholesale (Company) orders do not pay shipping.</value>
   </data>
 </root>

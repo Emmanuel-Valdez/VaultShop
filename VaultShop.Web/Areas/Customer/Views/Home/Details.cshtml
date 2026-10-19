@@ -128,7 +128,7 @@
 							var useWholesalePrice = PricingHelper.ShouldUseWholesale(User, Context);
 							var detailDiscounts = ViewData["DiscountDisplay"] as IReadOnlyDictionary<int, VaultShop.Web.Services.Pricing.ProductDisplayPrice>;
 							var detailDisplay = detailDiscounts != null && detailDiscounts.TryGetValue(Model.Product.Id, out var detailPrice) ? detailPrice : null;
-							var hasDisplayDiscount = detailDisplay != null && (detailDisplay.HasDiscount || detailDisplay.HasBadge);
+							var hasDisplayDiscount = detailDisplay != null && (detailDisplay.HasDiscount || detailDisplay.HasBadge || detailDisplay.FreeShipping);
 						}
 						<div class="mb-4">
 							<div class="product-card__meta mb-1">@Localizer["Price"]</div>

@@ -132,6 +132,22 @@ namespace VaultShop.Web.Tests
 			Assert.Equal("2x1", displays[plain.Id].Motive);
 		}
 
+		[Fact]
+		public void FreeShippingFlag_IsSurfacedForRetailOnly()
+		{
+			var free = Product();
+			free.FreeShipping = true;
+			var paid = Product(name: "Paid Product");
+
+			var retail = GetPrices([free, paid], [], useWholesale: false);
+			Assert.True(retail[free.Id].FreeShipping);
+			Assert.False(retail[paid.Id].FreeShipping);
+
+			// envio-gratis-o-cargo 5.2: wholesale viewers (Company / preview) never see the badge.
+			var wholesale = GetPrices([free, paid], [], useWholesale: true);
+			Assert.False(wholesale[free.Id].FreeShipping);
+		}
+
 		private static void AssertNoBadge(ProductDisplayPrice display)
 		{
 			Assert.False(display.HasBadge);

@@ -106,6 +106,47 @@ namespace VaultShop.Web.Tests
 			Assert.Contains("Transferencia -10%", PdfTextExtractor.Extract(pdf));
 		}
 
+		[Fact]
+		public void Generate_ChargedOrder_ShowsShippingAmountAndModality()
+		{
+			var summary = CreateSampleSummary();
+			summary.ShippingCharge = 250m;
+			summary.DeliveryType = "M";
+
+			var text = PdfTextExtractor.Extract(CreateGenerator().Generate(summary));
+
+			// mock localizer echoes the key name, so the persisted amount and modality code prove the rendering path
+			Assert.Contains("ShippingLine", text);
+			Assert.Contains("250", text);
+			Assert.Contains("DeliveryTypeMotorcycle", text);
+		}
+
+		[Fact]
+		public void Generate_FreeOrder_ShowsFreeShipping()
+		{
+			var summary = CreateSampleSummary();
+			summary.ShippingCharge = 0m;
+
+			var text = PdfTextExtractor.Extract(CreateGenerator().Generate(summary));
+
+			Assert.Contains("FreeShippingLine", text);
+			Assert.DoesNotContain("ShippingLine:", text);
+		}
+
+		[Fact]
+		public void Generate_WholesaleOrder_OmitsShippingLine()
+		{
+			var summary = CreateSampleSummary();
+			summary.CompanyName = "Textiles SA";
+			summary.ShippingCharge = 0m;
+
+			var text = PdfTextExtractor.Extract(CreateGenerator().Generate(summary));
+
+			// Wholesale shipping is arranged outside the store — no free/shipping row at all.
+			Assert.DoesNotContain("FreeShippingLine", text);
+			Assert.DoesNotContain("ShippingLine:", text);
+		}
+
 		private static OrderSummaryPdfGenerator CreateGenerator()
 		{
 			var localizerMock = new Mock<IStringLocalizer<OrderSummaryPdfGenerator>>();

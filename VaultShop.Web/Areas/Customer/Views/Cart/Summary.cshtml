@@ -1,5 +1,14 @@
-﻿@model ShoppingCartVM
+@model ShoppingCartVM
 @using VaultShop.Web.Services.Pricing
+@using VaultShop.Web.Services.Checkout
+@{
+	var domicile = ViewData["DomicilePicker"] as DomicilePickerVM ?? new DomicilePickerVM();
+	var shipping = ViewData["ShippingQuote"] as ICheckoutService.ShippingQuote;
+	var isCompanyViewer = User.IsInRole(SD.Role_Company);
+	var effectiveCharge = domicile.SelectedModality == SD.DeliveryTypeVendorPickup ? 0m : (shipping?.Charge ?? 0m);
+	var isFreeShipping = shipping?.QualifiesForFreeShipping == true;
+	var showShippingRow = !isCompanyViewer && (effectiveCharge > 0 || isFreeShipping);
+}
 <form method="post" class="checkout-summary">
 	@Html.AntiForgeryToken()
 	<br />
@@ -42,17 +51,29 @@
 							<div class="row g-3">
 								<div class="col-12 col-md-6">
 									<div class="form-floating">
-										<input asp-for="OrderHeader.City" class="form-control" placeholder=" " />
-										<label asp-for="OrderHeader.City">@Localizer["UserCity"]</label>
-										<span asp-validation-for="OrderHeader.City" class="text-danger small"></span>
+										<select id="domicileProvince" name="OrderHeader.State" class="form-select" autocomplete="off">
+											<option value="">@Localizer["SelectProvince"]</option>
+											@foreach (var province in domicile.Provinces)
+											{
+												<option value="@province.Name" data-code="@province.Code" selected="@(string.Equals(province.Name, domicile.SelectedProvinceName, StringComparison.OrdinalIgnoreCase))">@province.Name</option>
+											}
+										</select>
+										<label for="domicileProvince">@Localizer["UserState"]</label>
 									</div>
+									<span asp-validation-for="OrderHeader.State" class="text-danger small"></span>
 								</div>
 								<div class="col-12 col-md-6">
 									<div class="form-floating">
-										<input asp-for="OrderHeader.State" class="form-control" placeholder=" " />
-										<label asp-for="OrderHeader.State">@Localizer["UserState"]</label>
-										<span asp-validation-for="OrderHeader.State" class="text-danger small"></span>
+										<select asp-for="OrderHeader.City" id="OrderHeader_City" class="form-select" autocomplete="off" disabled="@(domicile.Localities.Count == 0)">
+											<option value="">@Localizer["SelectLocality"]</option>
+											@foreach (var locality in domicile.Localities)
+											{
+												<option value="@locality" selected="@(string.Equals(locality, domicile.SelectedLocality, StringComparison.OrdinalIgnoreCase))">@locality</option>
+											}
+										</select>
+										<label asp-for="OrderHeader.City">@Localizer["UserCity"]</label>
 									</div>
+									<span asp-validation-for="OrderHeader.City" class="text-danger small"></span>
 								</div>
 								<div class="col-12 col-md-6">
 									<div class="form-floating">
@@ -111,6 +132,14 @@
 									</li>
 								}
 
+								<li id="shippingRow" class="list-group-item d-flex justify-content-between @(showShippingRow ? "" : "d-none")">
+									<span id="shippingLabel">@(isFreeShipping ? Localizer["FreeShippingLine"].Value : Localizer["ShippingLine"].Value)</span>
+									<span>
+										<s id="shippingStandard" class="text-muted small @(isFreeShipping ? "" : "d-none")">@((shipping?.StandardAmount ?? 0m).ToString("c"))</s>
+										<span id="shippingAmount" class="@(effectiveCharge > 0 ? "" : "d-none")">@effectiveCharge.ToString("c")</span>
+									</span>
+								</li>
+
 								<li id="orderTotalRow" class="list-group-item d-flex justify-content-between bg-secondary">
 									<strong class="text-primary">@Localizer["Total"] </strong>
 									<strong class="text-primary" id="orderTotalValue">@Model.OrderHeader.OrderTotal.ToString("C")</strong>
@@ -122,10 +151,34 @@
 					</div>
 				<div class="row g-4 mt-1">
 						<div class="col-12">
-							<h2 class="h5 mb-1 text-primary">@Localizer["PickupHeading"]</h2>
-							<p class="text-success fw-semibold mb-3">@Localizer["PickupFreeShipping"]</p>
-							<partial name="_BranchCascadePicker" model='ViewData["BranchCascadePicker"] as BranchCascadePickerVM' />
-							<span asp-validation-for="OrderHeader.PickupAgencyCode" class="text-danger small"></span>
+							@if (!isCompanyViewer)
+							{
+								<h2 class="h5 mb-3 text-primary">@Localizer["DeliveryMethod"]</h2>
+								<div id="deliveryModalities"
+									data-url="@Url.Action("DeliveryModalities", "Cart", new { area = "Customer" })"
+									data-selected="@domicile.SelectedModality">
+									@if (domicile.Modalities.Count == 0)
+									{
+										<p id="deliveryModalitiesHint" class="text-muted small mb-0">@Localizer["DeliveryModalityHint"]</p>
+									}
+									else
+									{
+										foreach (var modality in domicile.Modalities)
+										{
+											<div class="form-check">
+												<input class="form-check-input" type="radio" name="OrderHeader.DeliveryType" id="delivery_@modality.Code" value="@modality.Code" checked="@(modality.Code == domicile.SelectedModality)" />
+												<label class="form-check-label" for="delivery_@modality.Code">@modality.Label</label>
+											</div>
+										}
+									}
+								</div>
+								<span asp-validation-for="OrderHeader.DeliveryType" class="text-danger small"></span>
+							}
+							<h2 class="h5 mb-1 mt-3 text-primary">@Localizer["PickupHeading"]</h2>
+							<div id="branchPickerWrap" class="@(domicile.SelectedModality != SD.DeliveryTypeMotorcycle && domicile.SelectedModality != SD.DeliveryTypeVendorPickup ? "" : "d-none")">
+								<partial name="_BranchCascadePicker" model='ViewData["BranchCascadePicker"] as BranchCascadePickerVM' />
+								<span asp-validation-for="OrderHeader.PickupAgencyCode" class="text-danger small"></span>
+							</div>
 						</div>
 					</div>
                     @if (!User.IsInRole(SD.Role_Company))
@@ -137,7 +190,7 @@
                             [SD.PaymentMethodBankTransfer] = Localizer["PayByBankTransfer"].Value,
                             [SD.PaymentMethodMercadoPago] = Localizer["PayWithMercadoPago"].Value,
                         };
-                        // descuento-medio-de-pago §2: localized offer note per method (e.g. "−10% paying by bank transfer").
+                        // descuento-medio-de-pago �2: localized offer note per method (e.g. "-10% paying by bank transfer").
                         string Pct(decimal p) => p == Math.Truncate(p) ? ((int)p).ToString() : p.ToString("0.##");
                         var paymentDiscountNotes = paymentDiscountPercents
                             .Where(kv => kv.Value > 0 && paymentMethodLabels.ContainsKey(kv.Key))
@@ -214,11 +267,37 @@
 		<partial name="_ValidationScriptsPartial" />
 	}
 	<script>
-		// descuento-medio-de-pago §2: choosing a method re-evaluates the summary server-side
-		// and updates the discount row + final total before Place Order.
+		// descuento-medio-de-pago �2 + envio-gratis-o-cargo �4: choosing a payment method or
+		// delivery modality re-evaluates the summary server-side (discount row, shipping line, total).
 		(function () {
 			var totalsUrl = '@Url.Action("SummaryTotals", "Cart", new { area = "Customer" })';
 			var total = document.getElementById('orderTotalValue');
+			var paymentMethodValue = document.getElementById('checkoutPaymentMethodValue');
+			var modalitiesRoot = document.getElementById('deliveryModalities');
+			var modalitiesUrl = modalitiesRoot ? modalitiesRoot.dataset.url : null;
+			var provinceSelect = document.getElementById('domicileProvince');
+			var localitySelect = document.getElementById('OrderHeader_City');
+			var branchWrap = document.getElementById('branchPickerWrap');
+			var branchPicker = document.getElementById('branchPicker');
+			var shippingRow = document.getElementById('shippingRow');
+			var shippingLabel = document.getElementById('shippingLabel');
+			var shippingAmount = document.getElementById('shippingAmount');
+			var shippingStandard = document.getElementById('shippingStandard');
+			var modalityHint = @Json.Serialize(Localizer["DeliveryModalityHint"].Value);
+
+			function selectedModality() {
+				var checked = document.querySelector('input[name="OrderHeader.DeliveryType"]:checked');
+				return checked ? checked.value : '';
+			}
+
+			function selectedPaymentMethod() {
+				return paymentMethodValue ? paymentMethodValue.value : '';
+			}
+
+			function provinceCode() {
+				var option = provinceSelect && provinceSelect.selectedOptions[0];
+				return option && option.dataset.code ? option.dataset.code : '';
+			}
 
 			function ensureRow() {
 				var existing = document.getElementById('paymentDiscountRow');
@@ -233,26 +312,141 @@
 				return li;
 			}
 
-			document.querySelectorAll('input[name="checkoutPaymentMethodChoice"]').forEach(function (radio) {
-				radio.addEventListener('change', function () {
-					fetch(totalsUrl + '?paymentMethod=' + encodeURIComponent(radio.value), { headers: { 'Accept': 'application/json' } })
-						.then(function (res) { return res.ok ? res.json() : null; })
-						.then(function (data) {
-							if (!data || !total) return;
-							total.textContent = data.orderTotal;
-							if (data.hasPaymentDiscount) {
-								var row = ensureRow();
-								if (!row) return;
-								row.classList.remove('d-none');
-								document.getElementById('paymentDiscountMotive').textContent = data.paymentDiscountMotive;
-								document.getElementById('paymentDiscountAmount').textContent = '-' + data.paymentDiscountTotal;
-							} else {
-								var current = document.getElementById('paymentDiscountRow');
-								if (current) current.classList.add('d-none');
-							}
-						});
+			function updatePaymentDiscount(data) {
+				if (data.hasPaymentDiscount) {
+					var row = ensureRow();
+					if (!row) return;
+					row.classList.remove('d-none');
+					document.getElementById('paymentDiscountMotive').textContent = data.paymentDiscountMotive;
+					document.getElementById('paymentDiscountAmount').textContent = '-' + data.paymentDiscountTotal;
+				} else {
+					var current = document.getElementById('paymentDiscountRow');
+					if (current) current.classList.add('d-none');
+				}
+			}
+
+			function updateShipping(data) {
+				if (!shippingRow) return;
+				shippingRow.classList.toggle('d-none', !data.showShippingRow);
+				if (!data.showShippingRow) return;
+				if (shippingLabel) shippingLabel.textContent = data.shippingLabel;
+				if (shippingAmount) {
+					shippingAmount.textContent = data.shippingCharge;
+					shippingAmount.classList.toggle('d-none', !data.hasShippingCharge);
+				}
+				if (shippingStandard) {
+					shippingStandard.textContent = data.shippingStandard;
+					shippingStandard.classList.toggle('d-none', !data.isFreeShipping);
+				}
+			}
+
+			function applyModality(code) {
+				if (!branchPicker) return;
+				var isPickup = code === '@SD.DeliveryTypePickup';
+				branchPicker.dataset.requiresBranch = isPickup ? 'true' : 'false';
+				branchPicker.querySelectorAll('input[type=radio][name="OrderHeader.PickupAgencyCode"]').forEach(function (radio) {
+					radio.required = isPickup;
+					if (!isPickup) radio.checked = false;
 				});
+				if (branchWrap) branchWrap.classList.toggle('d-none', !isPickup);
+				// Re-run the picker's submit gate (private) through its change listener.
+				var list = branchPicker.querySelector('.list-group');
+				if (list) list.dispatchEvent(new Event('change', { bubbles: true }));
+			}
+
+			function renderModalities(items) {
+				if (!modalitiesRoot) return;
+				modalitiesRoot.querySelectorAll('.form-check, #deliveryModalitiesHint').forEach(function (node) { node.remove(); });
+				if (!items || items.length === 0) {
+					var hint = document.createElement('p');
+					hint.id = 'deliveryModalitiesHint';
+					hint.className = 'text-muted small mb-0';
+					hint.textContent = modalityHint;
+					modalitiesRoot.appendChild(hint);
+					modalitiesRoot.dataset.selected = '';
+					applyModality('');
+					return;
+				}
+
+				var selected = modalitiesRoot.dataset.selected || '';
+				var codes = items.map(function (item) { return item.code; });
+				if (codes.indexOf(selected) === -1) {
+					selected = codes.indexOf('@SD.DeliveryTypePickup') !== -1 ? '@SD.DeliveryTypePickup' : items[0].code;
+				}
+
+				items.forEach(function (item) {
+					var wrap = document.createElement('div');
+					wrap.className = 'form-check';
+					var input = document.createElement('input');
+					input.className = 'form-check-input';
+					input.type = 'radio';
+					input.name = 'OrderHeader.DeliveryType';
+					input.id = 'delivery_' + item.code;
+					input.value = item.code;
+					input.checked = item.code === selected;
+					var label = document.createElement('label');
+					label.className = 'form-check-label';
+					label.htmlFor = 'delivery_' + item.code;
+					label.textContent = item.label;
+					wrap.appendChild(input);
+					wrap.appendChild(label);
+					modalitiesRoot.appendChild(wrap);
+				});
+				modalitiesRoot.dataset.selected = selected;
+				applyModality(selected);
+			}
+
+			function refreshTotals() {
+				var url = totalsUrl
+					+ '?paymentMethod=' + encodeURIComponent(selectedPaymentMethod())
+					+ '&modality=' + encodeURIComponent(selectedModality());
+				fetch(url, { headers: { 'Accept': 'application/json' } })
+					.then(function (res) { return res.ok ? res.json() : null; })
+					.then(function (data) {
+						if (!data) return;
+						if (total) total.textContent = data.orderTotal;
+						updatePaymentDiscount(data);
+						updateShipping(data);
+					});
+			}
+
+			function loadModalities() {
+				if (!modalitiesUrl || !localitySelect || !localitySelect.value || !provinceCode()) {
+					renderModalities([]);
+					return;
+				}
+				var code = provinceCode();
+				var locality = localitySelect.value;
+				fetch(modalitiesUrl + '?provinceCode=' + encodeURIComponent(code) + '&locality=' + encodeURIComponent(locality),
+					{ headers: { 'Accept': 'application/json' } })
+					.then(function (res) { return res.ok ? res.json() : []; })
+					.then(function (items) {
+						if (localitySelect.value !== locality || provinceCode() !== code) return;
+						renderModalities(items);
+						refreshTotals();
+					});
+			}
+
+			if (localitySelect) localitySelect.addEventListener('change', loadModalities);
+			if (provinceSelect) provinceSelect.addEventListener('change', function () { renderModalities([]); });
+			if (modalitiesRoot) {
+				modalitiesRoot.addEventListener('change', function (e) {
+					if (!e.target || e.target.name !== 'OrderHeader.DeliveryType') return;
+					modalitiesRoot.dataset.selected = e.target.value;
+					applyModality(e.target.value);
+					refreshTotals();
+				});
+			}
+			document.querySelectorAll('input[name="checkoutPaymentMethodChoice"]').forEach(function (radio) {
+				radio.addEventListener('change', refreshTotals);
 			});
+
+			var initial = selectedModality();
+			if (initial) {
+				applyModality(initial);
+				// envio-gratis-o-cargo: keep totals in sync on load (failed POST re-render must reflect the posted modality).
+				refreshTotals();
+			}
 		})();
 	</script>
 }

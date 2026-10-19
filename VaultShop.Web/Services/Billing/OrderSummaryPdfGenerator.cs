@@ -6,6 +6,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using VaultShop.Models;
 using VaultShop.Models.ViewModels;
+using VaultShop.Utility;
 using VaultShop.Web.Services.Branding;
 
 namespace VaultShop.Web.Services.Billing
@@ -90,6 +91,21 @@ namespace VaultShop.Web.Services.Billing
 				column.Item().Text(summary.ShippingStreetAddress);
 				column.Item().Text($"{summary.ShippingCity}, {summary.ShippingState} {summary.ShippingPostalCode}");
 				column.Item().Text(summary.ShippingPhoneNumber);
+				var modalityLabel = summary.DeliveryType switch
+				{
+					SD.DeliveryTypePickup => _localizer["DeliveryTypeCorreoPickup"].Value,
+					SD.DeliveryTypeMotorcycle => _localizer["DeliveryTypeMotorcycle"].Value,
+					SD.DeliveryTypeVendorPickup => _localizer["DeliveryTypeVendorPickup"].Value,
+					_ => null
+				};
+				if (!string.IsNullOrWhiteSpace(modalityLabel))
+				{
+					column.Item().Text($"{_localizer["DeliveryMethodLabel"].Value}: {modalityLabel}");
+				}
+				if (!string.IsNullOrWhiteSpace(summary.DeliveryNote))
+				{
+					column.Item().Text(summary.DeliveryNote);
+				}
 				if (!string.IsNullOrWhiteSpace(summary.PickupAgencyCode))
 				{
 					column.Item().PaddingTop(8).Text(_localizer["PickupAgencyTitle"].Value).Bold().FontSize(14);
@@ -154,6 +170,12 @@ namespace VaultShop.Web.Services.Billing
 				}
 				if (summary.PaymentDiscountTotal > 0)
 					column.Item().AlignRight().Text($"{summary.PaymentDiscountMotive ?? _localizer["PaymentDiscountLabel"].Value}: -{summary.PaymentDiscountTotal.ToString("c", culture)}");
+				if (string.IsNullOrWhiteSpace(summary.CompanyName))
+				{
+					column.Item().AlignRight().Text(summary.ShippingCharge > 0
+						? $"{_localizer["ShippingLine"].Value}: {summary.ShippingCharge.ToString("c", culture)}"
+						: _localizer["FreeShippingLine"].Value);
+				}
 				column.Item().AlignRight().Text($"{_localizer["TotalLabel"].Value}: {summary.OrderTotal.ToString("c", culture)}").Bold().FontSize(14);
 
 				column.Item().PaddingTop(16).LineHorizontal(1).LineColor("#999999");

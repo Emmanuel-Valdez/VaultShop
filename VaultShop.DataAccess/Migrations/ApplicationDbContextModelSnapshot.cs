@@ -1010,6 +1010,10 @@ namespace VaultShop.DataAccess.Migrations
                     b.Property<string>("CuitSnapshot")
                         .HasColumnType("text");
 
+                    b.Property<string>("DeliveryNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("DeliveryType")
                         .HasColumnType("text");
 
@@ -1088,6 +1092,9 @@ namespace VaultShop.DataAccess.Migrations
 
                     b.Property<string>("SessionId")
                         .HasColumnType("text");
+
+                    b.Property<decimal>("ShippingCharge")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime?>("ShippingConfirmationEmailSentUtc")
                         .HasColumnType("timestamp with time zone");
@@ -1215,6 +1222,9 @@ namespace VaultShop.DataAccess.Migrations
 
                     b.Property<decimal>("FinalWholesalePrice")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<bool>("FreeShipping")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsAvailableInStore")
                         .HasColumnType("boolean");

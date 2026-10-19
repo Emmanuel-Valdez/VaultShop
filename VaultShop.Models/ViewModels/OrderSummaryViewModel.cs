@@ -25,6 +25,8 @@ namespace VaultShop.Models.ViewModels
 
 		// correo-argentino pickup snapshot: null for pre-change orders
 		public string? DeliveryType { get; set; }
+		// Frozen wording for modal deliveries that have no branch (V records the Microcentro wording).
+		public string? DeliveryNote { get; set; }
 		public string? PickupAgencyCode { get; set; }
 		public string? PickupAgencyName { get; set; }
 		public string? PickupAgencyAddress { get; set; }
@@ -35,6 +37,7 @@ namespace VaultShop.Models.ViewModels
 		public decimal DiscountTotal { get; set; }
 		public decimal PaymentDiscountTotal { get; set; }
 		public string? PaymentDiscountMotive { get; set; }
+		public decimal ShippingCharge { get; set; }
 		public decimal OrderTotal { get; set; }
 	}
 

@@ -33,6 +33,55 @@ public class ProductControllerUpsertTests
         Assert.True(vm.Product.IsAvailableInStore);
     }
 
+    // envio-gratis 1.3 — free-shipping flag defaults off on create
+    [Fact]
+    public void Upsert_Get_Create_FreeShippingDefaultsOff()
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+
+        var view = Assert.IsType<ViewResult>(controller.Upsert(null));
+        var vm = Assert.IsType<ProductVM>(view.Model);
+        Assert.False(vm.Product.FreeShipping);
+    }
+
+    // envio-gratis 1.3 — both flag values round-trip through create
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Upsert_Post_Create_PersistsFreeShippingValue(bool freeShipping)
+    {
+        var uow = CreateUnitOfWork();
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 0, selectedKeywordIds: new List<int>());
+        vm.Product.FreeShipping = freeShipping;
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<RedirectToActionResult>(result);
+        uow.ProductMock.Verify(p => p.Add(It.Is<Product>(prod => prod.FreeShipping == freeShipping)), Times.Once);
+    }
+
+    // envio-gratis 1.3 — toggling the flag on edit persists the new value
+    [Fact]
+    public async Task Upsert_Post_Edit_TogglesFreeShipping()
+    {
+        var existing = new Product
+        {
+            Id = 42, Name = "Existing", Description = "Desc", MaxExpectation = 25, CategoryId = 1,
+            ListPrice = 100m, FinalRetailPrice = 100m, FinalWholesalePrice = 80m, IsDeleted = false
+        };
+        var uow = CreateUnitOfWork(existingProduct: existing);
+        var controller = CreateController(uow);
+        var vm = BuildValidVm(id: 42, selectedKeywordIds: new List<int>());
+        vm.Product.FreeShipping = true;
+
+        var result = await controller.Upsert(vm, new List<IFormFile>());
+
+        Assert.IsType<RedirectToActionResult>(result);
+        uow.ProductMock.Verify(p => p.Update(It.Is<Product>(prod => prod.Id == 42 && prod.FreeShipping)), Times.Once);
+    }
+
     [Fact]
     public void Upsert_Get_Edit_PreservesExistingExpectation()
     {

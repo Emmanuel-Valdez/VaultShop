@@ -67,4 +67,7 @@
   <data name="OfferEnd" xml:space="preserve">
     <value>Valid until {0:MM/dd HH:mm}</value>
   </data>
+  <data name="FreeShipping" xml:space="preserve">
+    <value>Free shipping</value>
+  </data>
 </root>

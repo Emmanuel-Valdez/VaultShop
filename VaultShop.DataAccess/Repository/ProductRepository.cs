@@ -35,6 +35,8 @@ namespace VaultShop.DataAccess.Repository
                 objFromDB.ProductImages = obj.ProductImages;
                 objFromDB.IsDeleted = obj.IsDeleted;
                 objFromDB.IsAvailableInStore = obj.IsAvailableInStore;
+                // ponytail: whitelist copy — any new Product column must be added here or admin edits silently drop it.
+                objFromDB.FreeShipping = obj.FreeShipping;
                 objFromDB.IsFeatured = obj.IsFeatured;
                 objFromDB.FeaturedSortOrder = obj.FeaturedSortOrder;
                 objFromDB.StockQuantity = obj.StockQuantity;

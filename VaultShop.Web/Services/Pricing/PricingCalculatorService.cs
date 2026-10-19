@@ -136,7 +136,10 @@ public class PricingCalculatorService : IPricingCalculatorService
 			{
 				var product = costByProduct.Product;
 				var retailWithProfit = CalculatePriceWithPercentage(costByProduct.TotalCostByProduct, percentageProfit.Retail, "retail profit");
-				var retailWithShipping = retailWithProfit + product.Category.AvgShippingCost;
+				// Free-shipping products bake the category shipping share into the suggested retail;
+				// unflagged products exclude it so shipping can be charged separately at checkout.
+				var shippingShare = product.FreeShipping ? product.Category.AvgShippingCost : 0m;
+				var retailWithShipping = retailWithProfit + shippingShare;
 				var finalRetail = CalculatePriceWithPercentage(retailWithShipping, totalPercentage, "retail percentage cost");
 				var wholesaleWithProfit = CalculatePriceWithPercentage(costByProduct.TotalCostByProduct, percentageProfit.Wholesale, "wholesale profit");
 				var combinedWholesalePercentage = percentageProfit.Wholesale + totalPercentageCostWholesale;

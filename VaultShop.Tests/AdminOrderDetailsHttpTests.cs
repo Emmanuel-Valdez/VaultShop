@@ -183,6 +183,175 @@ namespace VaultShop.Web.Tests
 			}
 		}
 
+		[Theory]
+		[InlineData("en-US", "Motorcycle delivery")]
+		[InlineData("es-AR", "moto")]
+		public async Task Details_MotorcycleOrder_ShowsFrozenChargeAndModality(string culture, string modalityFragment)
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, SD.DeliveryTypeMotorcycle, shippingCharge: 250m, deliveryNote: null);
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/{culture}/Admin/Order/Details?orderId={orderId}");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.Contains("250", html);
+			Assert.Contains(modalityFragment, html);
+		}
+
+		[Fact]
+		public async Task Details_PreChangeOrder_RendersFreeShippingAndNoModality()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, deliveryType: null, shippingCharge: 0m, deliveryNote: null);
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/en-US/Admin/Order/Details?orderId={orderId}");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.Contains("Free shipping", html);
+			Assert.DoesNotContain("Motorcycle delivery", html);
+			Assert.DoesNotContain("Pick up from the vendor", html);
+		}
+
+		[Fact]
+		public async Task Details_VendorPickupOrder_ShowsRecordedWording()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, SD.DeliveryTypeVendorPickup, shippingCharge: 0m, deliveryNote: SD.VendorPickupDeliveryNote);
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync("/en-US/Admin/Order/Details?orderId=" + orderId);
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.Contains("Pick up from the vendor", html);
+			Assert.Contains("Microcentro", html);
+		}
+
+		[Fact]
+		public async Task Summary_MotorcycleOrder_ShowsChargeAndModality()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, SD.DeliveryTypeMotorcycle, shippingCharge: 250m, deliveryNote: null);
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/en-US/Admin/Order/Summary?orderId={orderId}");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.Contains("250", html);
+			Assert.Contains("Motorcycle delivery", html);
+		}
+
+		[Fact]
+		public async Task OrderConfirmation_ChargedOrder_ShowsShippingAndModality()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, SD.DeliveryTypeMotorcycle, shippingCharge: 250m, deliveryNote: null, sessionId: "sess-1");
+			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/en-US/Customer/Cart/OrderConfirmation?id={orderId}&session_id=sess-1");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.Contains("Shipping", html);
+			Assert.Contains("250", html);
+			Assert.Contains("Motorcycle delivery", html);
+		}
+
+		[Fact]
+		public async Task OrderConfirmation_PreChangeOrder_RendersWithoutShippingBlock()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, deliveryType: null, shippingCharge: 0m, deliveryNote: null, sessionId: "sess-2");
+			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/en-US/Customer/Cart/OrderConfirmation?id={orderId}&session_id=sess-2");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.DoesNotContain("Delivery method", html);
+			Assert.DoesNotContain("Free shipping", html);
+		}
+
+		private static int SeedOrder(CustomWebApplicationFactory factory, string? deliveryType, decimal shippingCharge, string? deliveryNote, string sessionId = "", int companyId = 0)
+		{
+			using var scope = factory.Services.CreateScope();
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			var customer = db.ApplicationUsers.Single(u => u.Email == factory.CustomerEmail);
+			var order = new OrderHeader
+			{
+				ApplicationUserId = customer.Id,
+				CompanyId = companyId > 0 ? companyId : null,
+				OrderDate = DateTime.UtcNow,
+				OrderTotal = 100m + shippingCharge,
+				ShippingCharge = shippingCharge,
+				OrderStatus = SD.StatusShipped,
+				PaymentStatus = SD.PaymentStatusApproved,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				Name = "Test Customer",
+				StreetAddress = "123 Test St",
+				City = "Godoy Cruz",
+				State = "Mendoza",
+				PostalCode = "5501",
+				PhoneNumber = "555-0100",
+				DeliveryType = deliveryType,
+				DeliveryNote = deliveryNote,
+				SessionId = sessionId,
+			};
+			db.OrderHeaders.Add(order);
+			db.SaveChanges();
+			return order.Id;
+		}
+
+		[Fact]
+		public async Task Details_WholesaleOrder_OmitsShippingRow()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, SD.DeliveryTypePickup, shippingCharge: 0m, deliveryNote: null, companyId: factory.TestCompanyId);
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/en-US/Admin/Order/Details?orderId={orderId}");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.DoesNotContain("Free shipping", html);
+			Assert.DoesNotContain("Envío gratis", html);
+		}
+
+		[Fact]
+		public async Task Summary_WholesaleOrder_OmitsShippingRow()
+		{
+			using var factory = new CustomWebApplicationFactory();
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+			var orderId = SeedOrder(factory, SD.DeliveryTypePickup, shippingCharge: 0m, deliveryNote: null, companyId: factory.TestCompanyId);
+			await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+			var response = await client.GetAsync($"/en-US/Admin/Order/Summary?orderId={orderId}");
+			var html = await response.Content.ReadAsStringAsync();
+
+			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+			Assert.DoesNotContain("Free shipping", html);
+		}
+
 		private static int SeedUnshippedPickupOrder(CustomWebApplicationFactory factory)
 		{
 			using var scope = factory.Services.CreateScope();

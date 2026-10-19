@@ -22,12 +22,17 @@
 		</p>
 	}
 }
-else
-{
-	<p class="product-price h5 mb-1"><span>@Model.EffectivePrice.ToString("c")</span></p>
-	if (!string.IsNullOrWhiteSpace(badge))
+	else
 	{
-		@* BxGy coverage: badge with no strikethrough — the discount lands in the cart. *@
-		<p class="mb-3"><span class="badge bg-success">@badge</span></p>
+		<p class="product-price h5 mb-1"><span>@Model.EffectivePrice.ToString("c")</span></p>
+		if (!string.IsNullOrWhiteSpace(badge))
+		{
+			@* BxGy coverage: badge with no strikethrough — the discount lands in the cart. *@
+			<p class="mb-3"><span class="badge bg-success">@badge</span></p>
+		}
 	}
+@* envio-gratis-o-cargo 5.2: free-shipping badge, retail viewers only (the flag is cleared for wholesale). *@
+@if (Model.FreeShipping)
+{
+	<p class="mb-1"><span class="badge bg-info text-dark">@Localizer["FreeShipping"]</span></p>
 }

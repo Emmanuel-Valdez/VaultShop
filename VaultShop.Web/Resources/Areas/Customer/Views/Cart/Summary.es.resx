@@ -213,4 +213,22 @@
   <data name="PaymentMethodOfferNote" xml:space="preserve">
     <value>Ahorrás {0}% pagando con {1}.</value>
   </data>
+  <data name="SelectProvince" xml:space="preserve">
+    <value>Seleccioná una provincia</value>
+  </data>
+  <data name="SelectLocality" xml:space="preserve">
+    <value>Seleccioná una localidad</value>
+  </data>
+  <data name="DeliveryMethod" xml:space="preserve">
+    <value>Método de envío</value>
+  </data>
+  <data name="DeliveryModalityHint" xml:space="preserve">
+    <value>Seleccioná una provincia y localidad para ver las opciones de envío.</value>
+  </data>
+  <data name="ShippingLine" xml:space="preserve">
+    <value>Envío</value>
+  </data>
+  <data name="FreeShippingLine" xml:space="preserve">
+    <value>Envío gratis</value>
+  </data>
 </root>

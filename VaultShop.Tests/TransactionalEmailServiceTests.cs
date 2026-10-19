@@ -308,6 +308,80 @@ namespace VaultShop.Web.Tests
 			Assert.DoesNotContain("correoargentino.com.ar", content.Body);
 		}
 
+		[Theory]
+		[InlineData("es-AR", "Envío")]
+		[InlineData("en-US", "Shipping")]
+		public void OrderConfirmation_ChargedOrder_ShowsShippingLine(string cultureName, string shippingLabel)
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo(cultureName),
+				shippingTotal: "$55.56");
+
+			Assert.Contains($"{shippingLabel}:</strong> $55.56", content.Body);
+		}
+
+		[Fact]
+		public void OrderConfirmation_FreeOrder_HasNoShippingAmount()
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo("en-US"));
+
+			Assert.DoesNotContain("Shipping:", content.Body);
+		}
+
+		[Fact]
+		public void OrderConfirmation_ModalDelivery_RendersModalityAndNote()
+		{
+			var content = EmailTemplates.OrderConfirmation(
+				"Shop", "Ada", 7, [], "$100", "https://x.test", new CultureInfo("en-US"),
+				deliveryType: SD.DeliveryTypeVendorPickup, deliveryNote: SD.VendorPickupDeliveryNote);
+
+			Assert.Contains("Delivery method:</strong>", content.Body);
+			Assert.Contains("Pick up from the vendor", content.Body);
+			Assert.Contains("Microcentro", content.Body);
+		}
+
+		[Fact]
+		public async Task TrySendOrderConfirmationAsync_BankTransferChargedOrder_IncludesShippingLine()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				Name = "Ada",
+				OrderTotal = 2500m,
+				ShippingCharge = 250m,
+				PaymentMethod = SD.PaymentMethodBankTransfer,
+				PaymentStatus = SD.PaymentStatusPending,
+				DeliveryType = SD.DeliveryTypeMotorcycle,
+				ApplicationUser = new ApplicationUser { Email = "ada@vaultshop.test" }
+			};
+			var test = CreateService(order);
+			string? body = null;
+			test.EmailSenderMock
+				.Setup(x => x.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+				.Callback<string, string, string>((_, _, b) => body = b)
+				.Returns(Task.CompletedTask);
+
+			// The service reads Thread.CurrentThread.CurrentUICulture, so pin it for a deterministic assertion.
+			var previousUiCulture = Thread.CurrentThread.CurrentUICulture;
+			var previousCulture = Thread.CurrentThread.CurrentCulture;
+			Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+			Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+			try
+			{
+				await test.Service.TrySendOrderConfirmationAsync(42);
+			}
+			finally
+			{
+				Thread.CurrentThread.CurrentUICulture = previousUiCulture;
+				Thread.CurrentThread.CurrentCulture = previousCulture;
+			}
+
+			Assert.NotNull(body);
+			Assert.Contains("250", body);
+			Assert.Contains("Motorcycle delivery", body);
+		}
+
 		private static TestContext CreateService(OrderHeader order, IEnumerable<OrderDetail>? details = null)
 		{
 			var orderHeaderMock = new Mock<IOrderHeaderRepository>();

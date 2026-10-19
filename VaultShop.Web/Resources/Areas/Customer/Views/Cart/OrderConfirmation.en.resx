@@ -191,6 +191,24 @@
   </data>
   <data name="PickupAgencyTitle" xml:space="preserve">
     <value>Branch pickup</value>
+  </data>
+  <data name="DeliveryMethodTitle" xml:space="preserve">
+    <value>Delivery method</value>
+  </data>
+  <data name="DeliveryTypeCorreoPickup" xml:space="preserve">
+    <value>Correo pickup</value>
+  </data>
+  <data name="DeliveryTypeMotorcycle" xml:space="preserve">
+    <value>Motorcycle delivery</value>
+  </data>
+  <data name="DeliveryTypeVendorPickup" xml:space="preserve">
+    <value>Pick up from the vendor</value>
+  </data>
+  <data name="ShippingLine" xml:space="preserve">
+    <value>Shipping</value>
+  </data>
+  <data name="FreeShippingLine" xml:space="preserve">
+    <value>Free shipping</value>
   </data></root>
 
 

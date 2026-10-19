@@ -148,8 +148,8 @@ public class CartCheckoutHttpTests
 
     [Theory]
     [InlineData("es-AR", "Elegí la sucursal de retiro", "Provincia", "Seleccioná una provincia")]
-    [InlineData("en-US", "Choose your pickup branch", "Province", "Select a province")]
-    public async Task Summary_RendersBranchCascadePickerInBothCultures(string culture, string legend, string provinceLabel, string selectProvince)
+    [InlineData("en-US", "Choose your pickup branch", "State", "Select a province")]
+    public async Task Summary_RendersDomicileCascadeAndBranchPickerInBothCultures(string culture, string legend, string provinceLabel, string selectProvince)
     {
         using var factory = new CustomWebApplicationFactory();
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -166,11 +166,13 @@ public class CartCheckoutHttpTests
         Assert.Contains(provinceLabel, html);
         Assert.Contains(selectProvince, html);
         Assert.Contains("aria-live=\"polite\"", html);
-        Assert.Contains("name=\"branchPickerProvince\"", html);
-        Assert.Contains("name=\"branchPickerLocality\"", html);
+        // Domicile province → locality is the single cascade; the branch picker collapses into it.
+        Assert.Contains("name=\"OrderHeader.State\"", html);
+        Assert.Contains("name=\"OrderHeader.City\"", html);
+        Assert.DoesNotContain("name=\"branchPickerProvince\"", html);
         Assert.Contains("data-submit-button-id=\"placeOrderBtn\"", html);
-        // Server-rendered provinces include the seeded candidate's province.
-        Assert.Contains("value=\"M\"", html);
+        // Server-rendered provinces include the seeded candidate's province (code rides on data-code).
+        Assert.Contains("data-code=\"M\"", html);
         // Nearest-search path is gone.
         Assert.DoesNotContain("searchAgenciesBtn", html);
         Assert.DoesNotContain("GetNearestAgencies", html);
@@ -198,7 +200,9 @@ public class CartCheckoutHttpTests
         var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
         Assert.Equal(SD.PaymentStatusPending, orderHeader.PaymentStatus);
         Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
-        Assert.Equal(200m, orderHeader.OrderTotal);
+        // envio-gratis-o-cargo 3.2: product total (2 × 100) + frozen charge (category avg 100).
+        Assert.Equal(300m, orderHeader.OrderTotal);
+        Assert.Equal(100m, orderHeader.ShippingCharge);
         Assert.Equal("cs_test_123", orderHeader.SessionId);
         Assert.Equal("pi_test_123", orderHeader.PaymentIntentId);
     }
@@ -295,8 +299,9 @@ public class CartCheckoutHttpTests
             orderId = Assert.Single(db.OrderHeaders.AsNoTracking()).Id;
         }
 
+        // envio-gratis-o-cargo 3.3: provider amount must equal the frozen total (product + charge).
         FakeMercadoPagoPaymentSessionService.StatusToReturn = new(
-            "pref_test_123", "payment_test_123", "paid", orderId.ToString(), 200m);
+            "pref_test_123", "payment_test_123", "paid", orderId.ToString(), 300m);
         var confirmation = await client.GetAsync($"/en-US/Customer/Cart/OrderConfirmation?id={orderId}&preference_id=pref_test_123&payment_id=payment_test_123");
 
         Assert.Equal(HttpStatusCode.OK, confirmation.StatusCode);
@@ -458,7 +463,7 @@ public class CartCheckoutHttpTests
         await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
         var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
-        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: null, provinceCode: "M", locality: "Godoy Cruz");
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: null, state: "Mendoza", locality: "Godoy Cruz");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -467,8 +472,8 @@ public class CartCheckoutHttpTests
         Assert.Contains("123 Test St", html);
         Assert.Contains("555-0100", html);
         Assert.Contains($"value=\"{SD.PaymentMethodBankTransfer}\"", html);
-        // Cascade selection + candidates rehydrated server-side.
-        Assert.Contains("value=\"M\" selected", html);
+        // Domicile cascade selection + candidates rehydrated server-side.
+        Assert.Contains("data-code=\"M\" selected", html);
         Assert.Contains("value=\"Godoy Cruz\" selected", html);
         Assert.Contains("TEST01", html);
         Assert.Contains("Test Branch", html);
@@ -489,7 +494,7 @@ public class CartCheckoutHttpTests
         await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
         var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
-        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: "NOPE", provinceCode: "M", locality: "Godoy Cruz");
+        var response = await PostSummary(client, token, SD.PaymentMethodBankTransfer, pickupCode: "NOPE", state: "Mendoza", locality: "Godoy Cruz");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -572,7 +577,7 @@ public class CartCheckoutHttpTests
         Assert.Equal("LUN A VIE 9 A 18", orderHeader.PickupAgencyHours);
     }
 
-    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe, string? pickupCode = "TEST01", string? provinceCode = null, string? locality = null)
+    private static async Task<HttpResponseMessage> PostSummary(HttpClient client, string token, string paymentMethod = SD.PaymentMethodStripe, string? pickupCode = "TEST01", string? deliveryType = null, string? state = "Mendoza", string? locality = "Godoy Cruz")
     {
         var form = new Dictionary<string, string>
         {
@@ -580,8 +585,8 @@ public class CartCheckoutHttpTests
             ["OrderHeader.Name"] = "Test Customer",
             ["OrderHeader.PhoneNumber"] = "555-0100",
             ["OrderHeader.StreetAddress"] = "123 Test St",
-            ["OrderHeader.City"] = "Buenos Aires",
-            ["OrderHeader.State"] = "Buenos Aires",
+            ["OrderHeader.City"] = locality ?? string.Empty,
+            ["OrderHeader.State"] = state ?? string.Empty,
             ["OrderHeader.PostalCode"] = "1000",
             ["OrderHeader.PaymentMethod"] = paymentMethod,
         };
@@ -589,13 +594,9 @@ public class CartCheckoutHttpTests
         {
             form["OrderHeader.PickupAgencyCode"] = pickupCode;
         }
-        if (provinceCode is not null)
+        if (deliveryType is not null)
         {
-            form["branchPickerProvince"] = provinceCode;
-        }
-        if (locality is not null)
-        {
-            form["branchPickerLocality"] = locality;
+            form["OrderHeader.DeliveryType"] = deliveryType;
         }
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
     }
@@ -614,7 +615,8 @@ public class CartCheckoutHttpTests
 
         Assert.Contains("\"hasPaymentDiscount\":true", json);
         Assert.Contains("\"paymentDiscountTotal\":\"$20.00\"", json);
-        Assert.Contains("\"orderTotal\":\"$180.00\"", json);
+        // envio-gratis-o-cargo 3.1/3.2: discounted product total (180) + charge (100).
+        Assert.Contains("\"orderTotal\":\"$280.00\"", json);
     }
 
     [Fact]
@@ -630,7 +632,47 @@ public class CartCheckoutHttpTests
         var json = await client.GetStringAsync("/en-US/Customer/Cart/SummaryTotals?paymentMethod=Stripe");
 
         Assert.Contains("\"hasPaymentDiscount\":false", json);
-        Assert.Contains("\"orderTotal\":\"$200.00\"", json);
+        // envio-gratis-o-cargo 3.2: product total (200) + charge (100).
+        Assert.Contains("\"orderTotal\":\"$300.00\"", json);
+    }
+
+    [Theory]
+    [InlineData("en-US", "Shipping", "200.00")]
+    [InlineData("es-AR", "Env", "200,00")]
+    public async Task CartIndex_PaidCart_AddsShippingChargeLikeAnItem(string culture, string shippingLabelFragment, string totalFragment)
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync($"/{culture}/Customer/Cart/Index");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains(shippingLabelFragment, html);
+        // envio-gratis-o-cargo 5.1: product total (100) + charge (100) shown as one more line.
+        Assert.Contains(totalFragment, html);
+    }
+
+    [Theory]
+    [InlineData("en-US", "Free shipping", "100.00")]
+    [InlineData("es-AR", "gratis", "100,00")]
+    public async Task CartIndex_FreeCart_ShowsStruckThroughStandardAmountAndNoCharge(string culture, string freeLabelFragment, string totalFragment)
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        SeedProductAndCart(factory, factory.CustomerEmail, count: 1, retailPrice: 100m, wholesalePrice: 70m, freeShipping: true);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+        var response = await client.GetAsync($"/{culture}/Customer/Cart/Index");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains(freeLabelFragment, html);
+        // Standard amount struck through, and the total is the product total (no shipping added).
+        Assert.Contains("<s class=\"text-muted\">", html);
+        Assert.Contains(totalFragment, html);
     }
 
     private static void SeedPaymentPromo(WebApplicationFactory<Program> factory, string paymentMethod, decimal percent)
@@ -649,7 +691,7 @@ public class CartCheckoutHttpTests
         db.SaveChanges();
     }
 
-    private static void SeedProductAndCart(WebApplicationFactory<Program> factory, string email, int count, decimal retailPrice, decimal wholesalePrice, int stockQuantity = 100)
+    private static void SeedProductAndCart(WebApplicationFactory<Program> factory, string email, int count, decimal retailPrice, decimal wholesalePrice, int stockQuantity = 100, bool freeShipping = false)
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -672,6 +714,7 @@ public class CartCheckoutHttpTests
             IsAvailableInStore = true,
             IsDeleted = false,
             StockQuantity = stockQuantity,
+            FreeShipping = freeShipping,
         };
         db.Categories.Add(category);
         db.Products.Add(product);

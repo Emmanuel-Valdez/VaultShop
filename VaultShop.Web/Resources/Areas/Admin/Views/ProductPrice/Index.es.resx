@@ -190,7 +190,7 @@
     <value>Configuración de precios</value>
   </data>
   <data name="PricingSettingsDescription" xml:space="preserve">
-    <value>Revisá los totales de costo de solo lectura y actualizá los porcentajes de ganancia usados para calcular precios sugeridos.</value>
+    <value>Revisá los totales de costo de solo lectura y actualizá los porcentajes de ganancia usados para calcular precios sugeridos. El costo de envío de la categoría se suma al precio minorista sugerido solo en los productos con envío gratis activado; los productos sin la marca lo excluyen y abonan el envío en el checkout.</value>
   </data>
   <data name="CostTotals" xml:space="preserve">
     <value>Totales de costos</value>

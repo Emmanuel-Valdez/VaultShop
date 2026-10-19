@@ -132,6 +132,106 @@ namespace VaultShop.Web.Tests
 			}
 		}
 
+		// envio-gratis 2.1 — the category shipping share is added to the suggested retail only for
+		// free-shipping products (5000 at 10% costs -> +5555.56); wholesale is identical either way.
+		[Fact]
+		public void GetFinalPrices_ShipsShareOnlyForFreeShippingProducts()
+		{
+			using var connection = CreateOpenConnection();
+			var options = CreateOptions(connection);
+			EnsureDatabaseCreated(options);
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var category = new Category { Name = "Test Category", AvgShippingCost = 5000m };
+				context.Categories.Add(category);
+				context.Products.AddRange(
+					new Product
+					{
+						Name = "Free", Description = "Product used by pricing calculator service tests.",
+						MaxExpectation = 10, Category = category, ListPrice = 100m, FinalRetailPrice = 100m,
+						FinalWholesalePrice = 100m, IsDeleted = false, FreeShipping = true,
+					},
+					new Product
+					{
+						Name = "Paid", Description = "Product used by pricing calculator service tests.",
+						MaxExpectation = 10, Category = category, ListPrice = 100m, FinalRetailPrice = 100m,
+						FinalWholesalePrice = 100m, IsDeleted = false, FreeShipping = false,
+					});
+				context.FixedCosts.Add(new FixedCost { Name = "Fixed Cost", Cost = 1000m });
+				context.PercentageProfits.Add(new PercentageProfit { Id = 1, Retail = 0m, Wholesale = 0m });
+				context.PercentageCosts.Add(new PercentageCost { Name = "Retail Percentage Cost 10", Percentage = 10m });
+				context.SaveChanges();
+			}
+
+			using var verificationContext = new ApplicationDbContext(options);
+			var service = new PricingCalculatorService(verificationContext);
+
+			var prices = service.GetFinalPrices().ToDictionary(price => price.Product.Name);
+			var free = prices["Free"];
+			var paid = prices["Paid"];
+
+			Assert.Equal(100m, free.RetailWithProfit);
+			Assert.Equal(5100m, free.RetailWithShipping);
+			Assert.Equal(100m, paid.RetailWithShipping);
+			Assert.Equal(5555.56m, Math.Round(free.FinalRetail - paid.FinalRetail, 2));
+			Assert.Equal(free.FinalWholesale, paid.FinalWholesale);
+		}
+
+		// envio-gratis 2.2 — a backfilled (free-shipping) product whose price already reflects the
+		// with-shipping suggestion stays current after deploy; an unflagged product drops to the
+		// shipping-free suggestion and publishes it, leaving wholesale untouched.
+		[Fact]
+		public void OutdatedCountAndPublish_RespectFreeShippingFlag()
+		{
+			using var connection = CreateOpenConnection();
+			var options = CreateOptions(connection);
+			EnsureDatabaseCreated(options);
+
+			const decimal withShippingRetail = 5666.67m; // (100 + 5000) / 0.9
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var category = new Category { Name = "Test Category", AvgShippingCost = 5000m };
+				context.Categories.Add(category);
+				context.Products.AddRange(
+					new Product
+					{
+						Name = "Free", Description = "Product used by pricing calculator service tests.",
+						MaxExpectation = 10, Category = category, ListPrice = withShippingRetail,
+						FinalRetailPrice = withShippingRetail, FinalWholesalePrice = 100m, IsDeleted = false,
+						FreeShipping = true,
+					},
+					new Product
+					{
+						Name = "Paid", Description = "Product used by pricing calculator service tests.",
+						MaxExpectation = 10, Category = category, ListPrice = withShippingRetail,
+						FinalRetailPrice = withShippingRetail, FinalWholesalePrice = 100m, IsDeleted = false,
+						FreeShipping = false,
+					});
+				context.FixedCosts.Add(new FixedCost { Name = "Fixed Cost", Cost = 1000m });
+				context.PercentageProfits.Add(new PercentageProfit { Id = 1, Retail = 0m, Wholesale = 0m });
+				context.PercentageCosts.Add(new PercentageCost { Name = "Retail Percentage Cost 10", Percentage = 10m });
+				context.SaveChanges();
+			}
+
+			using (var context = new ApplicationDbContext(options))
+			{
+				var service = new PricingCalculatorService(context);
+				Assert.Equal(1, service.GetOutdatedProductCount());
+				Assert.Equal(1, service.PublishSuggestedPrices());
+			}
+
+			using (var verificationContext = new ApplicationDbContext(options))
+			{
+				var products = verificationContext.Products.AsNoTracking().ToDictionary(product => product.Name);
+				Assert.Equal(withShippingRetail, products["Free"].ListPrice);
+				Assert.True(Math.Abs(products["Paid"].ListPrice - 100m / 0.9m) <= 0.01m);
+				Assert.Equal(100m, products["Free"].FinalWholesalePrice);
+				Assert.Equal(100m, products["Paid"].FinalWholesalePrice);
+			}
+		}
+
 		[Fact]
 		public void GetFinalPrices_WithInvalidCombinedWholesalePercentage_ThrowsClearException()
 		{

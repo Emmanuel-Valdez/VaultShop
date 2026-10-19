@@ -253,6 +253,19 @@
 								</div>
 							}
 							}
+							else if (Model.OrderHeader.DeliveryType is SD.DeliveryTypeMotorcycle or SD.DeliveryTypeVendorPickup)
+							{
+								<div class="row my-1">
+									<div class="col-3">@Localizer["DeliveryMethodTitle"]</div>
+									<div class="col-9">
+										<p class="form-control shadow mb-0 text-break">@(Model.OrderHeader.DeliveryType == SD.DeliveryTypeMotorcycle ? Localizer["DeliveryTypeMotorcycle"] : Localizer["DeliveryTypeVendorPickup"])</p>
+										@if (!string.IsNullOrWhiteSpace(Model.OrderHeader.DeliveryNote))
+										{
+											<small class="text-muted">@Model.OrderHeader.DeliveryNote</small>
+										}
+									</div>
+								</div>
+							}
 							<div class="row my-1">
 								<div class="col-3">@Localizer["OrderDate"]</div>
 								<div class="col-9">
@@ -431,6 +444,13 @@
 										</div>
 									</li>
 								}
+							@if (Model.OrderHeader.CompanyId.GetValueOrDefault() == 0)
+							{
+							<li class="list-group-item d-flex justify-content-between p-2">
+								<span>@(Model.OrderHeader.ShippingCharge > 0 ? Localizer["ShippingLine"] : Localizer["FreeShippingLine"])</span>
+								<span>@(Model.OrderHeader.ShippingCharge > 0 ? Model.OrderHeader.ShippingCharge.ToString("c") : "")</span>
+							</li>
+							}
 							<li class="list-group-item bg-primary">
 								<div class="row container">
 									<div class="col-6">

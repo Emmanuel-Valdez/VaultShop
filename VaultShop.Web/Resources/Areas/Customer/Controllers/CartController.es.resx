@@ -165,4 +165,25 @@
   <data name="CouponInvalid" xml:space="preserve">
     <value>Ese cupón no es válido.</value>
   </data>
+  <data name="InvalidDomicile" xml:space="preserve">
+    <value>Seleccioná una provincia y localidad de la lista.</value>
+  </data>
+  <data name="InvalidDeliveryModality" xml:space="preserve">
+    <value>Ese método de envío no está disponible para la localidad seleccionada.</value>
+  </data>
+  <data name="DeliveryTypeCorreoPickup" xml:space="preserve">
+    <value>Retiro en Correo</value>
+  </data>
+  <data name="DeliveryTypeMotorcycle" xml:space="preserve">
+    <value>Envío en moto</value>
+  </data>
+  <data name="DeliveryTypeVendorPickup" xml:space="preserve">
+    <value>Retiro con el vendedor</value>
+  </data>
+  <data name="ShippingLine" xml:space="preserve">
+    <value>Envío</value>
+  </data>
+  <data name="FreeShippingLine" xml:space="preserve">
+    <value>Envío gratis</value>
+  </data>
 </root>

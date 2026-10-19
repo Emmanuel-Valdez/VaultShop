@@ -142,13 +142,16 @@
     <value>3. ¿Hacen envíos?</value>
   </data>
   <data name="Answer3Item1" xml:space="preserve">
-    <value>Sí, enviamos a todo el país mediante Correo Argentino, generalmente a la sucursal más cercana.</value>
+    <value>Sí, enviamos a todo el país mediante Correo Argentino, para retirar en la sucursal o unidad postal que elijas al momento de comprar.</value>
   </data>
   <data name="Answer3Item2" xml:space="preserve">
-    <value>Si estás en Gran Mendoza, coordinamos entrega directa a domicilio.</value>
+    <value>Si estás en Gran Mendoza, ofrecemos entrega a domicilio en moto; coordinamos el domicilio antes del envío.</value>
   </data>
   <data name="Answer3Item3" xml:space="preserve">
     <value>Por ahora no realizamos envíos fuera de Argentina, aunque nos encantaría sumarlo más adelante.</value>
+  </data>
+  <data name="Answer3Item4" xml:space="preserve">
+    <value>En Gran Mendoza, los pedidos con costo de envío también pueden acordar la entrega con el vendedor en el Microcentro de Mendoza, sin costo de envío.</value>
   </data>
   <data name="Question4" xml:space="preserve">
     <value>4. ¿Cuánto tarda en llegar mi pedido?</value>
@@ -157,7 +160,7 @@
     <value>Una vez confirmado el pago, estos son los tiempos estimados:</value>
   </data>
   <data name="Answer4Item1" xml:space="preserve">
-    <value>Gran Mendoza: entre 36 y 96 horas.</value>
+    <value>Gran Mendoza (entrega en moto a domicilio o retiro en Correo): entre 36 y 96 horas.</value>
   </data>
   <data name="Answer4Item2" xml:space="preserve">
     <value>Resto de Argentina: entre 3 y 7 días hábiles, según la ubicación y el servicio postal.</value>
@@ -178,10 +181,10 @@
     <value>Aceptamos estos métodos de pago:</value>
   </data>
   <data name="Answer6Item1" xml:space="preserve">
-    <value>Tarjetas de crédito y débito, con hasta 3 cuotas sin interés cuando esté disponible.</value>
+    <value>Tarjetas de crédito (Visa, Mastercard, American Express, Diners, Naranja, Cabal, Tarjeta Shopping, Cencosud, Argencard, CMR) y de débito (Visa, Mastercard, Maestro, Cabal); con cuotas sin interés según las promociones vigentes.</value>
   </data>
   <data name="Answer6Item2" xml:space="preserve">
-    <value>Transferencia bancaria, con 10% de descuento.</value>
+    <value>Transferencia bancaria.</value>
   </data>
   <data name="Question7" xml:space="preserve">
     <value>7. ¿Realizan ventas al por mayor?</value>
@@ -224,5 +227,11 @@
   </data>
   <data name="Answer11" xml:space="preserve">
     <value>Los descuentos específicos no se combinan: siempre se aplica el mejor precio (oferta, cupón, promoción o combo). El descuento por medio de pago sí se suma sobre ese mejor precio.</value>
+  </data>
+  <data name="Question12" xml:space="preserve">
+    <value>12. ¿Cómo se calcula el costo de envío?</value>
+  </data>
+  <data name="Answer12" xml:space="preserve">
+    <value>Si tu carrito incluye al menos un producto con envío gratis, el envío no tiene costo. Si no, se aplica un único costo de envío, calculado una sola vez por pedido según las categorías de los productos del carrito, sin importar la cantidad de unidades o de productos. Las compras mayoristas no pagan envío.</value>
   </data>
 </root>

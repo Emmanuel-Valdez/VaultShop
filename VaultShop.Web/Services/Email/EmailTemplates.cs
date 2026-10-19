@@ -20,7 +20,7 @@ public static class EmailTemplates
         string? deliveryType = null, string? pickupAgencyName = null, string? pickupAgencyCode = null,
         string? pickupAgencyAddress = null, string? pickupAgencyHours = null,
         string? discountsTotal = null, string? paymentDiscountTotal = null, string? couponCode = null,
-        string? paymentDiscountMotive = null)
+        string? paymentDiscountMotive = null, string? shippingTotal = null, string? deliveryNote = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -44,6 +44,28 @@ public static class EmailTemplates
         }
         if (!string.IsNullOrWhiteSpace(paymentDiscountTotal))
             discountsHtml += $"<p><strong>{WebUtility.HtmlEncode(paymentDiscountMotive ?? Translate("PaymentDiscount", culture))}:</strong> -{paymentDiscountTotal}</p>";
+
+        // envio-gratis-o-cargo 6.3: shipping only when the frozen charge is positive; free orders render no amount.
+        var shippingHtml = string.IsNullOrWhiteSpace(shippingTotal)
+            ? string.Empty
+            : $"<p><strong>{Translate("Shipping", culture)}:</strong> {shippingTotal}</p>";
+
+        var deliveryHtml = string.Empty;
+        var deliveryLabel = deliveryType switch
+        {
+            SD.DeliveryTypeMotorcycle => Translate("DeliveryTypeMotorcycle", culture),
+            SD.DeliveryTypeVendorPickup => Translate("DeliveryTypeVendorPickup", culture),
+            _ => null
+        };
+        if (!string.IsNullOrWhiteSpace(deliveryLabel))
+        {
+            var deliveryBuilder = new StringBuilder();
+            deliveryBuilder.Append($"<p><strong>{Translate("DeliveryMethod", culture)}:</strong> {deliveryLabel}</p>");
+            if (!string.IsNullOrWhiteSpace(deliveryNote))
+                deliveryBuilder.Append($"<p>{WebUtility.HtmlEncode(deliveryNote)}</p>");
+            deliveryHtml = deliveryBuilder.ToString();
+        }
+
 
         var greeting = isSpanish ? $"Gracias, {customerName}!" : $"Thanks, {customerName}!";
         var orderNumberText = isSpanish ? $"Pedido N° {orderId}" : $"Order #{orderId}";
@@ -146,6 +168,8 @@ public static class EmailTemplates
 </table>
 <hr style='border:none;border-top:1px solid #eee;'>
 {discountsHtml}
+{deliveryHtml}
+{shippingHtml}
 <p style='font-size:18px;'><strong>{totalLabel}:</strong> {orderTotal}</p>
 {wholesaleHtml}
 {bankTransferHtml}
@@ -418,6 +442,10 @@ public static class EmailTemplates
             "Price" => isSpanish ? "Precio" : "Price",
             "Discounts" => isSpanish ? "Descuentos" : "Discounts",
             "PaymentDiscount" => isSpanish ? "Descuento por pago" : "Payment discount",
+            "Shipping" => isSpanish ? "Envío" : "Shipping",
+            "DeliveryMethod" => isSpanish ? "Método de entrega" : "Delivery method",
+            "DeliveryTypeMotorcycle" => isSpanish ? "Envío en moto" : "Motorcycle delivery",
+            "DeliveryTypeVendorPickup" => isSpanish ? "Retiro con el vendedor" : "Pick up from the vendor",
             "BankTransferInstructionsTitle" => isSpanish ? "Datos para transferir" : "Bank transfer details",
             "BankTransferInstructionsBody" => isSpanish ? "Cuando realices la transferencia, ingresá a tu pedido y avisános desde el botón correspondiente." : "After you send the transfer, open your order and let us know using the confirmation button.",
             "BankTransferCbuLabel" => "CBU",

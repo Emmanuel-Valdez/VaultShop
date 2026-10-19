@@ -190,7 +190,7 @@
     <value>Pricing settings</value>
   </data>
   <data name="PricingSettingsDescription" xml:space="preserve">
-    <value>Review read-only cost totals and update the profit percentages used to calculate suggested prices.</value>
+    <value>Review read-only cost totals and update the profit percentages used to calculate suggested prices. The category shipping cost is added to the suggested retail price only for products with free shipping enabled; products without the flag exclude it and are charged shipping at checkout.</value>
   </data>
   <data name="CostTotals" xml:space="preserve">
     <value>Cost totals</value>

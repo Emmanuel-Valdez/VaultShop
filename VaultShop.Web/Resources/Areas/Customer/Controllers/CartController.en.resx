@@ -165,4 +165,25 @@
   <data name="CouponInvalid" xml:space="preserve">
     <value>That coupon is not valid.</value>
   </data>
+  <data name="InvalidDomicile" xml:space="preserve">
+    <value>Select a province and locality from the list.</value>
+  </data>
+  <data name="InvalidDeliveryModality" xml:space="preserve">
+    <value>That delivery method is not available for the selected locality.</value>
+  </data>
+  <data name="DeliveryTypeCorreoPickup" xml:space="preserve">
+    <value>Correo pickup</value>
+  </data>
+  <data name="DeliveryTypeMotorcycle" xml:space="preserve">
+    <value>Motorcycle delivery</value>
+  </data>
+  <data name="DeliveryTypeVendorPickup" xml:space="preserve">
+    <value>Pick up from the vendor</value>
+  </data>
+  <data name="ShippingLine" xml:space="preserve">
+    <value>Shipping</value>
+  </data>
+  <data name="FreeShippingLine" xml:space="preserve">
+    <value>Free shipping</value>
+  </data>
 </root>

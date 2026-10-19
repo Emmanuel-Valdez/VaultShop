@@ -17,6 +17,8 @@ public sealed record ProductDisplayPrice(decimal BasePrice, decimal EffectivePri
 {
 	public bool HasDiscount => EffectivePrice < BasePrice;
 	public bool HasBadge => !string.IsNullOrWhiteSpace(Motive);
+	// envio-gratis-o-cargo 5.2: retail-only free-shipping badge flag.
+	public bool FreeShipping { get; init; }
 }
 
 public static class DiscountMotives
@@ -74,7 +76,10 @@ public class StorefrontPricingService : IStorefrontPricingService
 			// ponytail: surface the sale deadline only for the direct product offer;
 			// BxGy / promotion end dates arrive when the evaluator can attribute them.
 			var offerEnd = motive == DiscountEvaluator.OfferMotive ? p.SaleToUtc : (DateTime?)null;
-			result[p.Id] = new ProductDisplayPrice(line.BaseUnitPrice, line.EffectiveTotal, motive, offerEnd);
+			result[p.Id] = new ProductDisplayPrice(line.BaseUnitPrice, line.EffectiveTotal, motive, offerEnd)
+			{
+				FreeShipping = !useWholesale && p.FreeShipping,
+			};
 		}
 		return result;
 	}

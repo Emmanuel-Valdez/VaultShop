@@ -120,6 +120,9 @@
   <data name="AvailableInStore" xml:space="preserve">
     <value>Available in store</value>
   </data>
+  <data name="FreeShipping" xml:space="preserve">
+    <value>Free shipping (price includes shipping)</value>
+  </data>
   <data name="FeaturedProduct" xml:space="preserve">
     <value>Featured product</value>
   </data>

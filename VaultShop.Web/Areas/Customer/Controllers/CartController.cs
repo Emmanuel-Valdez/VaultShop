@@ -86,6 +86,11 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			ShoppingCartVM.OrderHeader.DiscountTotal = evaluation.SpecificDiscountTotal;
 			ShoppingCartVM.OrderHeader.PaymentDiscountTotal = evaluation.PaymentDiscountTotal;
 			ViewData["CouponSuperseded"] = evaluation.CouponState == CouponEvaluationState.Superseded;
+			// envio-gratis-o-cargo 5.1: cart shows the charge as a line (or the free label with the
+			// standard amount struck through) — the same quote the summary and order creation use.
+			var shipping = _checkoutService.GetShippingQuote(ShoppingCartVM.ShoppingCartList, useWholesale);
+			ShoppingCartVM.OrderHeader.ShippingCharge = shipping.Charge;
+			ViewData["ShippingQuote"] = shipping;
 
 			return View(ShoppingCartVM);
 		}
@@ -182,7 +187,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 				return RedirectToAction(nameof(Index));
 			}
 		PopulatePaymentMethodViewData();
-		ViewData["BranchCascadePicker"] = BuildBranchCascadePickerVM();
+		PopulateCheckoutViewData(result.ShoppingCartVM, result.Shipping);
 		return View(result.ShoppingCartVM);
 	}
 
@@ -190,7 +195,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 	// Reuses BuildSummary with the posted method; the client updates the discount
 	// row and final total before Place Order.
 	[HttpGet]
-	public IActionResult SummaryTotals(string? paymentMethod)
+	public IActionResult SummaryTotals(string? paymentMethod, string? modality = null)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 		if (string.IsNullOrEmpty(userId))
@@ -213,13 +218,64 @@ private void RemoveShoppingCartsOutdated(string userId)
 		}
 
 		var header = result.ShoppingCartVM.OrderHeader;
+		var quote = result.Shipping ?? new ICheckoutService.ShippingQuote(false, 0m, 0m);
+		var deliveryType = string.IsNullOrWhiteSpace(modality)
+			? header.DeliveryType ?? SD.DeliveryTypePickup
+			: modality;
+		// envio-gratis-o-cargo 4.3: vendor pickup removes the charge; Correo/motorcycle keep it.
+		var charge = deliveryType == SD.DeliveryTypeVendorPickup ? 0m : quote.Charge;
+		var total = header.OrderTotal - header.ShippingCharge + charge;
+		var isCompanyViewer = User.IsInRole(SD.Role_Company);
 		return Json(new
 		{
 			hasPaymentDiscount = header.PaymentDiscountTotal > 0,
 			paymentDiscountMotive = header.PaymentDiscountMotive,
 			paymentDiscountTotal = header.PaymentDiscountTotal.ToString("c"),
-			orderTotal = header.OrderTotal.ToString("c"),
+			orderTotal = total.ToString("c"),
+			deliveryType,
+			showShippingRow = !isCompanyViewer && (charge > 0 || quote.QualifiesForFreeShipping),
+			hasShippingCharge = charge > 0,
+			isFreeShipping = quote.QualifiesForFreeShipping,
+			shippingCharge = charge.ToString("c"),
+			shippingStandard = quote.StandardAmount.ToString("c"),
+			shippingLabel = charge > 0 ? _localizer["ShippingLine"].Value : _localizer["FreeShippingLine"].Value,
 		});
+	}
+
+	// envio-gratis-o-cargo 4.2: locality-scoped modality options for the checkout radios.
+	[HttpGet]
+	public IActionResult DeliveryModalities(string provinceCode, string locality)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		if (string.IsNullOrEmpty(userId))
+		{
+			return Unauthorized();
+		}
+
+		if (string.IsNullOrWhiteSpace(provinceCode) || string.IsNullOrWhiteSpace(locality))
+		{
+			return BadRequest();
+		}
+
+		var catalogLocality = _branchLookup.GetCandidateLocalities(provinceCode)
+			.FirstOrDefault(l => SD.LocalityEquals(l, locality));
+		if (catalogLocality is null)
+		{
+			return BadRequest();
+		}
+
+		var useWholesale = PricingHelper.ShouldUseWholesale(User, HttpContext);
+		var carts = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId,
+			includeProperties: "Product,Product.Category");
+		var quote = _checkoutService.GetShippingQuote(carts, useWholesale);
+		var options = BuildModalityOptions(catalogLocality, quote, useWholesale);
+		return Json(options.Select(option => new
+		{
+			code = option.Code,
+			label = option.Label,
+			requiresBranch = option.RequiresBranch,
+			charge = option.Charge.ToString("c"),
+		}));
 	}
 
 	// ponytail: deterministic cascade Provincia → Localidad → Sucursal; branch rows are public data, cacheable, and shared by checkout + admin correction.
@@ -279,37 +335,64 @@ private void RemoveShoppingCartsOutdated(string userId)
 
 		if (!ModelState.IsValid)
 		{
-			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode(), ShoppingCartVM.OrderHeader.PaymentMethod);
-			PopulatePaymentMethodViewData();
-			return View(RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM));
+			return ReRenderPostedSummary();
 		}
-
-		// ponytail: snapshot is re-resolved from PostalAgency by code — client name/address are never trusted.
-		var agency = _branchLookup.GetByCode(ShoppingCartVM.OrderHeader.PickupAgencyCode);
-		if (agency is null)
-		{
-			ModelState.AddModelError("OrderHeader.PickupAgencyCode", _localizer["PickupAgencyRequired"].Value);
-			var summaryResult = _checkoutService.BuildSummary(userId, PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode(), ShoppingCartVM.OrderHeader.PaymentMethod);
-			if (summaryResult.IsCartEmpty)
-			{
-				TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
-				return RedirectToAction(nameof(Index));
-			}
-			PopulatePaymentMethodViewData();
-			return View(RestorePostedHeaderAndCandidates(summaryResult.ShoppingCartVM));
-		}
-
-		ShoppingCartVM.OrderHeader.PickupAgencyHours =
-		string.IsNullOrWhiteSpace(agency.Hours) ? PostalAgency.HoursUnknown : agency.Hours;
-
-	ShoppingCartVM.OrderHeader.DeliveryType = SD.DeliveryTypePickup;
-		ShoppingCartVM.OrderHeader.PickupAgencyCode = agency.Code;
-		ShoppingCartVM.OrderHeader.PickupAgencyName = agency.Name;
-		ShoppingCartVM.OrderHeader.PickupAgencyAddress =
-			(agency.Number.HasValue ? $"{agency.Street} {agency.Number}" : agency.Street).Trim()
-			+ $", {agency.Locality}, {agency.Province} {agency.PostalCode}";
 
 		var isCompanyCheckout = User.IsInRole(SD.Role_Company);
+		var postedHeader = ShoppingCartVM.OrderHeader;
+
+		// envio-gratis-o-cargo 4.1: domicile province/locality come from the branch catalog, never free text.
+		var province = ResolveProvince(postedHeader.State);
+		var locality = province is null
+			? null
+			: _branchLookup.GetCandidateLocalities(province.Value.Code)
+				.FirstOrDefault(l => SD.LocalityEquals(l, postedHeader.City));
+		if (province is null || locality is null)
+		{
+			ModelState.AddModelError("OrderHeader.City", _localizer["InvalidDomicile"].Value);
+			return ReRenderPostedSummary();
+		}
+		postedHeader.State = province.Value.Name;
+		postedHeader.City = locality;
+
+		// envio-gratis-o-cargo 4.2/4.4: modality is defaulted for legacy/Company posts; the branch
+		// snapshot is required and frozen only for Correo pickup.
+		var deliveryType = string.IsNullOrWhiteSpace(postedHeader.DeliveryType)
+			? SD.DeliveryTypePickup
+			: postedHeader.DeliveryType;
+		if (isCompanyCheckout)
+		{
+			deliveryType = SD.DeliveryTypePickup;
+		}
+		postedHeader.DeliveryType = deliveryType;
+
+		if (deliveryType == SD.DeliveryTypePickup)
+		{
+			// ponytail: snapshot is re-resolved from PostalAgency by code — client name/address are never trusted.
+			// envio-gratis-o-cargo: the branch must belong to the selected locality (reject a forged cross-locality code).
+			var agency = _branchLookup.GetByCode(postedHeader.PickupAgencyCode);
+			if (agency is null || !_branchLookup.GetCandidateBranches(province.Value.Code, locality).Any(b => b.Code == agency.Code))
+			{
+				ModelState.AddModelError("OrderHeader.PickupAgencyCode", _localizer["PickupAgencyRequired"].Value);
+				return ReRenderPostedSummary();
+			}
+
+			postedHeader.PickupAgencyHours =
+				string.IsNullOrWhiteSpace(agency.Hours) ? PostalAgency.HoursUnknown : agency.Hours;
+			postedHeader.PickupAgencyCode = agency.Code;
+			postedHeader.PickupAgencyName = agency.Name;
+			postedHeader.PickupAgencyAddress =
+				(agency.Number.HasValue ? $"{agency.Street} {agency.Number}" : agency.Street).Trim()
+				+ $", {agency.Locality}, {agency.Province} {agency.PostalCode}";
+		}
+		else
+		{
+			postedHeader.PickupAgencyCode = null;
+			postedHeader.PickupAgencyName = null;
+			postedHeader.PickupAgencyAddress = null;
+			postedHeader.PickupAgencyHours = PostalAgency.HoursUnknown;
+		}
+
 			var useWholesalePrice = PricingHelper.ShouldUseWholesale(User, HttpContext);
 			if (isCompanyCheckout)
 			{
@@ -359,6 +442,11 @@ private void RemoveShoppingCartsOutdated(string userId)
 			{
 				TempData["error"] = _localizer["VariantNoLongerAvailable"].Value;
 				return RedirectToAction(nameof(Index));
+			}
+			if (result.InvalidDeliveryModality)
+			{
+				ModelState.AddModelError("OrderHeader.DeliveryType", _localizer["InvalidDeliveryModality"].Value);
+				return ReRenderPostedSummary();
 			}
 
 			if (result.OrderId is null || result.ShoppingCartVM is null)
@@ -488,11 +576,89 @@ private void RemoveShoppingCartsOutdated(string userId)
 				.ToDictionary(g => g.Key, g => g.Max(p => p.DiscountPercent), StringComparer.OrdinalIgnoreCase);
 		}
 
+	// envio-gratis-o-cargo 4.1/4.2: one province → locality cascade (the domicile selects) drives the
+	// branch list; modality radios are rebuilt client-side from the DeliveryModalities endpoint.
+	private void PopulateCheckoutViewData(ShoppingCartVM? vm, ICheckoutService.ShippingQuote? shipping)
+	{
+		var quote = shipping ?? new ICheckoutService.ShippingQuote(false, 0m, 0m);
+		var header = vm?.OrderHeader ?? new OrderHeader();
+		var domicile = BuildDomicilePickerVM(header, quote);
+		ViewData["DomicilePicker"] = domicile;
+		ViewData["ShippingQuote"] = quote;
+		ViewData["BranchCascadePicker"] = BuildBranchCascadePickerVM(
+			domicile.SelectedProvinceCode,
+			domicile.SelectedLocality,
+			header.PickupAgencyCode,
+			requiresBranch: domicile.SelectedModality == SD.DeliveryTypePickup);
+	}
+
+	private DomicilePickerVM BuildDomicilePickerVM(OrderHeader header, ICheckoutService.ShippingQuote quote)
+	{
+		var useWholesale = PricingHelper.ShouldUseWholesale(User, HttpContext);
+		var province = ResolveProvince(header.State);
+		var localities = province is null
+			? (IReadOnlyList<string>)[]
+			: _branchLookup.GetCandidateLocalities(province.Value.Code);
+		var locality = localities.FirstOrDefault(l => SD.LocalityEquals(l, header.City)) ?? string.Empty;
+		var modalities = BuildModalityOptions(locality, quote, useWholesale);
+		var selected = modalities.Any(m => m.Code == header.DeliveryType)
+			? header.DeliveryType!
+			: modalities.FirstOrDefault(m => m.Code == SD.DeliveryTypePickup)?.Code
+				?? modalities.FirstOrDefault()?.Code
+				?? string.Empty;
+		return new DomicilePickerVM
+		{
+			Provinces = _branchLookup.GetCandidateProvinces(),
+			SelectedProvinceCode = province?.Code ?? string.Empty,
+			SelectedProvinceName = province?.Name ?? string.Empty,
+			Localities = localities,
+			SelectedLocality = locality,
+			Modalities = modalities,
+			SelectedModality = selected,
+		};
+	}
+
+	private IReadOnlyList<DeliveryModalityOption> BuildModalityOptions(string? locality, ICheckoutService.ShippingQuote quote, bool useWholesale)
+	{
+		return _checkoutService.GetAllowedDeliveryTypes(locality, useWholesale, quote)
+			.Select(code => new DeliveryModalityOption(
+				code,
+				DeliveryModalityLabel(code),
+				code == SD.DeliveryTypePickup,
+				code == SD.DeliveryTypeVendorPickup ? 0m : quote.Charge))
+			.ToList();
+	}
+
+	private string DeliveryModalityLabel(string code) => code switch
+	{
+		SD.DeliveryTypeMotorcycle => _localizer["DeliveryTypeMotorcycle"].Value,
+		SD.DeliveryTypeVendorPickup => _localizer["DeliveryTypeVendorPickup"].Value,
+		_ => _localizer["DeliveryTypeCorreoPickup"].Value,
+	};
+
+	private static (string Code, string Name)? ResolveProvince(string? value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			return null;
+		}
+
+		var trimmed = value.Trim();
+		foreach (var province in SD.CorreoProvinces)
+		{
+			if (string.Equals(province.Code, trimmed, StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(province.Name, trimmed, StringComparison.OrdinalIgnoreCase))
+			{
+				return province;
+			}
+		}
+		return null;
+	}
+
 	// ponytail: cascade rehydration — posted province/locality reseed the picker's options server-side so a failed
 	// POST keeps selection + candidates without geocoding. The picked code survives via the posted OrderHeader.
-	private BranchCascadePickerVM BuildBranchCascadePickerVM(string? provinceCode = null, string? locality = null, string? branchCode = null)
+	private BranchCascadePickerVM BuildBranchCascadePickerVM(string? provinceCode, string? locality, string? branchCode, bool requiresBranch)
 	{
-		var provinces = _branchLookup.GetCandidateProvinces();
 		IReadOnlyList<string> localities = string.IsNullOrWhiteSpace(provinceCode)
 			? []
 			: _branchLookup.GetCandidateLocalities(provinceCode);
@@ -504,10 +670,15 @@ private void RemoveShoppingCartsOutdated(string userId)
 			FieldName = "OrderHeader.PickupAgencyCode",
 			IdPrefix = BranchPickerPrefix,
 			SubmitButtonId = "placeOrderBtn",
+			ShowProvinceLocalitySelectors = false,
+			ProvinceSelectId = "domicileProvince",
+			LocalitySelectId = "OrderHeader_City",
+			IsRequired = requiresBranch,
+			RequiresBranch = requiresBranch,
 			ProvincesUrl = Url.Action("BranchProvinces", "Cart", new { area = "Customer" }) ?? string.Empty,
 			LocalitiesUrl = Url.Action("BranchLocalities", "Cart", new { area = "Customer" }) ?? string.Empty,
 			BranchesUrl = Url.Action("BranchBranches", "Cart", new { area = "Customer" }) ?? string.Empty,
-			Provinces = provinces,
+			Provinces = _branchLookup.GetCandidateProvinces(),
 			SelectedProvinceCode = provinceCode ?? string.Empty,
 			Localities = localities,
 			SelectedLocality = locality ?? string.Empty,
@@ -528,8 +699,8 @@ private void RemoveShoppingCartsOutdated(string userId)
 	}
 
 	// ponytail: failure-path only — posted scalars overlay the authoritative rebuilt VM (cart/totals stay server-built),
-	// then the cascade picker rehydrates selection + candidates from the posted province/locality. Never throws.
-	private ShoppingCartVM RestorePostedHeaderAndCandidates(ShoppingCartVM? fresh)
+	// then the domicile cascade and modality radios rehydrate from the posted province/locality. Never throws.
+	private ShoppingCartVM RestorePostedHeaderAndCandidates(ShoppingCartVM? fresh, ICheckoutService.ShippingQuote? shipping)
 	{
 		var posted = ShoppingCartVM.OrderHeader;
 		var vm = fresh ?? ShoppingCartVM;
@@ -542,23 +713,27 @@ private void RemoveShoppingCartsOutdated(string userId)
 			vm.OrderHeader.State = posted.State ?? string.Empty;
 			vm.OrderHeader.PostalCode = posted.PostalCode ?? string.Empty;
 			vm.OrderHeader.PaymentMethod = posted.PaymentMethod;
+			vm.OrderHeader.DeliveryType = posted.DeliveryType;
 			vm.OrderHeader.PickupAgencyCode = posted.PickupAgencyCode;
 		}
 
-		string? province = null;
-		string? locality = null;
-		try
-		{
-			var form = HttpContext.Request.Form;
-			province = form[$"{BranchPickerPrefix}Province"].ToString();
-			locality = form[$"{BranchPickerPrefix}Locality"].ToString();
-		}
-		catch (Exception ex)
-		{
-			_logger.LogWarning(ex, "Branch cascade selection rehydration failed during checkout.");
-		}
-		ViewData["BranchCascadePicker"] = BuildBranchCascadePickerVM(province, locality, vm.OrderHeader?.PickupAgencyCode);
+		PopulateCheckoutViewData(vm, shipping);
 		return vm;
+	}
+
+	private IActionResult ReRenderPostedSummary()
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		var summary = _checkoutService.BuildSummary(userId ?? string.Empty,
+			PricingHelper.ShouldUseWholesale(User, HttpContext), SessionCouponCode(), ShoppingCartVM.OrderHeader.PaymentMethod);
+		if (summary.IsCartEmpty)
+		{
+			TempData["error"] = _localizer["CartEmptyOrInvalidError"].Value;
+			return RedirectToAction(nameof(Index));
+		}
+
+		PopulatePaymentMethodViewData();
+		return View(RestorePostedHeaderAndCandidates(summary.ShoppingCartVM, summary.Shipping));
 	}
 
 		private void PopulateBankTransferViewData()

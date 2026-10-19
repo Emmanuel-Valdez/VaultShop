@@ -54,6 +54,9 @@ namespace VaultShop.Models
         public DateTime? SaleToUtc { get; set; }
 
         public bool IsAvailableInStore { get; set; } = false;
+        // Free/paid shipping split: flagged products bake Category.AvgShippingCost into their
+        // suggested retail and ship free; unflagged products exclude it and carry a checkout charge.
+        public bool FreeShipping { get; set; } = false;
         public bool IsFeatured { get; set; } = false;
         public int FeaturedSortOrder { get; set; } = 0;
         public bool IsDeleted { get; set; } = false;

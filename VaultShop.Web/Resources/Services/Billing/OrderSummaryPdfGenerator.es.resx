@@ -154,4 +154,22 @@
   <data name="PickupAgencyHoursLabel" xml:space="preserve">
     <value>Horario</value>
   </data>
+  <data name="DeliveryMethodLabel" xml:space="preserve">
+    <value>Método de entrega</value>
+  </data>
+  <data name="DeliveryTypeCorreoPickup" xml:space="preserve">
+    <value>Retiro en Correo</value>
+  </data>
+  <data name="DeliveryTypeMotorcycle" xml:space="preserve">
+    <value>Envío en moto</value>
+  </data>
+  <data name="DeliveryTypeVendorPickup" xml:space="preserve">
+    <value>Retiro con el vendedor</value>
+  </data>
+  <data name="ShippingLine" xml:space="preserve">
+    <value>Envío</value>
+  </data>
+  <data name="FreeShippingLine" xml:space="preserve">
+    <value>Envío gratis</value>
+  </data>
 </root>

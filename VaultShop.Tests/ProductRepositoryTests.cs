@@ -128,6 +128,59 @@ namespace VaultShop.Web.Tests
 	}
 
 	[Fact]
+	public void Update_PersistsFreeShippingFlag()
+	{
+		using var connection = CreateOpenConnection();
+		var options = CreateOptions(connection);
+		EnsureDatabaseCreated(options);
+
+		int productId;
+		int categoryId;
+		using (var context = new ApplicationDbContext(options))
+		{
+			var category = new Category { Name = "Test Category", AvgShippingCost = 0m };
+			var product = new Product
+			{
+				Name = "Free Shipping Product",
+				Description = "Product used by repository free-shipping test.",
+				MaxExpectation = 10,
+				Category = category,
+				ListPrice = 100m,
+				FinalRetailPrice = 100m,
+				FinalWholesalePrice = 80m,
+				FreeShipping = true,
+				IsDeleted = false,
+			};
+			context.Products.Add(product);
+			context.SaveChanges();
+			productId = product.Id;
+			categoryId = category.Id;
+		}
+
+		using (var context = new ApplicationDbContext(options))
+		{
+			var repo = new ProductRepository(context);
+			repo.Update(new Product
+			{
+				Id = productId,
+				Name = "Free Shipping Product",
+				MaxExpectation = 10,
+				CategoryId = categoryId,
+				ListPrice = 100m,
+				FinalRetailPrice = 100m,
+				FinalWholesalePrice = 80m,
+				FreeShipping = false,
+				IsDeleted = false,
+			});
+			context.SaveChanges();
+		}
+
+		using var verificationContext = new ApplicationDbContext(options);
+		var persisted = Assert.Single(verificationContext.Products.AsNoTracking());
+		Assert.False(persisted.FreeShipping);
+	}
+
+	[Fact]
 	public void DecrementStockIfSufficient_CoveredTotal_DecrementsRelatively()
 	{
 		using var connection = CreateOpenConnection();
