@@ -51,6 +51,10 @@ else
 								{
 									<span class="product-card__stock-badge"><i class="bi bi-x-circle" aria-hidden="true"></i> @Localizer["OutOfStock"]</span>
 								}
+								@if (!PricingHelper.ShouldUseWholesale(User, Context) && product.FreeShipping)
+								{
+									<span class="product-card__shipping-badge"><i class="bi bi-truck" aria-hidden="true"></i> @Localizer["FreeShipping"]</span>
+								}
 							</a>
 
 							<div class="card-body px-0 pb-0 d-flex flex-column flex-grow-1">
@@ -125,6 +129,10 @@ else
 							@if (product.StockQuantity == 0)
 							{
 								<span class="product-card__stock-badge"><i class="bi bi-x-circle" aria-hidden="true"></i> @Localizer["OutOfStock"]</span>
+							}
+							@if (!PricingHelper.ShouldUseWholesale(User, Context) && product.FreeShipping)
+							{
+								<span class="product-card__shipping-badge"><i class="bi bi-truck" aria-hidden="true"></i> @Localizer["FreeShipping"]</span>
 							}
 						</a>
 

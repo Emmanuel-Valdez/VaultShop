@@ -165,4 +165,8 @@
   <data name="OutOfStock" xml:space="preserve">
     <value>Out of stock</value>
   </data>
+  <data name="FreeShipping" xml:space="preserve">
+    <value>Free shipping</value>
+  </data>
 </root>
+

@@ -168,4 +168,8 @@
   <data name="StockAvailable" xml:space="preserve">
     <value>{0} available</value>
   </data>
+  <data name="FreeShipping" xml:space="preserve">
+    <value>Free shipping</value>
+  </data>
 </root>
+

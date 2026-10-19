@@ -121,6 +121,10 @@
 						{
 							<span class="product-detail__badge badge rounded-pill mb-3">@Localizer["OutOfStock"]</span>
 						}
+						@if (!PricingHelper.ShouldUseWholesale(User, Context) && Model.Product.FreeShipping)
+						{
+							<span class="shipping-badge mb-3"><i class="bi bi-truck" aria-hidden="true"></i> @Localizer["FreeShipping"]</span>
+						}
 						<h1 id="product-title" class="storefront-display-heading display-6 text-primary fw-semibold mb-2">@Model.Product.Name</h1>
 						<p class="product-card__meta mb-4">@Localizer["InspiredBy"]</p>
 

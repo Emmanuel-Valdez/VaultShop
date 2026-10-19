@@ -23,7 +23,7 @@ public class FreeShippingBadgeHttpTests
         var search = await client.GetStringAsync($"/{culture}/Customer/Home/Search?searchString={Uri.EscapeDataString("Free Ship Product")}");
         var details = await client.GetStringAsync($"/{culture}/Customer/Home/Details/{productId}");
 
-        Assert.Contains("badge bg-info text-dark", home);
+        Assert.Contains("product-card__shipping-badge", home);
         Assert.Contains(labelFragment, home);
         Assert.Contains(labelFragment, search);
         Assert.Contains(labelFragment, details);

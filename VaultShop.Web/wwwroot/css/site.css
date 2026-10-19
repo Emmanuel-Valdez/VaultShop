@@ -339,6 +339,48 @@ html {
     background-color: rgba(0, 0, 0, 0.65);
 }
 
+.product-card__shipping-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background-color: var(--theme-accent);
+    color: var(--theme-primary-dark);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.25);
+    z-index: 2;
+}
+
+[data-bs-theme=dark] .product-card__shipping-badge {
+    box-shadow: 0 0.25rem 0.6rem rgba(0, 0, 0, 0.5);
+}
+
+.shipping-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background-color: var(--theme-accent);
+    color: var(--theme-primary-dark);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+@media (max-width: 575.98px) {
+    .product-card__shipping-badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
 .product-card__image {
     width: 100%;
     height: 100%;

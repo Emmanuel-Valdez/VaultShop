@@ -69,6 +69,10 @@
 
 										</h6>
 									}
+									@if (!PricingHelper.ShouldUseWholesale(User, Context) && item.Product.FreeShipping)
+									{
+										<span class="shipping-badge"><i class="bi bi-truck" aria-hidden="true"></i> @Localizer["FreeShipping"]</span>
+									}
 								</div>
 
 								<div a class="col-3 col-sm-4 col-lg-2 offset-lg-1 text-right pt-2">
