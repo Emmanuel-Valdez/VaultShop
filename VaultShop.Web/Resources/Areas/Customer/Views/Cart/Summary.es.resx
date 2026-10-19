@@ -223,7 +223,7 @@
     <value>Método de envío</value>
   </data>
   <data name="DeliveryModalityHint" xml:space="preserve">
-    <value>Seleccioná una provincia y localidad para ver las opciones de envío.</value>
+    <value>Seleccioná una provincia y localidad para ver las opciones de envío y las sucursales de retiro disponibles.</value>
   </data>
   <data name="ShippingLine" xml:space="preserve">
     <value>Envío</value>

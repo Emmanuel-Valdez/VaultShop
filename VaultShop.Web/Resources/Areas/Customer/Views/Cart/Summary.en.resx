@@ -223,7 +223,7 @@
     <value>Delivery method</value>
   </data>
   <data name="DeliveryModalityHint" xml:space="preserve">
-    <value>Select a province and locality to see delivery options.</value>
+    <value>Select a province and locality to see delivery options and available pickup branches.</value>
   </data>
   <data name="ShippingLine" xml:space="preserve">
     <value>Shipping</value>

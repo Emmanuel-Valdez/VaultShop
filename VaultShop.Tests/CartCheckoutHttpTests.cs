@@ -531,6 +531,9 @@ public class CartCheckoutHttpTests
         Assert.Contains("TEST01", html);
         Assert.Contains("Test Branch", html);
         Assert.Contains("LUN A VIE 9 A 18", html);
+        // The branch filter is always available once branches exist (Session 6c).
+        Assert.DoesNotContain("mb-3 d-none\" data-filter-wrap", html);
+        Assert.Contains("data-filter-wrap", html);
 
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

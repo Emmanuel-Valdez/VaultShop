@@ -1323,6 +1323,11 @@ table.dataTable .btn {
 	display: block;
 }
 
+/* ponytail: Chrome lays <fieldset> children out horizontally and shrink-fits flex children, so
+   .list-group (display:flex) collapses to 0 width — a zero-width column pinned to the right edge.
+   width: 100% restores block layout. Drop this if the partial ever stops using <fieldset>. */
+.branch-cascade-picker fieldset > * { width: 100%; }
+
 /* home-banners 4.3: full-bleed carousel; desktop 1905:714; below 992px both layouts share 4:5 (cover center-cropped, mobile asset art-directed) */
 .banner .carousel-item { aspect-ratio: 1905 / 714; overflow: hidden; }
 .banner__slide-link { position: absolute; inset: 0; display: block; color: inherit; text-decoration: none; }

@@ -11,9 +11,28 @@ namespace VaultShop.Web.Tests
 			var script = File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
 				"..", "..", "..", "..", "VaultShop.Web", "Views", "Shared", "_BranchCascadePicker.cshtml")));
 
-			Assert.Contains("document.getElementById(submitButtonId)", script);
-			Assert.Contains("DOMContentLoaded", script);
-			Assert.DoesNotContain("var submitBtn = document.getElementById(root.dataset.submitButtonId);", script);
-		}
+	Assert.Contains("document.getElementById(submitButtonId)", script);
+	Assert.Contains("DOMContentLoaded", script);
+	Assert.DoesNotContain("var submitBtn = document.getElementById(root.dataset.submitButtonId);", script);
+}
+
+[Fact]
+public void PickerCss_FixesFieldsetCollapse()
+{
+	var css = File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+		"..", "..", "..", "..", "VaultShop.Web", "wwwroot", "css", "site.css")));
+
+	Assert.Contains(".branch-cascade-picker fieldset > * { width: 100%; }", css);
+}
+
+[Fact]
+public void PickerScript_ShowsFilterForAnyBranchCount()
+{
+	var script = File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+		"..", "..", "..", "..", "VaultShop.Web", "Views", "Shared", "_BranchCascadePicker.cshtml")));
+
+	Assert.Contains("var showFilter = Model.Branches.Count > 0;", script);
+	Assert.Contains("var show = items.length > 0;", script);
+}
 	}
 }

@@ -7,7 +7,7 @@
 	var branchesId = $"{Model.IdPrefix}Branches";
 	var filterId = $"{Model.IdPrefix}Filter";
 	var statusId = $"{Model.IdPrefix}Status";
-	var showFilter = Model.Branches.Count > 10;
+	var showFilter = Model.Branches.Count > 0;
 }
 <div class="branch-cascade-picker" id="@Model.IdPrefix"
 	data-provinces-url="@Model.ProvincesUrl"
@@ -146,8 +146,8 @@
 				label.appendChild(body);
 				branches.appendChild(label);
 			}
-			var show = items.length > 10;
-			if (filterWrap) filterWrap.classList.toggle('d-none', !show);
+		var show = items.length > 0;
+		if (filterWrap) filterWrap.classList.toggle('d-none', !show);
 			if (filter) filter.value = '';
 			updateSubmitGate();
 		}
