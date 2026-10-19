@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
-using System.Globalization;
 using System.Security.Claims;
 using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
@@ -672,9 +671,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			try
 			{
 				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId, paymentId);
-				if (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago && !string.IsNullOrWhiteSpace(paymentId) &&
-					(!int.TryParse(session.ExternalReference, NumberStyles.None, CultureInfo.InvariantCulture, out var externalOrderId) ||
-						externalOrderId != orderHeader.Id || session.TransactionAmount != orderHeader.OrderTotal))
+				if (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago && !MercadoPagoPaymentVerifier.Matches(orderHeader.Id, orderHeader.OrderTotal, session))
 				{
 					_logger.LogWarning("Ignored Mercado Pago payment {PaymentId} for order {OrderId} because provider reference or amount did not match. ExternalReference: {ExternalReference}. TransactionAmount: {TransactionAmount}. OrderTotal: {OrderTotal}.", paymentId, orderHeader.Id, session.ExternalReference, session.TransactionAmount, orderHeader.OrderTotal);
 					return;

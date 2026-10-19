@@ -761,9 +761,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 			try
 			{
 				var session = GetPaymentSessionService(orderHeader).GetCheckoutSessionStatus(orderHeader.SessionId, paymentId);
-				if (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago && !string.IsNullOrWhiteSpace(paymentId) &&
-					(!int.TryParse(session.ExternalReference, NumberStyles.None, CultureInfo.InvariantCulture, out var externalOrderId) ||
-						externalOrderId != orderHeader.Id || session.TransactionAmount != orderHeader.OrderTotal))
+				if (orderHeader.PaymentMethod == SD.PaymentMethodMercadoPago && !MercadoPagoPaymentVerifier.Matches(orderHeader.Id, orderHeader.OrderTotal, session))
 				{
 					_logger.LogWarning("Ignored Mercado Pago payment {PaymentId} for order {OrderId} because provider reference or amount did not match. ExternalReference: {ExternalReference}. TransactionAmount: {TransactionAmount}. OrderTotal: {OrderTotal}.", paymentId, orderHeader.Id, session.ExternalReference, session.TransactionAmount, orderHeader.OrderTotal);
 					return;

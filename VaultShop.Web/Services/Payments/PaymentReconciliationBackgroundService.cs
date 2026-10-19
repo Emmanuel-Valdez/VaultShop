@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net;
 using Microsoft.Extensions.Options;
 using VaultShop.DataAccess.Repository.IRepository;
@@ -176,7 +175,7 @@ public sealed class PaymentReconciliationBackgroundService : BackgroundService
 			return false;
 		}
 
-		if (order.PaymentMethod == SD.PaymentMethodMercadoPago && !MercadoPagoResultMatches(order, status))
+		if (order.PaymentMethod == SD.PaymentMethodMercadoPago && !MercadoPagoPaymentVerifier.Matches(order.Id, order.OrderTotal, status))
 		{
 			_logger.LogWarning(
 				"Mercado Pago result for order {OrderId} does not match stored preference; leaving pending (ExternalReference={ExternalReference} TransactionAmount={TransactionAmount}).",
@@ -198,15 +197,5 @@ public sealed class PaymentReconciliationBackgroundService : BackgroundService
 
 		_logger.LogDebug("Order {OrderId} was not promoted by reconciliation ({PaymentMethod}); no change.", order.Id, order.PaymentMethod);
 		return false;
-	}
-
-	private static bool MercadoPagoResultMatches(OrderHeader order, PaymentSessionStatusResult status)
-	{
-		if (!int.TryParse(status.ExternalReference, NumberStyles.None, CultureInfo.InvariantCulture, out var orderId))
-		{
-			return false;
-		}
-
-		return orderId == order.Id && status.TransactionAmount == order.OrderTotal;
 	}
 }

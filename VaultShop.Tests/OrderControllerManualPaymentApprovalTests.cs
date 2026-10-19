@@ -633,6 +633,73 @@ namespace VaultShop.Web.Tests
 			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
 		}
 
+		// mercadopago-amount-verification: admin path must also guard the no-payment_id search result.
+		[Fact]
+		public async Task PaymentConfirmation_MercadoPagoNoPaymentId_MatchingReferenceAndAmount_Approves()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentMethod = SD.PaymentMethodMercadoPago,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved,
+				SessionId = "pref_test_pay_now",
+				OrderTotal = 200m
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company),
+				mercadoPagoEnabled: true);
+			test.MercadoPagoPaymentSessionMock
+				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now", null))
+				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid", "42", 200m));
+
+			var result = await test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", null);
+
+			Assert.IsType<ViewResult>(result);
+			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(
+				It.Is<PaymentSessionStatusUpdate>(update =>
+					update.OrderId == 42 &&
+					update.SessionId == "pref_test_pay_now" &&
+					update.PaymentIntentId == "payment_test_123")), Times.Once);
+		}
+
+		[Fact]
+		public async Task PaymentConfirmation_MercadoPagoNoPaymentId_MismatchedAmount_DoesNotApprove()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				ApplicationUserId = "company-user",
+				CompanyId = 7,
+				PaymentMethod = SD.PaymentMethodMercadoPago,
+				PaymentStatus = SD.PaymentStatusDelayedPayment,
+				OrderStatus = SD.StatusApproved,
+				SessionId = "pref_test_pay_now",
+				OrderTotal = 200m
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeader: order,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company),
+				mercadoPagoEnabled: true);
+			test.MercadoPagoPaymentSessionMock
+				.Setup(x => x.GetCheckoutSessionStatus("pref_test_pay_now", null))
+				.Returns(new PaymentSessionStatusResult("pref_test_pay_now", "payment_test_123", "paid", "42", 199m));
+
+			var result = await test.Controller.PaymentConfirmation(42, null, "pref_test_pay_now", null);
+
+			Assert.IsType<ViewResult>(result);
+			test.PaymentStatusMock.Verify(x => x.MarkCheckoutSessionPaid(It.IsAny<PaymentSessionStatusUpdate>()), Times.Never);
+		}
+
 		[Fact]
 		public async Task PaymentConfirmation_MercadoPagoWrongPreferenceId_ReturnsNotFound()
 		{

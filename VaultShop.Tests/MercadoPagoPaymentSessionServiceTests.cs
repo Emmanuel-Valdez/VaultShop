@@ -119,6 +119,21 @@ namespace VaultShop.Web.Tests
 			Assert.False(result.IsPaid);
 		}
 
+		[Theory]
+		[InlineData("42", 200, true)]
+		[InlineData("43", 200, false)]
+		[InlineData("42", 199, false)]
+		[InlineData(null, 200, false)]
+		[InlineData("not-a-number", 200, false)]
+		[InlineData("42", null, false)]
+		public void Matches_FailsClosedOnReferenceOrAmountMismatch(string? reference, int? amount, bool expected)
+		{
+			decimal? transactionAmount = amount.HasValue ? amount.Value : null;
+			var status = new PaymentSessionStatusResult("pref_1", "PAY1", "paid", reference, transactionAmount);
+
+			Assert.Equal(expected, MercadoPagoPaymentVerifier.Matches(42, 200m, status));
+		}
+
 		private static MercadoPagoPaymentSessionService CreateService(HttpMessageHandler handler)
 		{
 			var httpClient = new HttpClient(handler)

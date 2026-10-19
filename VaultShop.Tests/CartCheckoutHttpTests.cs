@@ -318,6 +318,59 @@ public class CartCheckoutHttpTests
         Assert.Equal("payment_test_123", FakeMercadoPagoPaymentSessionService.LastProviderPaymentId);
     }
 
+    // mercadopago-amount-verification: the reference/amount guard must also hold on the no-payment_id
+    // search path (preference_id only), and it must fail closed on a mismatch.
+    [Theory]
+    [InlineData(true, 0, true)]
+    [InlineData(true, 5, false)]
+    [InlineData(false, 0, false)]
+    public async Task OrderConfirmation_MercadoPago_NoPaymentId_VerifiesReferenceAndAmount(
+        bool correctReference, decimal amountDelta, bool expectApproved)
+    {
+        FakeMercadoPagoPaymentSessionService.Reset();
+        using var factory = new CustomWebApplicationFactory();
+        using var configuredFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Payments:MercadoPagoEnabled"] = "true",
+                ["SiteUrl"] = "https://store.test/",
+            }));
+            builder.ConfigureServices(services =>
+                services.AddKeyedScoped<IPaymentSessionService, FakeMercadoPagoPaymentSessionService>(SD.PaymentMethodMercadoPago));
+        });
+        var client = configuredFactory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        SeedProductAndCart(configuredFactory, factory.CustomerEmail, count: 2, retailPrice: 100m, wholesalePrice: 70m);
+        await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+
+        var response = await PostSummary(client, token, SD.PaymentMethodMercadoPago);
+        Assert.Equal((HttpStatusCode)303, response.StatusCode);
+
+        int orderId;
+        decimal total;
+        using (var scope = configuredFactory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var order = Assert.Single(db.OrderHeaders.AsNoTracking());
+            orderId = order.Id;
+            total = order.OrderTotal;
+        }
+
+        FakeMercadoPagoPaymentSessionService.StatusToReturn = new(
+            "pref_test_123", "payment_test_123", "paid",
+            correctReference ? orderId.ToString() : "999",
+            total + amountDelta);
+        var confirmation = await client.GetAsync($"/en-US/Customer/Cart/OrderConfirmation?id={orderId}&preference_id=pref_test_123");
+
+        Assert.Equal(HttpStatusCode.OK, confirmation.StatusCode);
+        using var verificationScope = configuredFactory.Services.CreateScope();
+        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var verified = Assert.Single(verificationDb.OrderHeaders.AsNoTracking());
+        Assert.Equal(expectApproved ? SD.PaymentStatusApproved : SD.PaymentStatusPending, verified.PaymentStatus);
+    }
+
     [Fact]
     public async Task SummaryPost_AsCustomer_WithDisabledMercadoPago_DoesNotCreateOrder()
     {
