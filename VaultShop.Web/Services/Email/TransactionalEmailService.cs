@@ -146,7 +146,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.Id,
             order.OrderTotal.ToString("C"),
             SD.SiteUrl,
-            Thread.CurrentThread.CurrentUICulture);
+            Thread.CurrentThread.CurrentUICulture,
+            _branding.WhatsAppNumber);
 
         await TrySendEmailAsync(orderId, userEmail, content,
             () => order.PaymentReceiptEmailSentUtc = DateTime.UtcNow,
@@ -168,7 +169,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.Name,
             order.Id,
             SD.SiteUrl,
-            Thread.CurrentThread.CurrentUICulture);
+            Thread.CurrentThread.CurrentUICulture,
+            _branding.WhatsAppNumber);
 
         await TrySendEmailAsync(orderId, userEmail, content,
             () => { },
@@ -204,7 +206,8 @@ public sealed class TransactionalEmailService : ITransactionalEmailService
             order.PickupAgencyName,
             order.PickupAgencyCode,
             order.PickupAgencyAddress,
-            order.PickupAgencyHours);
+            order.PickupAgencyHours,
+            _branding.WhatsAppNumber);
 
         await TrySendEmailAsync(orderId, userEmail, content,
             () => order.ShippingConfirmationEmailSentUtc = DateTime.UtcNow,

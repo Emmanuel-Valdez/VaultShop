@@ -175,13 +175,14 @@ public static class EmailTemplates
 {bankTransferHtml}
 {pickupHtml}
 <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{viewOrderText}</a></p>
+{BuildWhatsAppFooter(culture, whatsAppNumber)}
 </div></div></body></html>";
         return new EmailContent(subject, body);
     }
 
     public static EmailContent PaymentReceipt(
         string storeName, string customerName, int orderId, string orderTotal, string siteUrl,
-        CultureInfo culture)
+        CultureInfo culture, string? whatsAppNumber = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -193,13 +194,13 @@ public static class EmailTemplates
             : $"We've received your payment of {orderTotal} for order #{orderId}.";
         var dashboardText = isSpanish ? "Ver mis pedidos" : "My orders";
 
-        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
+        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture, whatsAppNumber);
         return new EmailContent(subject, body);
     }
 
     public static EmailContent PaymentFailed(
         string storeName, string customerName, int orderId, string siteUrl,
-        CultureInfo culture)
+        CultureInfo culture, string? whatsAppNumber = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var subject = isSpanish
@@ -211,7 +212,7 @@ public static class EmailTemplates
             : $"The payment for order #{orderId} could not be processed. You can try again from your dashboard.";
         var dashboardText = isSpanish ? "Intentar de nuevo" : "Try again";
 
-        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
+        var body = HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture, whatsAppNumber);
         return new EmailContent(subject, body);
     }
 
@@ -219,7 +220,8 @@ public static class EmailTemplates
         string storeName, string customerName, int orderId,
         string? trackingNumber, string? carrier, string siteUrl,
         CultureInfo culture, string? deliveryType = null, string? pickupAgencyName = null,
-        string? pickupAgencyCode = null, string? pickupAgencyAddress = null, string? pickupAgencyHours = null)
+        string? pickupAgencyCode = null, string? pickupAgencyAddress = null, string? pickupAgencyHours = null,
+        string? whatsAppNumber = null)
     {
         var isSpanish = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase);
         var isPickup = deliveryType == SD.DeliveryTypePickup;
@@ -261,8 +263,8 @@ public static class EmailTemplates
             extraHtml += $"<p>{trackingHint}</p>";
         }
         var body = extraHtml.Length == 0
-            ? HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture)
-            : HtmlTemplateWithExtra(storeName, heading, message, extraHtml, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture);
+            ? HtmlTemplate(storeName, heading, message, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture, whatsAppNumber)
+            : HtmlTemplateWithExtra(storeName, heading, message, extraHtml, OrderDetailsUrl(siteUrl, culture, orderId), dashboardText, culture, whatsAppNumber);
         return new EmailContent(subject, body);
     }
 
@@ -369,7 +371,7 @@ public static class EmailTemplates
     }
     private static string HtmlTemplate(
         string storeName, string heading, string message,
-        string actionUrl, string actionText, CultureInfo culture)
+        string actionUrl, string actionText, CultureInfo culture, string? whatsAppNumber = null)
     {
         return $@"
 <!DOCTYPE html>
@@ -382,12 +384,13 @@ public static class EmailTemplates
 <h2>{heading}</h2>
 <p>{message}</p>
 <p><a href='{actionUrl}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{actionText}</a></p>
+{BuildWhatsAppFooter(culture, whatsAppNumber)}
 </div></div></body></html>";
     }
 
     private static string HtmlTemplateWithExtra(
         string storeName, string heading, string message, string extraHtml,
-        string actionUrl, string actionText, CultureInfo culture)
+        string actionUrl, string actionText, CultureInfo culture, string? whatsAppNumber = null)
     {
         return $@"
 <!DOCTYPE html>
@@ -401,7 +404,18 @@ public static class EmailTemplates
 <p>{message}</p>
 {extraHtml}
 <p><a href='{actionUrl}' style='display:inline-block;padding:10px 20px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:4px;'>{actionText}</a></p>
+{BuildWhatsAppFooter(culture, whatsAppNumber)}
 </div></div></body></html>";
+    }
+
+    private static string BuildWhatsAppFooter(CultureInfo culture, string? whatsAppNumber)
+    {
+        if (string.IsNullOrWhiteSpace(whatsAppNumber)) return string.Empty;
+
+        var message = culture.Name.StartsWith("es", StringComparison.OrdinalIgnoreCase)
+            ? $"¿Tenés dudas o consultas? Escribinos por WhatsApp al {WebUtility.HtmlEncode(whatsAppNumber)}."
+            : $"Questions or need help? Contact us on WhatsApp at {WebUtility.HtmlEncode(whatsAppNumber)}.";
+        return $"<p>{message}</p>";
     }
 
     private static string BuildPickupBlock(

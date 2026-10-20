@@ -254,6 +254,33 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Theory]
+		[InlineData("es-AR", "¿Tenés dudas o consultas? Escribinos por WhatsApp al")]
+		[InlineData("en-US", "Questions or need help? Contact us on WhatsApp at")]
+		public void CustomerEmailTemplates_IncludeWhatsAppFooterWhenConfigured(string cultureName, string message)
+		{
+			var culture = new CultureInfo(cultureName);
+			const string whatsAppNumber = "+54 9 11 1234 5678";
+			var emails = new[]
+			{
+				EmailTemplates.OrderConfirmation("Shop", "Ada", 7, [], "$100", "https://x.test", culture, whatsAppNumber: whatsAppNumber),
+				EmailTemplates.PaymentReceipt("Shop", "Ada", 7, "$100", "https://x.test", culture, whatsAppNumber),
+				EmailTemplates.PaymentFailed("Shop", "Ada", 7, "https://x.test", culture, whatsAppNumber),
+				EmailTemplates.ShippingConfirmation("Shop", "Ada", 7, null, null, "https://x.test", culture, whatsAppNumber: whatsAppNumber)
+			};
+
+			Assert.All(emails, email => Assert.Contains($"{message} {whatsAppNumber}.", email.Body));
+		}
+
+		[Fact]
+		public void CustomerEmailTemplates_OmitWhatsAppFooterWhenNumberIsNotConfigured()
+		{
+			var content = EmailTemplates.PaymentReceipt("Shop", "Ada", 7, "$100", "https://x.test", new CultureInfo("es-AR"));
+
+			Assert.DoesNotContain("¿Tenés dudas o consultas?", content.Body);
+			Assert.DoesNotContain("Questions or need help?", content.Body);
+		}
+
+		[Theory]
 		[InlineData("es-AR")]
 		[InlineData("en-US")]
 		public void OrderConfirmation_PaymentDiscount_ShowsFrozenMotive(string cultureName)
