@@ -1370,6 +1370,32 @@ table.dataTable .btn {
    width: 100% restores block layout. Drop this if the partial ever stops using <fieldset>. */
 .branch-cascade-picker fieldset > * { width: 100%; }
 
+.checkout-delivery-options { display: grid; gap: 0.75rem; }
+.checkout-delivery-option {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0.9rem 1rem;
+	border: 1px solid var(--bs-border-color);
+	border-radius: 0.65rem;
+	background: var(--bs-body-bg);
+	cursor: pointer;
+}
+.checkout-delivery-option:focus-within { outline: 3px solid var(--bs-primary); outline-offset: 2px; }
+.checkout-delivery-option:has(> input:checked) { border-color: var(--bs-primary); background: var(--bs-primary-bg-subtle); }
+.checkout-delivery-option > .form-check-input { flex: 0 0 auto; margin: 0.2rem 0 0; }
+.checkout-delivery-option__content { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem 1rem; flex: 1; min-width: 0; }
+.checkout-delivery-option__main { display: block; min-width: 0; }
+.checkout-delivery-option__title { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; line-height: 1.35; }
+.checkout-delivery-option__icon { width: 1.2em; height: 1.2em; flex: 0 0 auto; color: var(--bs-primary); }
+.checkout-delivery-option__details { display: block; margin-top: 0.2rem; color: var(--bs-secondary-color); font-size: 0.9rem; line-height: 1.4; overflow-wrap: anywhere; }
+.checkout-delivery-option__price { flex: 0 0 auto; color: var(--bs-success-text-emphasis); font-weight: 700; }
+
+@media (max-width: 575.98px) {
+	.checkout-delivery-option__content { flex-direction: column; }
+}
+
 /* home-banners 4.3: full-bleed carousel; desktop 1905:714; below 992px both layouts share 4:5 (cover center-cropped, mobile asset art-directed) */
 .banner .carousel-item { aspect-ratio: 1905 / 714; overflow: hidden; }
 .banner__slide-link { position: absolute; inset: 0; display: block; color: inherit; text-decoration: none; }

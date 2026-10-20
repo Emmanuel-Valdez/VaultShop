@@ -34,5 +34,19 @@ public void PickerScript_ShowsFilterForAnyBranchCount()
 	Assert.Contains("var showFilter = Model.Branches.Count > 0;", script);
 	Assert.Contains("var show = items.length > 0;", script);
 }
+
+[Fact]
+public void PickerScript_ReevaluatesSubmitGateWhenDeliveryNoLongerNeedsABranch()
+{
+	var picker = File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+		"..", "..", "..", "..", "VaultShop.Web", "Views", "Shared", "_BranchCascadePicker.cshtml")));
+	var summary = File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+		"..", "..", "..", "..", "VaultShop.Web", "Areas", "Customer", "Views", "Cart", "Summary.cshtml")));
+
+	Assert.Contains("branches.addEventListener('change', updateSubmitGate);", picker);
+	Assert.Contains("branchPicker.dataset.requiresBranch = isPickup ? 'true' : 'false';", summary);
+	Assert.Contains("branchPicker.dataset.required = isPickup ? 'true' : 'false';", summary);
+	Assert.Contains("list.dispatchEvent(new Event('change', { bubbles: true }));", summary);
+}
 	}
 }

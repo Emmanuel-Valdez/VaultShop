@@ -223,9 +223,7 @@
 			renderBranches(items);
 		});
 
-		branches.addEventListener('change', function (e) {
-			if (e.target && e.target.name === fieldName) updateSubmitGate();
-		});
+		branches.addEventListener('change', updateSubmitGate);
 		if (filter) filter.addEventListener('input', applyFilter);
 
 		// Progressive enhancement: server-rendered radios stay selectable with JS disabled; gate applies on load.

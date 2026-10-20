@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,6 +8,7 @@ using VaultShop.DataAccess.Data;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Checkout;
+using VaultShop.Web.Services.Pricing;
 
 namespace VaultShop.Web.Tests
 {
@@ -177,6 +179,37 @@ namespace VaultShop.Web.Tests
 			Assert.DoesNotContain("La Plata", html);
 		}
 
+		[Theory]
+		[InlineData("es-AR", "Envío en moto a domicilio", "Retiro a coordinar con el vendedor", "Gratis")]
+		[InlineData("en-US", "Motorcycle delivery to your home", "Pickup to coordinate with the seller", "Free")]
+		public async Task Summary_GodoyCruz_RendersLocalizedDeliveryCardsAndArgentinaPickupWindow(
+			string culture, string motorcycleLabel, string vendorPickupLabel, string freeLabel)
+		{
+			using var factory = new CustomWebApplicationFactory();
+			SeedPostalAgencies(factory);
+			SeedCart(factory, factory.CustomerEmail, freeShipping: false);
+			SeedProfileDomicile(factory, factory.CustomerEmail, "Mendoza", "Godoy Cruz");
+			var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+			var html = WebUtility.HtmlDecode(await client.GetStringAsync($"/{culture}/Customer/Cart/Summary"));
+			var todayInArgentina = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, OfferTimeZone.ArgentinaZone));
+			var dateCulture = CultureInfo.GetCultureInfo(culture);
+			var hasCurrentPickupWindow = Enumerable.Range(-1, 2).Any(dayOffset =>
+			{
+				var start = todayInArgentina.AddDays(dayOffset);
+				return html.Contains(start.ToString("d", dateCulture))
+					&& html.Contains(start.AddDays(7).ToString("d", dateCulture));
+			});
+
+			Assert.Contains("checkout-delivery-option", html);
+			Assert.Contains("role=\"radiogroup\"", html);
+			Assert.Contains(motorcycleLabel, html);
+			Assert.Contains(vendorPickupLabel, html);
+			Assert.True(hasCurrentPickupWindow, "Expected the pickup dates to span today in Argentina through seven days later.");
+			Assert.Contains(freeLabel, html);
+		}
+
 		[Fact]
 		public async Task SummaryPost_UnknownDomicilePair_RejectedWithoutOrder()
 		{
@@ -208,8 +241,8 @@ namespace VaultShop.Web.Tests
 			// No branch posted: the failed POST re-renders the summary with modality radios for the locality.
 			var html = await PostSummaryHtmlAsync(client, token, "Mendoza", "Godoy Cruz", deliveryType: null, pickupCode: null);
 
-			Assert.Contains("Motorcycle delivery", html);
-			Assert.Contains("Pick up from the vendor", html);
+			Assert.Contains("Motorcycle delivery to your home", html);
+			Assert.Contains("Pickup to coordinate with the seller", html);
 			Assert.Contains("Correo pickup", html);
 		}
 
@@ -225,9 +258,9 @@ namespace VaultShop.Web.Tests
 
 			var html = await PostSummaryHtmlAsync(client, token, "Mendoza", "Godoy Cruz", deliveryType: null, pickupCode: null);
 
-			Assert.Contains("Motorcycle delivery", html);
+			Assert.Contains("Motorcycle delivery to your home", html);
 			Assert.Contains("Correo pickup", html);
-			Assert.DoesNotContain("Pick up from the vendor", html);
+			Assert.DoesNotContain("Pickup to coordinate with the seller", html);
 		}
 
 		[Fact]
@@ -243,8 +276,8 @@ namespace VaultShop.Web.Tests
 			var html = await PostSummaryHtmlAsync(client, token, "Buenos Aires", "La Plata", deliveryType: null, pickupCode: null);
 
 			Assert.Contains("Correo pickup", html);
-			Assert.DoesNotContain("Motorcycle delivery", html);
-			Assert.DoesNotContain("Pick up from the vendor", html);
+			Assert.DoesNotContain("Motorcycle delivery to your home", html);
+			Assert.DoesNotContain("Pickup to coordinate with the seller", html);
 		}
 
 		[Fact]
@@ -316,7 +349,7 @@ namespace VaultShop.Web.Tests
 			await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
 			var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
-			var response = await PostSummaryHtmlToResponseAsync(client, token, "Mendoza", "Maipú", SD.DeliveryTypeMotorcycle, pickupCode: null);
+			var response = await PostSummaryHtmlToResponseAsync(client, token, "Mendoza", "Godoy Cruz", SD.DeliveryTypeMotorcycle, pickupCode: null);
 
 			Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 			using var scope = factory.Services.CreateScope();

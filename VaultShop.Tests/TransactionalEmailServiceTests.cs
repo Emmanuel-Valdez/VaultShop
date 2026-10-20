@@ -337,7 +337,7 @@ namespace VaultShop.Web.Tests
 				deliveryType: SD.DeliveryTypeVendorPickup, deliveryNote: SD.VendorPickupDeliveryNote);
 
 			Assert.Contains("Delivery method:</strong>", content.Body);
-			Assert.Contains("Pick up from the vendor", content.Body);
+			Assert.Contains("Pickup to coordinate with the seller", content.Body);
 			Assert.Contains("Microcentro", content.Body);
 		}
 
@@ -379,7 +379,7 @@ namespace VaultShop.Web.Tests
 
 			Assert.NotNull(body);
 			Assert.Contains("250", body);
-			Assert.Contains("Motorcycle delivery", body);
+			Assert.Contains("Motorcycle delivery to your home", body);
 		}
 
 		private static TestContext CreateService(OrderHeader order, IEnumerable<OrderDetail>? details = null)

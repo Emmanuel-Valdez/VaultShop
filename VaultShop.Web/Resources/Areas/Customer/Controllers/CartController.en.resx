@@ -175,10 +175,10 @@
     <value>Correo pickup</value>
   </data>
   <data name="DeliveryTypeMotorcycle" xml:space="preserve">
-    <value>Motorcycle delivery</value>
+    <value>Motorcycle delivery to your home</value>
   </data>
   <data name="DeliveryTypeVendorPickup" xml:space="preserve">
-    <value>Pick up from the vendor</value>
+    <value>Pickup to coordinate with the seller</value>
   </data>
   <data name="ShippingLine" xml:space="preserve">
     <value>Shipping</value>

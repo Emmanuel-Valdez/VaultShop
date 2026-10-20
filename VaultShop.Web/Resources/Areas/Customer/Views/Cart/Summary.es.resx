@@ -225,6 +225,12 @@
   <data name="DeliveryModalityHint" xml:space="preserve">
     <value>Seleccioná una provincia y localidad para ver las opciones de envío y las sucursales de retiro disponibles.</value>
   </data>
+  <data name="VendorPickupWindow" xml:space="preserve">
+    <value>Entre {0} y {1} en Microcentro de Mendoza</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>Gratis</value>
+  </data>
   <data name="ShippingLine" xml:space="preserve">
     <value>Envío</value>
   </data>

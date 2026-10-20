@@ -1,4 +1,5 @@
 @model ShoppingCartVM
+@using System.Globalization
 @using VaultShop.Web.Services.Pricing
 @using VaultShop.Web.Services.Checkout
 @{
@@ -8,6 +9,9 @@
 	var effectiveCharge = domicile.SelectedModality == SD.DeliveryTypeVendorPickup ? 0m : (shipping?.Charge ?? 0m);
 	var isFreeShipping = shipping?.QualifiesForFreeShipping == true;
 	var showShippingRow = !isCompanyViewer && (effectiveCharge > 0 || isFreeShipping);
+	var argentinaToday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, OfferTimeZone.ArgentinaZone));
+	var vendorPickupDetails = string.Format(CultureInfo.CurrentCulture, Localizer["VendorPickupWindow"].Value,
+		argentinaToday.ToString("d", CultureInfo.CurrentCulture), argentinaToday.AddDays(7).ToString("d", CultureInfo.CurrentCulture));
 }
 <form method="post" class="checkout-summary">
 	@Html.AntiForgeryToken()
@@ -153,8 +157,17 @@
 						<div class="col-12">
 							@if (!isCompanyViewer)
 							{
-								<h2 class="h5 mb-3 text-primary">@Localizer["DeliveryMethod"]</h2>
-								<div id="deliveryModalities"
+								<h2 class="h5 mb-3 text-primary" id="deliveryMethodHeading">@Localizer["DeliveryMethod"]</h2>
+								<svg class="d-none" aria-hidden="true" focusable="false">
+									<symbol id="checkoutMotorcycleIcon" viewBox="0 0 24 24">
+										<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">
+											<circle cx="5" cy="18" r="3" />
+											<circle cx="19" cy="18" r="3" />
+											<path d="m8 18 2.5-6h4l4.5 6M10.5 12 8 10H4l-2 3m7 1h4m3-2 2-4 2 1m-2-1 1-2h2M10.5 12l2-2h3l2 2m-8 2-2 1-1 3m9-6 2 6" />
+										</g>
+									</symbol>
+								</svg>
+								<div id="deliveryModalities" class="checkout-delivery-options" role="radiogroup" aria-labelledby="deliveryMethodHeading"
 									data-url="@Url.Action("DeliveryModalities", "Cart", new { area = "Customer" })"
 									data-selected="@domicile.SelectedModality">
 									@if (domicile.Modalities.Count == 0)
@@ -165,10 +178,28 @@
 									{
 										foreach (var modality in domicile.Modalities)
 										{
-											<div class="form-check">
+											<label class="checkout-delivery-option">
 												<input class="form-check-input" type="radio" name="OrderHeader.DeliveryType" id="delivery_@modality.Code" value="@modality.Code" checked="@(modality.Code == domicile.SelectedModality)" />
-												<label class="form-check-label" for="delivery_@modality.Code">@modality.Label</label>
-											</div>
+												<span class="checkout-delivery-option__content">
+													<span class="checkout-delivery-option__main">
+														<span class="checkout-delivery-option__title">
+										@if (modality.Code == SD.DeliveryTypeMotorcycle)
+										{
+											<svg class="checkout-delivery-option__icon" aria-hidden="true" focusable="false"><use href="#checkoutMotorcycleIcon"></use></svg>
+										}
+															@modality.Label
+														</span>
+													@if (modality.Code == SD.DeliveryTypeVendorPickup)
+													{
+														<span class="checkout-delivery-option__details">@vendorPickupDetails</span>
+													}
+													</span>
+												@if (modality.Code == SD.DeliveryTypeVendorPickup)
+												{
+													<span class="checkout-delivery-option__price">@Localizer["Free"]</span>
+												}
+												</span>
+											</label>
 										}
 									}
 								</div>
@@ -284,6 +315,8 @@
 			var shippingAmount = document.getElementById('shippingAmount');
 			var shippingStandard = document.getElementById('shippingStandard');
 			var modalityHint = @Json.Serialize(Localizer["DeliveryModalityHint"].Value);
+			var vendorPickupDetails = @Json.Serialize(vendorPickupDetails);
+			var vendorPickupFreeLabel = @Json.Serialize(Localizer["Free"].Value);
 
 			function selectedModality() {
 				var checked = document.querySelector('input[name="OrderHeader.DeliveryType"]:checked');
@@ -344,6 +377,7 @@
 				if (!branchPicker) return;
 				var isPickup = code === '@SD.DeliveryTypePickup';
 				branchPicker.dataset.requiresBranch = isPickup ? 'true' : 'false';
+				branchPicker.dataset.required = isPickup ? 'true' : 'false';
 				branchPicker.querySelectorAll('input[type=radio][name="OrderHeader.PickupAgencyCode"]').forEach(function (radio) {
 					radio.required = isPickup;
 					if (!isPickup) radio.checked = false;
@@ -356,7 +390,7 @@
 
 			function renderModalities(items) {
 				if (!modalitiesRoot) return;
-				modalitiesRoot.querySelectorAll('.form-check, #deliveryModalitiesHint').forEach(function (node) { node.remove(); });
+				modalitiesRoot.querySelectorAll('.checkout-delivery-option, #deliveryModalitiesHint').forEach(function (node) { node.remove(); });
 				if (!items || items.length === 0) {
 					var hint = document.createElement('p');
 					hint.id = 'deliveryModalitiesHint';
@@ -375,8 +409,8 @@
 				}
 
 				items.forEach(function (item) {
-					var wrap = document.createElement('div');
-					wrap.className = 'form-check';
+					var wrap = document.createElement('label');
+					wrap.className = 'checkout-delivery-option';
 					var input = document.createElement('input');
 					input.className = 'form-check-input';
 					input.type = 'radio';
@@ -384,12 +418,39 @@
 					input.id = 'delivery_' + item.code;
 					input.value = item.code;
 					input.checked = item.code === selected;
-					var label = document.createElement('label');
-					label.className = 'form-check-label';
-					label.htmlFor = 'delivery_' + item.code;
-					label.textContent = item.label;
+					var content = document.createElement('span');
+					content.className = 'checkout-delivery-option__content';
+					var main = document.createElement('span');
+					main.className = 'checkout-delivery-option__main';
+					var title = document.createElement('span');
+					title.className = 'checkout-delivery-option__title';
+					if (item.code === '@SD.DeliveryTypeMotorcycle') {
+						var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+						icon.classList.add('checkout-delivery-option__icon');
+						icon.setAttribute('aria-hidden', 'true');
+						icon.setAttribute('focusable', 'false');
+						var iconUse = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+						iconUse.setAttribute('href', '#checkoutMotorcycleIcon');
+						icon.appendChild(iconUse);
+						title.appendChild(icon);
+					}
+					title.appendChild(document.createTextNode(item.label));
+					main.appendChild(title);
+					if (item.code === '@SD.DeliveryTypeVendorPickup') {
+						var details = document.createElement('span');
+						details.className = 'checkout-delivery-option__details';
+						details.textContent = vendorPickupDetails;
+						main.appendChild(details);
+						var free = document.createElement('span');
+						free.className = 'checkout-delivery-option__price';
+						free.textContent = vendorPickupFreeLabel;
+						content.appendChild(main);
+						content.appendChild(free);
+					} else {
+						content.appendChild(main);
+					}
 					wrap.appendChild(input);
-					wrap.appendChild(label);
+					wrap.appendChild(content);
 					modalitiesRoot.appendChild(wrap);
 				});
 				modalitiesRoot.dataset.selected = selected;

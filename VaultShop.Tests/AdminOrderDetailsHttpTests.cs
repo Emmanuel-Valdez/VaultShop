@@ -184,7 +184,7 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Theory]
-		[InlineData("en-US", "Motorcycle delivery")]
+		[InlineData("en-US", "Motorcycle delivery to your home")]
 		[InlineData("es-AR", "moto")]
 		public async Task Details_MotorcycleOrder_ShowsFrozenChargeAndModality(string culture, string modalityFragment)
 		{
@@ -216,8 +216,8 @@ namespace VaultShop.Web.Tests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			Assert.Contains("Free shipping", html);
-			Assert.DoesNotContain("Motorcycle delivery", html);
-			Assert.DoesNotContain("Pick up from the vendor", html);
+			Assert.DoesNotContain("Motorcycle delivery to your home", html);
+			Assert.DoesNotContain("Pickup to coordinate with the seller", html);
 		}
 
 		[Fact]
@@ -233,7 +233,7 @@ namespace VaultShop.Web.Tests
 			var html = await response.Content.ReadAsStringAsync();
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-			Assert.Contains("Pick up from the vendor", html);
+			Assert.Contains("Pickup to coordinate with the seller", html);
 			Assert.Contains("Microcentro", html);
 		}
 
@@ -251,7 +251,7 @@ namespace VaultShop.Web.Tests
 
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			Assert.Contains("250", html);
-			Assert.Contains("Motorcycle delivery", html);
+			Assert.Contains("Motorcycle delivery to your home", html);
 		}
 
 		[Fact]
@@ -269,7 +269,7 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			Assert.Contains("Shipping", html);
 			Assert.Contains("250", html);
-			Assert.Contains("Motorcycle delivery", html);
+			Assert.Contains("Motorcycle delivery to your home", html);
 		}
 
 		[Fact]

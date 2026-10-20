@@ -225,6 +225,12 @@
   <data name="DeliveryModalityHint" xml:space="preserve">
     <value>Select a province and locality to see delivery options and available pickup branches.</value>
   </data>
+  <data name="VendorPickupWindow" xml:space="preserve">
+    <value>Between {0} and {1} in downtown Mendoza</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>Free</value>
+  </data>
   <data name="ShippingLine" xml:space="preserve">
     <value>Shipping</value>
   </data>
