@@ -48,7 +48,7 @@ Selected current flows for backend/portfolio review.
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer
 - Resend email (Fake/Unconfigured) + QuestPDF (order summary PDF, community license)
 - Docker & Docker Compose (platform + per-store stacks) + Nginx HTTPS proxy + MinIO S3
-- xUnit + Moq + SQLite in-memory (707 tests, service/integration/HTTP — `dotnet test VaultShop.sln` green)
+- xUnit + Moq + SQLite in-memory (821 tests, service/integration/HTTP — `dotnet test VaultShop.sln` green)
 
 ## Architecture Highlights
 
@@ -229,7 +229,7 @@ For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on 
 ## Tests
 
 ```powershell
-dotnet test VaultShop.sln   # 707 tests — dotnet build --no-restore clean
+dotnet test VaultShop.sln   # 821 tests — dotnet build --no-restore clean
 ```
 
 Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview, home banners (layouts, desktop-only safe zone, allowlisted targets, autoplay/a11y) + banner admin CRUD/validation, branch cascade API, seeded province list, pickup branch correction, shipped-order freeze.
