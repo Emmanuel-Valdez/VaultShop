@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using VaultShop.DataAccess.Data;
@@ -40,6 +41,26 @@ public class HomeBannerHttpTests
 		Assert.Contains("data-banner-pause", html);
 		// Store target resolves to the store home page.
 		Assert.Contains("/en-US/Customer/Home/Index", html);
+	}
+
+	[Theory]
+	[InlineData("es-AR", "textil")]
+	[InlineData("en-US", "textile")]
+	public async Task Index_WithBanners_HasSinglePageHeading_AfterCarousel(string culture, string purposeText)
+	{
+		using var factory = new CustomWebApplicationFactory();
+		SeedBanners(factory);
+		var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+		var html = await client.GetStringAsync($"/{culture}/Customer/Home/Index");
+
+		Assert.Single(Regex.Matches(html, "<h1[ >]"));
+		var heading = Regex.Match(html, "<h1[^>]*>(.*?)</h1>", RegexOptions.Singleline);
+		Assert.True(heading.Success);
+		Assert.Contains("VaultShop", heading.Groups[1].Value);
+		Assert.Contains("id=\"home-title\"", html);
+		Assert.True(html.IndexOf("id=\"home-title\"", StringComparison.Ordinal) > html.IndexOf("data-home-banner", StringComparison.Ordinal));
+		Assert.Contains(purposeText, html);
 	}
 
 	[Fact]

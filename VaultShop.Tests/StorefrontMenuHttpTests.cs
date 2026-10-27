@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using VaultShop.DataAccess.Data;
 using VaultShop.Models;
@@ -53,6 +54,22 @@ public class StorefrontMenuHttpTests
 		Assert.DoesNotContain("storefront-mobile-nav", body);
 		Assert.DoesNotContain("storefront-search", body);
 		Assert.Contains("data-bs-target=\"#sideNavbarTop\"", body);
+	}
+
+	[Theory]
+	[InlineData("es-AR", "Iniciar Sesi")]
+	[InlineData("en-US", "Log In")]
+	public async Task IdentityLogin_HasSinglePageHeading(string culture, string expectedHeading)
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient();
+
+		var body = await client.GetStringAsync($"/Identity/Account/Login?culture={culture}");
+
+		Assert.Single(Regex.Matches(body, "<h1[ >]"));
+		var heading = Regex.Match(body, "<h1[^>]*>(.*?)</h1>", RegexOptions.Singleline);
+		Assert.True(heading.Success);
+		Assert.Contains(expectedHeading, heading.Groups[1].Value);
 	}
 
 	private static (int VisibleCategoryId, int VisibleCollectionId) SeedCatalog(CustomWebApplicationFactory factory)

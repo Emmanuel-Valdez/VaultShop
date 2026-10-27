@@ -19,6 +19,7 @@ html {
     --theme-surface-dark: #1e2030;
     --theme-canvas: #f6f3ea;
     --storefront-mobile-nav-height: 4rem;
+    --storefront-gutter: clamp(1.15rem, 4vw, 1.25rem);
     --primary: var(--theme-primary);
     --primary-rgb: var(--theme-primary-rgb);
     --primary-emphasis: var(--theme-primary-dark);
@@ -1725,6 +1726,81 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
     outline-offset: 2px;
 }
 
+/* storefront-mobile-app-experience 4.1: readable mobile type. */
+.storefront-intro .lead {
+    max-width: 62ch;
+}
+
+.storefront-body .filter-row__label,
+.storefront-body .product-card__stock-badge,
+.storefront-body .product-card__shipping-badge,
+.storefront-body .product-detail__badge,
+.storefront-body .shipping-badge,
+.storefront-body .collection-chip__count,
+.storefront-body .product-card .badge {
+    font-size: max(0.75rem, 13px);
+}
+
+.storefront-body .product-card__meta,
+.storefront-body .collection-chip__name {
+    font-size: max(0.85rem, 13px);
+}
+
+.storefront-body .product-card .badge {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.storefront-body .product-card .btn {
+    font-size: max(0.875rem, 13px);
+}
+
+.storefront-body .btn-sm {
+    font-size: max(0.6875rem, 13px);
+}
+
+.storefront-body .product-detail__quantity-validation {
+    font-size: max(0.875rem, 13px);
+}
+
+.storefront-body .storefront-mobile-nav__link {
+    padding-inline: 0;
+    font-size: max(0.8rem, 13px);
+}
+
+.storefront-body .footer-links a {
+    font-size: max(0.9rem, 13px);
+}
+
+@media (max-width: 767.98px) {
+    .storefront-body {
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .banner__body {
+        font-size: 16px;
+    }
+
+    /* storefront-mobile-app-experience 4.2: bring the product heading into the first screen
+       without reordering the panel; the portrait image keeps its crop and loses height. */
+    .product-detail__image {
+        max-height: 45vh;
+    }
+
+    /* Bleed filter rows to the right edge as the scroll affordance; the first chip stays
+       aligned with the section heading, the last chip scrolls under the fade. */
+    .storefront-body .collections-row.scroll-row {
+        margin-right: calc(50% - 50vw);
+        padding-left: 0;
+        padding-right: var(--storefront-gutter);
+        scroll-padding-left: 0;
+        scroll-padding-right: var(--storefront-gutter);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .storefront-search.fade .modal-dialog {
         transition: none;
@@ -1733,6 +1809,10 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
 
     .modal-backdrop.fade {
         transition: none;
+    }
+
+    .scroll-row {
+        scroll-behavior: auto;
     }
 }
 

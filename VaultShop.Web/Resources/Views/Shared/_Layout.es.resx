@@ -123,6 +123,12 @@
   <data name="Category" xml:space="preserve">
     <value>Categoría</value>
   </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Categorías</value>
+  </data>
+  <data name="Collections" xml:space="preserve">
+    <value>Colecciones</value>
+  </data>
   <data name="Company" xml:space="preserve">
     <value>Empresa</value>
   </data>

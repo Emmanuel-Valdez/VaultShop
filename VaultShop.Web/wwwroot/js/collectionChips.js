@@ -30,7 +30,8 @@
             next.classList.toggle('is-visible', hasOverflow && !atEnd);
         };
         var scrollBy = function (dir) {
-            row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: 'smooth' });
+            var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: reduceMotion ? 'auto' : 'smooth' });
         };
         prev.addEventListener('click', function () { scrollBy(-1); });
         next.addEventListener('click', function () { scrollBy(1); });
