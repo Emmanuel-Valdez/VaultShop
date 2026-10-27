@@ -17,6 +17,9 @@ public class StorefrontMenuHttpTests
 
 		Assert.Contains("storefront-mobile-nav", body);
 		Assert.Contains("data-bs-target=\"#sideNavbarTop\"", body);
+		Assert.Contains("data-bs-target=\"#storefrontSearch\"", body);
+		Assert.Contains("id=\"storefrontSearch\"", body);
+		Assert.Contains("name=\"searchString\"", body);
 		Assert.Contains($"categoryId={ids.VisibleCategoryId}", body);
 		Assert.Contains("cslug=visible-category", body);
 		Assert.Contains($"keywordId={ids.VisibleCollectionId}", body);
@@ -48,6 +51,7 @@ public class StorefrontMenuHttpTests
 		var body = await client.GetStringAsync("/Identity/Account/Login");
 
 		Assert.DoesNotContain("storefront-mobile-nav", body);
+		Assert.DoesNotContain("storefront-search", body);
 		Assert.Contains("data-bs-target=\"#sideNavbarTop\"", body);
 	}
 

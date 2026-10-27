@@ -261,10 +261,13 @@
 								</li>
 							}
 						</ul>
-						<form asp-area="Customer" asp-controller="Home" asp-action="Search" class="nav-item p-3 py-3 d-flex d-lg-none nav-justified" role="search" method="get">
-							<input id="storefrontMenuSearch" class="form-control me-2" name="searchString" type="search" placeholder="@Localizer["Search"]" aria-label="@Localizer["Search"]">
-							<button class="btn btn-secondary" type="submit" aria-label="@Localizer["Search"]"><i class="bi bi-search-heart fs-4" aria-hidden="true"></i></button>
-						</form>
+						@if (!isStorefront)
+						{
+							<form asp-area="Customer" asp-controller="Home" asp-action="Search" class="nav-item p-3 py-3 d-flex d-lg-none nav-justified" role="search" method="get">
+								<input id="storefrontMenuSearch" class="form-control me-2" name="searchString" type="search" placeholder="@Localizer["Search"]" aria-label="@Localizer["Search"]">
+								<button class="btn btn-secondary" type="submit" aria-label="@Localizer["Search"]"><i class="bi bi-search-heart fs-4" aria-hidden="true"></i></button>
+							</form>
+						}
 						<div class="d-lg-none align-self-center py-3">
 							@if (hasTikTok) { <a href="@SD.TikTokLink" target="_blank" rel="noopener" aria-label="TikTok"><i class="bi bi-tiktok px-2 text-secondary fs-2" aria-hidden="true"></i></a> }
 							@if (hasFacebook) { <a href="@SD.FacebookLink" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook px-2 text-secondary fs-2" aria-hidden="true"></i></a> }
@@ -412,8 +415,7 @@
 					</a>
 				</li>
 				<li>
-					@* ponytail: Stage 2 opens the menu search field; Stage 3 replaces this trigger with the full-screen overlay. *@
-					<button type="button" class="storefront-mobile-nav__link @(isSearch ? "is-active" : null)" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" data-storefront-search-open aria-controls="sideNavbarTop" aria-expanded="false" aria-current="@(isSearch ? "page" : null)">
+					<button type="button" class="storefront-mobile-nav__link @(isSearch ? "is-active" : null)" data-bs-toggle="modal" data-bs-target="#storefrontSearch" aria-haspopup="dialog" aria-current="@(isSearch ? "page" : null)">
 						<i class="bi bi-search" aria-hidden="true"></i>
 						<span>@Localizer["Search"]</span>
 					</button>
@@ -440,6 +442,26 @@
 				</li>
 			</ul>
 		</nav>
+
+		<div class="modal fade storefront-search" id="storefrontSearch" tabindex="-1" aria-labelledby="storefrontSearchTitle" aria-hidden="true">
+			<div class="modal-dialog modal-fullscreen">
+				<div class="modal-content">
+					<form asp-area="Customer" asp-controller="Home" asp-action="Search" method="get" role="search" class="storefront-search__form">
+						<div class="storefront-search__bar">
+							<h2 class="storefront-search__title"><label id="storefrontSearchTitle" for="storefrontSearchInput">@Localizer["Search"]</label></h2>
+							<button type="button" class="btn-close storefront-search__close" data-bs-dismiss="modal" aria-label="@Localizer["Close"]"></button>
+						</div>
+						<div class="storefront-search__field">
+							<input id="storefrontSearchInput" name="searchString" type="search" class="form-control form-control-lg" placeholder="@Localizer["Search"]" autocomplete="off" enterkeyhint="search" required />
+							<button type="submit" class="btn btn-primary btn-lg" aria-label="@Localizer["Search"]">
+								<i class="bi bi-search" aria-hidden="true"></i>
+								<span class="d-none d-sm-inline ms-2">@Localizer["Search"]</span>
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
 	}
 
 	<partial name="_ThemeToggle" />

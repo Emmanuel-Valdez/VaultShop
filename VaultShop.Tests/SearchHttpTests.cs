@@ -205,14 +205,13 @@ public class SearchHttpTests
         Assert.Contains($"keywordId={keywordId}", decodedColl);
         Assert.Contains("slug=naruto", decodedColl);
         // category chip href for our category should contain both
-        var catBtnIdx = decodedColl.IndexOf($"categoryId={categoryId}");
-        Assert.True(catBtnIdx >= 0, "category button should be present");
-        // ensure the surrounding anchor also has keywordId
-        var catAnchorStart = decodedColl.LastIndexOf("href=\"", catBtnIdx);
-        var catAnchorEnd = decodedColl.IndexOf("\"", catBtnIdx);
-        var catAnchor = decodedColl.Substring(catAnchorStart, catAnchorEnd - catAnchorStart);
-        Assert.Contains($"keywordId={keywordId}", catAnchor);
-        Assert.Contains("slug=naruto", catAnchor);
+        // ponytail: the layout catalog menu also renders category links, so target the filter pill anchor.
+        var catPill = Regex.Matches(decodedColl, "<a [^>]*category-pill[^>]*>")
+            .Select(match => match.Value)
+            .FirstOrDefault(anchor => anchor.Contains($"categoryId={categoryId}"));
+        Assert.NotNull(catPill);
+        Assert.Contains($"keywordId={keywordId}", catPill);
+        Assert.Contains("slug=naruto", catPill);
 
         // removing collection keeps category
         var combined2Raw = await client.GetStringAsync($"/en-US/Customer/Home/Search?keywordId={keywordId}&slug=naruto&categoryId={categoryId}&searchString=negra");

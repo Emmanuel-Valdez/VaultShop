@@ -10,13 +10,13 @@
 - [x] 2.2 Remove the duplicate mobile hamburger controls, move informational navigation links into the footer, and preserve current role-based account/admin visibility; verify desktop navigation and authorized links remain available.
 - [x] 2.3 Populate the single mobile menu with storefront-visible categories and collections using the existing filter IDs/slugs; load only the required visible/sellable catalog data and verify it does not materialize the full Home/Search product list on every request.
 - [x] 2.4 Verify fixed-bar safe-area and page-bottom spacing, menu focus/keyboard behavior, catalog destinations, and checkout controls at narrow viewport sizes; run `dotnet build VaultShop.sln` and relevant tests.
-- [ ] 2.5 Stage 2 review gate: present screenshots/local URLs and behavior summary, then stop. Do not start Stage 3 until the user approves or requests revisions.
+- [x] 2.5 Stage 2 review gate: present screenshots/local URLs and behavior summary, then stop. Do not start Stage 3 until the user approves or requests revisions.
 
 ## 3. Stage 3 — Full-screen search
 
-- [ ] 3.1 Add the mobile full-screen search overlay with a labeled query field, close action, Escape handling, visible focus, and focus restoration; verify opening/closing leaves the current URL unchanged.
-- [ ] 3.2 Submit queries through the existing Search GET route and `searchString` parameter; verify category, collection, and text-filter route semantics remain unchanged.
-- [ ] 3.3 Verify keyboard operation, narrow-screen layout, and reduced-motion behavior; run `dotnet build VaultShop.sln` and relevant tests.
+- [x] 3.1 Add the mobile full-screen search overlay with a labeled query field, close action, Escape handling, visible focus, and focus restoration; verify opening/closing leaves the current URL unchanged.
+- [x] 3.2 Submit queries through the existing Search GET route and `searchString` parameter; verify category, collection, and text-filter route semantics remain unchanged.
+- [x] 3.3 Verify keyboard operation, narrow-screen layout, and reduced-motion behavior; run `dotnet build VaultShop.sln` and relevant tests.
 - [ ] 3.4 Stage 3 review gate: present screenshots/local URLs and search behavior summary, then stop. Do not start Stage 4 until the user approves or requests revisions.
 
 ## 4. Stage 4 — Storefront audit refinements
