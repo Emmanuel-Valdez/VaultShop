@@ -20,6 +20,14 @@
 	var hasInstagram = !string.IsNullOrWhiteSpace(SD.InstagramLink);
 	var hasWhatsApp = !string.IsNullOrWhiteSpace(SD.WhatsAppLink);
 	var hasDevLink = !string.IsNullOrWhiteSpace(SD.DevLink);
+	var routeArea = Context.Request.RouteValues["area"]?.ToString();
+	var routeController = Context.Request.RouteValues["controller"]?.ToString();
+	var routeAction = Context.Request.RouteValues["action"]?.ToString();
+	var isStorefront = string.Equals(routeArea, "Customer", StringComparison.OrdinalIgnoreCase);
+	var isHome = isStorefront && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase) && string.Equals(routeAction, "Index", StringComparison.OrdinalIgnoreCase);
+	var isSearch = isStorefront && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase) && string.Equals(routeAction, "Search", StringComparison.OrdinalIgnoreCase);
+	var isCart = isStorefront && string.Equals(routeController, "Cart", StringComparison.OrdinalIgnoreCase);
+	var accountPage = SignInManager.IsSignedIn(User) ? "/Account/Manage/Index" : "/Account/Login";
 }
 
 <!DOCTYPE html>
@@ -115,29 +123,46 @@
 
 
 </head>
-<body>
+<body class="@(isStorefront ? "storefront-body" : null)">
 	<header class="sticky-top">
 		<nav class="navbar navbar-expand-lg d-flex bg-primary" aria-label="Main navigation">
 			<div class="container-fluid">
 				<a class="navbar-brand" asp-area="Customer" asp-controller="Home" asp-action="Index">
 					<img src="@branding.LogoDarkPath" alt="@branding.PublicName" style="width:150px; max-width:48vw;" />
 				</a>
-				<button class="navbar-toggler collapsed border-0 " type="button" id="navbarSideTop"
-						aria-label="Toggle navigation"
-						data-bs-toggle="offcanvas"
-						data-bs-target="#sideNavbarTop">
-					<i class=" fs-2 bi bi-list text-secondary"></i>
-				</button>
-				<section class="offcanvas offcanvas-end bg-primary" id="sideNavbarTop" tabindex="-1">
+				@if (!isStorefront)
+				{
+					<button class="navbar-toggler collapsed border-0" type="button"
+							aria-label="@Localizer["Menu"]"
+							data-bs-toggle="offcanvas"
+							data-bs-target="#sideNavbarTop"
+							aria-controls="sideNavbarTop"
+							aria-expanded="false">
+						<i class="fs-2 bi bi-list text-secondary"></i>
+					</button>
+				}
+				<section class="offcanvas offcanvas-end bg-primary" id="sideNavbarTop" tabindex="-1" aria-labelledby="sideNavbarTopTitle">
 					<div class="offcanvas-header ">
-						<h5 class="offcanvas-title text-secondary text-center">@Localizer["Slogan"]</h5>
-						<button class="btn-close btn-close-white" type="button" aria-label="Close" data-bs-dismiss="offcanvas"></button>
+						<h5 id="sideNavbarTopTitle" class="offcanvas-title text-secondary text-center">@Localizer["Slogan"]</h5>
+						<button class="btn-close btn-close-white" type="button" aria-label="@Localizer["Close"]" data-bs-dismiss="offcanvas"></button>
 					</div>
 					<div class="offcanvas-body d-flex flex-column justify-content-between px-3 ">
 						<ul class="navbar-nav me-auto fs-5  flex-grow-1 ">
-							<li class="nav-item p-sm-3 py-md-1 ">
-								<a class="nav-link text-secondary" asp-area="Customer" asp-controller="Home" asp-action="Index">@Localizer["Home"]</a>
-							</li>
+							@if (!isStorefront)
+							{
+								<li class="nav-item p-sm-3 py-md-1 ">
+									<a class="nav-link text-secondary" asp-area="Customer" asp-controller="Home" asp-action="Index">@Localizer["Home"]</a>
+								</li>
+							}
+
+							@if (isStorefront)
+							{
+								@await Component.InvokeAsync("StorefrontMenu", new
+								{
+									categoryHeading = Localizer["ShopByCategory"].Value,
+									collectionHeading = Localizer["ShopByCollection"].Value
+								})
+							}
 
 							@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
 							{
@@ -221,9 +246,12 @@
 									</ul>
 								</li>
 							}
-							<li class="nav-item p-sm-3 py-md-1">
-								<a class="nav-link text-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">@Localizer["ManageOrder"]</a>
-							</li>
+							@if (SignInManager.IsSignedIn(User))
+							{
+								<li class="nav-item p-sm-3 py-md-1">
+									<a class="nav-link text-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">@Localizer["ManageOrder"]</a>
+								</li>
+							}
 							@if (SignInManager.IsSignedIn(User))
 							{
 								<li class="nav-item p-sm-3 py-md-1">
@@ -234,8 +262,8 @@
 							}
 						</ul>
 						<form asp-area="Customer" asp-controller="Home" asp-action="Search" class="nav-item p-3 py-3 d-flex d-lg-none nav-justified" role="search" method="get">
-							<input class="form-control me-2" name="searchString" type="search" placeholder="@Localizer["Search"]" aria-label="Search">
-							<button class="btn btn-secondary" type="submit"><i class="bi bi-search-heart fs-4"></i> </button>
+							<input id="storefrontMenuSearch" class="form-control me-2" name="searchString" type="search" placeholder="@Localizer["Search"]" aria-label="@Localizer["Search"]">
+							<button class="btn btn-secondary" type="submit" aria-label="@Localizer["Search"]"><i class="bi bi-search-heart fs-4" aria-hidden="true"></i></button>
 						</form>
 						<div class="d-lg-none align-self-center py-3">
 							@if (hasTikTok) { <a href="@SD.TikTokLink" target="_blank" rel="noopener" aria-label="TikTok"><i class="bi bi-tiktok px-2 text-secondary fs-2" aria-hidden="true"></i></a> }
@@ -271,67 +299,16 @@
 						</div>
 					</div>
 				}
-				<div class="nav-item">
-					<a class="nav-link text-secondary position-relative p-2 lh-1 d-inline-flex align-items-center" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-label="Cart">
+				<div class="nav-item @(isStorefront ? "d-none d-lg-block" : null)">
+					<a class="nav-link text-secondary position-relative p-2 lh-1 d-inline-flex align-items-center" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-label="@Localizer["Cart"]">
 						@await Component.InvokeAsync("ShoppingCart")
 					</a>
 				</div>
 			</div>
 		</nav>
 	</header>
-	<nav class="navbar navbar-expand-lg bg-secondary  ">
+	<nav class="navbar navbar-expand-lg bg-secondary @(isStorefront ? "d-none d-lg-flex" : null)">
 		<div class="container-fluid">
-			<button class="navbar-toggler " type="button" id="navbarSideTop"
-					aria-label="Toggle navigation"
-					data-bs-toggle="offcanvas"
-					data-bs-target="#sideNavbarLeft">
-				<i class=" fs-2 bi bi-list text-primary"></i>
-			</button>
-			<section class="offcanvas  offcanvas-start bg-secondary" id="sideNavbarLeft" tabindex="-1">
-				<div class="offcanvas-header border-bottom">
-					<h5 class="offcanvas-title text-primary">@Localizer["Slogan"]</h5>
-					<button class="btn-close btn-outline-primary" type="button" aria-label="Close" data-bs-dismiss="offcanvas"></button>
-				</div>
-				<div class="offcanvas-body  d-flex flex-column justify-content-between px-0 me-sm-3">
-					<ul class="navbar-nav  me-auto fs-5 flex-grow-1 ">
-						<li class="nav-item  ms-3">
-							<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="FAQs">@Localizer["FAQs"]</a>
-						</li>
-						<li class="nav-item  ms-3">
-							<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="AboutUs">@Localizer["AboutUs"]</a>
-						</li>
-						<li class="nav-item ms-3">
-							<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="TakeCare">@Localizer["TakeCare"]</a>
-						</li>
-						@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee) || User.IsInRole(SD.Role_Company))
-						{
-							<li class="nav-item ms-3">
-								<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="Wholesale">@Localizer["Wholesale"]</a>
-							</li>
-						}
-						<li class="nav-item ms-3">
-							<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="Privacy">@Localizer["Privacy"]</a>
-						</li>
-						<li class="nav-item ms-3">
-							<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="Terms">@Localizer["Terms"]</a>
-						</li>
-						@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
-						{
-							<li class="nav-item ms-3">
-								<a class="nav-link text-primary" asp-area="Customer" asp-controller="Home" asp-action="Help">@Localizer["Help"]</a>
-							</li>
-						}
-					</ul>
-
-					<div class="d-lg-none align-self-center py-3">
-						@if (hasTikTok) { <a href="@SD.TikTokLink" target="_blank" rel="noopener" aria-label="TikTok"><i class="bi bi-tiktok px-2 icon-link fs-2" aria-hidden="true"></i></a> }
-						@if (hasFacebook) { <a href="@SD.FacebookLink" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook px-2 icon-link fs-2" aria-hidden="true"></i></a> }
-						@if (hasInstagram) { <a href="@SD.InstagramLink" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram px-2 icon-link fs-2" aria-hidden="true"></i></a> }
-						@if (hasWhatsApp) { <a href="@SD.WhatsAppLink" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp px-2 icon-link fs-2" aria-hidden="true"></i></a> }
-					</div>
-				</div>
-			</section>
-
 			<form asp-area="Customer" asp-controller="Home" asp-action="Search" class="d-flex nav-justified " role="search" method="get">
 				<input class="form-control me-1" name="searchString" type="search" placeholder="@Localizer["Search"]" aria-label="Search">
 				<button class="btn btn-outline-primary" type="submit"><i class="bi bi-search-heart fs-4"></i> </button>
@@ -406,9 +383,65 @@
 				@if (hasInstagram) { <a href="@SD.InstagramLink" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram px-2 icon-link fs-2" aria-hidden="true"></i></a> }
 				@if (hasWhatsApp) { <a href="@SD.WhatsAppLink" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp px-2 icon-link fs-2" aria-hidden="true"></i></a> }
 			</div>
+			<nav class="footer-links w-100" aria-label="@Localizer["Information"]">
+				<a asp-area="Customer" asp-controller="Home" asp-action="FAQs">@Localizer["FAQs"]</a>
+				<a asp-area="Customer" asp-controller="Home" asp-action="AboutUs">@Localizer["AboutUs"]</a>
+				<a asp-area="Customer" asp-controller="Home" asp-action="TakeCare">@Localizer["TakeCare"]</a>
+				@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee) || User.IsInRole(SD.Role_Company))
+				{
+					<a asp-area="Customer" asp-controller="Home" asp-action="Wholesale">@Localizer["Wholesale"]</a>
+				}
+				<a asp-area="Customer" asp-controller="Home" asp-action="Privacy">@Localizer["Privacy"]</a>
+				<a asp-area="Customer" asp-controller="Home" asp-action="Terms">@Localizer["Terms"]</a>
+				@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+				{
+					<a asp-area="Customer" asp-controller="Home" asp-action="Help">@Localizer["Help"]</a>
+				}
+			</nav>
 		</footer>
 	</div>
-	
+
+	@if (isStorefront)
+	{
+		<nav class="storefront-mobile-nav d-lg-none" aria-label="@Localizer["StorefrontNavigation"]">
+			<ul class="storefront-mobile-nav__list">
+				<li>
+					<a class="storefront-mobile-nav__link @(isHome ? "is-active" : null)" asp-area="Customer" asp-controller="Home" asp-action="Index" aria-current="@(isHome ? "page" : null)">
+						<i class="bi bi-house-door" aria-hidden="true"></i>
+						<span>@Localizer["Home"]</span>
+					</a>
+				</li>
+				<li>
+					@* ponytail: Stage 2 opens the menu search field; Stage 3 replaces this trigger with the full-screen overlay. *@
+					<button type="button" class="storefront-mobile-nav__link @(isSearch ? "is-active" : null)" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" data-storefront-search-open aria-controls="sideNavbarTop" aria-expanded="false" aria-current="@(isSearch ? "page" : null)">
+						<i class="bi bi-search" aria-hidden="true"></i>
+						<span>@Localizer["Search"]</span>
+					</button>
+				</li>
+				<li>
+					<a class="storefront-mobile-nav__link @(isCart ? "is-active" : null)" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-current="@(isCart ? "page" : null)">
+						<span class="storefront-mobile-nav__icon">
+							@await Component.InvokeAsync("ShoppingCart")
+						</span>
+						<span>@Localizer["Cart"]</span>
+					</a>
+				</li>
+				<li>
+					<a class="storefront-mobile-nav__link" asp-area="Identity" asp-page="@accountPage">
+						<i class="bi bi-person" aria-hidden="true"></i>
+						<span>@Localizer["MyAccount"]</span>
+					</a>
+				</li>
+				<li>
+					<button type="button" class="storefront-mobile-nav__link" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" aria-controls="sideNavbarTop" aria-expanded="false">
+						<i class="bi bi-list" aria-hidden="true"></i>
+						<span>@Localizer["Menu"]</span>
+					</button>
+				</li>
+			</ul>
+		</nav>
+	}
+
 	<partial name="_ThemeToggle" />
 	<script type="text/javascript">
 		var currentCulture = `@System.Threading.Thread.CurrentThread.CurrentUICulture.Name`

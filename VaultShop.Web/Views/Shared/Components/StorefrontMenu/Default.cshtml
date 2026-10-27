@@ -1,0 +1,31 @@
+@model VaultShop.Web.ViewComponents.StorefrontMenuViewModel
+
+@if (Model.Categories.Count > 0)
+{
+	<li class="nav-item dropdown py-md-1 p-sm-3">
+		<a class="nav-link dropdown-toggle text-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">@Model.CategoryHeading</a>
+		<ul class="dropdown-menu storefront-menu-dropdown">
+			@foreach (var category in Model.Categories)
+			{
+				<li>
+					<a class="dropdown-item" asp-area="Customer" asp-controller="Home" asp-action="Search" asp-route-categoryId="@category.Id" asp-route-cslug="@category.Slug">@category.Name</a>
+				</li>
+			}
+		</ul>
+	</li>
+}
+
+@if (Model.Collections.Count > 0)
+{
+	<li class="nav-item dropdown py-md-1 p-sm-3">
+		<a class="nav-link dropdown-toggle text-secondary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">@Model.CollectionHeading</a>
+		<ul class="dropdown-menu storefront-menu-dropdown">
+			@foreach (var collection in Model.Collections)
+			{
+				<li>
+					<a class="dropdown-item" asp-area="Customer" asp-controller="Home" asp-action="Search" asp-route-keywordId="@collection.Id" asp-route-slug="@collection.Slug">@collection.Name</a>
+				</li>
+			}
+		</ul>
+	</li>
+}

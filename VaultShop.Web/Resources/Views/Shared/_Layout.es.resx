@@ -252,4 +252,25 @@
   <data name="Retail" xml:space="preserve">
     <value>Minorista</value>
   </data>
+  <data name="Cart" xml:space="preserve">
+    <value>Carrito</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Información</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>Menú</value>
+  </data>
+  <data name="ShopByCategory" xml:space="preserve">
+    <value>Comprar por categoría</value>
+  </data>
+  <data name="ShopByCollection" xml:space="preserve">
+    <value>Comprar por colección</value>
+  </data>
+  <data name="StorefrontNavigation" xml:space="preserve">
+    <value>Navegación de la tienda</value>
+  </data>
 </root>

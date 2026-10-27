@@ -9,6 +9,9 @@
 # Local tokensave graph artifacts
 .tokensave/
 
+# Local taste-skill design-audit artifacts (screenshots + report.json)
+.taste-skill/
+
 # User-specific files
 *.rsuser
 *.suo

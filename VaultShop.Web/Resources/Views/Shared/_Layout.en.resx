@@ -254,4 +254,25 @@
   <data name="Retail" xml:space="preserve">
     <value>Retail</value>
   </data>
+  <data name="Cart" xml:space="preserve">
+    <value>Cart</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="ShopByCategory" xml:space="preserve">
+    <value>Shop by category</value>
+  </data>
+  <data name="ShopByCollection" xml:space="preserve">
+    <value>Shop by collection</value>
+  </data>
+  <data name="StorefrontNavigation" xml:space="preserve">
+    <value>Storefront navigation</value>
+  </data>
 </root>

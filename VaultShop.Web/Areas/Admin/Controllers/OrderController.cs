@@ -708,8 +708,11 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				var currentUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId);
 				if (currentUser?.CompanyId.GetValueOrDefault() > 0)
 				{
+					// Company users see the current company's orders plus their own personal ones.
 					objOrderHeaders = _unitOfWork.OrderHeader
-						.GetAll(u => u.CompanyId == currentUser.CompanyId, includeProperties: "ApplicationUser");
+						.GetAll(u => u.CompanyId == currentUser.CompanyId
+							|| (u.ApplicationUserId == userId && u.CompanyId.GetValueOrDefault() == 0),
+							includeProperties: "ApplicationUser");
 				}
 				else
 				{

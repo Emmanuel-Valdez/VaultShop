@@ -1177,6 +1177,28 @@ namespace VaultShop.Web.Tests
 		}
 
 		[Fact]
+		public void GetAll_CompanyUser_IncludesOwnOrdersAndCurrentCompanyOrders()
+		{
+			var orders = new[]
+			{
+				new OrderHeader { Id = 1, ApplicationUserId = "company-user", OrderDate = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc) },
+				new OrderHeader { Id = 2, ApplicationUserId = "other-user", CompanyId = 7, OrderDate = new DateTime(2026, 1, 2, 10, 0, 0, DateTimeKind.Utc) },
+				new OrderHeader { Id = 3, ApplicationUserId = "other-user", CompanyId = 9, OrderDate = new DateTime(2026, 1, 3, 10, 0, 0, DateTimeKind.Utc) },
+				new OrderHeader { Id = 4, ApplicationUserId = "other-user", OrderDate = new DateTime(2026, 1, 4, 10, 0, 0, DateTimeKind.Utc) }
+			};
+			var test = CreateController(
+				Environments.Development,
+				allowManualApproval: false,
+				orderHeaders: orders,
+				currentUser: new ApplicationUser { Id = "company-user", CompanyId = 7 },
+				user: CreateUser("company-user", SD.Role_Company));
+
+			var result = test.Controller.GetAll("all");
+
+			Assert.Equal(new[] { 2, 1 }, GetJsonOrders(result).Select(GetJsonOrderId));
+		}
+
+		[Fact]
 		public void GetAll_IncludesPaymentMethod()
 		{
 			var orders = new[]
