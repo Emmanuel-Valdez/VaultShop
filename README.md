@@ -141,7 +141,7 @@ Branding and theme values are safe to override per deployment. Private brand ass
 
 Prerequisites:
 
-- .NET 8 SDK
+- .NET 10 SDK
 - PostgreSQL or Docker Compose
 - Stripe test keys if testing checkout payments
 - Google OAuth credentials if testing Google login

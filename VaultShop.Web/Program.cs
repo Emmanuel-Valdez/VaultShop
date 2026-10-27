@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Minio;
@@ -78,8 +79,14 @@ builder.Services.AddControllersWithViews(options =>
 	options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 }).AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
 	.AddDataAnnotationsLocalization(); 
+// ponytail: GSS encryption disabled — PG has no Kerberos and the aspnet:10.0 image has no libgssapi; Npgsql 10 defaults to Prefer and logs a harmless stderr warning otherwise.
+var connectionString = new NpgsqlConnectionStringBuilder(
+	builder.Configuration.GetConnectionString("DefaultConnection"))
+{
+	GssEncryptionMode = GssEncryptionMode.Disable,
+}.ConnectionString;
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+	options.UseNpgsql(connectionString,
 		o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
