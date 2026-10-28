@@ -120,11 +120,17 @@
   <data name="AreYouSure" xml:space="preserve">
     <value>¿Estas Seguro?</value>
   </data>
+  <data name="ErrorTooManyRequests" xml:space="preserve">
+    <value>Demasiadas solicitudes</value>
+  </data>
   <data name="ErrorTitle" xml:space="preserve">
     <value>Ocurrió un error</value>
   </data>
   <data name="ErrorMessage" xml:space="preserve">
     <value>Ocurrió un error al procesar tu solicitud. Por favor, intenta de nuevo.</value>
+  </data>
+  <data name="ErrorMessageTooManyRequests" xml:space="preserve">
+    <value>Hiciste demasiadas solicitudes en poco tiempo. Esperá {0} segundos e intentá de nuevo.</value>
   </data>
   <data name="ErrorNotFound" xml:space="preserve">
     <value>Página no encontrada</value>

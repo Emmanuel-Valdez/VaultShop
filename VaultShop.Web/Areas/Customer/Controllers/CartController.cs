@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
@@ -96,6 +97,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		}
 
 		[HttpPost]
+		[EnableRateLimiting("Cart")]
 		public IActionResult ApplyCoupon(string? couponCode)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -130,6 +132,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		}
 
 		[HttpPost]
+		[EnableRateLimiting("Cart")]
 		public IActionResult RemoveCoupon()
 		{
 			HttpContext.Session.Remove(SD.SessionCouponCode);
@@ -324,6 +327,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 	}
 
 		[HttpPost]
+		[EnableRateLimiting("Checkout")]
 		[ActionName("Summary")]
 		public async Task<IActionResult> SummaryPOST()
 		{
@@ -789,6 +793,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 		}
 
 		[HttpPost]
+		[EnableRateLimiting("Cart")]
 		public IActionResult Plus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
@@ -819,6 +824,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 
 		}
 		[HttpPost]
+		[EnableRateLimiting("Cart")]
 		public IActionResult Minus(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);
@@ -847,6 +853,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 		}
 
 		[HttpPost]
+		[EnableRateLimiting("Cart")]
 		public IActionResult Remove(int cartId)
 		{
 			var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);

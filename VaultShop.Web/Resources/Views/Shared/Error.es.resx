@@ -64,4 +64,7 @@
   <data name="RequestId" xml:space="preserve">
     <value>ID de solicitud</value>
   </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Intentar de nuevo</value>
+  </data>
 </root>

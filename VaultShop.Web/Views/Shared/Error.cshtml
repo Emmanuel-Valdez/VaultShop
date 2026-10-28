@@ -72,6 +72,10 @@ else
         <h1 class="display-4 fw-bold">@(Model.StatusCode?.ToString() ?? "")</h1>
         <h2 class="text-danger">@(Model.Title ?? "Error")</h2>
         <p class="lead">@(Model.Message ?? "")</p>
+        @if (Model.RetryAfterSeconds.HasValue && !string.IsNullOrEmpty(Model.RetryPath))
+        {
+            <a class="btn btn-outline-primary mt-3 me-2" href="@Model.RetryPath">@Localizer["Retry"]</a>
+        }
         <a class="btn btn-primary mt-3" asp-area="Customer" asp-controller="Home" asp-action="Index">@Localizer["BackHome"]</a>
         @if (Model.ShowRequestId)
         {

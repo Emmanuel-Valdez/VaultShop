@@ -22,6 +22,7 @@ using System.Threading.RateLimiting;
 using Stripe;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using VaultShop.DataAccess.Data;
 using VaultShop.DataAccess.DbInitializer;
 using VaultShop.DataAccess.Repository;
@@ -286,39 +287,116 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.OnRejected = (context, _) =>
     {
-        var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("RateLimiter");
-        var endpoint = context.HttpContext.GetEndpoint();
-        var policy = endpoint?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName ?? "Global";
-        var path = context.HttpContext.Request.Path;
-        var key = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        logger.LogWarning("Rate limit rejected: policy={Policy} path={Path} client={Client}", policy, path, key);
+        var httpContext = context.HttpContext;
+        var retryAfterSeconds = 60;
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            retryAfterSeconds = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds));
+        }
+
+        httpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
+        httpContext.Items["RetryAfterSeconds"] = retryAfterSeconds;
+
+        var policy = httpContext.Items["RateLimitPolicy"] as string ?? "Global";
+        var key = httpContext.Items["RateLimitKey"] as string ?? "unknown";
+        var logger = httpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("RateLimiter");
+        logger.LogWarning(
+            "Rate limit rejected: policy={Policy} path={Path} client={Client} retryAfterSeconds={RetryAfterSeconds}",
+            policy, httpContext.Request.Path, key, retryAfterSeconds);
         return ValueTask.CompletedTask;
     };
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
-        var opts = httpContext.RequestServices.GetRequiredService<IOptions<VaultShopRateLimiterOptions>>().Value;
-        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        if (IsRateLimitExempt(httpContext))
         {
-            PermitLimit = opts.GlobalPermitLimit,
-            Window = opts.GlobalWindow,
-            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-            QueueLimit = opts.GlobalQueueLimit
-        });
+            return RateLimitPartition.GetNoLimiter("exempt");
+        }
+
+        var opts = httpContext.RequestServices.GetRequiredService<IOptions<VaultShopRateLimiterOptions>>().Value;
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        if (HttpMethods.IsPost(httpContext.Request.Method))
+        {
+            var path = httpContext.Request.Path.Value;
+            if (string.Equals(path, "/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+            {
+                return CreatePartition(httpContext, $"login-ip:{ip}", "Login", opts.LoginPermitLimit, opts.LoginWindow, opts.LoginQueueLimit);
+            }
+
+            // ponytail: Razor Page handlers cannot take [EnableRateLimiting] for POST only,
+            // so recovery submissions are classified here instead of via a named policy.
+            if (string.Equals(path, "/Identity/Account/ForgotPassword", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(path, "/Identity/Account/ResetPassword", StringComparison.OrdinalIgnoreCase))
+            {
+                return CreatePartition(httpContext, $"recovery-ip:{ip}", "Recovery", opts.RecoveryPermitLimit, opts.RecoveryWindow, opts.RecoveryQueueLimit);
+            }
+        }
+
+        return CreatePartition(httpContext, ResolveClientKey(httpContext), "Global", opts.GlobalPermitLimit, opts.GlobalWindow, opts.GlobalQueueLimit);
     });
-    options.AddPolicy("Login", httpContext =>
+    options.AddPolicy("Checkout", httpContext =>
     {
         var opts = httpContext.RequestServices.GetRequiredService<IOptions<VaultShopRateLimiterOptions>>().Value;
-        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = opts.LoginPermitLimit,
-            Window = opts.LoginWindow,
-            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-            QueueLimit = opts.LoginQueueLimit
-        });
+        return CreatePartition(httpContext, ResolveClientKey(httpContext), "Checkout", opts.CheckoutPermitLimit, opts.CheckoutWindow, opts.CheckoutQueueLimit);
+    });
+    options.AddPolicy("Cart", httpContext =>
+    {
+        var opts = httpContext.RequestServices.GetRequiredService<IOptions<VaultShopRateLimiterOptions>>().Value;
+        return CreatePartition(httpContext, ResolveClientKey(httpContext), "Cart", opts.CartPermitLimit, opts.CartWindow, opts.CartQueueLimit);
+    });
+    options.AddPolicy("Search", httpContext =>
+    {
+        var opts = httpContext.RequestServices.GetRequiredService<IOptions<VaultShopRateLimiterOptions>>().Value;
+        return CreatePartition(httpContext, ResolveClientKey(httpContext), "Search", opts.SearchPermitLimit, opts.SearchWindow, opts.SearchQueueLimit);
     });
 });
+
+static RateLimitPartition<string> CreatePartition(HttpContext context, string key, string policy, int permitLimit, TimeSpan window, int queueLimit)
+{
+    context.Items["RateLimitKey"] = key;
+    context.Items["RateLimitPolicy"] = policy;
+    return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = permitLimit,
+        Window = window,
+        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+        QueueLimit = queueLimit
+    });
+}
+
+static string ResolveClientKey(HttpContext context)
+    => context.User.Identity?.IsAuthenticated == true
+        ? $"user:{context.User.FindFirstValue(ClaimTypes.NameIdentifier)}"
+        : $"ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+static bool IsRateLimitExempt(HttpContext context)
+{
+    // Unmatched routes and static misses have no endpoint; they are cheap 404s and must not consume budget.
+    if (context.GetEndpoint() is null)
+    {
+        return true;
+    }
+
+    var path = context.Request.Path;
+    if (path.StartsWithSegments("/Home/Error", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/health/live", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/health/ready", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/api/stripe/webhook", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/api/mercadopago/webhook", StringComparison.OrdinalIgnoreCase))
+    {
+        return true;
+    }
+
+    return path.Value is "/favicon.ico" or "/robots.txt" or "/sitemap.xml" or "/site.webmanifest"
+        || path.StartsWithSegments("/css", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/js", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/images", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/lib", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/fonts", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/_framework", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/_content", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/.well-known", StringComparison.OrdinalIgnoreCase);
+}
 
 var app = builder.Build();
 
@@ -351,9 +429,9 @@ app.UseStaticFiles();
 StripeConfiguration.ApiKey=builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseRateLimiter();
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
-app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 

@@ -10,6 +10,10 @@ namespace VaultShop.Models
 
         public string? RequestId { get; set; }
 
+        public int? RetryAfterSeconds { get; set; }
+
+        public string? RetryPath { get; set; }
+
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }

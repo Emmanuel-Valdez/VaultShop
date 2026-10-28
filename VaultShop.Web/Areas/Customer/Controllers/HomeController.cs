@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -272,24 +274,56 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			return View();
 		}
 
+		// The status-code re-execution keeps the original HTTP method, so a rate-limited POST
+		// reaches this action with a POST and would otherwise fail antiforgery validation.
+		[IgnoreAntiforgeryToken]
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 		[Route("/Home/Error")]
 		public IActionResult Error(int? statusCode)
 		{
+			var original = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+			// Re-execution loses the {culture} route segment, so restore it for the error copy.
+			var cultureSegment = original?.OriginalPath?.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+			if (cultureSegment is "es-AR" or "en-US")
+			{
+				CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureSegment);
+			}
+
 			var code = statusCode ?? Response.StatusCode;
-			var title = _localizer[code == 404 ? "ErrorNotFound" : "ErrorTitle"].Value;
-			var message = _localizer[code == 404 ? "ErrorMessageNotFound" : "ErrorMessage"].Value;
+			var isTooManyRequests = code == StatusCodes.Status429TooManyRequests;
+			int? retryAfterSeconds = null;
+
+			string title;
+			string message;
+			if (isTooManyRequests)
+			{
+				retryAfterSeconds = HttpContext.Items["RetryAfterSeconds"] is int seconds ? seconds : 60;
+				// Re-execution starts a new response, so the header set by OnRejected must be restored.
+				Response.Headers.RetryAfter = retryAfterSeconds.Value.ToString(CultureInfo.InvariantCulture);
+				title = _localizer["ErrorTooManyRequests"].Value;
+				message = _localizer["ErrorMessageTooManyRequests", retryAfterSeconds.Value].Value;
+			}
+			else
+			{
+				title = _localizer[code == 404 ? "ErrorNotFound" : "ErrorTitle"].Value;
+				message = _localizer[code == 404 ? "ErrorMessageNotFound" : "ErrorMessage"].Value;
+			}
 
 			return View(new ErrorViewModel
 			{
 				StatusCode = code,
 				Title = title,
 				Message = message,
+				RetryAfterSeconds = retryAfterSeconds,
+				RetryPath = isTooManyRequests && original is not null
+					? original.OriginalPath + original.OriginalQueryString
+					: null,
 				RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
 			});
 		}
 
 
+		[EnableRateLimiting("Search")]
 		public IActionResult Search(string searchString, int? categoryId, int? keywordId, string? slug, string? cslug, int pageNumber = 1)
 		{
 			// 1.1 slug canonical redirect
