@@ -2,7 +2,7 @@
 
 Provides admin-managed promotional banners for the storefront home page: an ordered, activatable set of image-and-text slides rendered as a full-bleed autoplaying carousel, with per-banner layout archetypes, a legibility-safe text-color contract, internal-only link targets, and a reusable Skia/MinIO image pipeline.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Admin-managed banner records
 
