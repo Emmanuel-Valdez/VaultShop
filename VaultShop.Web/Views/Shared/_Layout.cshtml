@@ -24,6 +24,8 @@
 	var routeController = Context.Request.RouteValues["controller"]?.ToString();
 	var routeAction = Context.Request.RouteValues["action"]?.ToString();
 	var isStorefront = string.Equals(routeArea, "Customer", StringComparison.OrdinalIgnoreCase);
+	var isAccount = string.Equals(routeArea, "Identity", StringComparison.OrdinalIgnoreCase);
+	var hasMobileShell = isStorefront || isAccount;
 	var isHome = isStorefront && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase) && string.Equals(routeAction, "Index", StringComparison.OrdinalIgnoreCase);
 	var isSearch = isStorefront && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase) && string.Equals(routeAction, "Search", StringComparison.OrdinalIgnoreCase);
 	var isCart = isStorefront && string.Equals(routeController, "Cart", StringComparison.OrdinalIgnoreCase);
@@ -123,7 +125,7 @@
 
 
 </head>
-<body class="@(isStorefront ? "storefront-body" : null)">
+<body class="@(isStorefront ? "storefront-body mobile-shell" : hasMobileShell ? "mobile-shell" : null)">
 	<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
 		<symbol id="moon-stars-fill" viewBox="0 0 16 16">
 			<path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
@@ -139,7 +141,7 @@
 				<a class="navbar-brand" asp-area="Customer" asp-controller="Home" asp-action="Index">
 					<img src="@branding.LogoDarkPath" alt="@branding.PublicName" style="width:150px; max-width:48vw;" />
 				</a>
-				@if (!isStorefront)
+				@if (!hasMobileShell)
 				{
 					<button class="navbar-toggler collapsed border-0" type="button"
 							aria-label="@Localizer["Menu"]"
@@ -285,9 +287,15 @@ collectionHeading = Localizer["Collections"].Value
 							@if (hasFacebook) { <a href="@SD.FacebookLink" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook px-2 text-secondary fs-2" aria-hidden="true"></i></a> }
 							@if (hasInstagram) { <a href="@SD.InstagramLink" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram px-2 text-secondary fs-2" aria-hidden="true"></i></a> }
 							@if (hasWhatsApp) { <a href="@SD.WhatsAppLink" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp px-2 text-secondary fs-2" aria-hidden="true"></i></a> }
+							</div>
+							@if (hasMobileShell && SignInManager.IsSignedIn(User))
+							{
+								<form class="d-lg-none align-self-center py-2" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "Customer" })">
+									<button type="submit" class="btn btn-link text-secondary fs-5">@Localizer["Logout"]</button>
+								</form>
+							}
 						</div>
-					</div>
-				</section>
+					</section>
 				@if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
 				{
 					var isWholesalePreview = VaultShop.Web.Services.Pricing.PricingHelper.IsWholesalePreview(Context);
@@ -317,7 +325,7 @@ collectionHeading = Localizer["Collections"].Value
 				<div class="nav-item d-none d-lg-block">
 					<partial name="_ThemeToggle" />
 				</div>
-				<div class="nav-item @(isStorefront ? "d-none d-lg-block" : null)">
+				<div class="nav-item @(hasMobileShell ? "d-none d-lg-block" : null)">
 					<a class="nav-link text-secondary position-relative p-2 lh-1 d-inline-flex align-items-center" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-label="@Localizer["Cart"]">
 						@await Component.InvokeAsync("ShoppingCart")
 					</a>
@@ -325,7 +333,7 @@ collectionHeading = Localizer["Collections"].Value
 			</div>
 		</nav>
 	</header>
-	<nav class="navbar navbar-expand-lg bg-secondary @(isStorefront ? "d-none d-lg-flex" : null)">
+	<nav class="navbar navbar-expand-lg bg-secondary @(hasMobileShell ? "d-none d-lg-flex" : null)">
 		<div class="container-fluid">
 			<form asp-area="Customer" asp-controller="Home" asp-action="Search" class="d-flex nav-justified " role="search" method="get">
 				<input class="form-control me-1" name="searchString" type="search" placeholder="@Localizer["Search"]" aria-label="Search">
@@ -419,7 +427,7 @@ collectionHeading = Localizer["Collections"].Value
 		</footer>
 	</div>
 
-	@if (isStorefront)
+	@if (hasMobileShell)
 	{
 		<nav class="storefront-mobile-nav d-lg-none" aria-label="@Localizer["StorefrontNavigation"]">
 			<ul class="storefront-mobile-nav__list">
@@ -444,7 +452,7 @@ collectionHeading = Localizer["Collections"].Value
 					</a>
 				</li>
 				<li>
-					<a class="storefront-mobile-nav__link" asp-area="Identity" asp-page="@accountPage">
+					<a class="storefront-mobile-nav__link @(isAccount ? "is-active" : null)" asp-area="Identity" asp-page="@accountPage" aria-current="@(isAccount ? "true" : null)">
 						<i class="bi bi-person" aria-hidden="true"></i>
 						<span>@Localizer["MyAccount"]</span>
 					</a>

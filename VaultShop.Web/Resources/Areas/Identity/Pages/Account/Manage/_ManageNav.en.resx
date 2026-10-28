@@ -135,4 +135,7 @@
   <data name="TwoFactorAuthentication" xml:space="preserve">
     <value>Two-Factor Authentication</value>
   </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
 </root>

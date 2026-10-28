@@ -1606,7 +1606,7 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
 }
 
 @media (max-width: 991.98px) {
-    .storefront-body {
+    .mobile-shell {
         padding-bottom: calc(var(--storefront-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
     }
 }

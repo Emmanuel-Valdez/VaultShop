@@ -279,4 +279,7 @@
   <data name="StorefrontNavigation" xml:space="preserve">
     <value>Navegación de la tienda</value>
   </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Salir</value>
+  </data>
 </root>

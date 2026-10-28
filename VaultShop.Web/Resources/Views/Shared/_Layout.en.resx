@@ -281,4 +281,7 @@
   <data name="StorefrontNavigation" xml:space="preserve">
     <value>Storefront navigation</value>
   </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
 </root>

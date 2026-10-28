@@ -16,4 +16,9 @@
         <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">@Localizer["TwoFactorAuthentication"]</a></li>
     }
     <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">@Localizer["PersonalData"]</a></li>
+    <li class="nav-item">
+        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "Customer" })">
+            <button id="manage-logout" type="submit" class="nav-link btn btn-link border-0">@Localizer["Logout"]</button>
+        </form>
+    </li>
 </ul>
