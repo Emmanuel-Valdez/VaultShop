@@ -1593,14 +1593,21 @@ a.banner__slide-link:focus-visible { outline: 3px solid var(--banner-text); outl
     background-color: rgba(0, 0, 0, 0.2);
 }
 
+.theme-toggle__icon--moon {
+    display: none;
+}
+
+[data-bs-theme="dark"] .theme-toggle__icon--sun {
+    display: none;
+}
+
+[data-bs-theme="dark"] .theme-toggle__icon--moon {
+    display: inline-block;
+}
+
 @media (max-width: 991.98px) {
     .storefront-body {
         padding-bottom: calc(var(--storefront-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem);
-    }
-
-    .storefront-body .bd-mode-toggle {
-        bottom: calc(var(--storefront-mobile-nav-height) + env(safe-area-inset-bottom) + 0.75rem) !important;
-        margin-bottom: 0 !important;
     }
 }
 
