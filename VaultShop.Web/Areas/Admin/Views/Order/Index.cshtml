@@ -1,27 +1,27 @@
 @{
 	var status = Context.Request.Query["Status"];
-	var pending = "text-primary";
-	var inprocess = "text-primary";
-	var completed = "text-primary";
-	var approved = "text-primary";
-	var all = "text-primary";
+	var pending = "btn btn-sm rounded-pill btn-outline-warning";
+	var inprocess = "btn btn-sm rounded-pill btn-outline-info";
+	var completed = "btn btn-sm rounded-pill btn-outline-success";
+	var approved = "btn btn-sm rounded-pill btn-outline-success";
+	var all = "btn btn-sm rounded-pill btn-outline-primary";
 
 	switch (status)
 	{
 		case "pending":
-			pending = "active text-white bg-primary";
+			pending = "btn btn-sm rounded-pill btn-warning text-dark";
 			break;
 		case "inprocess":
-			inprocess = "active text-white bg-primary";
+			inprocess = "btn btn-sm rounded-pill btn-info text-dark";
 			break;
 		case "completed":
-			completed = "active text-white bg-primary";
+			completed = "btn btn-sm rounded-pill btn-success";
 			break;
 		case "approved":
-			approved = "active text-white bg-primary";
+			approved = "btn btn-sm rounded-pill btn-success";
 			break;
 		default:
-			all = "active text-white bg-primary";
+			all = "btn btn-sm rounded-pill btn-primary";
 			break;
 	}
 }
@@ -34,27 +34,12 @@
 		</div>
 	</div>
 	<div class="card-body p-4">
-		<div class="d-flex justify-content-between pb-5 pt-2">
-			<span>
-
-			</span>
-			<ul class="list-group list-group-horizontal-sm">
-				<a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="inprocess">
-				<li class="list-group-item @inprocess">@Localizer["InProcess"]</li>
-				</a>
-				<a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="pending">
-				<li class="list-group-item @pending">@Localizer["PaymentPending"]</li>
-				</a>
-				<a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="completed">
-				<li class="list-group-item @completed">@Localizer["Completed"]</li>
-				</a>
-				<a style="text-decoration:none;" asp-controller="Order" asp-action="Index" asp-route-status="approved">
-				<li class="list-group-item @approved">@Localizer["Approved"]</li>
-				</a>
-				<a style="text-decoration:none ;" asp-controller="Order" asp-action="Index" asp-route-status="all">
-				<li class="list-group-item @all">@Localizer["All"]</li>
-				</a>
-			</ul>
+		<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+			<a class="@inprocess" asp-controller="Order" asp-action="Index" asp-route-status="inprocess">@Localizer["InProcess"]</a>
+			<a class="@pending" asp-controller="Order" asp-action="Index" asp-route-status="pending">@Localizer["PaymentPending"]</a>
+			<a class="@completed" asp-controller="Order" asp-action="Index" asp-route-status="completed">@Localizer["Completed"]</a>
+			<a class="@approved" asp-controller="Order" asp-action="Index" asp-route-status="approved">@Localizer["Approved"]</a>
+			<a class="@all" asp-controller="Order" asp-action="Index" asp-route-status="all">@Localizer["All"]</a>
 		</div>
 
 		<table id="tblData" class="table table-bordered table-striped table-hover" style="width:100%">
