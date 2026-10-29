@@ -1,0 +1,77 @@
+@{
+	ViewData["Title"] = Localizer["Title"].Value;
+	var isAdmin = User.IsInRole(SD.Role_Admin);
+}
+
+<div class="container py-4" id="admin-hub">
+	<h2 class="mb-4">@Localizer["Title"]</h2>
+
+	<div class="row g-3">
+		<div class="col-12 col-md-6 col-xl-3">
+			<div class="card h-100 shadow border-0">
+				<div class="card-header bg-primary bg-gradient py-2">
+					<h3 class="h6 text-secondary mb-0">@Localizer["Operations"]</h3>
+				</div>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item">
+						<a asp-area="Admin" asp-controller="Order" asp-action="Index">@Localizer["Orders"]</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="col-12 col-md-6 col-xl-3">
+			<div class="card h-100 shadow border-0">
+				<div class="card-header bg-primary bg-gradient py-2">
+					<h3 class="h6 text-secondary mb-0">@Localizer["Catalog"]</h3>
+				</div>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Category" asp-action="Index">@Localizer["Categories"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Product" asp-action="Index">@Localizer["Products"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Keyword" asp-action="Index">@Localizer["Keywords"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Banner" asp-action="Index">@Localizer["Banners"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Coupon" asp-action="Index">@Localizer["Coupons"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Promotion" asp-action="Index">@Localizer["Promotions"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Company" asp-action="Index">@Localizer["Company"]</a></li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="col-12 col-md-6 col-xl-3">
+			<div class="card h-100 shadow border-0">
+				<div class="card-header bg-primary bg-gradient py-2">
+					<h3 class="h6 text-secondary mb-0">@Localizer["Costs"]</h3>
+				</div>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Packaging" asp-action="Index">@Localizer["Packaging"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="PackagingByCategory" asp-action="Index">@Localizer["PackagingByCategory"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="Fabric" asp-action="Index">@Localizer["Fabric"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="FabricByProduct" asp-action="Index">@Localizer["FabricByProduct"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="GarmentHardware" asp-action="Index">@Localizer["GarmentHardware"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="GarmentHardwareByProduct" asp-action="Index">@Localizer["GarmentHardwareByProduct"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="FixedCost" asp-action="Index">@Localizer["FixedCost"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="PercentageCost" asp-action="Index">@Localizer["RetailPercentageCost"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="PercentageCostWholesale" asp-action="Index">@Localizer["WholesalePercentageCost"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="ProductPrice" asp-action="CostByProduct">@Localizer["CostByProduct"]</a></li>
+					<li class="list-group-item"><a asp-area="Admin" asp-controller="ProductPrice" asp-action="Index">@Localizer["FinalPrice"]</a></li>
+				</ul>
+			</div>
+		</div>
+
+		@if (isAdmin)
+		{
+			<div class="col-12 col-md-6 col-xl-3">
+				<div class="card h-100 shadow border-0">
+					<div class="card-header bg-primary bg-gradient py-2">
+						<h3 class="h6 text-secondary mb-0">@Localizer["Configuration"]</h3>
+					</div>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item"><a asp-area="Admin" asp-controller="User" asp-action="Index">@Localizer["Users"]</a></li>
+						<li class="list-group-item"><a asp-area="Identity" asp-page="/Account/Register">@Localizer["CreateUser"]</a></li>
+						<li class="list-group-item"><a asp-area="Admin" asp-controller="System" asp-action="Version">@Localizer["Version"]</a></li>
+					</ul>
+				</div>
+			</div>
+		}
+	</div>
+</div>

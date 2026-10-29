@@ -282,4 +282,16 @@
   <data name="Logout" xml:space="preserve">
     <value>Salir</value>
   </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Órdenes</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="AdminHub" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="AdminNavigation" xml:space="preserve">
+    <value>Navegación de administración</value>
+  </data>
 </root>

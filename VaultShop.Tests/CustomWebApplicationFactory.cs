@@ -27,6 +27,7 @@ namespace VaultShop.Web.Tests
         public string CustomerEmail => TestDataSeeder.CustomerEmail;
         public string CompanyEmail => TestDataSeeder.CompanyEmail;
         public string AdminEmail => TestDataSeeder.AdminEmail;
+        public string EmployeeEmail => TestDataSeeder.EmployeeEmail;
         public string TestPassword => TestDataSeeder.Password;
         public int TestCompanyId { get; private set; }
 
@@ -117,6 +118,7 @@ namespace VaultShop.Web.Tests
         public const string CustomerEmail = "customer.tests@vaultshop.local";
         public const string CompanyEmail = "company.tests@vaultshop.local";
         public const string AdminEmail = "admin.tests@vaultshop.local";
+        public const string EmployeeEmail = "employee.tests@vaultshop.local";
         public const string Password = "Test123!";
 
         // Returns the seeded Company's Id so tests can assert OrderHeader.CompanyId.
@@ -157,6 +159,16 @@ namespace VaultShop.Web.Tests
             };
             await userManager.CreateAsync(admin, Password);
             await userManager.AddToRoleAsync(admin, SD.Role_Admin);
+
+            var employee = new ApplicationUser
+            {
+                UserName = EmployeeEmail,
+                Email = EmployeeEmail,
+                Name = "Test Employee",
+                EmailConfirmed = true,
+            };
+            await userManager.CreateAsync(employee, Password);
+            await userManager.AddToRoleAsync(employee, SD.Role_Employee);
 
             var companyUser = new ApplicationUser
             {

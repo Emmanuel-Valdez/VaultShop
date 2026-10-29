@@ -147,7 +147,7 @@ public class StorefrontMenuHttpTests
 	}
 
 	[Fact]
-	public async Task Admin_KeepsOperationalNavigationWithoutShopperBar()
+	public async Task Admin_ShowsSharedMobileShellWithAdminBottomBar()
 	{
 		using var factory = new CustomWebApplicationFactory();
 		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -155,11 +155,176 @@ public class StorefrontMenuHttpTests
 
 		var body = await client.GetStringAsync("/en-US/Admin/Category/Index");
 
-		Assert.DoesNotContain("storefront-mobile-nav", body);
-		Assert.DoesNotContain("mobile-shell", body);
+		Assert.Contains("class=\"mobile-shell\"", body);
+		Assert.DoesNotContain("navbar-toggler", body);
 		Assert.Contains("data-bs-target=\"#sideNavbarTop\"", body);
-		Assert.Contains("/Admin/Category", body);
-		Assert.DoesNotContain("Account/Logout", ExtractOffcanvas(body));
+		Assert.Contains("/Admin/Category", ExtractOffcanvas(body));
+		AssertAdminNavItems(body);
+	}
+
+	[Theory]
+	[InlineData("Order", "/Admin/Order")]
+	[InlineData("Product", "/Admin/Product")]
+	[InlineData("Hub", "/Admin/Hub")]
+	public async Task AdminBottomBar_MarksActiveDestination(string controller, string expectedHref)
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync($"/en-US/Admin/{controller}/Index");
+		var nav = ExtractMobileNav(body);
+
+		Assert.Single(Regex.Matches(nav, "aria-current=\"page\""));
+		var current = Regex.Match(nav, "<a[^>]*aria-current=\"page\"[^>]*>");
+		Assert.True(current.Success, "No active destination was marked.");
+		Assert.Contains(expectedHref, current.Value);
+	}
+
+	[Fact]
+	public async Task AdminHub_ListsEveryDestination()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync("/en-US/Admin/Hub/Index");
+		var hub = ExtractHub(body);
+
+		Assert.Contains("/Admin/Order", hub);
+		Assert.Contains("/Admin/Category", hub);
+		Assert.Contains("/Admin/Product", hub);
+		Assert.Contains("/Admin/Keyword", hub);
+		Assert.Contains("/Admin/Banner", hub);
+		Assert.Contains("/Admin/Coupon", hub);
+		Assert.Contains("/Admin/Promotion", hub);
+		Assert.Contains("/Admin/Company", hub);
+		Assert.Contains("/Admin/Packaging", hub);
+		Assert.Contains("/Admin/PackagingByCategory", hub);
+		Assert.Contains("/Admin/Fabric", hub);
+		Assert.Contains("/Admin/FabricByProduct", hub);
+		Assert.Contains("/Admin/GarmentHardware", hub);
+		Assert.Contains("/Admin/GarmentHardwareByProduct", hub);
+		Assert.Contains("/Admin/FixedCost", hub);
+		Assert.Contains("/Admin/PercentageCost", hub);
+		Assert.Contains("/Admin/PercentageCostWholesale", hub);
+		Assert.Contains("/Admin/ProductPrice/CostByProduct", hub);
+		Assert.Contains("/Admin/ProductPrice\"", hub);
+		Assert.Contains("/Admin/User", hub);
+		Assert.Contains("/Identity/Account/Register", hub);
+		Assert.Contains("/Admin/System/Version", hub);
+	}
+
+	[Fact]
+	public async Task Employee_AdminHubOmitsAdminOnlyLinks()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.EmployeeEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync("/en-US/Admin/Hub/Index");
+
+		Assert.Contains("class=\"mobile-shell\"", body);
+		AssertAdminNavItems(body);
+
+		var hub = ExtractHub(body);
+		Assert.DoesNotContain("/Admin/User", hub);
+		Assert.DoesNotContain("/Identity/Account/Register", hub);
+		Assert.DoesNotContain("/Admin/System/Version", hub);
+	}
+
+	[Theory]
+	[InlineData("es-AR", "Administración", "Operaciones", "Órdenes")]
+	[InlineData("en-US", "Administration", "Operations", "Orders")]
+	public async Task AdminHub_LabelsFollowCulture(string culture, string title, string section, string barLabel)
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync($"/{culture}/Admin/Hub/Index");
+
+		Assert.Contains(title, body);
+		Assert.Contains(section, body);
+		Assert.Contains(barLabel, ExtractMobileNav(body));
+	}
+
+	[Theory]
+	[InlineData("admin")]
+	[InlineData("employee")]
+	public async Task AdminOffcanvas_KeepsHomeAdminLinksAndSearchWithoutStorefrontMenu(string role)
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, role == "admin" ? factory.AdminEmail : factory.EmployeeEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync("/en-US/Admin/Hub/Index");
+		var offcanvas = ExtractOffcanvas(body);
+
+		Assert.Contains("/Customer/Home", offcanvas);
+		Assert.Contains("/Admin/Category", offcanvas);
+		Assert.Contains("/Admin/Packaging", offcanvas);
+		Assert.Contains("id=\"storefrontMenuSearch\"", offcanvas);
+		Assert.DoesNotContain("storefront-menu-dropdown", offcanvas);
+
+		if (role == "admin")
+		{
+			Assert.Contains("/Identity/Account/Register", offcanvas);
+			Assert.Contains("/Admin/User", offcanvas);
+		}
+		else
+		{
+			Assert.DoesNotContain("/Identity/Account/Register", offcanvas);
+			Assert.DoesNotContain("/Admin/User", offcanvas);
+		}
+	}
+
+	[Fact]
+	public async Task AdminPage_DoesNotRenderStorefrontSearchOverlay()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.AdminEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync("/en-US/Admin/Hub/Index");
+
+		Assert.DoesNotContain("id=\"storefrontSearch\"", body);
+	}
+
+	[Fact]
+	public async Task StorefrontPage_KeepsStorefrontSearchOverlay()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient();
+
+		var body = await client.GetStringAsync("/en-US/Customer/Home/Index");
+
+		Assert.Contains("id=\"storefrontSearch\"", body);
+	}
+
+	[Fact]
+	public async Task AdminHub_Anonymous_RedirectsToLogin()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+		var response = await client.GetAsync("/en-US/Admin/Hub/Index");
+
+		Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+		Assert.Contains("/Identity/Account/Login", response.Headers.Location!.OriginalString);
+	}
+
+	[Fact]
+	public async Task AdminHub_Customer_IsDenied()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+		var response = await client.GetAsync("/en-US/Admin/Hub/Index");
+
+		Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+		Assert.Contains("/Identity/Account/AccessDenied", response.Headers.Location!.OriginalString);
 	}
 
 	private static string ExtractMobileNav(string body)
@@ -197,6 +362,24 @@ public class StorefrontMenuHttpTests
 		Assert.Contains("bi-cart3", nav);
 		Assert.Contains(accountHref, nav);
 		Assert.Contains("data-bs-target=\"#sideNavbarTop\"", nav);
+	}
+
+	private static void AssertAdminNavItems(string body)
+	{
+		var nav = ExtractMobileNav(body);
+		Assert.Equal(5, Regex.Matches(nav, "storefront-mobile-nav__link").Count);
+		Assert.Contains("bi-house-door", nav);
+		Assert.Contains("/Admin/Order", nav);
+		Assert.Contains("/Admin/Product", nav);
+		Assert.Contains("/Admin/Hub", nav);
+		Assert.Contains("data-bs-target=\"#sideNavbarTop\"", nav);
+		Assert.DoesNotContain("bi-cart3", nav);
+		Assert.DoesNotContain("data-bs-target=\"#storefrontSearch\"", nav);
+	}
+
+	private static string ExtractHub(string body)
+	{
+		return ExtractBetween(body, "id=\"admin-hub\"", "</main>", "admin hub page");
 	}
 
 	private static string AccountNavAriaCurrent(string body)

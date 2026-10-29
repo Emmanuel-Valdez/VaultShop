@@ -25,10 +25,15 @@
 	var routeAction = Context.Request.RouteValues["action"]?.ToString();
 	var isStorefront = string.Equals(routeArea, "Customer", StringComparison.OrdinalIgnoreCase);
 	var isAccount = string.Equals(routeArea, "Identity", StringComparison.OrdinalIgnoreCase);
-	var hasMobileShell = isStorefront || isAccount;
+	var isAdminArea = string.Equals(routeArea, "Admin", StringComparison.OrdinalIgnoreCase);
+	var hasMobileShell = isStorefront || isAccount || isAdminArea;
+	var isStaff = User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee);
 	var isHome = isStorefront && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase) && string.Equals(routeAction, "Index", StringComparison.OrdinalIgnoreCase);
 	var isSearch = isStorefront && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase) && string.Equals(routeAction, "Search", StringComparison.OrdinalIgnoreCase);
 	var isCart = isStorefront && string.Equals(routeController, "Cart", StringComparison.OrdinalIgnoreCase);
+	var isAdminHub = isAdminArea && string.Equals(routeController, "Hub", StringComparison.OrdinalIgnoreCase);
+	var isAdminOrders = isAdminArea && string.Equals(routeController, "Order", StringComparison.OrdinalIgnoreCase);
+	var isAdminProducts = isAdminArea && string.Equals(routeController, "Product", StringComparison.OrdinalIgnoreCase);
 	var accountPage = SignInManager.IsSignedIn(User) ? "/Account/Manage/Index" : "/Account/Login";
 }
 
@@ -203,13 +208,16 @@ collectionHeading = Localizer["Collections"].Value
 									<li class="nav-item ">
 										<a class="dropdown-item " asp-area="Admin" asp-controller="Promotion" asp-action="Index">@Localizer["Promotions"]</a>
 									</li>
-										<li><hr class="dropdown-divider" /></li>
-										<li class="nav-item">
-											<a class="dropdown-item " asp-area="Identity" asp-page="/Account/Register">@Localizer["CreateUser"]</a>
-										</li>
-										<li class="nav-item ">
-											<a class="dropdown-item " asp-area="Admin" asp-controller="User" asp-action="Index">@Localizer["ManageUsers"]</a>
-										</li>
+										@if (User.IsInRole(SD.Role_Admin))
+										{
+											<li><hr class="dropdown-divider" /></li>
+											<li class="nav-item">
+												<a class="dropdown-item " asp-area="Identity" asp-page="/Account/Register">@Localizer["CreateUser"]</a>
+											</li>
+											<li class="nav-item ">
+												<a class="dropdown-item " asp-area="Admin" asp-controller="User" asp-action="Index">@Localizer["ManageUsers"]</a>
+											</li>
+										}
 									</ul>
 								</li>
 								<li class="nav-item dropdown py-md-1 p-sm-3">
@@ -429,62 +437,101 @@ collectionHeading = Localizer["Collections"].Value
 
 	@if (hasMobileShell)
 	{
-		<nav class="storefront-mobile-nav d-lg-none" aria-label="@Localizer["StorefrontNavigation"]">
+		<nav class="storefront-mobile-nav d-lg-none" aria-label="@(isStaff ? Localizer["AdminNavigation"] : Localizer["StorefrontNavigation"])">
 			<ul class="storefront-mobile-nav__list">
-				<li>
-					<a class="storefront-mobile-nav__link @(isHome ? "is-active" : null)" asp-area="Customer" asp-controller="Home" asp-action="Index" aria-current="@(isHome ? "page" : null)">
-						<i class="bi bi-house-door" aria-hidden="true"></i>
-						<span>@Localizer["Home"]</span>
-					</a>
-				</li>
-				<li>
-					<button type="button" class="storefront-mobile-nav__link @(isSearch ? "is-active" : null)" data-bs-toggle="modal" data-bs-target="#storefrontSearch" aria-haspopup="dialog" aria-current="@(isSearch ? "page" : null)">
-						<i class="bi bi-search" aria-hidden="true"></i>
-						<span>@Localizer["Search"]</span>
-					</button>
-				</li>
-				<li>
-					<a class="storefront-mobile-nav__link @(isCart ? "is-active" : null)" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-current="@(isCart ? "page" : null)">
-						<span class="storefront-mobile-nav__icon">
-							@await Component.InvokeAsync("ShoppingCart")
-						</span>
-						<span>@Localizer["Cart"]</span>
-					</a>
-				</li>
-				<li>
-					<a class="storefront-mobile-nav__link @(isAccount ? "is-active" : null)" asp-area="Identity" asp-page="@accountPage" aria-current="@(isAccount ? "true" : null)">
-						<i class="bi bi-person" aria-hidden="true"></i>
-						<span>@Localizer["MyAccount"]</span>
-					</a>
-				</li>
-				<li>
-					<button type="button" class="storefront-mobile-nav__link" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" aria-controls="sideNavbarTop" aria-expanded="false">
-						<i class="bi bi-list" aria-hidden="true"></i>
-						<span>@Localizer["Menu"]</span>
-					</button>
-				</li>
+				@if (isStaff)
+				{
+					<li>
+						<a class="storefront-mobile-nav__link @(isHome ? "is-active" : null)" asp-area="Customer" asp-controller="Home" asp-action="Index" aria-current="@(isHome ? "page" : null)">
+							<i class="bi bi-house-door" aria-hidden="true"></i>
+							<span>@Localizer["Home"]</span>
+						</a>
+					</li>
+					<li>
+						<a class="storefront-mobile-nav__link @(isAdminOrders ? "is-active" : null)" asp-area="Admin" asp-controller="Order" asp-action="Index" aria-current="@(isAdminOrders ? "page" : null)">
+							<i class="bi bi-receipt" aria-hidden="true"></i>
+							<span>@Localizer["Orders"]</span>
+						</a>
+					</li>
+					<li>
+						<a class="storefront-mobile-nav__link @(isAdminProducts ? "is-active" : null)" asp-area="Admin" asp-controller="Product" asp-action="Index" aria-current="@(isAdminProducts ? "page" : null)">
+							<i class="bi bi-box-seam" aria-hidden="true"></i>
+							<span>@Localizer["Products"]</span>
+						</a>
+					</li>
+					<li>
+						<a class="storefront-mobile-nav__link @(isAdminHub ? "is-active" : null)" asp-area="Admin" asp-controller="Hub" asp-action="Index" aria-current="@(isAdminHub ? "page" : null)">
+							<i class="bi bi-speedometer2" aria-hidden="true"></i>
+							<span>@Localizer["AdminHub"]</span>
+						</a>
+					</li>
+					<li>
+						<button type="button" class="storefront-mobile-nav__link" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" aria-controls="sideNavbarTop" aria-expanded="false">
+							<i class="bi bi-list" aria-hidden="true"></i>
+							<span>@Localizer["Menu"]</span>
+						</button>
+					</li>
+				}
+				else
+				{
+					<li>
+						<a class="storefront-mobile-nav__link @(isHome ? "is-active" : null)" asp-area="Customer" asp-controller="Home" asp-action="Index" aria-current="@(isHome ? "page" : null)">
+							<i class="bi bi-house-door" aria-hidden="true"></i>
+							<span>@Localizer["Home"]</span>
+						</a>
+					</li>
+					<li>
+						<button type="button" class="storefront-mobile-nav__link @(isSearch ? "is-active" : null)" data-bs-toggle="modal" data-bs-target="#storefrontSearch" aria-haspopup="dialog" aria-current="@(isSearch ? "page" : null)">
+							<i class="bi bi-search" aria-hidden="true"></i>
+							<span>@Localizer["Search"]</span>
+						</button>
+					</li>
+					<li>
+						<a class="storefront-mobile-nav__link @(isCart ? "is-active" : null)" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-current="@(isCart ? "page" : null)">
+							<span class="storefront-mobile-nav__icon">
+								@await Component.InvokeAsync("ShoppingCart")
+							</span>
+							<span>@Localizer["Cart"]</span>
+						</a>
+					</li>
+					<li>
+						<a class="storefront-mobile-nav__link @(isAccount ? "is-active" : null)" asp-area="Identity" asp-page="@accountPage" aria-current="@(isAccount ? "true" : null)">
+							<i class="bi bi-person" aria-hidden="true"></i>
+							<span>@Localizer["MyAccount"]</span>
+						</a>
+					</li>
+					<li>
+						<button type="button" class="storefront-mobile-nav__link" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" aria-controls="sideNavbarTop" aria-expanded="false">
+							<i class="bi bi-list" aria-hidden="true"></i>
+							<span>@Localizer["Menu"]</span>
+						</button>
+					</li>
+				}
 			</ul>
 		</nav>
 
-		<div class="modal fade storefront-search" id="storefrontSearch" tabindex="-1" aria-labelledby="storefrontSearchTitle" aria-hidden="true">
-			<div class="modal-dialog modal-fullscreen">
-				<div class="modal-content">
-					<form asp-area="Customer" asp-controller="Home" asp-action="Search" method="get" role="search" class="storefront-search__form">
-						<div class="storefront-search__bar">
-							<h2 class="storefront-search__title"><label id="storefrontSearchTitle" for="storefrontSearchInput">@Localizer["Search"]</label></h2>
-							<button type="button" class="btn-close storefront-search__close" data-bs-dismiss="modal" aria-label="@Localizer["Close"]"></button>
-						</div>
-						<div class="storefront-search__field">
-							<input id="storefrontSearchInput" name="searchString" type="search" class="form-control form-control-lg" placeholder="@Localizer["Search"]" autocomplete="off" enterkeyhint="search" required />
-							<button type="submit" class="btn btn-primary btn-lg" aria-label="@Localizer["Search"]">
-								<i class="bi bi-search" aria-hidden="true"></i>
-								<span class="d-none d-sm-inline ms-2">@Localizer["Search"]</span>
-							</button>
-						</div>
-					</form>
+		@if (!isStaff)
+		{
+			<div class="modal fade storefront-search" id="storefrontSearch" tabindex="-1" aria-labelledby="storefrontSearchTitle" aria-hidden="true">
+				<div class="modal-dialog modal-fullscreen">
+					<div class="modal-content">
+						<form asp-area="Customer" asp-controller="Home" asp-action="Search" method="get" role="search" class="storefront-search__form">
+							<div class="storefront-search__bar">
+								<h2 class="storefront-search__title"><label id="storefrontSearchTitle" for="storefrontSearchInput">@Localizer["Search"]</label></h2>
+								<button type="button" class="btn-close storefront-search__close" data-bs-dismiss="modal" aria-label="@Localizer["Close"]"></button>
+							</div>
+							<div class="storefront-search__field">
+								<input id="storefrontSearchInput" name="searchString" type="search" class="form-control form-control-lg" placeholder="@Localizer["Search"]" autocomplete="off" enterkeyhint="search" required />
+								<button type="submit" class="btn btn-primary btn-lg" aria-label="@Localizer["Search"]">
+									<i class="bi bi-search" aria-hidden="true"></i>
+									<span class="d-none d-sm-inline ms-2">@Localizer["Search"]</span>
+								</button>
+							</div>
+						</form>
+					</div>
 				</div>
 			</div>
-		</div>
+		}
 	}
 
 	<script type="text/javascript">

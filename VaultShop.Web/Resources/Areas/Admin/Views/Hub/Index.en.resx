@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="Operations" xml:space="preserve">
+    <value>Operations</value>
+  </data>
+  <data name="Catalog" xml:space="preserve">
+    <value>Catalog</value>
+  </data>
+  <data name="Costs" xml:space="preserve">
+    <value>Costs</value>
+  </data>
+  <data name="Configuration" xml:space="preserve">
+    <value>Configuration</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Collections</value>
+  </data>
+  <data name="Banners" xml:space="preserve">
+    <value>Banners</value>
+  </data>
+  <data name="Coupons" xml:space="preserve">
+    <value>Coupons</value>
+  </data>
+  <data name="Promotions" xml:space="preserve">
+    <value>Promotions</value>
+  </data>
+  <data name="Company" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="Packaging" xml:space="preserve">
+    <value>Packaging</value>
+  </data>
+  <data name="PackagingByCategory" xml:space="preserve">
+    <value>Packaging By Category</value>
+  </data>
+  <data name="Fabric" xml:space="preserve">
+    <value>Fabric</value>
+  </data>
+  <data name="FabricByProduct" xml:space="preserve">
+    <value>Fabric By Product</value>
+  </data>
+  <data name="GarmentHardware" xml:space="preserve">
+    <value>Garment Hardware</value>
+  </data>
+  <data name="GarmentHardwareByProduct" xml:space="preserve">
+    <value>Garment Hardware By Product</value>
+  </data>
+  <data name="FixedCost" xml:space="preserve">
+    <value>Fixed Cost</value>
+  </data>
+  <data name="RetailPercentageCost" xml:space="preserve">
+    <value>Retail Percentage Cost</value>
+  </data>
+  <data name="WholesalePercentageCost" xml:space="preserve">
+    <value>Wholesale Percentage Cost</value>
+  </data>
+  <data name="CostByProduct" xml:space="preserve">
+    <value>Cost By Product</value>
+  </data>
+  <data name="FinalPrice" xml:space="preserve">
+    <value>Final Price</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="CreateUser" xml:space="preserve">
+    <value>Create User</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+</root>
