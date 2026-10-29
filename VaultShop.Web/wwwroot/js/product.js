@@ -1,4 +1,4 @@
-﻿var dataTable;
+var dataTable;
 let translations = {};
 $(document).ready(function () {
     loadTranslations().finally(loadDataTable);
@@ -19,6 +19,15 @@ function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/${culture}/admin/product/getall` },
         "columns": [
+            {
+                data: 'imageUrl',
+                "width": "8%",
+                "render": function (data) {
+                    return data
+                        ? `<img src="${data}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:4px" />`
+                        : `<span class="badge text-bg-secondary">-</span>`;
+                }
+            },
             { data: 'id' },
             { data: 'name' },
             { data: 'listPrice',  render: window.SpanishNumberTables(culture) },
@@ -27,27 +36,24 @@ function loadDataTable() {
             { data: 'category.name' },
             { data: 'stockQuantity' },
             {
-
-                data: { id: 'id', isAvailableInStore: 'isAvailableInStore' },
-                "render": function (data) {
-                    var isAvailableInStore = data.isAvailableInStore;
+                data: 'id',
+                "render": function (data, type, row) {
+                    var isAvailableInStore = row.isAvailableInStore;
                     var yesText = translations.yes || translations.Yes || "Yes";
                     var noText = translations.no || translations.No || "No";
                     if (!isAvailableInStore) {
                         return `
-                            <a onclick=UpdateProductAvailability('${data.id}')  class="btn btn-danger text-white" style="cursor:pointer; width:100px;">
+                            <a onclick=UpdateProductAvailability('${data}')  class="btn btn-danger text-white" style="cursor:pointer; width:100px;">
                                 <i class="bi bi-lock-fill"></i> ${noText}
                             </a> `
                     } else {
                         return `
-                          <a onclick=UpdateProductAvailability('${data.id}') class="btn btn-success text-white" style="cursor:pointer; width:100px;">
+                          <a onclick=UpdateProductAvailability('${data}') class="btn btn-success text-white" style="cursor:pointer; width:100px;">
                             <i class="bi bi-unlock-fill"></i> ${yesText}
                           </a> `
                     }
                 }, "width": "5%"
-
             },
-
             {
                 data: 'id',
                 "render": function (data) {
@@ -59,6 +65,8 @@ function loadDataTable() {
                 "width": "20%"
             }
         ],
+        "order": [[1, "asc"]],
+        "pageLength": 50,
         "language": window.SpanishCultureTables(culture),
         responsive: {
             details: {
@@ -67,15 +75,16 @@ function loadDataTable() {
             }
         },
         "columnDefs": [
-            { responsivePriority: 1, targets: 8 },
-            { responsivePriority: 2, targets: 1 },
-            { responsivePriority: 3, targets: 4 },
-            { responsivePriority: 4, targets: 6 },
+            { responsivePriority: 1, targets: 9 },
+            { responsivePriority: 2, targets: 2 },
+            { responsivePriority: 3, targets: 0 },
+            { responsivePriority: 4, targets: 5 },
             { responsivePriority: 5, targets: 7 },
-            { responsivePriority: 10, targets: 0 },
-            { responsivePriority: 11, targets: 2 },
-            { responsivePriority: 12, targets: 3 },
-            { responsivePriority: 13, targets: 5 }
+            { responsivePriority: 10000, targets: 1 },
+            { responsivePriority: 11, targets: 3 },
+            { responsivePriority: 12, targets: 4 },
+            { responsivePriority: 13, targets: 6 },
+            { responsivePriority: 10000, targets: 8 }
         ]
 
     })

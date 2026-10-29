@@ -338,7 +338,21 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAll()
 		{
-			List<Product> objProductList = _unitOfWork.Product.GetAll(u => u.IsDeleted == false, includeProperties: "Category").ToList();
+			var objProductList = _unitOfWork.Product
+			.GetAll(u => u.IsDeleted == false, includeProperties: "Category,ProductImages")
+			.Select(p => new
+			{
+				p.Id,
+				p.Name,
+				p.ListPrice,
+				p.FinalWholesalePrice,
+				p.FinalRetailPrice,
+				category = new { name = p.Category.Name },
+				p.StockQuantity,
+				p.IsAvailableInStore,
+				imageUrl = p.ProductImages.PrimaryOrFirstForDisplay()?.ImageUrl
+			})
+			.ToList();
 			return Json(new { data = objProductList });
 
 		}
