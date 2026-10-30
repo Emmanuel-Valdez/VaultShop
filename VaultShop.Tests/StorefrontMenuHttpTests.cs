@@ -38,7 +38,7 @@ public class StorefrontMenuHttpTests
 	}
 
 	[Fact]
-	public async Task SignedInCustomer_BottomBarShowsMyPurchasesAndOffcanvasHasNoDuplicateMyAccount()
+	public async Task SignedInCustomer_BottomBarShowsMyPurchasesAndOffcanvasHasSingleMyAccount()
 	{
 		using var factory = new CustomWebApplicationFactory();
 		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
@@ -54,8 +54,8 @@ public class StorefrontMenuHttpTests
 		var offcanvas = ExtractOffcanvas(body);
 		Assert.Contains("/Admin/Order", offcanvas);
 		Assert.Contains("My purchases", offcanvas);
-		Assert.DoesNotContain("/Identity/Account/Manage", offcanvas);
-		// The account link still lives in the desktop header dropdown.
+		Assert.Single(Regex.Matches(offcanvas, "/Identity/Account/Manage"));
+		// The account link lives in the mobile menu and the desktop header dropdown.
 		Assert.Contains("/Identity/Account/Manage", body);
 	}
 
@@ -128,7 +128,7 @@ public class StorefrontMenuHttpTests
 
 		Assert.Contains("class=\"mobile-shell\"", body);
 		AssertMobileNavItems(body, "/Admin/Order");
-		Assert.DoesNotContain("/Identity/Account/Manage", ExtractOffcanvas(body));
+		Assert.Single(Regex.Matches(ExtractOffcanvas(body), "/Identity/Account/Manage"));
 
 		var form = ExtractManageLogoutForm(body);
 		Assert.Contains("__RequestVerificationToken", form);
