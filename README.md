@@ -2,7 +2,7 @@
 
 **Live demo:** https://vaultshop.evaldez.ar
 
-![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
 ![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 ![License](https://img.shields.io/badge/license-source--available-blue)
 
@@ -38,17 +38,19 @@ Selected current flows for backend/portfolio review.
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer, provider-verified webhooks/browser returns, refunds on cancellation, background `PaymentReconciliation` re-checks stale pending sessions.
 - Product image upload validation, resizing, metadata persistence via `IImageStorageService` (Local/MinIO).
 - Branch pickup: deterministic province→locality→branch cascade selection with hours, admin correction window, shipped-order freeze, pickup branch block in transactional emails + PDF summary + FAQ.
+- Mobile app shell shared by storefront and admin: safe-area bottom bar, full-screen search overlay, offcanvas menu, and role-aware navigation; an Admin hub page groups Operations/Catalog/Costs/Configuration, and a light/dark toggle lives in the navbar and mobile menu.
+- Customer account center: persisted per-user order notifications (header bell + shared inbox) for payment approved/failed, shipped, cancelled/refunded, plus admin new-order and bank-transfer alerts; notification cleanup background service (6-month retention). Customer order history reuses the read-only order list/details.
 - Localization es-AR/en-US; health endpoints (`/health/live`, `/health/ready`) for liveness/readiness probes.
 - Deployment version stamped at build (`APP_VERSION`/`APP_BUILD_DATE`) with admin-only page (`/Admin/System/Version`) comparing deployed commit vs GitHub `main` (cached 5 min).
 
 ## Tech Stack
 
-- ASP.NET Core 8 MVC · EF Core 8 + Npgsql (PostgreSQL 16)
+- ASP.NET Core 10 MVC · EF Core 10 + Npgsql 10 (PostgreSQL 16)
 - ASP.NET Core Identity + Google OAuth · Rate limiting (`System.Threading.RateLimiting`) + lockout · Health checks
 - Stripe Checkout + Mercado Pago Checkout Pro + Bank Transfer
 - Resend email (Fake/Unconfigured) + QuestPDF (order summary PDF, community license)
 - Docker & Docker Compose (platform + per-store stacks) + Nginx HTTPS proxy + MinIO S3
-- xUnit + Moq + SQLite in-memory (821 tests, service/integration/HTTP — `dotnet test VaultShop.sln` green)
+- xUnit + Moq + SQLite in-memory (901 tests, service/integration/HTTP — `dotnet test VaultShop.sln` green)
 
 ## Architecture Highlights
 
@@ -229,10 +231,10 @@ For a VPS hosting VaultShop and UkiyoStudio as separate single-tenant stores on 
 ## Tests
 
 ```powershell
-dotnet test VaultShop.sln   # 821 tests — dotnet build --no-restore clean
+dotnet test VaultShop.sln   # 901 tests — dotnet build --no-restore clean
 ```
 
-Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview, home banners (layouts, desktop-only safe zone, allowlisted targets, autoplay/a11y) + banner admin CRUD/validation, branch cascade API, seeded province list, pickup branch correction, shipped-order freeze.
+Covers upload validation, checkout/order transactions, provider routing + session creation (Stripe/MP), signed webhooks, refunds, pricing per-product `MaxExpectation`/publish, pagination + keyword/collection hero + slug, billing snapshot/PDF guards, rate limiting, lockout, status pages, health checks, admin preview, home banners (layouts, desktop-only safe zone, allowlisted targets, autoplay/a11y) + banner admin CRUD/validation, branch cascade API, seeded province list, pickup branch correction, shipped-order freeze, mobile app shell + role-aware bottom bar, admin hub, theme toggle, order notifications (dedup, scoping, retention).
 
 ## Deployment Direction
 
@@ -250,8 +252,9 @@ Runbook: [`docs/operations/runbook.md`](docs/operations/runbook.md).
 
 - Backups automated; restore drills are manual (repeat after backup-process changes — `pg_restore --no-owner` + `mc mirror`).
 - Smoke-test after deploys: paid/unpaid flows (Stripe/MP), bank-transfer approval, branding/theme, pagination + keyword/collection hero, order-summary PDF, 404/health, wholesale preview, branch cascade pickup.
-- Next spec: **Product slugs** (`plans/vaultshop-new-specs.md#9`) — SEO-friendly URLs (`/products/product-name`), shared slug helper, category slugs ride along.
-- Deferred backlog: variants (size/color), coupons/discounts, shipping as order line, multiple addresses, customer self-cancel, email attachments. See `plans/vaultshop-new-specs.md`.
+- Next spec: **`admin-dashboard`** (KPIs on top of the admin hub; costs/margins/invoicing scoped separately). The hub itself ships; only statistics remain.
+- Deferred backlog: shipping cost as its own order line, multiple saved addresses, customer self-cancel, email attachments. See `plans/vaultshop-new-specs.md`.
+- Known a11y debt: the customer order-list eye-icon link lacks an `aria-label` (`wwwroot/js/order.js:57`); `_CollectionHero` always renders the noun plural.
 - Frontend is functional polish (stepper, password toggles, sakura 404, scroll-row collection chips, hero parallax, branch cascade picker); portfolio value is backend/ops evidence.
 
 ## Portfolio Scope

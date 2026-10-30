@@ -1,6 +1,6 @@
 # VaultShop Architecture
 
-VaultShop is a self-hosted ASP.NET Core 8 MVC monolith on Ubuntu 24.04 VPS: one web app, one PostgreSQL 16, one MinIO S3, Nginx HTTPS proxy. Two stores (VaultShop + UkiyoStudio) share the platform but are fully isolated per DB/bucket/creds.
+VaultShop is a self-hosted ASP.NET Core 10 MVC monolith on Ubuntu 24.04 VPS: one web app, one PostgreSQL 16, one MinIO S3, Nginx HTTPS proxy. Two stores (VaultShop + UkiyoStudio) share the platform but are fully isolated per DB/bucket/creds.
 
 ```mermaid
 flowchart TD
@@ -30,6 +30,7 @@ flowchart TD
 - Payments: keyed `IPaymentSessionService`/`IPaymentRefundService` by `SD.PaymentMethod*`; signed webhooks + server-side lookup drive status, browser return only verifies; refund on cancel
 - Hardening: `ForwardedHeaders` (OAuth behind proxy), `AddRateLimiter` (Global + Login per-IP 429), `Identity Lockout`, `UseStatusCodePagesWithReExecute` (branded 404/500), `AddHealthChecks` (DB + `StorageHealthCheck`) → `/health/live` (200) / `/health/ready` (200/503)
 - Config-driven branding/theme (`Branding__*`, `Theme__*` hex → CSS vars), l10n `es-AR`/`en-US`, `Database__RunMigrationsOnStartup=false` in prod
+- Shared mobile app shell (role-aware bottom bar, full-screen search, offcanvas menu) rendered from `_Layout`; admin hub + persisted per-user order notifications (`OrderNotificationService` + 6-month cleanup `BackgroundService`)
 
 ## Future Client Deployment
 Reuse same codebase shape, new per-store env + compose project + domain + DB/bucket/creds + Stripe/MP secrets + backups/cron. For full VM/K8s isolation, skip shared platform.
