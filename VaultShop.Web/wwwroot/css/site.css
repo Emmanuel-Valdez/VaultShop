@@ -231,6 +231,8 @@ html {
 
 /* ponytail: shrink cart count pill without enlarging hit-area; keep anchor 44px */
 .cart-count-badge { --bs-badge-font-size: .62rem; padding: .28em .42em; min-width: 1.1rem; line-height: 1; }
+/* ponytail: notification badge mirrors cart badge scale so it stays proportional to the bell */
+.notification-count-badge { --bs-badge-font-size: .62rem; padding: .25em .4em; min-width: 1rem; line-height: 1; }
 
 .dropdown-item.active,
 .dropdown-item:active {

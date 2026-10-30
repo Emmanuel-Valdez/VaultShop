@@ -15,6 +15,7 @@ using VaultShop.Web.Services;
 using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
 using VaultShop.Web.Services.Shipping;
@@ -39,12 +40,13 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 		private readonly OrderAccessPolicy _orderAccessPolicy;
 		private readonly IBranchLookupService _branchLookup;
 		private readonly IProductVariantService _variantService;
+		private readonly IOrderNotificationService _orderNotificationService;
 		// ponytail: must match BranchCascadePickerVM.IdPrefix — failed POSTs reselect province/locality from these form fields.
 		private const string BranchPickerPrefix = "branchPicker";
 		public CartController(IUnitOfWork unitOfWork,IStringLocalizer<CartController> localizer, SignInManager<ApplicationUser> signInManager,
 			ILogger<CartController> logger, ICheckoutService checkoutService, IServiceProvider paymentSessionServiceProvider,
 			IPaymentStatusService paymentStatusService, ITransactionalEmailService emailService, IConfiguration configuration, OrderAccessPolicy orderAccessPolicy,
-			IBranchLookupService branchLookup, IProductVariantService variantService)
+			IBranchLookupService branchLookup, IProductVariantService variantService, IOrderNotificationService orderNotificationService)
 		{
 			_localizer = localizer;
 			_unitOfWork = unitOfWork;
@@ -58,6 +60,7 @@ namespace VaultShop.Web.Areas.Customer.Controllers
 			_orderAccessPolicy = orderAccessPolicy;
 			_branchLookup = branchLookup;
 			_variantService = variantService;
+			_orderNotificationService = orderNotificationService;
 		}
 		public IActionResult Index()
 		{
@@ -470,6 +473,7 @@ private void RemoveShoppingCartsOutdated(string userId)
 			// ponytail: wholesale admin already notified at creation; paid transition skips duplicate
 			if (isCompanyCheckout)
 			{
+				await _orderNotificationService.NotifyOrderEventAsync(orderId, OrderNotificationType.AdminNewOrder);
 				await _emailService.TrySendOrderConfirmationAsync(orderId);
 				await _emailService.TrySendAdminNewOrderAlertAsync(orderId);
 			}

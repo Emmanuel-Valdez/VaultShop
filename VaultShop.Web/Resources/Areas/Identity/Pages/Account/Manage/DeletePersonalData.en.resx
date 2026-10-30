@@ -127,6 +127,6 @@
     <value>Password</value>
   </data>
   <data name="Warning" xml:space="preserve">
-    <value>Deleting this data will permanently remove your account, and this cannot be recovered.</value>
+    <value>Deleting your personal data disables your account and permanently erases your personal information (name, contact details, password and external logins). Your order records are kept immutable for commercial and accounting reasons, including the buyer and shipping data associated with each purchase. This cannot be undone.</value>
   </data>
 </root>

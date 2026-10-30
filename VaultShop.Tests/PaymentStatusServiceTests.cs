@@ -5,6 +5,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Email;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Payments;
 
 namespace VaultShop.Web.Tests
@@ -22,7 +23,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
 
@@ -32,6 +33,8 @@ namespace VaultShop.Web.Tests
 			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
 			unitOfWork.EmailMock.Verify(x => x.TrySendOrderConfirmationAsync(42), Times.Once);
 			unitOfWork.EmailMock.Verify(x => x.TrySendAdminNewOrderAlertAsync(42), Times.Once);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.PaymentApproved), Times.Once);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.AdminNewOrder), Times.Once);
 		}
 
 		[Fact]
@@ -45,7 +48,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusInProcess
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
 
@@ -65,7 +68,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
 
@@ -87,7 +90,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusCancelled
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
 
@@ -108,7 +111,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_old", "pi_test_paid"));
 
@@ -129,7 +132,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusApproved
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.MarkCheckoutSessionPaid(new PaymentSessionStatusUpdate(42, "cs_test_paid", "pi_test_paid"));
 
@@ -139,26 +142,126 @@ namespace VaultShop.Web.Tests
 			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
 			unitOfWork.EmailMock.Verify(x => x.TrySendOrderConfirmationAsync(It.IsAny<int>()), Times.Never);
 			unitOfWork.EmailMock.Verify(x => x.TrySendAdminNewOrderAlertAsync(It.IsAny<int>()), Times.Never);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
 		}
 
 		[Fact]
-		public void MarkCheckoutSessionFailed_UpdatesStripeIdsAndRejectsOrder()
+		public async Task MarkCheckoutSessionFailed_UpdatesStripeIdsAndRejectsOrder()
 		{
 			var order = new OrderHeader
 			{
 				Id = 42,
+				SessionId = "cs_test_failed",
 				PaymentStatus = SD.PaymentStatusPending,
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
-			var result = service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_test_failed", "pi_test_failed"));
+			var result = await service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_test_failed", "pi_test_failed"));
 
 			Assert.True(result);
 			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(42, "cs_test_failed", "pi_test_failed"), Times.Once);
 			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, SD.PaymentStatusRejected), Times.Once);
 			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.PaymentFailed), Times.Once);
+		}
+
+		[Fact]
+		public async Task MarkCheckoutSessionFailed_IgnoresAlreadyPaidOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_test_failed",
+				PaymentStatus = SD.PaymentStatusApproved,
+				OrderStatus = SD.StatusApproved
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = await service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_test_failed", "pi_test_failed"));
+
+			Assert.False(result);
+			Assert.Equal(SD.PaymentStatusApproved, order.PaymentStatus);
+			Assert.Equal(SD.StatusApproved, order.OrderStatus);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task MarkCheckoutSessionFailed_IgnoresMismatchedSession()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_current",
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = await service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_old", "pi_test_failed"));
+
+			Assert.False(result);
+			Assert.Equal(SD.PaymentStatusPending, order.PaymentStatus);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task MarkCheckoutSessionFailed_IgnoresTerminalOrder()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_test_failed",
+				PaymentStatus = SD.StatusRefunded,
+				OrderStatus = SD.StatusRefunded
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var result = await service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_test_failed", "pi_test_failed"));
+
+			Assert.False(result);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStripePaymentId(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+			unitOfWork.OrderHeaderMock.Verify(x => x.UpdateStatus(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+			unitOfWork.Mock.Verify(x => x.Save(), Times.Never);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task MarkCheckoutSessionFailed_DuplicateEvent_DoesNotNotifyTwice()
+		{
+			var order = new OrderHeader
+			{
+				Id = 42,
+				SessionId = "cs_test_failed",
+				PaymentStatus = SD.PaymentStatusPending,
+				OrderStatus = SD.StatusPending
+			};
+			var unitOfWork = CreateUnitOfWork(order);
+			unitOfWork.OrderHeaderMock
+				.Setup(x => x.UpdateStatus(42, SD.StatusCancelled, SD.PaymentStatusRejected))
+				.Callback(() =>
+				{
+					order.OrderStatus = SD.StatusCancelled;
+					order.PaymentStatus = SD.PaymentStatusRejected;
+				});
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
+
+			var first = await service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_test_failed", "pi_test_failed"));
+			var second = await service.MarkCheckoutSessionFailed(new PaymentSessionStatusUpdate(42, "cs_test_failed", "pi_test_failed"));
+
+			Assert.True(first);
+			Assert.False(second);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.PaymentFailed), Times.Once);
 		}
 
 		[Fact]
@@ -172,7 +275,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.ApproveManualBankTransfer(42);
 
@@ -181,6 +284,8 @@ namespace VaultShop.Web.Tests
 			unitOfWork.Mock.Verify(x => x.Save(), Times.Once);
 			unitOfWork.EmailMock.Verify(x => x.TrySendOrderConfirmationAsync(42), Times.Once);
 			unitOfWork.EmailMock.Verify(x => x.TrySendAdminNewOrderAlertAsync(42), Times.Once);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.PaymentApproved), Times.Once);
+			unitOfWork.NotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.AdminNewOrder), Times.Once);
 		}
 
 		[Fact]
@@ -194,7 +299,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusInProcess
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.ApproveManualBankTransfer(42);
 
@@ -214,7 +319,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.ApproveManualBankTransfer(42);
 
@@ -234,7 +339,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 			var before = DateTime.UtcNow.AddSeconds(-1);
 
 			var result = await service.ApproveManualBankTransfer(42);
@@ -254,7 +359,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusApproved
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.ApproveManualBankTransfer(42);
 
@@ -276,7 +381,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusCancelled
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.ApproveManualBankTransfer(42);
 
@@ -296,7 +401,7 @@ namespace VaultShop.Web.Tests
 				OrderStatus = SD.StatusPending
 			};
 			var unitOfWork = CreateUnitOfWork(order);
-			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, NullLogger<PaymentStatusService>.Instance);
+			var service = new PaymentStatusService(unitOfWork.Mock.Object, unitOfWork.EmailMock.Object, unitOfWork.NotificationMock.Object, NullLogger<PaymentStatusService>.Instance);
 
 			var result = await service.ApproveManualBankTransfer(42);
 
@@ -321,6 +426,9 @@ namespace VaultShop.Web.Tests
 			testUnitOfWork.EmailMock
 				.Setup(x => x.TrySendAdminNewOrderAlertAsync(It.IsAny<int>()))
 				.Returns(Task.CompletedTask);
+			testUnitOfWork.NotificationMock
+				.Setup(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()))
+				.Returns(Task.CompletedTask);
 
 			testUnitOfWork.Mock.Setup(x => x.OrderHeader).Returns(testUnitOfWork.OrderHeaderMock.Object);
 			return testUnitOfWork;
@@ -331,6 +439,7 @@ namespace VaultShop.Web.Tests
 			public Mock<IUnitOfWork> Mock { get; } = new();
 			public Mock<IOrderHeaderRepository> OrderHeaderMock { get; } = new();
 			public Mock<ITransactionalEmailService> EmailMock { get; } = new();
+			public Mock<IOrderNotificationService> NotificationMock { get; } = new();
 		}
 	}
 }

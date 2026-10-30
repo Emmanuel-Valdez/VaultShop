@@ -127,6 +127,6 @@
     <value>Contraseña</value>
   </data>
   <data name="Warning" xml:space="preserve">
-    <value>Borrar tus datos eliminará permanente tu cuenta, y no podrá ser recuperada posteriormente.</value>
+    <value>Borrar tus datos personales deshabilita tu cuenta y elimina de forma permanente tu información personal (nombre, datos de contacto, contraseña y accesos externos). Los registros de tus pedidos se conservan de forma inmutable por motivos comerciales y contables, incluidos los datos del comprador y de envío asociados a cada compra. Esta acción no se puede deshacer.</value>
   </data>
 </root>

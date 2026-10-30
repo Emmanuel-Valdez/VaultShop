@@ -12,6 +12,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using VaultShop.Models;
 using VaultShop.Models.Validation;
+using VaultShop.Web.Services.Account;
 
 namespace VaultShop.Web.Areas.Identity.Pages.Account.Manage
 {
@@ -19,17 +20,20 @@ namespace VaultShop.Web.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly AccountDeletionService _accountDeletionService;
         private readonly ILogger<DeletePersonalDataModel> _logger;
         private readonly IStringLocalizer<DeletePersonalDataModel> _localizer;
 
         public DeletePersonalDataModel(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            AccountDeletionService accountDeletionService,
             ILogger<DeletePersonalDataModel> logger,
 			IStringLocalizer<DeletePersonalDataModel> localizer)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _accountDeletionService = accountDeletionService;
             _logger = logger;
             _localizer = localizer;
         }
@@ -92,16 +96,15 @@ namespace VaultShop.Web.Areas.Identity.Pages.Account.Manage
                 }
             }
 
-            var result = await _userManager.DeleteAsync(user);
             var userId = await _userManager.GetUserIdAsync(user);
-            if (!result.Succeeded)
+            if (!await _accountDeletionService.DeletePersonalDataAsync(userId))
             {
                 throw new InvalidOperationException($"Unexpected error occurred deleting user.");
             }
 
             await _signInManager.SignOutAsync();
 
-            _logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
+            _logger.LogInformation("User with ID '{UserId}' deleted their personal data.", userId);
 
             return Redirect("~/");
         }

@@ -30,6 +30,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Checkout;
+using VaultShop.Web.Services.Account;
 using VaultShop.Web.Services.Branding;
 using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.ImageStorage;
@@ -38,6 +39,7 @@ using VaultShop.Web.Services.KeywordImages;
 using VaultShop.Web.Services.BannerImages;
 using VaultShop.Web.Services.ProductImages;
 using VaultShop.Web.Services.Payments;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Pagination;
 using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.Shipping;
@@ -119,7 +121,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(builder.Configuration.GetValue<double>("Identity:Lockout:DefaultLockoutTimeSpanMinutes", 5));
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddSignInManager<ApplicationSignInManager>();
 
 // Google OAuth (optional: keys Google:ClientId/Google:ClientSecret, i.e. env vars Google__ClientId/Google__ClientSecret; only registered when both are set).
 var googleClientId = builder.Configuration["Google:ClientId"];
@@ -154,7 +157,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 		var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
 		var user = await userManager.GetUserAsync(context.Principal);
-		if (user != null)
+		if (user != null && !user.IsDeleted)
 		{
 			return;
 		}
@@ -194,6 +197,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<AccountDeletionService>();
 var useFakeEmailSender = builder.Configuration.GetValue("Email:UseFakeEmailSender", true);
 var emailProvider = builder.Configuration["Email:Provider"];
 builder.Services.AddScoped<IEmailSender>(serviceProvider =>
@@ -274,6 +278,7 @@ builder.Services.AddKeyedScoped<IPaymentSessionService, StripePaymentSessionServ
 builder.Services.AddKeyedScoped<IPaymentSessionService, MercadoPagoPaymentSessionService>(SD.PaymentMethodMercadoPago);
 builder.Services.AddKeyedScoped<IPaymentRefundService, MercadoPagoPaymentRefundService>(SD.PaymentMethodMercadoPago);
 builder.Services.AddScoped<IPaymentStatusService, PaymentStatusService>();
+builder.Services.AddScoped<IOrderNotificationService, OrderNotificationService>();
 builder.Services.AddScoped<IPricingCalculatorService, PricingCalculatorService>();
 builder.Services.AddScoped<IRichTextSanitizer, RichTextSanitizer>();
 builder.Services.AddScoped<ITransactionalEmailService, TransactionalEmailService>();
@@ -281,6 +286,7 @@ builder.Services.AddScoped<IOrderSummaryService, OrderSummaryService>();
 builder.Services.AddScoped<IOrderSummaryPdfGenerator, OrderSummaryPdfGenerator>();
 builder.Services.AddScoped<OrderAccessPolicy>();
 builder.Services.AddHostedService<PaymentReconciliationBackgroundService>();
+builder.Services.AddHostedService<NotificationCleanupBackgroundService>();
 
 builder.Services.AddRateLimiter(options =>
 {

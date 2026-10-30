@@ -30,18 +30,47 @@ public class StorefrontMenuHttpTests
 		Assert.DoesNotContain("Hidden Collection", body);
 		Assert.DoesNotContain("Deleted Collection", body);
 		Assert.DoesNotContain("/Admin/Order", body);
+
+		var nav = ExtractMobileNav(body);
+		Assert.Contains("/Identity/Account/Login", nav);
+		Assert.Contains("My Account", nav);
+		Assert.DoesNotContain("My purchases", nav);
 	}
 
 	[Fact]
-	public async Task SignedInCustomer_SeesOrderLink()
+	public async Task SignedInCustomer_BottomBarShowsMyPurchasesAndOffcanvasHasNoDuplicateMyAccount()
 	{
 		using var factory = new CustomWebApplicationFactory();
 		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 		await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
 
 		var body = await client.GetStringAsync("/en-US/Customer/Home/Index");
+		var nav = ExtractMobileNav(body);
 
-		Assert.Contains("/Admin/Order", body);
+		Assert.Contains("/Admin/Order", nav);
+		Assert.Contains("My purchases", nav);
+		Assert.DoesNotContain("/Identity/Account/Manage", nav);
+
+		var offcanvas = ExtractOffcanvas(body);
+		Assert.Contains("/Admin/Order", offcanvas);
+		Assert.Contains("My purchases", offcanvas);
+		Assert.DoesNotContain("/Identity/Account/Manage", offcanvas);
+		// The account link still lives in the desktop header dropdown.
+		Assert.Contains("/Identity/Account/Manage", body);
+	}
+
+	[Fact]
+	public async Task CustomerOrdersPage_MarksMyPurchasesAsActive()
+	{
+		using var factory = new CustomWebApplicationFactory();
+		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+		await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
+
+		var body = await client.GetStringAsync("/en-US/Admin/Order/Index");
+
+		var current = Regex.Match(ExtractMobileNav(body), "<a[^>]*aria-current=\"page\"[^>]*>");
+		Assert.True(current.Success, "My purchases was not marked active.");
+		Assert.Contains("/Admin/Order", current.Value);
 	}
 
 	[Fact]
@@ -98,7 +127,8 @@ public class StorefrontMenuHttpTests
 		var body = await response.Content.ReadAsStringAsync();
 
 		Assert.Contains("class=\"mobile-shell\"", body);
-		AssertMobileNavItems(body, "/Identity/Account/Manage");
+		AssertMobileNavItems(body, "/Admin/Order");
+		Assert.DoesNotContain("/Identity/Account/Manage", ExtractOffcanvas(body));
 
 		var form = ExtractManageLogoutForm(body);
 		Assert.Contains("__RequestVerificationToken", form);
@@ -120,15 +150,13 @@ public class StorefrontMenuHttpTests
 	}
 
 	[Fact]
-	public async Task SignedInStorefront_BottomBarLinksMyAccountToManage()
+	public async Task SignedInStorefront_KeepsLogoutInOffcanvas()
 	{
 		using var factory = new CustomWebApplicationFactory();
 		var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 		await TestAuthHelper.LoginAsync(client, factory.CustomerEmail, factory.TestPassword);
 
 		var body = await client.GetStringAsync("/en-US/Customer/Home/Index");
-
-		Assert.Contains("/Identity/Account/Manage", ExtractMobileNav(body));
 
 		var action = FormAction(ExtractOffcanvasLogoutForm(body));
 		Assert.Contains("returnUrl=", action);

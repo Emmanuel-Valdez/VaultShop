@@ -13,6 +13,7 @@ using VaultShop.Web.Areas.Admin.Controllers;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
 using VaultShop.Web.Services.Email;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Shipping;
 
@@ -101,7 +102,8 @@ namespace VaultShop.Web.Tests
 				summaryMock.Object,
 				pdfMock.Object,
 				new OrderAccessPolicy(unitOfWorkMock.Object),
-				Mock.Of<IBranchLookupService>())
+				Mock.Of<IBranchLookupService>(),
+				Mock.Of<IOrderNotificationService>())
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

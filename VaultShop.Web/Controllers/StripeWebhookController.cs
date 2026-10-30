@@ -68,18 +68,29 @@ namespace VaultShop.Web.Controllers
 				case Events.CheckoutSessionCompleted:
 					if (string.Equals(session.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
 					{
-						await _paymentStatusService.MarkCheckoutSessionPaid(update);
-						if (update.OrderId.HasValue)
+						var markedPaid = await _paymentStatusService.MarkCheckoutSessionPaid(update);
+						if (markedPaid && update.OrderId.HasValue)
+						{
+							await _emailService.TrySendPaymentReceiptAsync(update.OrderId.Value);
+						}
+					}
+					break;
+				case Events.CheckoutSessionAsyncPaymentSucceeded:
+					{
+						var markedAsyncPaid = await _paymentStatusService.MarkCheckoutSessionPaid(update);
+						if (markedAsyncPaid && update.OrderId.HasValue)
 						{
 							await _emailService.TrySendPaymentReceiptAsync(update.OrderId.Value);
 						}
 					}
 					break;
 				case Events.CheckoutSessionAsyncPaymentFailed:
-					_paymentStatusService.MarkCheckoutSessionFailed(update);
-					if (update.OrderId.HasValue)
 					{
-						await _emailService.TrySendPaymentFailedAsync(update.OrderId.Value);
+						var markedFailed = await _paymentStatusService.MarkCheckoutSessionFailed(update);
+						if (markedFailed && update.OrderId.HasValue)
+						{
+							await _emailService.TrySendPaymentFailedAsync(update.OrderId.Value);
+						}
 					}
 					break;
 				default:

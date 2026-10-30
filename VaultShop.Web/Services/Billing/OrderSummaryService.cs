@@ -21,7 +21,7 @@ namespace VaultShop.Web.Services.Billing
 		{
 			var orderHeader = _unitOfWork.OrderHeader.Get(
 				o => o.Id == orderId,
-				includeProperties: "ApplicationUser,Company");
+				includeProperties: "Company");
 
 			if (orderHeader == null || !_orderAccessPolicy.CanAccess(orderHeader, user))
 				return null;
@@ -45,7 +45,8 @@ namespace VaultShop.Web.Services.Billing
 				PaymentMethod = o.PaymentMethod,
 				PaymentDueDate = o.PaymentDueDate,
 
-				CustomerName = o.ApplicationUser?.Name ?? string.Empty,
+				// Snapshot, not the live account: the summary must survive account deletion.
+				CustomerName = o.Name,
 
 				CompanyName = o.Company?.Name,
 				RazonSocial = o.RazonSocialSnapshot,

@@ -17,6 +17,7 @@ using VaultShop.Web.Areas.Customer.Controllers;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Email;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services.Pagination;
 using VaultShop.Web.Services.Pricing;
@@ -264,8 +265,9 @@ namespace VaultShop.Web.Tests
 			null!,
 			null!,
 			null!,
-			null!,
-			Mock.Of<IProductVariantService>())
+				null!,
+				Mock.Of<IProductVariantService>(),
+				Mock.Of<IOrderNotificationService>())
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

@@ -37,7 +37,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		public IActionResult RoleManagment(string userId)
 		{
 			var applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == userId, includeProperties:"Company");
-			if (applicationUser == null)
+			if (applicationUser == null || applicationUser.IsDeleted)
 			{
 				return NotFound();
 			}
@@ -67,7 +67,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		public IActionResult RoleManagment(RoleManagmentVM roleManagmentVM)
 		{
 			ApplicationUser? applicationUser = _unitOfWork.ApplicationUser.Get(u => u.Id == roleManagmentVM.ApplicationUser.Id);
-			if (applicationUser == null)
+			if (applicationUser == null || applicationUser.IsDeleted)
 			{
 				return NotFound();
 			}
@@ -131,7 +131,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		[HttpGet]
 		public IActionResult GetAll()
 		{
-			List<ApplicationUser> objUserList = _unitOfWork.ApplicationUser.GetAll(includeProperties:"Company").ToList();		
+			List<ApplicationUser> objUserList = _unitOfWork.ApplicationUser.GetAll(u => u.IsDeleted == false, includeProperties:"Company").ToList();
 			foreach (var user in objUserList)
 			{
 				user.Role = _userManager.GetRolesAsync(user).GetAwaiter().GetResult().FirstOrDefault() ?? string.Empty;
@@ -156,7 +156,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 
 			var objFromDb = _unitOfWork.ApplicationUser.Get(u => u.Id == id);
 
-			if (objFromDb == null)
+			if (objFromDb == null || objFromDb.IsDeleted)
 			{
 				return Json(new { success = true, message = _localizer["ErrorLockUnlock"].Value });
 			}

@@ -1,0 +1,72 @@
+@page
+@using VaultShop.Models
+@model NotificationsModel
+@{
+	ViewData["Title"] = Localizer["Title"];
+	var culture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+}
+
+<div class="container py-4">
+	<h1 class="h3 mb-4">@Localizer["Title"]</h1>
+
+	@if (Model.Notifications.Count == 0)
+	{
+		<p class="text-muted" data-notifications-empty="true">@Localizer["EmptyState"]</p>
+	}
+	else
+	{
+		<ul class="list-unstyled" data-notifications-list="true">
+			@foreach (var notification in Model.Notifications)
+			{
+				var order = notification.OrderHeader;
+				var isUnread = notification.ReadAt == null;
+				var keys = NotificationsModel.GetLocalizationKeys(notification.Type);
+
+				<li class="mb-3">
+					<a class="d-block border rounded p-3 text-decoration-none"
+					   asp-area="Admin" asp-controller="Order" asp-action="Details"
+					   asp-route-culture="@culture" asp-route-orderId="@notification.OrderId"
+					   data-notification-id="@notification.Id">
+						<span class="d-flex align-items-center gap-2">
+							<span class="fw-semibold">@Localizer[keys.TitleKey]</span>
+							@if (isUnread)
+							{
+								<span class="badge rounded-pill text-bg-primary" aria-hidden="true"></span>
+								<span class="visually-hidden">@Localizer["Unread"]</span>
+							}
+						</span>
+						<span class="d-block">
+							@if (notification.Type == OrderNotificationType.AdminNewOrder)
+							{
+								@Localizer[keys.DetailKey, notification.OrderId, order.Name]
+							}
+							else
+							{
+								@Localizer[keys.DetailKey, notification.OrderId]
+							}
+						</span>
+						@if (notification.Type == OrderNotificationType.Shipped
+							&& (!string.IsNullOrWhiteSpace(order.TrackingNumber) || !string.IsNullOrWhiteSpace(order.Carrier)))
+						{
+							<span class="d-block small">
+								@if (!string.IsNullOrWhiteSpace(order.TrackingNumber))
+								{
+									<span>@Localizer["Tracking"]: @order.TrackingNumber</span>
+								}
+								@if (!string.IsNullOrWhiteSpace(order.TrackingNumber) && !string.IsNullOrWhiteSpace(order.Carrier))
+								{
+									<span> · </span>
+								}
+								@if (!string.IsNullOrWhiteSpace(order.Carrier))
+								{
+									<span>@Localizer["Carrier"]: @order.Carrier</span>
+								}
+							</span>
+						}
+						<span class="d-block small text-muted">@Localizer["Date"]: @notification.CreatedAt.ToLocalTime().ToString("g")</span>
+					</a>
+				</li>
+			}
+		</ul>
+	}
+</div>

@@ -49,6 +49,7 @@ namespace VaultShop.DataAccess.Data
 		public DbSet<Promotion> Promotions { get; set; }
 		public DbSet<Banner> Banners { get; set; }
 		public DbSet<BannerImage> BannerImages { get; set; }
+		public DbSet<UserNotification> UserNotifications { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -164,6 +165,35 @@ namespace VaultShop.DataAccess.Data
 			.WithMany()
 			.HasForeignKey(p => p.KeywordId)
 			.OnDelete(DeleteBehavior.SetNull);
+
+		// Deleting personal data keeps the user row for referential/accounting integrity, so a hard
+		// delete must never cascade into order history. Restrict makes that a DB-level guarantee.
+		modelBuilder.Entity<OrderHeader>()
+			.HasOne(o => o.ApplicationUser)
+			.WithMany()
+			.HasForeignKey(o => o.ApplicationUserId)
+			.OnDelete(DeleteBehavior.Restrict);
+
+		modelBuilder.Entity<UserNotification>()
+			.Property(n => n.Type)
+			.HasConversion<string>();
+		modelBuilder.Entity<UserNotification>()
+			.HasOne<ApplicationUser>()
+			.WithMany()
+			.HasForeignKey(n => n.ApplicationUserId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<UserNotification>()
+			.HasOne(n => n.OrderHeader)
+			.WithMany()
+			.HasForeignKey(n => n.OrderId)
+			.OnDelete(DeleteBehavior.Cascade);
+		modelBuilder.Entity<UserNotification>()
+			.HasIndex(n => new { n.ApplicationUserId, n.OrderId, n.Type })
+			.IsUnique();
+		modelBuilder.Entity<UserNotification>()
+			.HasIndex(n => new { n.ApplicationUserId, n.CreatedAt });
+		modelBuilder.Entity<UserNotification>()
+			.HasIndex(n => n.CreatedAt);
 		}
 	}
 }

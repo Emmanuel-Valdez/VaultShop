@@ -1,0 +1,15 @@
+@model VaultShop.Web.ViewComponents.NotificationBellViewModel
+
+<a class="nav-link text-secondary position-relative p-2 lh-1 d-inline-flex align-items-center"
+   href="/Identity/Account/Notifications"
+   aria-label="@Model.AccessibleLabel"
+   title="@Model.AccessibleLabel"
+   data-notification-bell="true">
+	<i class="bi bi-bell fs-4" aria-hidden="true"></i>
+	@if (Model.UnreadCount > 0)
+	{
+	<span class="notification-count-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+		  data-notification-count="@Model.UnreadCount"
+		  aria-hidden="true">@Model.UnreadCount</span>
+	}
+</a>

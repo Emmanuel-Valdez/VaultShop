@@ -16,6 +16,7 @@ public class ResxParityTests
 		"Areas/Admin/Views/Order/Summary",
 		"Areas/Admin/Views/Product/Upsert",
 		"Areas/Admin/Views/ProductPrice/Index",
+		"Areas/Identity/Pages/Account/Notifications",
 		"Services/Billing/OrderSummaryPdfGenerator",
 		"Views/Shared/_DiscountPrice",
 		"Views/Shared/_BranchCascadePicker",

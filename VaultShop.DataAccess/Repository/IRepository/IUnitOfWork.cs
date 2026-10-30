@@ -53,6 +53,7 @@ namespace VaultShop.DataAccess.Repository.IRepository
 		IPromotionRepository Promotion { get; }
 		IBannerRepository Banner { get; }
 		IBannerImageRepository BannerImage { get; }
+		IUserNotificationRepository UserNotification { get; }
 
 
 		void Save();

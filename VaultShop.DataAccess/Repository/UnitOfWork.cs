@@ -45,6 +45,7 @@ namespace VaultShop.DataAccess.Repository
 		public IPromotionRepository Promotion { get; private set; }
 		public IBannerRepository Banner { get; private set; }
 		public IBannerImageRepository BannerImage { get; private set; }
+		public IUserNotificationRepository UserNotification { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db) 
         {
@@ -82,6 +83,7 @@ namespace VaultShop.DataAccess.Repository
 			Promotion = new PromotionRepository(_db);
 			Banner = new BannerRepository(_db);
 			BannerImage = new BannerImageRepository(_db);
+			UserNotification = new UserNotificationRepository(_db);
 
 		}
 

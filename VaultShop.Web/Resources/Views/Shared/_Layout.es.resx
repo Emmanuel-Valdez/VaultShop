@@ -192,14 +192,20 @@
   <data name="MadeBy" xml:space="preserve">
     <value>Hecho por</value>
   </data>
-  <data name="ManageOrder" xml:space="preserve">
-    <value>Gestionar Órden</value>
-  </data>
   <data name="ManageUsers" xml:space="preserve">
     <value>Gestionar Usuarios</value>
   </data>
   <data name="MyAccount" xml:space="preserve">
     <value>Mi Cuenta</value>
+  </data>
+  <data name="MyPurchases" xml:space="preserve">
+    <value>Mis compras</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notificaciones</value>
+  </data>
+  <data name="UnreadNotifications" xml:space="preserve">
+    <value>Notificaciones: {0} sin leer</value>
   </data>
   <data name="Packaging" xml:space="preserve">
     <value>Embalaje</value>

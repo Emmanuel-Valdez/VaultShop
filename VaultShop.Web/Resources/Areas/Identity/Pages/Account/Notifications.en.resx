@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="EmptyState" xml:space="preserve">
+    <value>You have no notifications.</value>
+  </data>
+  <data name="Unread" xml:space="preserve">
+    <value>Unread</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Tracking" xml:space="preserve">
+    <value>Tracking</value>
+  </data>
+  <data name="Carrier" xml:space="preserve">
+    <value>Carrier</value>
+  </data>
+  <data name="PaymentApprovedTitle" xml:space="preserve">
+    <value>Payment approved</value>
+  </data>
+  <data name="PaymentApprovedDetail" xml:space="preserve">
+    <value>We received the payment for order #{0}.</value>
+  </data>
+  <data name="PaymentFailedTitle" xml:space="preserve">
+    <value>Payment failed</value>
+  </data>
+  <data name="PaymentFailedDetail" xml:space="preserve">
+    <value>The payment for order #{0} could not be completed.</value>
+  </data>
+  <data name="ShippedTitle" xml:space="preserve">
+    <value>Order shipped</value>
+  </data>
+  <data name="ShippedDetail" xml:space="preserve">
+    <value>Order #{0} has shipped.</value>
+  </data>
+  <data name="CancelledTitle" xml:space="preserve">
+    <value>Order cancelled</value>
+  </data>
+  <data name="CancelledDetail" xml:space="preserve">
+    <value>Order #{0} was cancelled.</value>
+  </data>
+  <data name="RefundedTitle" xml:space="preserve">
+    <value>Order refunded</value>
+  </data>
+  <data name="RefundedDetail" xml:space="preserve">
+    <value>Order #{0} was refunded.</value>
+  </data>
+  <data name="AdminNewOrderTitle" xml:space="preserve">
+    <value>New order</value>
+  </data>
+  <data name="AdminNewOrderDetail" xml:space="preserve">
+    <value>New order #{0} from {1}.</value>
+  </data>
+  <data name="AdminBankTransferRequestTitle" xml:space="preserve">
+    <value>Bank transfer confirmation</value>
+  </data>
+  <data name="AdminBankTransferRequestDetail" xml:space="preserve">
+    <value>The customer confirmed a bank transfer for order #{0}.</value>
+  </data>
+  <data name="OrderUpdateTitle" xml:space="preserve">
+    <value>Order update</value>
+  </data>
+  <data name="OrderUpdateDetail" xml:space="preserve">
+    <value>There is an update for order #{0}.</value>
+  </data>
+</root>

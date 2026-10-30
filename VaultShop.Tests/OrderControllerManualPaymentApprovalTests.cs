@@ -17,6 +17,7 @@ using VaultShop.Models.ViewModels;
 using VaultShop.Utility;
 using VaultShop.Web.Areas.Admin.Controllers;
 using VaultShop.Web.Services.Email;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
@@ -169,6 +170,7 @@ namespace VaultShop.Web.Tests
 			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
 			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.AdminBankTransferRequest), Times.Once);
 		}
 
 		[Fact]
@@ -196,7 +198,8 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(confirmedAt, order.TransferConfirmedByCustomerAt);
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
-			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Once);
+			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Never);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
 		}
 
 		[Fact]
@@ -223,6 +226,7 @@ namespace VaultShop.Web.Tests
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
 			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(It.IsAny<int>()), Times.Never);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
 		}
 
 		[Fact]
@@ -249,6 +253,7 @@ namespace VaultShop.Web.Tests
 			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
 			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(42), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.AdminBankTransferRequest), Times.Once);
 		}
 
 		[Fact]
@@ -276,6 +281,7 @@ namespace VaultShop.Web.Tests
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
 			test.EmailServiceMock.Verify(x => x.TrySendAdminBankTransferConfirmationRequestAsync(It.IsAny<int>()), Times.Never);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
 		}
 
 		[Fact]
@@ -358,6 +364,7 @@ namespace VaultShop.Web.Tests
 			test.PaymentRefundMock.Verify(x => x.RefundPaymentIntentAsync(It.IsAny<string>()), Times.Never);
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, null), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.Cancelled), Times.Once);
 		}
 
 		[Fact]
@@ -382,6 +389,7 @@ namespace VaultShop.Web.Tests
 			test.PaymentRefundMock.Verify(x => x.RefundPaymentIntentAsync("pi_stripe"), Times.Once);
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, SD.StatusRefunded), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.Refunded), Times.Once);
 		}
 
 		[Fact]
@@ -406,6 +414,7 @@ namespace VaultShop.Web.Tests
 			test.MercadoPagoPaymentRefundMock.Verify(x => x.RefundPaymentIntentAsync("payment_mp"), Times.Once);
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, SD.StatusRefunded), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.Refunded), Times.Once);
 		}
 		[Fact]
 		public async Task CancelOrder_MercadoPagoRefundFailure_StillCancelsOrder()
@@ -429,6 +438,7 @@ namespace VaultShop.Web.Tests
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, null), Times.Once);
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, SD.StatusRefunded), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.Cancelled), Times.Once);
 		}
 
 		[Fact]
@@ -451,6 +461,7 @@ namespace VaultShop.Web.Tests
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, null), Times.Once);
 			test.OrderHeaderMock.Verify(x => x.UpdateStatus(42, SD.StatusCancelled, SD.StatusRefunded), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.Cancelled), Times.Once);
 		}
 
 		[Fact]
@@ -565,6 +576,7 @@ namespace VaultShop.Web.Tests
 			test.PaymentSessionMock.Verify(x => x.CreateCheckoutSession(It.IsAny<PaymentSessionRequest>()), Times.Never);
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
 		}
 
 		[Fact]
@@ -793,6 +805,7 @@ namespace VaultShop.Web.Tests
 			Assert.Equal(SD.StatusInProcess, order.OrderStatus);
 			test.OrderHeaderMock.Verify(x => x.Update(It.IsAny<OrderHeader>()), Times.Never);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Never);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()), Times.Never);
 		}
 
 		[Fact]
@@ -827,6 +840,7 @@ namespace VaultShop.Web.Tests
 			Assert.NotEqual(default, order.ShippingDate);
 			test.OrderHeaderMock.Verify(x => x.Update(order), Times.Once);
 			test.UnitOfWorkMock.Verify(x => x.Save(), Times.Once);
+			test.OrderNotificationMock.Verify(x => x.NotifyOrderEventAsync(42, OrderNotificationType.Shipped), Times.Once);
 		}
 
 		[Fact]
@@ -1318,6 +1332,10 @@ namespace VaultShop.Web.Tests
 			var paymentRefundMock = new Mock<IPaymentRefundService>();
 			var mercadoPagoPaymentRefundMock = new Mock<IPaymentRefundService>();
 			var emailServiceMock = new Mock<ITransactionalEmailService>();
+			var orderNotificationMock = new Mock<IOrderNotificationService>();
+			orderNotificationMock
+				.Setup(x => x.NotifyOrderEventAsync(It.IsAny<int>(), It.IsAny<OrderNotificationType>()))
+				.Returns(Task.CompletedTask);
 			var orderSummaryServiceMock = new Mock<IOrderSummaryService>();
 			var pdfGeneratorMock = new Mock<IOrderSummaryPdfGenerator>();
 			var branchLookupMock = branchLookup ?? new Mock<IBranchLookupService>();
@@ -1361,14 +1379,15 @@ namespace VaultShop.Web.Tests
 				orderSummaryServiceMock.Object,
 				pdfGeneratorMock.Object,
 				new OrderAccessPolicy(unitOfWorkMock.Object),
-				branchLookupMock.Object)
+				branchLookupMock.Object,
+				orderNotificationMock.Object)
 			{
 				OrderVM = new OrderVM { OrderHeader = new OrderHeader { Id = orderHeader?.Id ?? 42 } },
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
 			};
 
-			return new TestController(controller, paymentStatusMock, paymentSessionMock, mercadoPagoPaymentSessionMock, paymentRefundMock, mercadoPagoPaymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock, orderSummaryServiceMock, pdfGeneratorMock, branchLookupMock);
+			return new TestController(controller, paymentStatusMock, paymentSessionMock, mercadoPagoPaymentSessionMock, paymentRefundMock, mercadoPagoPaymentRefundMock, unitOfWorkMock, orderHeaderMock, emailServiceMock, orderNotificationMock, orderSummaryServiceMock, pdfGeneratorMock, branchLookupMock);
 		}
 
 		private static List<object> GetJsonOrders(IActionResult result)
@@ -1413,7 +1432,7 @@ namespace VaultShop.Web.Tests
 			return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
 		}
 
-		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentSessionService> MercadoPagoPaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IPaymentRefundService> MercadoPagoPaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock, Mock<IOrderSummaryService> OrderSummaryServiceMock, Mock<IOrderSummaryPdfGenerator> PdfGeneratorMock, Mock<IBranchLookupService> BranchLookupServiceMock);
+		private sealed record TestController(OrderController Controller, Mock<IPaymentStatusService> PaymentStatusMock, Mock<IPaymentSessionService> PaymentSessionMock, Mock<IPaymentSessionService> MercadoPagoPaymentSessionMock, Mock<IPaymentRefundService> PaymentRefundMock, Mock<IPaymentRefundService> MercadoPagoPaymentRefundMock, Mock<IUnitOfWork> UnitOfWorkMock, Mock<IOrderHeaderRepository> OrderHeaderMock, Mock<ITransactionalEmailService> EmailServiceMock, Mock<IOrderNotificationService> OrderNotificationMock, Mock<IOrderSummaryService> OrderSummaryServiceMock, Mock<IOrderSummaryPdfGenerator> PdfGeneratorMock, Mock<IBranchLookupService> BranchLookupServiceMock);
 	}
 }
 

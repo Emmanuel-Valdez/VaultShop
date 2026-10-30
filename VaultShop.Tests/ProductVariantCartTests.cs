@@ -16,6 +16,7 @@ using VaultShop.Web.Services.Checkout;
 using VaultShop.Web.Services.Pagination;
 using VaultShop.Web.Services.Pricing;
 using VaultShop.Web.Services.ProductVariants;
+using VaultShop.Web.Services.Notifications;
 
 namespace VaultShop.Web.Tests
 {
@@ -359,7 +360,8 @@ namespace VaultShop.Web.Tests
 				null!,
 				null!,
 				null!,
-				variantService)
+				variantService,
+				Mock.Of<IOrderNotificationService>())
 			{
 				ControllerContext = new ControllerContext { HttpContext = httpContext },
 				TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())

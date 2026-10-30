@@ -25,6 +25,9 @@ namespace VaultShop.Models
         [ForeignKey("CompanyId")]
         [ValidateNever]
         public Company? Company { get; set; }
+        // Account tombstone: row kept so orders/audit references stay intact, PII erased on delete.
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAtUtc { get; set; }
         [NotMapped]
 		public string Role { get; set; } = string.Empty;
 		

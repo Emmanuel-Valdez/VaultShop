@@ -210,12 +210,17 @@ public class CartCheckoutHttpTests
     [Fact]
     public async Task SummaryPost_AsCompany_CreatesPendingDelayedOrderAndSkipsStripe()
     {
-        using var factory = new CustomWebApplicationFactory();
+        using var baseFactory = new CustomWebApplicationFactory();
+        using var factory = baseFactory.WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Email:AdminEmail"] = string.Empty,
+            })));
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        SeedProductAndCart(factory, factory.CompanyEmail, count: 3, retailPrice: 100m, wholesalePrice: 70m);
+        SeedProductAndCart(factory, baseFactory.CompanyEmail, count: 3, retailPrice: 100m, wholesalePrice: 70m);
 
-        await TestAuthHelper.LoginAsync(client, factory.CompanyEmail, factory.TestPassword);
+        await TestAuthHelper.LoginAsync(client, baseFactory.CompanyEmail, baseFactory.TestPassword);
 
         var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
 
@@ -230,10 +235,66 @@ public class CartCheckoutHttpTests
         var orderHeader = Assert.Single(db.OrderHeaders.AsNoTracking());
         Assert.Equal(SD.PaymentStatusDelayedPayment, orderHeader.PaymentStatus);
         Assert.Equal(SD.StatusPending, orderHeader.OrderStatus);
-        Assert.Equal(factory.TestCompanyId, orderHeader.CompanyId);
+        Assert.Equal(db.ApplicationUsers.Single(user => user.Email == baseFactory.CompanyEmail).CompanyId, orderHeader.CompanyId);
         Assert.Null(orderHeader.PaymentMethod);
         Assert.Equal(210m, orderHeader.OrderTotal);
         Assert.Equal(DateOnly.FromDateTime(orderHeader.OrderDate.AddDays(SD.CompanyPaymentDueDays)), orderHeader.PaymentDueDate);
+        var adminId = db.ApplicationUsers.Single(user => user.Email == baseFactory.AdminEmail).Id;
+        var adminNotification = Assert.Single(db.UserNotifications.AsNoTracking());
+        Assert.Equal(adminId, adminNotification.ApplicationUserId);
+        Assert.Equal(orderHeader.Id, adminNotification.OrderId);
+        Assert.Equal(OrderNotificationType.AdminNewOrder, adminNotification.Type);
+    }
+
+    [Fact]
+    public async Task PaidOnlineOrder_NotifiesCustomerAndAdminsWhenAdminEmailIsMissing()
+    {
+        using var baseFactory = new CustomWebApplicationFactory();
+        using var factory = baseFactory.WithWebHostBuilder(builder =>
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Email:AdminEmail"] = string.Empty,
+            })));
+        var orderId = await CreatePendingStripeOrderAsync(factory, baseFactory.CustomerEmail, baseFactory.TestPassword);
+
+        using var scope = factory.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        var order = db.OrderHeaders.AsNoTracking().Single(item => item.Id == orderId);
+        var paymentStatus = services.GetRequiredService<IPaymentStatusService>();
+
+        var approved = await paymentStatus.MarkCheckoutSessionPaid(
+            new PaymentSessionStatusUpdate(order.Id, order.SessionId!, order.PaymentIntentId));
+
+        Assert.True(approved);
+        var customerId = db.ApplicationUsers.Single(user => user.Email == baseFactory.CustomerEmail).Id;
+        var adminId = db.ApplicationUsers.Single(user => user.Email == baseFactory.AdminEmail).Id;
+        var notifications = await db.UserNotifications.AsNoTracking().Where(item => item.OrderId == orderId).ToListAsync();
+        Assert.Equal(2, notifications.Count);
+        Assert.Contains(notifications, item => item.ApplicationUserId == customerId && item.Type == OrderNotificationType.PaymentApproved);
+        Assert.Contains(notifications, item => item.ApplicationUserId == adminId && item.Type == OrderNotificationType.AdminNewOrder);
+    }
+
+    [Fact]
+    public async Task RepeatedPaymentFailureTransitions_PersistOneNotification()
+    {
+        using var factory = new CustomWebApplicationFactory();
+        var orderId = await CreatePendingStripeOrderAsync(factory, factory.CustomerEmail, factory.TestPassword);
+
+        using var scope = factory.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        var order = db.OrderHeaders.AsNoTracking().Single(item => item.Id == orderId);
+        var paymentStatus = services.GetRequiredService<IPaymentStatusService>();
+        var update = new PaymentSessionStatusUpdate(order.Id, order.SessionId!, order.PaymentIntentId);
+
+        Assert.True(await paymentStatus.MarkCheckoutSessionFailed(update));
+        // The order is now cancelled/rejected: a duplicate failure is a no-op and must not notify again.
+        Assert.False(await paymentStatus.MarkCheckoutSessionFailed(update));
+
+        var notification = Assert.Single(await db.UserNotifications.AsNoTracking().Where(item => item.OrderId == orderId).ToListAsync());
+        Assert.Equal(order.ApplicationUserId, notification.ApplicationUserId);
+        Assert.Equal(OrderNotificationType.PaymentFailed, notification.Type);
     }
 
     [Fact]
@@ -655,6 +716,19 @@ public class CartCheckoutHttpTests
             form["OrderHeader.DeliveryType"] = deliveryType;
         }
         return await client.PostAsync("/en-US/Customer/Cart/Summary", new FormUrlEncodedContent(form));
+    }
+
+    private static async Task<int> CreatePendingStripeOrderAsync(WebApplicationFactory<Program> factory, string email, string password)
+    {
+        SeedProductAndCart(factory, email, count: 1, retailPrice: 100m, wholesalePrice: 70m);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        await TestAuthHelper.LoginAsync(client, email, password);
+        var token = await TestAuthHelper.GetAntiforgeryTokenAsync(client, "/en-US/Customer/Cart/Summary");
+        var response = await PostSummary(client, token);
+        Assert.Equal((HttpStatusCode)303, response.StatusCode);
+
+        using var scope = factory.Services.CreateScope();
+        return scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().OrderHeaders.AsNoTracking().Single().Id;
     }
 
     [Fact]

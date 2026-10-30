@@ -14,6 +14,7 @@ using VaultShop.Web.Services.Email;
 using VaultShop.Web.Services.Payments;
 using VaultShop.Web.Services;
 using VaultShop.Web.Services.Billing;
+using VaultShop.Web.Services.Notifications;
 using VaultShop.Web.Services.Shipping;
 
 namespace VaultShop.Web.Areas.Admin.Controllers
@@ -33,6 +34,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 		private readonly IWebHostEnvironment _environment;
 		private readonly IConfiguration _configuration;
 		private readonly ITransactionalEmailService _emailService;
+		private readonly IOrderNotificationService _orderNotificationService;
 
 		private readonly IOrderSummaryService _orderSummaryService;
 		private readonly IOrderSummaryPdfGenerator _pdfGenerator;
@@ -43,7 +45,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			IServiceProvider paymentSessionServiceProvider, IPaymentRefundService paymentRefundService, IPaymentStatusService paymentStatusService,
 			IWebHostEnvironment environment, IConfiguration configuration, ITransactionalEmailService emailService,
 			IOrderSummaryService orderSummaryService, IOrderSummaryPdfGenerator pdfGenerator, OrderAccessPolicy orderAccessPolicy,
-			IBranchLookupService branchLookup)
+			IBranchLookupService branchLookup, IOrderNotificationService orderNotificationService)
 		{
 			_unitOfWork = unitOfWork;
 			_localizer = localizer;
@@ -58,6 +60,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_pdfGenerator = pdfGenerator;
 			_orderAccessPolicy = orderAccessPolicy;
 			_branchLookup = branchLookup;
+			_orderNotificationService = orderNotificationService;
 		}
 
 
@@ -240,6 +243,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_unitOfWork.OrderHeader.Update(orderHeader);
 			_unitOfWork.Save();
 			_logger.LogInformation("Marked order {OrderId} as shipped. DelayedPayment: {IsDelayedPayment}", orderHeader.Id, orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment);
+			await _orderNotificationService.NotifyOrderEventAsync(orderHeader.Id, OrderNotificationType.Shipped);
 			
 			await _emailService.TrySendShippingConfirmationAsync(orderHeader.Id);
 			
@@ -261,6 +265,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			_logger.LogWarning("Rejected cancel request for frozen order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
 			return RedirectToAction(nameof(Details), new { orderId = orderHeader.Id });
 		}
+		var notificationType = OrderNotificationType.Cancelled;
 
 		if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
 			{
@@ -271,6 +276,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 					{
 						await GetPaymentRefundService(orderHeader).RefundPaymentIntentAsync(orderHeader.PaymentIntentId);
 						_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusRefunded);
+						notificationType = OrderNotificationType.Refunded;
 					}
 					catch (Exception ex)
 					{
@@ -291,6 +297,7 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 			}
 			_unitOfWork.Save();
 			_logger.LogInformation("Cancelled order {OrderId}. PreviousPaymentStatus: {PaymentStatus}", orderHeader.Id, orderHeader.PaymentStatus);
+			await _orderNotificationService.NotifyOrderEventAsync(orderHeader.Id, notificationType);
 			TempData["Success"] = _localizer["OrderCancelledSuccessfully"].Value;
 			return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
 		}
@@ -484,9 +491,9 @@ namespace VaultShop.Web.Areas.Admin.Controllers
 				orderHeader.TransferConfirmedByCustomerAt = DateTime.UtcNow;
 				_unitOfWork.OrderHeader.Update(orderHeader);
 				_unitOfWork.Save();
+				await _orderNotificationService.NotifyOrderEventAsync(orderId, OrderNotificationType.AdminBankTransferRequest);
+				await _emailService.TrySendAdminBankTransferConfirmationRequestAsync(orderId);
 			}
-
-			await _emailService.TrySendAdminBankTransferConfirmationRequestAsync(orderId);
 
 			return RedirectToAction(nameof(Details), new { orderId });
 		}

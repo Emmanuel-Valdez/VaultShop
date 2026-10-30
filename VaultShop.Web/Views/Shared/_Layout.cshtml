@@ -163,6 +163,13 @@
 						<button class="btn-close btn-close-white" type="button" aria-label="@Localizer["Close"]" data-bs-dismiss="offcanvas"></button>
 					</div>
 					<div class="offcanvas-body d-flex flex-column justify-content-between px-3 ">
+						@if (SignInManager.IsSignedIn(User))
+						{
+							<a class="nav-link text-secondary d-flex align-items-center gap-2 mb-2 d-lg-none" asp-area="Identity" asp-page="/Account/Manage/Index">
+								<i class="bi bi-person-circle fs-4" aria-hidden="true"></i>
+								<span>@Localizer["MyAccount"]</span>
+							</a>
+						}
 						<ul class="navbar-nav me-auto fs-5  flex-grow-1 ">
 							@if (!isStorefront)
 							{
@@ -268,7 +275,7 @@ collectionHeading = Localizer["Collections"].Value
 							@if (SignInManager.IsSignedIn(User))
 							{
 								<li class="nav-item p-sm-3 py-md-1">
-									<a class="nav-link text-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">@Localizer["ManageOrder"]</a>
+									<a class="nav-link text-secondary" asp-area="Admin" asp-controller="Order" asp-action="Index">@Localizer["MyPurchases"]</a>
 								</li>
 							}
 							@if (SignInManager.IsSignedIn(User))
@@ -332,6 +339,13 @@ collectionHeading = Localizer["Collections"].Value
 				}
 				<div class="nav-item d-none d-lg-block">
 					<partial name="_ThemeToggle" />
+				</div>
+				<div class="nav-item">
+					@await Component.InvokeAsync("NotificationBell", new
+					{
+						notificationsLabel = Localizer["Notifications"].Value,
+						unreadNotificationsLabel = Localizer["UnreadNotifications"].Value
+					})
 				</div>
 				<div class="nav-item @(hasMobileShell ? "d-none d-lg-block" : null)">
 					<a class="nav-link text-secondary position-relative p-2 lh-1 d-inline-flex align-items-center" asp-area="Customer" asp-controller="Cart" asp-action="Index" aria-label="@Localizer["Cart"]">
@@ -495,10 +509,20 @@ collectionHeading = Localizer["Collections"].Value
 						</a>
 					</li>
 					<li>
-						<a class="storefront-mobile-nav__link @(isAccount ? "is-active" : null)" asp-area="Identity" asp-page="@accountPage" aria-current="@(isAccount ? "true" : null)">
-							<i class="bi bi-person" aria-hidden="true"></i>
-							<span>@Localizer["MyAccount"]</span>
-						</a>
+						@if (SignInManager.IsSignedIn(User))
+						{
+							<a class="storefront-mobile-nav__link @(isAdminOrders ? "is-active" : null)" asp-area="Admin" asp-controller="Order" asp-action="Index" aria-current="@(isAdminOrders ? "page" : null)">
+								<i class="bi bi-receipt" aria-hidden="true"></i>
+								<span>@Localizer["MyPurchases"]</span>
+							</a>
+						}
+						else
+						{
+							<a class="storefront-mobile-nav__link @(isAccount ? "is-active" : null)" asp-area="Identity" asp-page="@accountPage" aria-current="@(isAccount ? "true" : null)">
+								<i class="bi bi-person" aria-hidden="true"></i>
+								<span>@Localizer["MyAccount"]</span>
+							</a>
+						}
 					</li>
 					<li>
 						<button type="button" class="storefront-mobile-nav__link" data-bs-toggle="offcanvas" data-bs-target="#sideNavbarTop" aria-controls="sideNavbarTop" aria-expanded="false">

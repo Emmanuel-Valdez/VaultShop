@@ -2,6 +2,7 @@ using VaultShop.DataAccess.Repository.IRepository;
 using VaultShop.Models;
 using VaultShop.Utility;
 using VaultShop.Web.Services.Email;
+using VaultShop.Web.Services.Notifications;
 
 namespace VaultShop.Web.Services.Payments
 {
@@ -9,12 +10,18 @@ namespace VaultShop.Web.Services.Payments
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly ITransactionalEmailService _emailService;
+		private readonly IOrderNotificationService _orderNotificationService;
 		private readonly ILogger<PaymentStatusService> _logger;
 
-		public PaymentStatusService(IUnitOfWork unitOfWork, ITransactionalEmailService emailService, ILogger<PaymentStatusService> logger)
+		public PaymentStatusService(
+			IUnitOfWork unitOfWork,
+			ITransactionalEmailService emailService,
+			IOrderNotificationService orderNotificationService,
+			ILogger<PaymentStatusService> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_emailService = emailService;
+			_orderNotificationService = orderNotificationService;
 			_logger = logger;
 		}
 
@@ -54,6 +61,11 @@ namespace VaultShop.Web.Services.Payments
 			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, nextOrderStatus, SD.PaymentStatusApproved);
 			_unitOfWork.Save();
 			_logger.LogInformation("Marked order {OrderId} as paid from checkout session {SessionId}.", orderHeader.Id, update.SessionId);
+			await _orderNotificationService.NotifyOrderEventAsync(orderHeader.Id, OrderNotificationType.PaymentApproved);
+			if (orderHeader.CompanyId.GetValueOrDefault() == 0)
+			{
+				await _orderNotificationService.NotifyOrderEventAsync(orderHeader.Id, OrderNotificationType.AdminNewOrder);
+			}
 			// ponytail: emails after real transition only; duplicate early return above must not send
 			try { await _emailService.TrySendOrderConfirmationAsync(orderHeader.Id); }
 			catch (Exception ex) { _logger.LogError(ex, "Failed to send order confirmation for paid order {OrderId}.", orderHeader.Id); }
@@ -66,7 +78,7 @@ namespace VaultShop.Web.Services.Payments
 			return true;
 		}
 
-		public bool MarkCheckoutSessionFailed(PaymentSessionStatusUpdate update)
+		public async Task<bool> MarkCheckoutSessionFailed(PaymentSessionStatusUpdate update)
 		{
 			var orderHeader = FindOrder(update);
 			if (orderHeader == null)
@@ -74,11 +86,32 @@ namespace VaultShop.Web.Services.Payments
 				_logger.LogWarning("Could not find order for failed checkout session {SessionId}.", update.SessionId);
 				return false;
 			}
+			if (!SessionMatches(orderHeader, update))
+			{
+				_logger.LogWarning("Ignored failed checkout session {SessionId} for order {OrderId} because the order currently stores session {StoredSessionId}.", update.SessionId, orderHeader.Id, orderHeader.SessionId);
+				return false;
+			}
+			if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
+			{
+				_logger.LogError("Failed checkout session {SessionId} arrived for already-paid order {OrderId}. Ignored to avoid cancelling a paid order; manual review may be required.", update.SessionId, orderHeader.Id);
+				return false;
+			}
+			if (IsTerminal(orderHeader))
+			{
+				_logger.LogInformation("Ignored failed checkout session {SessionId} for terminal order {OrderId}. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", update.SessionId, orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return false;
+			}
+			if (!IsPayable(orderHeader))
+			{
+				_logger.LogWarning("Ignored failed checkout session {SessionId} for order {OrderId} in non-payable state. OrderStatus: {OrderStatus}. PaymentStatus: {PaymentStatus}.", update.SessionId, orderHeader.Id, orderHeader.OrderStatus, orderHeader.PaymentStatus);
+				return false;
+			}
 
 			_unitOfWork.OrderHeader.UpdateStripePaymentId(orderHeader.Id, update.SessionId, update.PaymentIntentId ?? string.Empty);
 			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.PaymentStatusRejected);
 			_unitOfWork.Save();
 			_logger.LogInformation("Marked order {OrderId} as payment failed from checkout session {SessionId}.", orderHeader.Id, update.SessionId);
+			await _orderNotificationService.NotifyOrderEventAsync(orderHeader.Id, OrderNotificationType.PaymentFailed);
 			return true;
 		}
 
@@ -118,6 +151,11 @@ namespace VaultShop.Web.Services.Payments
 			_unitOfWork.OrderHeader.UpdateStatus(orderHeader.Id, nextOrderStatus, SD.PaymentStatusApproved);
 			_unitOfWork.Save();
 			_logger.LogInformation("Approved manual bank transfer for order {OrderId}.", orderId);
+			await _orderNotificationService.NotifyOrderEventAsync(orderId, OrderNotificationType.PaymentApproved);
+			if (orderHeader.CompanyId.GetValueOrDefault() == 0)
+			{
+				await _orderNotificationService.NotifyOrderEventAsync(orderId, OrderNotificationType.AdminNewOrder);
+			}
 			// ponytail: emails after real transition only; duplicate early return above must not send
 			try { await _emailService.TrySendOrderConfirmationAsync(orderId); }
 			catch (Exception ex) { _logger.LogError(ex, "Failed to send order confirmation for approved bank-transfer order {OrderId}.", orderId); }
