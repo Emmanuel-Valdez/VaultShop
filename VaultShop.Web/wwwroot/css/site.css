@@ -724,27 +724,42 @@ div.dt-button-collection .dt-button:hover {
     border-radius: 0.75rem;
     cursor: pointer;
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     min-height: 4.5rem;
     padding: 0.75rem 0.875rem;
+    position: relative;
 }
 
 .payment-method-picker__mark {
+    align-items: center;
     display: inline-flex;
     flex: 0 0 auto;
     height: 2.5rem;
-    width: 2.5rem;
+    max-width: 4rem;
+    width: auto;
 }
 
 .payment-method-picker__mark svg {
     height: 100%;
-    width: 100%;
+    max-width: 100%;
+    width: auto;
 }
 
 .payment-method-picker__label {
     color: var(--theme-primary);
+    flex: 1 1 auto;
     font-weight: 600;
     line-height: 1.25;
+    min-width: 0;
+}
+
+.payment-method-picker__offer {
+    font-size: 0.7rem;
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    z-index: 1;
 }
 
 .payment-method-picker__selected {

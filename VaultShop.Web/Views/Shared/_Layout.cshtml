@@ -163,14 +163,16 @@
 						<button class="btn-close btn-close-white" type="button" aria-label="@Localizer["Close"]" data-bs-dismiss="offcanvas"></button>
 					</div>
 					<div class="offcanvas-body d-flex flex-column justify-content-between px-3 ">
-						@if (SignInManager.IsSignedIn(User))
-						{
-							<a class="nav-link text-secondary d-flex align-items-center gap-2 mb-2 d-lg-none" asp-area="Identity" asp-page="/Account/Manage/Index">
-								<i class="bi bi-person-circle fs-4" aria-hidden="true"></i>
-								<span>@Localizer["MyAccount"]</span>
-							</a>
-						}
 						<ul class="navbar-nav me-auto fs-5  flex-grow-1 ">
+							@if (SignInManager.IsSignedIn(User))
+							{
+								<li class="nav-item p-sm-3 py-md-1 d-lg-none">
+									<a class="nav-link text-secondary d-flex align-items-center gap-2" asp-area="Identity" asp-page="/Account/Manage/Index">
+										<i class="bi bi-person-circle fs-4" aria-hidden="true"></i>
+										<span>@Localizer["MyAccount"]</span>
+									</a>
+								</li>
+							}
 							@if (!isStorefront)
 							{
 								<li class="nav-item p-sm-3 py-md-1 ">
