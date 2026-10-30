@@ -19,11 +19,19 @@ In the light theme, the public storefront SHALL use the warm cream canvas `#f6f3
 
 ### Requirement: Single mobile storefront navigation
 
-Below the desktop navigation breakpoint, the public/customer storefront SHALL present one fixed bottom navigation with Home, Search, Cart, My account, and Menu actions. It SHALL account for device safe-area insets and reserve page space so it does not obscure content or purchase controls. The active destination SHALL be identifiable without color alone. The desktop navigation SHALL remain available at desktop widths. Admin area pages SHALL use the shared mobile shell and role-aware bottom bar defined by the `admin-hub-navigation` capability instead of the storefront items. Account entry points (login, register, and Manage account) SHALL retain the same mobile shell and navigation affordances as storefront pages so the transition between browsing and account tasks does not change the mobile navigation model.
+Below the desktop navigation breakpoint, the public/customer storefront SHALL present one fixed bottom navigation with Home, Search, Cart, My purchases, and Menu actions for authenticated shoppers. Anonymous shoppers SHALL see Home, Search, Cart, My account, and Menu, with My account leading to the sign-in flow. The active destination SHALL be identifiable without color alone. The bar SHALL account for device safe-area insets and reserve page space so it does not obscure content or purchase controls. The desktop navigation SHALL remain available at desktop widths. Admin area pages SHALL use the shared mobile shell and role-aware bottom bar defined by the `admin-hub-navigation` capability instead of the storefront items. Account entry points (login, register, and Manage account) SHALL retain the same mobile shell and navigation affordances as storefront pages so the transition between browsing and account tasks does not change the mobile navigation model. The "My purchases" destination SHALL use the existing read-only order history route. For authenticated shoppers, the "My account" destination SHALL remain available in the mobile Menu and the header user dropdown.
 
 #### Scenario: Mobile customer navigation
-- **WHEN** a shopper visits a customer storefront page below the desktop breakpoint
-- **THEN** one bottom bar exposes Home, Search, Cart, My account, and Menu, and no duplicate hamburger navigation controls are shown
+- **WHEN** an authenticated shopper visits a customer storefront page below the desktop breakpoint
+- **THEN** one bottom bar exposes Home, Search, Cart, My purchases, and Menu, and My purchases opens the read-only order history
+
+#### Scenario: Anonymous shopper navigation
+- **WHEN** an anonymous shopper visits a customer storefront page below the desktop breakpoint
+- **THEN** one bottom bar exposes Home, Search, Cart, My account, and Menu, and My account leads to sign in
+
+#### Scenario: My account remains reachable
+- **WHEN** an authenticated shopper opens the mobile Menu or the header user dropdown
+- **THEN** a My account destination is available
 
 #### Scenario: Bottom bar does not cover content
 - **WHEN** a shopper scrolls to the end of a storefront page or uses a checkout action
@@ -39,7 +47,7 @@ Below the desktop navigation breakpoint, the public/customer storefront SHALL pr
 
 #### Scenario: Admin pages use the admin shell
 - **WHEN** an Admin or Employee user opens an Admin area page below the desktop breakpoint
-- **THEN** the shared mobile shell is shown with the admin bottom bar items defined by `admin-hub-navigation`, and the storefront Search, Cart, and My account items are not shown
+- **THEN** the shared mobile shell is shown with the admin bottom bar items defined by `admin-hub-navigation`, and the storefront Search, Cart, and My purchases items are not shown
 
 ### Requirement: Visible logout in account navigation
 
