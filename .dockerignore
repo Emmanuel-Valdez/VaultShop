@@ -69,3 +69,17 @@ Logs/
 # Environment-specific content
 docs/deployment/
 VaultShop.Web/wwwroot/images/products/
+
+# Private ops docs, secrets, and agent/tooling state
+.platform.env
+*.env.compose
+plans/
+.playwright-mcp/
+.codebase-memory/
+.tokensave/
+.taste-skill/
+AGENTS.md
+CLAUDE.md
+opencode.json
+docs/portfolio-copy.md
+VaultShop.Web/wwwroot/images/brand/private/
