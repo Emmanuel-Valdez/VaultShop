@@ -40,3 +40,50 @@ jobs:
 
       - name: Run automated tests
         run: dotnet test "$TEST_PROJECT_PATH" --configuration "$BUILD_CONFIGURATION" --no-build --verbosity normal
+
+  publish-image:
+    name: Publish linux/arm64 image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set build metadata
+        id: meta
+        run: echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ghcr.io/emmanuel-valdez/vaultshop-web:sha-${{ github.sha }}
+            ghcr.io/emmanuel-valdez/vaultshop-web:main
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            GIT_BUILD_DATE=${{ steps.meta.outputs.build_date }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

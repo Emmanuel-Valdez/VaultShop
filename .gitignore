@@ -394,6 +394,8 @@ docs/portfolio-copy.md
 CLAUDE.md
 AGENTS.md
 # Local deployment notes and server-specific deployment context
+# VPS inventories contain server-specific topology and resource details.
+docs/deployment/vps-inventory-*.md
 docs/deployment/
 
 # Private deployment brand assets should be mounted/copied outside git.

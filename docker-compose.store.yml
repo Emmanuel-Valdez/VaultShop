@@ -10,15 +10,9 @@ services:
       - data-protection-keys:/keys
 
   web:
-    image: ${WEB_IMAGE:-vaultshop-web:compose}
+    image: ${WEB_IMAGE:?WEB_IMAGE is required}
     container_name: ${COMPOSE_PROJECT_NAME}-web
     restart: ${DOCKER_RESTART_POLICY:-unless-stopped}
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BUILD_DATE: ${GIT_BUILD_DATE:-unknown}
     environment:
       ASPNETCORE_ENVIRONMENT: ${APP_ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
