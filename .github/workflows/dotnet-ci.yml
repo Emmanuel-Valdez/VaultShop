@@ -39,6 +39,10 @@ jobs:
         run: dotnet build "$SOLUTION_PATH" --configuration "$BUILD_CONFIGURATION" --no-restore
 
       - name: Run automated tests
+        env:
+          # GitHub runners cap inotify instances (128); the many WebApplicationFactory
+          # hosts exhaust it and HTTP tests fail with 500. Poll instead.
+          DOTNET_USE_POLLING_FILE_WATCHER: 'true'
         run: dotnet test "$TEST_PROJECT_PATH" --configuration "$BUILD_CONFIGURATION" --no-build --verbosity normal
 
   publish-image:
