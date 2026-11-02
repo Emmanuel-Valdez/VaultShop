@@ -418,7 +418,20 @@ Expected: no matching lines on a healthy system. If errors appear, check the Str
 
 ## Monitoring
 
-An external uptime/TLS monitor should check both stores:
+### Uptime Kuma (self-hosted, on VPS)
+
+Uptime Kuma v2 runs as a container (`uptime-kuma`, bind `127.0.0.1:3001`, volume `uptime-kuma-data`). Access via SSH tunnel (`ssh -L 3001:127.0.0.1:3001`) or Tailscale Serve.
+
+Configured monitors:
+- **Push monitor** "VPS Docker Storage" — receives daily push from `check-docker-storage.sh` (cron 6:20). Alerts if Docker build cache > 10 GB or a store container uses a non-GHCR image.
+- **HTTP monitor** "VaultShop" — `https://vaultshop.evaldez.ar/health/ready` (60s interval, 3 retries).
+- **HTTP monitor** "UkiyoStudio" — `https://ukiyostudio.evaldez.ar/health/ready` (60s interval, 3 retries).
+
+Notifications are sent via Telegram to the admin's phone.
+
+### External uptime/TLS monitor
+
+An external uptime/TLS monitor should also check both stores:
 
 ```text
 https://vaultshop.evaldez.ar
@@ -475,6 +488,26 @@ cd /opt/vaultshop
 docker compose --env-file /opt/vaultshop/.platform.env -f docker-compose.platform.yml down
 docker compose --env-file /opt/vaultshop/.env.compose -f docker-compose.store.yml down
 docker compose --env-file /opt/ukiyostudio/.env.compose -f docker-compose.store.yml down
+```
+
+## Deploy (one-command, no build on VPS)
+
+Production images are built in GitHub Actions and published to GHCR (`ghcr.io/emmanuel-valdez/vaultshop-web:sha-<commit>`). The VPS never builds. Deploy with:
+
+```bash
+cd /opt/vaultshop
+git pull --ff-only
+# Deploy VaultShop
+/opt/vaultshop/scripts/ops/deploy-store.sh vaultshop
+# Deploy UkiyoStudio
+/opt/vaultshop/scripts/ops/deploy-store.sh ukiyo
+```
+
+`deploy-store.sh` validates: git pull ff-only, valid SHA, GHCR manifest exists, pulls the image, runs `up -d --no-build`, probes `/health/ready`, and syncs `WEB_IMAGE` in the store's `.env.compose`. It rejects non-GHCR and local images by construction (the image is always `ghcr.io/...:sha-<commit>`).
+
+Rollback: re-run with the previous SHA:
+```bash
+/opt/vaultshop/scripts/ops/deploy-store.sh vaultshop <previous-sha>
 ```
 
 ## Deployment Version Check
