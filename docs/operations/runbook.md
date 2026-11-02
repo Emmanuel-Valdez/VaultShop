@@ -253,18 +253,21 @@ Repeat cleanup for the UkiyoStudio container, volume, and temp dir (`ukiyostudio
 
 ## Automated Backup Freshness And Disk Checks
 
-Source scripts live in `docs/operations/` in the repo and are installed on the VPS at `~/vaultshop-backups/` and `~/ukiyostudio-backups/`. `do-backup.sh <store>` and `check-backup-freshness.sh <store> [hours]` are store-parametric: the same files (copied to both backup dirs) back up only their own store's database and bucket, using only that store's scoped MinIO user — a VaultShop backup can never read UkiyoStudio objects and vice versa. VaultShop (demo) backs up weekly; UkiyoStudio (production) backs up daily.
+Source scripts live in `docs/operations/` in this repo. `do-backup.sh <store>` and `check-backup-freshness.sh <store> [hours]` are store-parametric: the same files back up only their own store's database and bucket, using only that store's scoped MinIO user — a VaultShop backup can never read UkiyoStudio objects and vice versa. VaultShop (demo) backs up weekly; UkiyoStudio (production) backs up daily.
 
-Install/update the scripts on the VPS:
+Host-level orchestration (off-site `rsync` to the phone, Kuma push, disk check, Kuma and Vaultwarden configs) lives in the separate **server-ops** repo, not here. That repo owns `/opt/server-ops/` and the authoritative cron.
+
+Install/update the store scripts on the VPS:
 
 ```
 cd /opt/vaultshop
 mkdir -p ~/vaultshop-backups ~/ukiyostudio-backups
 install -m 755 docs/operations/do-backup.sh ~/vaultshop-backups/do-backup.sh
 install -m 755 docs/operations/do-backup.sh ~/ukiyostudio-backups/do-backup.sh
-install -m 755 docs/operations/check-backup-freshness.sh ~/vaultshop-backups/check-backup-freshness.sh
-install -m 755 docs/operations/check-backup-freshness.sh ~/ukiyostudio-backups/check-backup-freshness.sh
-install -m 755 docs/operations/check-disk.sh ~/vaultshop-backups/check-disk.sh
+sudo install -d -m 755 /opt/server-ops/scripts
+sudo chown -R "$USER":"$USER" /opt/server-ops
+install -m 755 docs/operations/check-backup-freshness.sh /opt/server-ops/scripts/check-backup-freshness.sh
+install -m 755 scripts/ops/check-docker-storage.sh /opt/server-ops/scripts/check-docker-storage.sh
 ```
 
 ### do-backup.sh
@@ -306,87 +309,24 @@ OK:   MinIO archive is 0h old (product-images_2026-08-04_0632.tar.gz)
 Exit code: 0
 ```
 
-### check-disk.sh
+### Disk check
 
-Reports disk usage and warns above configurable thresholds.
-
-```
-#!/usr/bin/env bash
-set -euo pipefail
-
-WARN_PCT="${1:-80}"
-CRIT_PCT="${2:-90}"
-EXIT_CODE=0
-
-echo "=== Disk Usage Check ==="
-echo "Warning:  ${WARN_PCT}%"
-echo "Critical: ${CRIT_PCT}%"
-echo ""
-
-while IFS='' read -r line; do
-    PCT=$(echo "$line" | awk '{print $2}' | tr -d '%')
-    SOURCE=$(echo "$line" | awk '{print $1}')
-    MOUNT=$(echo "$line" | awk '{print $3}')
-    if [ "$PCT" -ge "$CRIT_PCT" ] 2>/dev/null; then
-        echo "CRITICAL: $SOURCE ($MOUNT) at ${PCT}% (threshold: ${CRIT_PCT}%)"
-        EXIT_CODE=2
-    elif [ "$PCT" -ge "$WARN_PCT" ] 2>/dev/null; then
-        echo "WARNING:  $SOURCE ($MOUNT) at ${PCT}% (threshold: ${WARN_PCT}%)"
-        [ "$EXIT_CODE" -lt 1 ] && EXIT_CODE=1
-    else
-        echo "OK:       $SOURCE ($MOUNT) at ${PCT}%"
-    fi
-done < <(df -h --output=source,pcent,target | tail -n +2)
-
-echo ""
-echo "Exit code: $EXIT_CODE"
-exit $EXIT_CODE
-```
-
-Expected output (healthy):
-```
-=== Disk Usage Check ===
-Warning:  80%
-Critical: 90%
-
-OK:       /dev/sda2 (/) at 45%
-OK:       /dev/sda1 (/boot) at 30%
-
-Exit code: 0
-```
+The host disk check (`check-disk.sh`, 80/90 % thresholds, Kuma push) lives in the
+**server-ops** repo at `/opt/server-ops/scripts/check-disk.sh`. It is host-level,
+not store-level, so it is not maintained here.
 
 ### Cron Setup
 
-VaultShop (demo) backs up weekly on Sunday 6:00; UkiyoStudio (production) backs up daily. Both freshness checks and the disk check run daily.
+VaultShop (demo) backs up weekly on Sunday 6:00; UkiyoStudio (production) backs up daily. The authoritative crontab — backups + off-site sync + Kuma push + freshness/disk/storage checks — is documented and installed from the **server-ops** repo (`/opt/server-ops`). Do not duplicate cron lines here.
 
-```bash
-crontab -e
-```
-
-Add:
-
-```cron
-# VaultShop weekly backup (Sunday 6:00)
-0 6 * * 0 $HOME/vaultshop-backups/do-backup.sh vaultshop >> $HOME/vaultshop-backups/checks.log 2>&1
-# UkiyoStudio daily backup
-30 6 * * * $HOME/ukiyostudio-backups/do-backup.sh ukiyostudio >> $HOME/ukiyostudio-backups/checks.log 2>&1
-# Daily freshness checks (168h for weekly VaultShop, 48h for daily UkiyoStudio)
-5 6 * * * $HOME/vaultshop-backups/check-backup-freshness.sh vaultshop 168 >> $HOME/vaultshop-backups/checks.log 2>&1
-35 6 * * * $HOME/ukiyostudio-backups/check-backup-freshness.sh ukiyostudio 48 >> $HOME/ukiyostudio-backups/checks.log 2>&1
-# Daily disk check
-10 6 * * * $HOME/vaultshop-backups/check-disk.sh >> $HOME/vaultshop-backups/checks.log 2>&1
-```
-```bash
-tail -20 ~/vaultshop-backups/checks.log
-tail -20 ~/ukiyostudio-backups/checks.log
-```
+Logs: `/opt/server-ops/logs/backup.log` (backups/sync) and `/opt/server-ops/logs/checks.log` (checks).
 
 Success criteria:
 
 - Each script exits `0` when checks pass.
-- Non-zero exit codes appear in the log and indicate what failed.
+- Non-zero exit codes appear in `/opt/server-ops/logs/checks.log` and indicate what failed.
 - Both cron jobs (VaultShop weekly, UkiyoStudio daily) run without manual intervention.
-- Check the logs after the first cron execution of each store to confirm output is correct.
+- Check `/opt/server-ops/logs/backup.log` after the first cron execution of each store.
 
 ### Container Restart Detection
 
@@ -420,14 +360,11 @@ Expected: no matching lines on a healthy system. If errors appear, check the Str
 
 ### Uptime Kuma (self-hosted, on VPS)
 
-Uptime Kuma v2 runs as a container (`uptime-kuma`, bind `127.0.0.1:3001`, volume `uptime-kuma-data`). Access via SSH tunnel (`ssh -L 3001:127.0.0.1:3001`) or Tailscale Serve.
-
-Configured monitors:
-- **Push monitor** "VPS Docker Storage" — receives daily push from `check-docker-storage.sh` (cron 6:20). Alerts if Docker build cache > 10 GB or a store container uses a non-GHCR image.
-- **HTTP monitor** "VaultShop" — `https://vaultshop.evaldez.ar/health/ready` (60s interval, 3 retries).
-- **HTTP monitor** "UkiyoStudio" — `https://ukiyostudio.evaldez.ar/health/ready` (60s interval, 3 retries).
-
-Notifications are sent via Telegram to the admin's phone.
+Kuma runs on the VPS but its configuration (compose, monitors, push URLs, Telegram)
+is owned by the separate **server-ops** repo. Store-relevant monitors: VaultShop
+ready, UkiyoStudio ready, both home pages, TLS expiry, and the "Docker storage"
+push from `check-docker-storage.sh`. Do not add Kuma/Vaultwarden config to this
+repo.
 
 ### External uptime/TLS monitor
 
